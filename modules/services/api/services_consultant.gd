@@ -199,10 +199,12 @@ static func _system_result(model: BuildingModel, grid: RefCounted, s: String, so
 		var d: Dictionary = by_id[str(u.id)]
 		unserved.append({"id": str(u.id), "room": str(d.room), "what": str(d.what), "label": str(d.label)})
 	var point_cost := float(spec.per_point) * branches.size()
-	var cost := run_cost + hole_cost + point_cost + float(spec.source_cost)
+	# A source placed as a building part is priced with the building, not again here.
+	var source_cost := 0.0 if str(source.info.how) == "part" else float(spec.source_cost)
+	var cost := run_cost + hole_cost + point_cost + source_cost
 	return {"label": str(spec.label), "source": source.info, "length": snappedf(length, 0.001),
 		"run_cost": snappedf(run_cost, 0.01), "hole_cost": snappedf(hole_cost, 0.01),
-		"point_cost": snappedf(point_cost, 0.01), "source_cost": float(spec.source_cost),
+		"point_cost": snappedf(point_cost, 0.01), "source_cost": source_cost,
 		"cost": snappedf(cost, 0.01), "holes": holes, "branches": branches, "unserved": unserved}
 
 

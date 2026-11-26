@@ -48,7 +48,7 @@ toilets, commercial kitchen) with no fixtures yet are routed to their centre.
   Steiner heuristic). Waste routes WCs first (110 mm rate) and never steps down a level
   while growing from the stack, so everything drains downhill.
 - **Sources**: a building part of kind `consumer_unit`, `water_main`, `boiler` or
-  `soil_stack` once the catalog has them; else the players' placed source; else the
+  `soil_stack` (priced by the building, not again here); else the players' placed source; else the
   consultant chooses (plant room, utility, garage, hallway...; consumer unit by the front
   door, water main on the street side, stack under the WCs) and says so.
 - Rates are approximate UK installed costs (2025 to 2026) to tune in playtesting.
@@ -57,7 +57,7 @@ toilets, commercial kitchen) with no fixtures yet are routed to their centre.
 
 ## Still to come
 
-- Source and riser fixture kinds in the building catalog (asked of the building thread).
+- A riser fixture kind, so players can mark where vertical runs go.
 - Routes overlay and the room checklist in the design room; the quantity surveyor view.
 - Contracts reading `report.passed()` and `report.total_cost` for briefs.
 - Ventilation and heating runs; incremental re-routing on big buildings.

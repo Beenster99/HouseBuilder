@@ -16,6 +16,7 @@ func run_tests() -> void:
 	_sealed_room()
 	_waste_never_uphill()
 	_placed_sources()
+	_source_parts()
 	_long_wc_branch()
 	_lift_shaft()
 
@@ -151,6 +152,22 @@ func _placed_sources() -> void:
 	check(src.how == "placed" and src.room == Samples.room_of_type(m, "hallway"), "consumer unit where the players put it")
 	check(absf(float(src.at[0]) - 1.0) <= 0.5 and absf(float(src.at[2]) - 0.5) <= 0.5, "at the placed point: %s" % str(src.at))
 	check(rep.passed(), "still passes")
+
+
+func _source_parts() -> void:
+	var m := Samples.house()
+	if not m.catalog.has_kind("consumer_unit"):
+		check(false, "building catalog has the source kinds")
+		return
+	var cu := Samples.add(m, C.place_part("consumer_unit", 0, {"at": [1.0, 1.5, 0.3]}))
+	var boiler := Samples.add(m, C.place_part("boiler", 1, {"at": [5.5, 1.5, 7.7]}))
+	var rep := ServicesConsultant.route(m, {"power": {"level": 0, "at": [9.0, 7.0]}})
+	var p: Dictionary = rep.system("power").source
+	check(p.how == "part" and p.part == cu, "a consumer unit part beats a placed source: %s" % str(p))
+	check(float(rep.system("power").source_cost) == 0.0, "the part is priced by the building, not twice")
+	var h: Dictionary = rep.system("hot_water").source
+	check(h.how == "part" and h.part == boiler and int(h.level) == 1, "the boiler part upstairs heats the water")
+	check(rep.passed(), "still passes: %s" % rep.summary)
 
 
 func _long_wc_branch() -> void:
