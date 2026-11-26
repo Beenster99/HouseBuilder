@@ -10,6 +10,8 @@ flags = {
 "multiplayer": true,
 "building": true,
 "contracts": true,
+"design": true,
+"design.room": true,
 "multiplayer.crew": true,
 "multiplayer.online": true,
 "sandbox": true,
