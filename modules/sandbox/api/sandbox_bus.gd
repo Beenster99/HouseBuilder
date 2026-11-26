@@ -48,17 +48,22 @@ func unregister_module() -> void:
 
 
 ## Two windows on one PC without the menus, for testing co-op:
-##   godot --path . -- --host          hosts and opens the site
-##   godot --path . -- --join=127.0.0.1 joins and opens the site once in
+##   godot --path . -- --host          hosts and opens the game's start scene (Menu.start())
+##   godot --path . -- --join=127.0.0.1 joins and opens it once in
+## The start scene is the highest-priority Menu.set_start: this site, or the design room.
 func _dev_launch(args: PackedStringArray) -> void:
 	for arg in args:
 		if arg == "--host":
 			if net.host() == OK:
-				Router.goto(SITE_SCENE)
+				_open_start()
 		elif arg.begins_with("--join="):
-			net.session_started.connect(func(_as_host: bool) -> void: Router.goto(SITE_SCENE),
-					CONNECT_ONE_SHOT)
+			net.session_started.connect(func(_as_host: bool) -> void: _open_start(), CONNECT_ONE_SHOT)
 			net.join(arg.trim_prefix("--join="))
+
+
+func _open_start() -> void:
+	var start := Menu.start()
+	Router.goto(str(start.get("scene", SITE_SCENE)), start.get("args", {}))
 
 
 static func snap(p: Vector3) -> Vector3:
