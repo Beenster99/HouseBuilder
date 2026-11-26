@@ -30,6 +30,9 @@ func _catalog() -> void:
 	check(is_equal_approx(float(rc.area), 0.09), "rectangular sections work out their area")
 	check(cat.rate("beam", "steel", "ub_305x165x40").unit == "t", "steel is priced by the tonne")
 	check(cat.rate("wall_loadbearing", "masonry", "wall_cavity_300").rate == 195.0, "a wall build-up has its own rate")
+	for k: String in ["consumer_unit", "water_main", "boiler", "soil_stack"]:
+		check(cat.family_of(k) == "fixture" and cat.shape_of(k) == "point" and cat.rate(k, cat.materials_for(k)[0]).unit == "each",
+				"service source %s is an each-priced fixture" % k)
 	check(not cat.room_types_in("domestic").is_empty() and cat.has_room_type("classroom"), "room types cover houses and schools")
 
 
