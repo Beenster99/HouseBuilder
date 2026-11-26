@@ -1,0 +1,144 @@
+extends ModuleTest
+## Through the bus the host routes and every client (and a late joiner) ends up with the
+## host's report; placed sources are shared, checked, saved and loaded.
+##   tools/run_tests.sh services
+
+const Samples := preload("res://modules/services/tests/samples.gd")
+
+
+## A stand-in session that carries events and snapshots through var_to_bytes, as ENet does.
+class Wire:
+	var peers: Array = []  # Array of FakeNet; peers[0] is the host
+	var rejected: Array[String] = []
+
+
+class FakeNet:
+	var wire: Wire
+	var peer_id := 1
+	var events := {}
+	var snapshots := {}
+
+	func register_event(event_name: String, apply: Callable, validate := Callable()) -> void:
+		events[event_name] = {"apply": apply, "validate": validate}
+
+	func unregister_event(event_name: String) -> void:
+		events.erase(event_name)
+
+	func register_snapshot_provider(section: String, provider: Object) -> void:
+		snapshots[section] = provider
+
+	func unregister_snapshot_provider(section: String) -> void:
+		snapshots.erase(section)
+
+	func request(event_name: String, payload: Dictionary = {}) -> void:
+		var host: FakeNet = wire.peers[0]
+		var sent: Dictionary = bytes_to_var(var_to_bytes(payload))
+		var entry: Dictionary = host.events[event_name]
+		var out: Variant = sent
+		if entry.validate.is_valid():
+			out = entry.validate.call(peer_id, sent)
+		if out is String:
+			wire.rejected.append(out)
+			return
+		var bytes := var_to_bytes(out)
+		for p: FakeNet in wire.peers:
+			p.events[event_name].apply.call(bytes_to_var(bytes))
+
+	func join(host: FakeNet) -> void:
+		for section: String in host.snapshots:
+			var data: Dictionary = bytes_to_var(var_to_bytes(host.snapshots[section].get_net_snapshot()))
+			snapshots[section].apply_net_snapshot(data)
+
+
+func run_tests() -> void:
+	_solo_bus()
+	_host_and_clients()
+	_save_and_load()
+
+
+func _solo_bus() -> void:
+	var bus := Modules.bus("services") as ServicesBus
+	check(bus != null, "services bus loaded")
+	if bus == null:
+		return
+	var net := Modules.bus("multiplayer") as MultiplayerBus
+	var rejected: Array[String] = []
+	net.request_rejected.connect(func(_n: String, why: String) -> void: rejected.append(why))
+	var reports: Array[ServicesReport] = []
+	bus.report_changed.connect(func(r: ServicesReport) -> void: reports.append(r))
+	bus.run_consultant()
+	check(rejected.size() == 1 and rejected[0].begins_with("Nothing to route"), "the shared building is empty: %s" % str(rejected))
+	var house := Samples.house()
+	bus.set_model_provider(func() -> BuildingModel: return house)
+	bus.run_consultant()
+	check(reports.size() == 1 and bus.last_report() == reports[0], "solo run reports at once")
+	check(bus.last_report().digest() == ServicesConsultant.route(house).digest(), "same as routing directly")
+	bus.place_source("gas", 0, Vector2.ZERO)
+	check(rejected.size() == 2 and rejected[1].contains("gas"), "unknown service refused: %s" % str(rejected))
+	bus.place_source("power", 5, Vector2.ZERO)
+	check(rejected.size() == 3 and rejected[2].contains("level"), "missing level refused: %s" % str(rejected))
+	bus.place_source("power", 0, Vector2(1, 0.5))
+	check(bus.sources.has("power"), "source placed")
+	bus.clear_source("power")
+	check(bus.sources.is_empty(), "source cleared")
+	bus.set_model_provider(Callable())
+
+
+func _host_and_clients() -> void:
+	var wire := Wire.new()
+	var buses: Array[ServicesBus] = []
+	for i in 3:
+		var net := FakeNet.new()
+		net.wire = wire
+		net.peer_id = i + 1
+		wire.peers.append(net)
+		var bus := ServicesBus.new()
+		add_child(bus)
+		bus.attach(net)
+		buses.append(bus)
+	var house := Samples.house()
+	buses[0].set_model_provider(func() -> BuildingModel: return house)
+	# A client's own building is never used: only the host routes.
+	buses[1].set_model_provider(func() -> BuildingModel: return Samples.house(false))
+	buses[2].run_consultant()
+	var want := ServicesConsultant.route(house).digest()
+	for i in 3:
+		check(buses[i].last_report() != null and buses[i].last_report().digest() == want,
+				"peer %d has the host's report" % (i + 1))
+	check(buses[1].last_report().to_dict() == buses[0].last_report().to_dict(), "client and host reports equal")
+	# A client pins the consumer unit; everyone sees it and the next report uses it.
+	buses[1].place_source("power", 0, Vector2(1, 0.5))
+	for i in 3:
+		check(buses[i].sources.get("power", {}).get("level", -1) == 0, "peer %d has the placed source" % (i + 1))
+	buses[2].run_consultant()
+	for i in 3:
+		check(str(buses[i].last_report().system("power").source.how) == "placed", "peer %d: report uses it" % (i + 1))
+	# A late joiner gets the sources and the last report in the join snapshot.
+	var late_net := FakeNet.new()
+	late_net.wire = wire
+	late_net.peer_id = 4
+	var late := ServicesBus.new()
+	add_child(late)
+	late.attach(late_net)
+	late_net.join(wire.peers[0])
+	check(late.last_report() != null and late.last_report().digest() == buses[0].last_report().digest(), "late joiner has the report")
+	check(late.sources == buses[0].sources, "late joiner has the sources")
+	for b in buses:
+		b.queue_free()
+	late.queue_free()
+	wire.peers.clear()
+
+
+func _save_and_load() -> void:
+	var bus := ServicesBus.new()
+	bus.sources = {"waste": {"level": 0, "at": [3.0, 7.0]}}
+	var data: Dictionary = JSON.parse_string(JSON.stringify(bus.save_data()))
+	var other := ServicesBus.new()
+	other.load_data(data, ServicesBus.SAVE_VERSION)
+	check(other.sources == bus.sources, "placed sources survive a save: %s" % str(other.sources))
+	other.load_data({"sources": {"gas": {"at": [0, 0]}}}, ServicesBus.SAVE_VERSION)
+	check(other.sources.is_empty(), "unknown services dropped on load")
+	other.reset_data()
+	check(other.sources.is_empty() and other.last_report() == null, "reset clears")
+	bus.free()
+	other.free()

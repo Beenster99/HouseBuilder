@@ -19,6 +19,8 @@ flags = {
 "timelapse.demo": true,
 "structure": true,
 "structure.stress_test": false,
+"services": true,
+"services.consultant": false,
 "ui.debug_tab": true,
 "ui.sun_slider": false
 }
