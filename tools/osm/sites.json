@@ -1,0 +1,151 @@
+{
+  "about": "Curated sample sites for tools/osm. Build with: python3 -m sitepack build-all. Plot specs are described in README.md.",
+  "sites": [
+    {
+      "id": "mk-central-carpark",
+      "name": "Milton Keynes centre car park",
+      "description": "A surface car park wedged between a shopping centre and the grid roads. Flat and firm, but hemmed in.",
+      "suited_to": [
+        "school",
+        "police_station",
+        "office"
+      ],
+      "lat": 52.04,
+      "lon": -0.759,
+      "radius_m": 300,
+      "plot": {
+        "osm": "w1003661670"
+      }
+    },
+    {
+      "id": "northstowe-meadow",
+      "name": "Northstowe meadow",
+      "description": "An open greenfield meadow on the edge of a new town in the Cambridgeshire flatlands. Plenty of room for a big building.",
+      "suited_to": [
+        "hospital",
+        "school",
+        "airport_terminal"
+      ],
+      "lat": 52.278,
+      "lon": 0.039,
+      "radius_m": 300,
+      "plot": {
+        "osm": "w76912556"
+      }
+    },
+    {
+      "id": "northstowe-powerline",
+      "name": "Northstowe field under power lines",
+      "description": "A flat farm field plot with overhead power lines running across it. Easy ground, but cranes must work around the wires.",
+      "suited_to": [
+        "house",
+        "school"
+      ],
+      "lat": 52.278,
+      "lon": 0.03504,
+      "radius_m": 300,
+      "plot": {
+        "rect": {
+          "centre": [
+            -10,
+            0
+          ],
+          "width": 30,
+          "depth": 45,
+          "angle_deg": 35
+        }
+      }
+    },
+    {
+      "id": "bath-hillside-garages",
+      "name": "Bath hillside garage block",
+      "description": "A lock-up garage block on one of Bath's steep hillsides, among listed terraces. Clear the garages, then build a house on a hard slope.",
+      "suited_to": [
+        "house"
+      ],
+      "lat": 51.3893,
+      "lon": -2.3612,
+      "radius_m": 300,
+      "plot": {
+        "osm": "w217317513",
+        "buffer_m": 4
+      }
+    },
+    {
+      "id": "tewkesbury-floodplain",
+      "name": "Tewkesbury riverside car park",
+      "description": "A car park in a town that floods, between the Avon and the Mill Avon. Flat, but the ground is soft and wet.",
+      "suited_to": [
+        "police_station",
+        "school",
+        "house"
+      ],
+      "lat": 51.992,
+      "lon": -2.159,
+      "radius_m": 300,
+      "plot": {
+        "osm": "w547728805"
+      }
+    },
+    {
+      "id": "ancoats-infill",
+      "name": "Ancoats city infill",
+      "description": "A small gap site among Manchester's old mills and new flats. Cramped, made ground, neighbours on the boundary.",
+      "suited_to": [
+        "house",
+        "office"
+      ],
+      "lat": 53.484,
+      "lon": -2.226,
+      "radius_m": 300,
+      "plot": {
+        "osm": "w1495604423"
+      }
+    },
+    {
+      "id": "ancoats-phoenix-ironworks",
+      "name": "Phoenix Ironworks, Ancoats",
+      "description": "A large former ironworks site in central Manchester. Room for a big building, but it is made ground with neighbours close by.",
+      "suited_to": [
+        "school",
+        "hospital",
+        "office"
+      ],
+      "lat": 53.484,
+      "lon": -2.226,
+      "radius_m": 300,
+      "plot": {
+        "osm": "w1348583311"
+      }
+    },
+    {
+      "id": "camden-station-infill",
+      "name": "Camden Town infill",
+      "description": "A tiny construction gap by Camden Town station. Very little room, busy roads and the Underground underneath.",
+      "suited_to": [
+        "house"
+      ],
+      "lat": 51.539,
+      "lon": -0.1426,
+      "radius_m": 300,
+      "plot": {
+        "osm": "w955830215"
+      }
+    },
+    {
+      "id": "clovelly-cliffside",
+      "name": "Clovelly cliffside cottage",
+      "description": "A cottage on a Devon fishing village's cobbled street, which drops steeply to the harbour. No vehicle road reaches it: clear the old cottage and rebuild with everything carried in.",
+      "suited_to": [
+        "house"
+      ],
+      "lat": 50.9982,
+      "lon": -4.3995,
+      "radius_m": 300,
+      "plot": {
+        "osm": "w881576087",
+        "buffer_m": 1.5
+      }
+    }
+  ]
+}
