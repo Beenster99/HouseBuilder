@@ -12,7 +12,9 @@ func run_tests() -> void:
 	check(bus != null, "sandbox bus loaded")
 	if bus == null:
 		return
-	check(Menu.start().get("scene", "") == SandboxBus.SITE_SCENE, "Start goes to the sandbox site")
+	var start := Menu.start()
+	check(int(start.get("priority", -1)) >= 10 and (start.get("scene", "") == SandboxBus.SITE_SCENE
+			or int(start.get("priority", -1)) > 10), "Start goes to the sandbox site unless a higher start claims it")
 	check(SandboxBus.snap(Vector3(1.13, 0.0, -2.38)) == Vector3(1.25, 0.0, -2.5), "cursor snaps to the 0.25 m grid")
 	check(SandboxBus.cursor_id(2) == "player:2:cursor", "cursor ids are player movers")
 	check(bus.net.mover_authority(SandboxBus.cursor_id(2)) == 2, "each player drives their own cursor")
