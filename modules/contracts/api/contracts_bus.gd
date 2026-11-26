@@ -8,7 +8,8 @@ extends Node
 ##   c.accept(brief_id)             # take one (every player sees it)
 ##   c.active                       # the brief being worked on, {} for none (sandbox)
 ##   c.assess()                     # ContractValidator.assess of the shared building now
-##   c.set_structure_report(rep)    # the stress test's result, fed in by the structure module
+##   c.set_structure_report(rep)    # a stress test result by hand (normally taken from the
+##                                  # structure module's report_changed on every peer)
 ##   c.hand_over(days)              # settle: pays out, books the career, deals a new board
 ##   c.abandon()                    # drop the contract (costs reputation)
 ##   c.career                       # ContractCareer: money, reputation, unlocks
@@ -41,6 +42,9 @@ var structure_report: Dictionary = {}
 var last_settlement: Dictionary = {}
 var board_seed := 1
 var net: MultiplayerBus
+## The building's checksum when structure_report was made: a report for an older design is
+## stale and counts as untested.
+var _report_sum := 0
 
 
 func register_module() -> void:
@@ -61,6 +65,21 @@ func _hook_net() -> void:
 	var bus := Modules.bus("multiplayer") as MultiplayerBus
 	if bus != null:
 		bind(bus)
+	var st := Modules.bus("structure") as StructureBus
+	if st != null and not st.report_changed.is_connected(_on_structure_report):
+		st.report_changed.connect(_on_structure_report)
+
+
+## The structure module's stress test finished (it fires on every peer with the host's report).
+func _on_structure_report(report: StructureReport) -> void:
+	if report != null:
+		_take_report(report.brief_result())
+
+
+func _take_report(report: Dictionary) -> void:
+	structure_report = report.duplicate(true)
+	var m := building()
+	_report_sum = m.checksum() if m != null else 0
 
 
 ## Ties the board and contract to a session (tests bind their own buses).
@@ -95,7 +114,17 @@ func assess(model: BuildingModel = null) -> Dictionary:
 	var m := model if model != null else building()
 	if active.is_empty() or m == null:
 		return {}
-	return ContractValidator.assess(active, m, structure_report)
+	return ContractValidator.assess(active, m, report_for(m))
+
+
+## The stress test result if it was made for this design as it is now; {"stale": true} if
+## the design has changed since; {} if there has been no test.
+func report_for(m: BuildingModel) -> Dictionary:
+	if structure_report.is_empty():
+		return {}
+	if m != null and _report_sum != 0 and m.checksum() != _report_sum:
+		return {"stale": true}
+	return structure_report
 
 
 func brief(brief_id: String) -> Dictionary:
@@ -153,7 +182,7 @@ func _validate_handover(_sender: int, p: Dictionary) -> Variant:
 	var m := building()
 	if m == null:
 		return "no building"
-	var a := ContractValidator.assess(active, m, structure_report)
+	var a := ContractValidator.assess(active, m, report_for(m))
 	var s := ContractPayout.settle(active, a, {"days": int(p.get("days", active.deadline_days))})
 	return {"settlement": s, "seed": board_seed + 1}
 
@@ -173,6 +202,7 @@ func _validate_report(_sender: int, p: Dictionary) -> Variant:
 func _apply_accept(p: Dictionary) -> void:
 	active = (p.get("brief", {}) as Dictionary).duplicate(true)
 	structure_report = {}
+	_report_sum = 0
 	active_changed.emit()
 
 
@@ -182,6 +212,7 @@ func _apply_handover(p: Dictionary) -> void:
 	last_settlement = s
 	active = {}
 	structure_report = {}
+	_report_sum = 0
 	_deal_board(int(p.get("seed", board_seed + 1)))
 	active_changed.emit()
 	settled.emit(s)
@@ -192,11 +223,12 @@ func _apply_abandon(_p: Dictionary) -> void:
 	career.changed.emit()
 	active = {}
 	structure_report = {}
+	_report_sum = 0
 	active_changed.emit()
 
 
 func _apply_report(p: Dictionary) -> void:
-	structure_report = (p.get("report", {}) as Dictionary).duplicate(true)
+	_take_report(p.get("report", {}))
 
 
 func _deal_board(seed: int) -> void:
@@ -245,6 +277,7 @@ func reset_data() -> void:
 	career.load_data({})
 	active = {}
 	structure_report = {}
+	_report_sum = 0
 	last_settlement = {}
 	_deal_board(1)
 	active_changed.emit()

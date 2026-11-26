@@ -1,8 +1,8 @@
 # contracts module
 
 Contract briefs, the requirement validator, budget, deadline, payout, reputation and
-unlocks (Phase 5). Depends on building (to read the design) and multiplayer (to share the
-board and the contract).
+unlocks (Phase 5). Depends on building (to read the design), structure (stress test results) and
+multiplayer (to share the board and the contract).
 
 ## Classes (api/)
 
@@ -19,7 +19,9 @@ board and the contract).
 
 - Design room: show `assess()` items as the requirement checklist, `career.is_kind_unlocked()`
   to grey out locked parts in contract mode, and `board` / `accept()` for the job board.
-- Structure: after a stress test, call `set_structure_report({ok, failures: [part ids], worst?, scenario?})`.
+- Structure: contracts listens to `StructureBus.report_changed` and keeps `brief_result()`.
+  A result counts only while the building is unchanged (checked by checksum); after an edit
+  the structure requirement asks for a new test.
 - Timelapse: the handover takes the schedule's length in days: `hand_over(int(schedule.days))`.
 
 ## Tuning

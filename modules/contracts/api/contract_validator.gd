@@ -12,9 +12,10 @@ extends RefCounted
 ##   a.summary               # one or two sentences: what is wrong and what to do first
 ##
 ## structure_report is what the structural stress test gives (structure module):
-## {ok: bool, failures: [part ids], worst: utilisation, scenario?: name}; leave it {} when
-## the design has not been tested, and a "structure" requirement then fails with a tip to
-## run the test.
+## StructureReport.brief_result(): {ok: bool, failures: [part ids], worst: utilisation,
+## scenario: first failing case or ""}; leave it {} when the design has not been tested, or
+## pass {"stale": true} when it changed since; a "structure" requirement then fails with a
+## tip to run the test.
 ##
 ## Everything is worked out from the BuildingModel's data: rooms by type, level and outline,
 ## parts by kind, doors by where they sit. Distances are in plan, between room centres.
@@ -172,12 +173,15 @@ static func check(req: Dictionary, ctx: Dictionary) -> Dictionary:
 			if rep.is_empty():
 				out.detail = "The design has not been stress tested."
 				out.tip = "Run the stress test."
+			elif rep.get("stale", false):
+				out.detail = "The design has changed since the last stress test."
+				out.tip = "Run the stress test again."
 			else:
 				out.ok = bool(rep.get("ok", false))
 				out.progress = 1.0 if out.ok else 0.0
 				var fails: Array = rep.get("failures", [])
 				out.detail = "It stands up to every load case." if out.ok else "%d members fail%s." % [fails.size(),
-						" in the %s case" % rep.scenario if rep.has("scenario") else ""]
+						" in the %s case" % rep.scenario if str(rep.get("scenario", "")) != "" else ""]
 				if not out.ok:
 					out.tip = "Look at the red members: shorten their spans, add a column, or pick a bigger section."
 		_:

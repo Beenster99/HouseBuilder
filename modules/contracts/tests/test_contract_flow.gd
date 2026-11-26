@@ -4,6 +4,7 @@ extends ModuleTest
 ##   tools/run_tests.sh contracts
 
 const Kit := preload("res://modules/contracts/tests/building_kit.gd")
+const C := preload("res://modules/building/api/building_commands.gd")
 const PORT := 24591
 
 
@@ -99,6 +100,18 @@ func _bus_solo() -> void:
 	check(bus.assess(model).ok, "and the live check passes the test house")
 	bus.accept(str(bus.board[1].id))
 	check(str(bus.active.id) == house_id, "a second contract cannot be taken on top")
+	# A stress test result counts only for the design it was made for.
+	var shared := (Modules.bus("building") as BuildingBus).model
+	shared.load_data(model.to_data())
+	var st := StructureBuilding.stress_test(shared).brief_result()
+	check(st.has("ok") and st.has("failures") and st.has("scenario"), "the structure module's result has the brief's shape")
+	bus._take_report({"ok": true, "failures": [], "worst": 0.5, "scenario": ""})
+	check(bus.report_for(shared).get("ok", false), "a fresh stress test result is used")
+	shared.apply(C.place_part("column", 0, {"at": [5, 0, 4]}))
+	check(bus.report_for(shared).get("stale", false), "after an edit it is stale")
+	var stale_check := ContractValidator.check({"kind": "structure"}, {"model": shared, "cat": shared.catalog, "report": bus.report_for(shared)})
+	check(not stale_check.ok and "again" in str(stale_check.tip), "and the structure requirement asks for a new test")
+	shared.load_data(BuildingModel.new().to_data())
 	var settled: Array = []
 	bus.settled.connect(func(s: Dictionary) -> void: settled.append(s))
 	# Hand over needs the shared building; check the payout path with this model directly.
