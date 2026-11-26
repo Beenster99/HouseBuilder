@@ -53,6 +53,8 @@ var _play: Button
 var _speeds: Dictionary = {}  # speed -> Button
 var _scrub: HSlider
 var _empty: Label
+var _hand_over: Button
+var _settlement: PanelContainer
 
 
 func _ready() -> void:
@@ -417,9 +419,27 @@ func _build_hud() -> void:
 		var start := Menu.start()
 		if not start.is_empty():
 			Router.goto(str(start.scene), start.get("args", {})))
+	# With a contract taken (the contracts module, optional): hand the finished building over.
+	_hand_over = BsxTheme.button("Hand over", func() -> void:
+		var c := _contracts()
+		if c:
+			c.call("hand_over", ceili(bus.total_days())))
+	_hand_over.name = "HandOver"
+	_hand_over.custom_minimum_size = Vector2(130, 42)
+	_hand_over.visible = false
+	row.add_child(_hand_over)
+	var contracts := _contracts()
+	if contracts and contracts.has_signal("settled"):
+		contracts.connect("settled", _show_settlement)
 	back.name = "Back"
 	back.custom_minimum_size = Vector2(130, 42)
 	row.add_child(back)
+	_settlement = PanelContainer.new()
+	_settlement.name = "Settlement"
+	_settlement.add_theme_stylebox_override("panel", BsxTheme.panel_style(20))
+	_settlement.set_anchors_preset(Control.PRESET_CENTER)
+	_settlement.visible = false
+	layer.add_child(_settlement)
 	_empty = BsxTheme.hud_label("Nothing is scheduled yet. Finish a design and start its timelapse.", 22)
 	_empty.set_anchors_preset(Control.PRESET_CENTER)
 	layer.add_child(_empty)
@@ -448,6 +468,31 @@ func _update_hud(day: float) -> void:
 			_thousands(float(sched.get("cost", 0.0)))]
 	if not _scrubbing:
 		_scrub.set_value_no_signal(day)
+	var c := _contracts()
+	_hand_over.visible = day >= bus.total_days() and c != null \
+			and not (c.get("active") as Dictionary).is_empty()
+
+
+## The contracts bus when that module is loaded, else null.
+func _contracts() -> Node:
+	var c := Modules.bus("contracts")
+	return c if c and c.has_method("hand_over") else null
+
+
+func _show_settlement(s: Dictionary) -> void:
+	for child in _settlement.get_children():
+		child.queue_free()
+	var col := VBoxContainer.new()
+	col.add_theme_constant_override("separation", 6)
+	_settlement.add_child(col)
+	col.add_child(BsxTheme.hud_label("%s: %s" % [str(s.get("title", "Contract")),
+			"handed over" if bool(s.get("passed", false)) else "not accepted"], 24))
+	for line: Variant in s.get("lines", []):
+		col.add_child(BsxTheme.hud_label(str(line), 17))
+	col.add_child(BsxTheme.button("Close", func() -> void: _settlement.visible = false))
+	_settlement.visible = true
+	_settlement.reset_size()
+	_settlement.position = (get_viewport().get_visible_rect().size - _settlement.size) * 0.5
 
 
 static func _thousands(v: float) -> String:
