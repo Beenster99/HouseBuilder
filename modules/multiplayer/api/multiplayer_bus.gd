@@ -76,7 +76,7 @@ var _session: NetSession
 
 
 func register_module() -> void:
-	Settings.register("multiplayer", {"player_name": "Fitter", "port": DEFAULT_PORT,
+	Settings.register("multiplayer", {"player_name": "Builder", "port": DEFAULT_PORT,
 			"last_address": "127.0.0.1", "open_router": true})
 	_session = NetSession.new()
 	_session.name = "Session"

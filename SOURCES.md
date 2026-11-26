@@ -8,5 +8,5 @@
 | tools/run_tests.sh, tools/check_boundaries.py, Makefile | Beenster99/BSXLtd | same |
 
 Changes made on copy: player cap 3 (MultiplayerBus.MAX_CREW), UPnP description, flag set,
-core tests that named BSX-only modules. Port fixes between the two games on purpose and
+core tests that named BSX-only modules, default player name "Builder". Port fixes between the two games on purpose and
 record them here.

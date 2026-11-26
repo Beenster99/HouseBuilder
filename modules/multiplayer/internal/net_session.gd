@@ -42,7 +42,7 @@ const TIMEOUT_MAX_MS := 60000
 ## Set by the owner before hosting or joining; PROTOCOL is added automatically.
 var compat: Dictionary = {}
 ## This player's name tag and anything else other peers should see.
-var profile: Dictionary = {"name": "Fitter"}
+var profile: Dictionary = {"name": "Builder"}
 
 var state := State.OFFLINE
 var _mp := SceneMultiplayer.new()

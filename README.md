@@ -13,7 +13,8 @@ The plan: https://claude.ai/artifact/5m7ZUQnW8UJnCHLfKjqB2b
 
 1. Install Godot 4.7.2 and open this folder as a project.
 2. Press Play. Play Online hosts or joins a session (port 24570, opened with UPnP).
-3. Two copies on one PC: run one, Host; run the other, Join `127.0.0.1`.
+3. Two copies on one PC without the menus: `godot --path . -- --host` in one terminal and
+   `godot --path . -- --join=127.0.0.1` in another. Both open the sandbox site.
 
 ## Layout
 

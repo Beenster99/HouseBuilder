@@ -10,6 +10,7 @@ flags = {
 "multiplayer": true,
 "multiplayer.crew": true,
 "multiplayer.online": true,
+"sandbox": true,
 "ui.debug_tab": true,
 "ui.sun_slider": false
 }
