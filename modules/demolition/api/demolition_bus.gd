@@ -48,6 +48,9 @@ var blasted_ids: Dictionary = {}
 var released_ids: Dictionary = {}
 var result: Dictionary = {}
 var net: MultiplayerBus
+## The host's copy of the model a "Demolish" started from: what falls then comes from the
+## structure module's progressive collapse check instead of DemolitionRules' stand-in.
+var model: BuildingModel
 
 
 func register_module() -> void:
@@ -92,8 +95,10 @@ func start_demolition(building_parts: Array, building_title: String, options: Di
 	net.request(START, {"parts": building_parts, "title": building_title, "options": options})
 
 
-func start_from_model(model: BuildingModel, options: Dictionary = {}) -> void:
-	start_demolition(BuildingParts.from_model(model), model.name, options)
+func start_from_model(from: BuildingModel, options: Dictionary = {}) -> void:
+	var o := options.duplicate()
+	o["from_model"] = true
+	start_demolition(BuildingParts.from_model(from), from.name, o)
 
 
 func request_charge(part_id: String, delay: float) -> void:
@@ -122,7 +127,7 @@ func host_release(part_ids: PackedStringArray) -> void:
 			fresh.append(id)
 	if fresh.is_empty():
 		return
-	fresh.append_array(DemolitionRules.unsupported(parts, gone))
+	fresh.append_array(_falls(gone))
 	net.host_emit(RELEASE, {"ids": fresh})
 
 
@@ -145,7 +150,7 @@ func _process(_delta: float) -> void:
 	for id in due:
 		net.host_emit(BLAST, {"part": id})
 	var gone := released_ids.duplicate()
-	var fall := DemolitionRules.unsupported(parts, gone)
+	var fall := _falls(gone)
 	if not fall.is_empty():
 		net.host_emit(RELEASE, {"ids": fall})
 
@@ -181,7 +186,25 @@ func predicted() -> PackedStringArray:
 	var gone := released_ids.duplicate()
 	for id: String in charges:
 		gone[id] = true
-	return DemolitionRules.unsupported(parts, gone)
+	return _falls(gone)
+
+
+
+## Standing part ids that lose support once `gone` (id -> true) are down: the structure
+## solver's collapse when this demolition came from a model, plus the support graph (which
+## also covers stair and lift rooms the solver does not know).
+func _falls(gone: Dictionary) -> PackedStringArray:
+	var out := DemolitionRules.unsupported(parts, gone)
+	if model == null:
+		return out
+	var seen: Dictionary = {}
+	for id in out:
+		seen[id] = true
+	for id in StructureBuilding.collapse_after(model, PackedStringArray(gone.keys())):
+		if by_id.has(id) and not gone.has(id) and not seen.has(id):
+			seen[id] = true
+			out.append(id)
+	return out
 
 
 # --- Events ----------------------------------------------------------------------------
@@ -199,7 +222,8 @@ func _validate_start(_sender: int, p: Dictionary) -> Variant:
 	var options: Dictionary = p.get("options", {})
 	return {"parts": list, "title": str(p.get("title", "Building")),
 			"zone": DemolitionRules.drop_zone(list, float(options.get("margin", ZONE_MARGIN))),
-			"neighbours": options.get("neighbours", []), "open": bool(options.get("open", true))}
+			"neighbours": options.get("neighbours", []), "open": bool(options.get("open", true)),
+				"from_model": bool(options.get("from_model", false))}
 
 
 func _apply_start(p: Dictionary) -> void:
@@ -215,6 +239,11 @@ func _apply_start(p: Dictionary) -> void:
 	blasted_ids = (p.get("blasted", {}) as Dictionary).duplicate()
 	released_ids = (p.get("released", {}) as Dictionary).duplicate()
 	result = p.get("result", {})
+	model = null
+	if bool(p.get("from_model", false)) and net.is_host():
+		var building := Modules.bus("building") as BuildingBus
+		if building:
+			model = building.model
 	started.emit(title)
 	if bool(p.get("open", true)) and Router.has_scene(VIEW_SCENE) and Router.current_id != VIEW_SCENE:
 		Router.goto(VIEW_SCENE)
@@ -300,6 +329,7 @@ func _apply_result(p: Dictionary) -> void:
 
 
 func _clear() -> void:
+	model = null
 	parts = []
 	by_id.clear()
 	charges.clear()

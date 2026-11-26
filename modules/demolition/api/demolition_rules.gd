@@ -4,8 +4,8 @@ extends RefCounted
 ## part breaks into chunks, how strong each family is, and the score.
 ##
 ## Parts are BuildingParts Dictionaries ({id, family, kind, aabb, supported_by, material}).
-## unsupported() is a stand-in for the structure module's progressive collapse check
-## (StructureSolver.collapse_after) and is the only place that would change to use it.
+## unsupported() is the support-graph check; a demolition started from a BuildingModel also
+## asks the structure module (StructureBuilding.collapse_after) on the host.
 
 ## Longest side of a chunk, m. Parts split into pieces this size when they fall.
 const CHUNK := 2.6
