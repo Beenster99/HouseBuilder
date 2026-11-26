@@ -46,6 +46,11 @@ var order: Array = []  # supported node ids, furthest from the ground first
 var group_of: Dictionary = {}  # supported node id -> floor group id
 var groups: Dictionary = {}  # group id -> {"nodes": Array, "top": float, "members": Array, "anchors": Array}
 var group_order: Array = []
+var chain_of: Dictionary = {}  # beam member id -> chain id (members of one line, see "chain")
+var chain_members: Dictionary = {}  # chain id -> Array of member ids
+var chain_nodes: Dictionary = {}  # chain id -> Array of node ids, sorted along it
+var chain_x: Dictionary = {}  # chain id -> {node id: distance along the chain}
+var chain_order: Array = []
 
 
 func _init(graph: StructureGraph) -> void:
@@ -71,6 +76,7 @@ func _init(graph: StructureGraph) -> void:
 		adj[m.a].append(id)
 		adj[m.b].append(id)
 	_route()
+	_chains()
 	_floors()
 
 
@@ -170,6 +176,35 @@ func _member_supported(id: String) -> bool:
 	return supported(m.a) and supported(m.b)
 
 
+# --- Chains: beams split into pieces along one line, bent span by span -------------------
+
+func _chains() -> void:
+	for id: String in member_ids:
+		if geo[id].orient != Orient.BEAM:
+			continue
+		var c := str(g.members[id].get("chain", ""))
+		if c == "":
+			c = id
+		chain_of[id] = c
+		if not chain_members.has(c):
+			chain_members[c] = []
+		chain_members[c].append(id)
+	chain_order = chain_members.keys()
+	chain_order.sort()
+	for c: String in chain_order:
+		var first: Dictionary = g.members[chain_members[c][0]]
+		var origin: Vector3 = g.nodes[first.a].pos
+		var axis: Vector3 = ((g.nodes[first.b].pos as Vector3) - origin).normalized()
+		var xs := {}
+		for id: String in chain_members[c]:
+			for n: String in [g.members[id].a, g.members[id].b]:
+				xs[n] = ((g.nodes[n].pos as Vector3) - origin).dot(axis)
+		var ns: Array = xs.keys()
+		ns.sort_custom(func(p: String, q: String) -> bool: return xs[p] < xs[q] or (xs[p] == xs[q] and p < q))
+		chain_x[c] = xs
+		chain_nodes[c] = ns
+
+
 # --- Floors (sideways load sharing) -------------------------------------------------------
 
 func _floors() -> void:
@@ -248,15 +283,30 @@ func solve(sc: StructureScenario) -> StructureResult:
 			var row := _utilise(id, base_rows[id], lat.members[id], i)
 			if row.u > best[id].u:
 				best[id] = row
+	for id: String in _sorted_keys(g.plates):
+		best[id] = _plate(id, sc)
 	res.members = best
 	for n: String in node_ids:
 		if not supported(n):
 			res.unsupported_nodes.append(n)
+	# A foundation part (a strip or raft under several nodes) spreads its load: each of its
+	# nodes reports the whole foundation's load over its whole capacity.
+	var part_load := {}
+	var part_bearing := {}
+	for n: String in g.anchor_ids():
+		var part := str(g.nodes[n].get("part", ""))
+		if part != "" and part != "ground":
+			part_load[part] = float(part_load.get(part, 0.0)) + float(grav.anchors.get(n, 0.0))
+			part_bearing[part] = float(part_bearing.get(part, 0.0)) + float(g.nodes[n].bearing)
 	for n: String in g.anchor_ids():
 		var load: float = grav.anchors.get(n, 0.0)
 		var bearing: float = g.nodes[n].bearing
-		res.anchors[n] = {"u": load / bearing if bearing > 0.0 else 0.0, "mode": "bearing",
-				"load": load, "bearing": bearing}
+		var part := str(g.nodes[n].get("part", ""))
+		var u := load / bearing if bearing > 0.0 else 0.0
+		if part_load.has(part) and float(part_bearing[part]) > 0.0:
+			u = float(part_load[part]) / float(part_bearing[part])
+		res.anchors[n] = {"u": u, "mode": "bearing", "load": load, "bearing": bearing,
+				"part": part if part != "" else n}
 	res.sort_failures()
 	return res
 
@@ -265,19 +315,31 @@ func solve(sc: StructureScenario) -> StructureResult:
 ## "anchors": id -> kN}.
 func _gravity(sc: StructureScenario) -> Dictionary:
 	var f := {}
+	var lump := {}  # node id -> {chain id: kN of that chain's own load lumped here}
 	for n: String in node_ids:
 		f[n] = 0.0
 	var rows := {}
 	for id: String in member_ids:
 		rows[id] = {"axial": 0.0, "moment": 0.0, "shear": 0.0, "cantilever": false}
+	var line_w := {}
 	for id: String in member_ids:
 		if not _member_supported(id):
 			continue
 		var m: Dictionary = g.members[id]
 		var gm: Dictionary = geo[id]
 		var w := _line_load(id, sc.dead, sc.live, sc.snow)
+		line_w[id] = w
 		var total: float = w * gm.L
 		var row: Dictionary = rows[id]
+		if gm.orient == Orient.BEAM:
+			# Beams lump their load on their ends; the span check below bends them.
+			var c: String = chain_of[id]
+			for n: String in [m.a, m.b]:
+				f[n] += total * 0.5
+				if not lump.has(n):
+					lump[n] = {}
+				lump[n][c] = float(lump[n].get(c, 0.0)) + total * 0.5
+			continue
 		# A cantilever only when one end has nothing else to stand on.
 		var on_a := _relies_only(id, m.a)
 		var on_b := _relies_only(id, m.b)
@@ -302,6 +364,7 @@ func _gravity(sc: StructureScenario) -> Dictionary:
 		f[n] += float(loads.get("dead", 0.0)) * sc.dead + float(loads.get("live", 0.0)) * sc.live \
 				+ float(loads.get("snow", 0.0)) * sc.snow
 	var anchors := {}
+	var point_loads := {}  # chain id -> Array of [x, kN]
 	for n: String in order:
 		var p: float = f[n]
 		if g.nodes[n].anchor:
@@ -309,6 +372,24 @@ func _gravity(sc: StructureScenario) -> Dictionary:
 			continue
 		if absf(p) < EPS:
 			continue
+		var c := _single_chain(n)
+		if c != "":
+			# Along a beam: straight to the supports either side of it (lever rule).
+			var sides := _chain_supports(c, n)
+			if not sides.is_empty():
+				var own: float = lump.get(n, {}).get(c, 0.0)
+				if not point_loads.has(c):
+					point_loads[c] = []
+				point_loads[c].append([chain_x[c][n], p - own])
+				var xn: float = chain_x[c][n]
+				if sides.size() == 2:
+					var xl: float = chain_x[c][sides[0]]
+					var xr: float = chain_x[c][sides[1]]
+					f[sides[0]] += p * (xr - xn) / (xr - xl)
+					f[sides[1]] += p * (xn - xl) / (xr - xl)
+				else:
+					f[sides[0]] += p
+				continue
 		var wsum := 0.0
 		for id: String in down[n]:
 			wsum += 1.0 / geo[id].cost
@@ -324,13 +405,155 @@ func _gravity(sc: StructureScenario) -> Dictionary:
 					row.cantilever = true
 			else:
 				row.axial += share / gm.s
+	for c: String in chain_order:
+		_bend_chain(c, point_loads.get(c, []), line_w, rows)
 	return {"members": rows, "anchors": anchors}
+
+
+## The chain every member n hands its load to belongs to, if they are all beams of one
+## chain; else "".
+func _single_chain(n: String) -> String:
+	var c := ""
+	for id: String in down[n]:
+		if geo[id].orient != Orient.BEAM:
+			return ""
+		if c == "":
+			c = chain_of[id]
+		elif chain_of[id] != c:
+			return ""
+	return c
+
+
+## Nodes of a chain that pass load off it (to a post, another beam, the ground).
+func _is_chain_support(c: String, n: String) -> bool:
+	if g.nodes[n].anchor:
+		return true
+	for id: String in down[n]:
+		if not chain_of.has(id) or chain_of[id] != c:
+			return true
+	return false
+
+
+## The nearest supports of chain c either side of node n that are nearer the ground than n:
+## [left, right], or one of them, or [].
+func _chain_supports(c: String, n: String) -> Array:
+	var xn: float = chain_x[c][n]
+	var left := ""
+	var right := ""
+	for o: String in chain_nodes[c]:
+		if o == n or dist[o] >= dist[n] - EPS or not _is_chain_support(c, o):
+			continue
+		var xo: float = chain_x[c][o]
+		if xo < xn and (left == "" or xo > chain_x[c][left]):
+			left = o
+		elif xo > xn and (right == "" or xo < chain_x[c][right]):
+			right = o
+	var out: Array = []
+	if left != "":
+		out.append(left)
+	if right != "":
+		out.append(right)
+	return out
+
+
+## Bends a chain of beams span by span: simply supported between its supports, and a
+## cantilever past the last one. Every member in a span gets the span's moment and shear.
+func _bend_chain(c: String, loads: Array, line_w: Dictionary, rows: Dictionary) -> void:
+	var xs: Array = []
+	for n: String in chain_nodes[c]:
+		if supported(n) and _is_chain_support(c, n):
+			xs.append(chain_x[c][n])
+	if xs.is_empty():
+		return
+	xs.sort()
+	var lo: float = chain_x[c][chain_nodes[c][0]]
+	var hi: float = chain_x[c][chain_nodes[c][chain_nodes[c].size() - 1]]
+	var regions: Array = []  # [x0, x1, kind]: "span", or "left" / "right" overhang
+	if lo < float(xs[0]) - EPS:
+		regions.append([lo, xs[0], "left"])
+	for i in xs.size() - 1:
+		regions.append([xs[i], xs[i + 1], "span"])
+	if hi > float(xs.back()) + EPS:
+		regions.append([xs.back(), hi, "right"])
+	for reg: Array in regions:
+		var x0: float = reg[0]
+		var x1: float = reg[1]
+		if x1 - x0 < EPS:
+			continue
+		var pieces: Array = []  # [start, end, w, id]
+		for id: String in chain_members[c]:
+			if not line_w.has(id):
+				continue
+			var xa: float = chain_x[c][g.members[id].a]
+			var xb: float = chain_x[c][g.members[id].b]
+			var s0 := minf(xa, xb)
+			var s1 := maxf(xa, xb)
+			var mid := (s0 + s1) * 0.5
+			if mid > x0 and mid < x1:
+				pieces.append([s0, s1, float(line_w[id]) * float(geo[id].c), id])
+		var pts: Array = []
+		for pl: Array in loads:
+			if float(pl[0]) > x0 + EPS and float(pl[0]) < x1 - EPS:
+				pts.append(pl)
+		var moment := 0.0
+		var shear := 0.0
+		if reg[2] == "span":
+			var length := x1 - x0
+			var total := 0.0
+			var about_x1 := 0.0
+			for pl: Array in pts:
+				total += float(pl[1])
+				about_x1 += float(pl[1]) * (x1 - float(pl[0]))
+			for pc: Array in pieces:
+				var wl: float = pc[2] * (pc[1] - pc[0])
+				total += wl
+				about_x1 += wl * (x1 - (pc[0] + pc[1]) * 0.5)
+			var r0 := about_x1 / length
+			shear = maxf(absf(r0), absf(total - r0))
+			var probes: Array = []
+			for pl: Array in pts:
+				probes.append(pl[0])
+			for pc: Array in pieces:
+				probes.append(pc[0])
+				probes.append((pc[0] + pc[1]) * 0.5)
+				probes.append(pc[1])
+			for x: float in probes:
+				var mx := r0 * (x - x0)
+				for pl: Array in pts:
+					if float(pl[0]) < x:
+						mx -= float(pl[1]) * (x - float(pl[0]))
+				for pc: Array in pieces:
+					if pc[1] <= x:
+						mx -= pc[2] * (pc[1] - pc[0]) * (x - (pc[0] + pc[1]) * 0.5)
+					elif pc[0] < x:
+						mx -= pc[2] * (x - pc[0]) * (x - pc[0]) * 0.5
+				moment = maxf(moment, absf(mx))
+		else:
+			var xs_: float = x1 if reg[2] == "left" else x0
+			for pl: Array in pts:
+				shear += float(pl[1])
+				moment += float(pl[1]) * absf(float(pl[0]) - xs_)
+			for pc: Array in pieces:
+				var wl: float = pc[2] * (pc[1] - pc[0])
+				shear += wl
+				moment += wl * absf((pc[0] + pc[1]) * 0.5 - xs_)
+			# The free end itself.
+			for pl: Array in loads:
+				if absf(float(pl[0]) - (x0 if reg[2] == "left" else x1)) <= EPS:
+					shear += float(pl[1])
+					moment += float(pl[1]) * (x1 - x0)
+		for pc: Array in pieces:
+			var row: Dictionary = rows[pc[3]]
+			row.moment += moment
+			row.shear += absf(shear)
+			if reg[2] != "span":
+				row.cantilever = true
 
 
 ## kN per metre along the member from its own weight and its loads, factored.
 func _line_load(id: String, dead: float, live: float, snow: float) -> float:
 	var m: Dictionary = g.members[id]
-	var sec := StructureSections.get_section(m.section)
+	var sec := g.section(m.section)
 	var own: float = float(sec.weight) * (float(m.width) if sec.get("per_width", false) else 1.0)
 	var loads: Dictionary = m.loads
 	return (own + float(loads.get("dead", 0.0))) * dead + float(loads.get("live", 0.0)) * live \
@@ -426,12 +649,12 @@ func _utilise(id: String, grav: Dictionary, lat: Dictionary, direction: int) -> 
 	var gm: Dictionary = geo[id]
 	var row := {"u": 0.0, "mode": "axial", "axial": 0.0, "moment": 0.0, "shear": 0.0,
 			"lateral": false, "direction": -1, "cantilever": bool(grav.cantilever),
-			"kind": m.kind, "length": gm.L}
+			"kind": m.kind, "length": gm.L, "part": m.part}
 	if not _member_supported(id):
 		row.u = StructureResult.UNSUPPORTED
 		row.mode = "unsupported"
 		return row
-	var sec := StructureSections.get_section(m.section)
+	var sec := g.section(m.section)
 	var scale: float = float(m.width) if sec.get("per_width", false) else 1.0
 	var axial: float = absf(grav.axial) + absf(float(lat.get("axial", 0.0)))
 	var moment: float = absf(grav.moment) + absf(float(lat.get("moment", 0.0)))
@@ -458,3 +681,40 @@ static func _ratio(sec: Dictionary, scale: float, axial: float, moment: float, s
 	if uv > ua + um:
 		return [uv, "shear"]
 	return [ua + um, "axial" if ua >= um else "bending"]
+
+
+static func _sorted_keys(d: Dictionary) -> Array:
+	var k := d.keys()
+	k.sort()
+	return k
+
+
+## A plate as a one-metre strip: simply supported over its span, or a cantilever.
+func _plate(id: String, sc: StructureScenario) -> Dictionary:
+	var p: Dictionary = g.plates[id]
+	var row := {"u": 0.0, "mode": "bending", "axial": 0.0, "moment": 0.0, "shear": 0.0,
+			"lateral": false, "direction": -1, "cantilever": bool(p.cantilever),
+			"kind": StructureGraph.SLAB, "length": float(p.span), "part": p.part}
+	var held := false
+	for m: String in p.supports:
+		if g.members.has(m) and _member_supported(m):
+			held = true
+	if not held:
+		row.u = StructureResult.UNSUPPORTED
+		row.mode = "unsupported"
+		return row
+	var sec := g.section(p.section)
+	var loads: Dictionary = p.loads
+	var w: float = (float(sec.weight) + float(loads.get("dead", 0.0))) * sc.dead \
+			+ float(loads.get("live", 0.0)) * sc.live + float(loads.get("snow", 0.0)) * sc.snow
+	var span: float = p.span
+	if p.cantilever:
+		row.moment = w * span * span * 0.5
+		row.shear = w * span
+	else:
+		row.moment = w * span * span * 0.125
+		row.shear = w * span * 0.5
+	var r := _ratio(sec, 1.0, 0.0, row.moment, row.shear)
+	row.u = r[0]
+	row.mode = r[1]
+	return row

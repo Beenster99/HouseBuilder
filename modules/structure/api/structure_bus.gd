@@ -28,6 +28,10 @@ var _report: StructureReport
 
 func register_module() -> void:
 	attach(Modules.bus("multiplayer"))
+	# By default the host tests the shared building.
+	var building := Modules.bus("building") as BuildingBus
+	if building:
+		set_graph_provider(func() -> StructureGraph: return StructureBuilding.graph(building.model))
 
 
 func unregister_module() -> void:
@@ -48,6 +52,7 @@ func attach(net: Object) -> void:
 
 ## Where the host gets the building to test: a Callable returning a StructureGraph (or
 ## null when there is nothing to test). Clients may set one too; only the host's is used.
+## Set at start to the building module's shared model.
 func set_graph_provider(provider: Callable) -> void:
 	_provider = provider
 
@@ -68,7 +73,7 @@ func _validate_run(_sender: int, payload: Dictionary) -> Variant:
 	if not _provider.is_valid():
 		return "Nothing to test yet"
 	var graph = _provider.call()
-	if not graph is StructureGraph:
+	if not graph is StructureGraph or (graph.members.is_empty() and graph.plates.is_empty()):
 		return "Nothing to test yet"
 	var scenarios: Array[StructureScenario] = []
 	for sid in payload.get("scenarios", []):

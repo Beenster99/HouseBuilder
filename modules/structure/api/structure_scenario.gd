@@ -7,6 +7,7 @@ extends RefCounted
 const NORMAL_USE := "normal_use"
 const STORM := "storm"
 const QUAKE := "quake"
+const COLLAPSE := "collapse"
 const COMPASS: Array[Vector3] = [Vector3(1, 0, 0), Vector3(-1, 0, 0), Vector3(0, 0, 1), Vector3(0, 0, -1)]
 
 var id := ""
@@ -55,6 +56,11 @@ static func quake() -> StructureScenario:
 	return make(QUAKE, "Earthquake", {"dead": 1.0, "live": 0.3, "quake_g": 0.25, "quake_live": 0.3})
 
 
+## What is left standing has to carry: its own weight and a few people (demolition).
+static func collapse() -> StructureScenario:
+	return make(COLLAPSE, "Self weight", {"dead": 1.0, "live": 0.3, "snow": 0.0})
+
+
 static func standard() -> Array[StructureScenario]:
 	return [normal_use(), storm(), quake()]
 
@@ -67,6 +73,8 @@ static func by_id(scenario_id: String) -> StructureScenario:
 			return storm()
 		QUAKE:
 			return quake()
+		COLLAPSE:
+			return collapse()
 	return null
 
 

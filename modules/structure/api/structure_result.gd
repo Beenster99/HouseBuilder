@@ -17,9 +17,10 @@ var scenario_title := ""
 ## member id -> {"u": utilisation, "mode": "axial" | "bending" | "shear" | "unsupported",
 ##   "axial": kN, "moment": kN·m, "shear": kN, "lateral": bool (sideways load governs),
 ##   "direction": index into the scenario's directions or -1, "cantilever": bool,
-##   "kind": String, "length": m}
+##   "kind": String, "length": m, "part": building part id}
 var members: Dictionary = {}
-## anchor id -> {"u": utilisation, "mode": "bearing", "load": kN, "bearing": kN}
+## anchor id -> {"u": utilisation, "mode": "bearing", "load": kN, "bearing": kN,
+##   "part": foundation part id, or the node id}
 var anchors: Dictionary = {}
 ## Node ids with no path to any foundation.
 var unsupported_nodes: PackedStringArray = PackedStringArray()

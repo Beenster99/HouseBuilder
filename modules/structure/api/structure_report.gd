@@ -60,6 +60,46 @@ func failed_ids() -> PackedStringArray:
 	return out
 
 
+## Highest utilisation of any member modelling a building part, across every scenario
+## (a wall or a long beam is several members).
+func part_envelope(part_id: String) -> float:
+	var u := 0.0
+	for r in results:
+		for dict: Dictionary in [r.members, r.anchors]:
+			for id: String in dict:
+				if str(dict[id].get("part", id)) == part_id:
+					u = maxf(u, float(dict[id].u))
+	return u
+
+
+## Building parts with a failed member in any scenario, sorted.
+func failed_parts() -> PackedStringArray:
+	var seen := {}
+	for r in results:
+		for id in r.failures:
+			var row: Dictionary = r.members.get(id, r.anchors.get(id, {}))
+			seen[str(row.get("part", id))] = true
+	var out := PackedStringArray(seen.keys())
+	out.sort()
+	return out
+
+
+## The highest utilisation anywhere in any scenario.
+func worst_utilisation() -> float:
+	var u := 0.0
+	for r in results:
+		u = maxf(u, float(r.worst().u))
+	return u
+
+
+## What a contract brief checks: {"ok", "failures": part ids, "worst": utilisation,
+## "scenario": id of the first scenario that fails, or ""}.
+func brief_result() -> Dictionary:
+	var first := first_failure()
+	return {"ok": passed(), "failures": Array(failed_parts()), "worst": worst_utilisation(),
+			"scenario": str(first.get("scenario", ""))}
+
+
 func to_dict() -> Dictionary:
 	var rs: Array = []
 	for r in results:

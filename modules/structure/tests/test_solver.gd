@@ -109,6 +109,23 @@ func _point_load() -> void:
 	check(_near(r.members.b2.moment, 41.6, 0.02), "same moment from the other side: %f" % r.members.b2.moment)
 	check(_near(r.anchors.a1.load + r.anchors.a2.load, 30.0 + 2.4 + 2 * 0.46 * 3.0), "all the load reaches the ground")
 	check(not r.members.b1.cantilever, "a span, not a cantilever")
+	# The same beam as one chain of pieces with several point loads: bent as one span.
+	var chained := _portal("steel.ub_305x165x40", 0.0)
+	chained.members.erase("b")
+	var prev := "t1"
+	for i in range(1, 6):
+		chained.add_node("q%d" % i, Vector3(i, 3, 0))
+		chained.add_member("s%d" % i, prev, "q%d" % i, StructureGraph.BEAM, "steel.ub_305x165x40", 1.0, Vector3.ZERO, "", "beam", "beam")
+		chained.add_node_load("q%d" % i, "live", 10.0)
+		prev = "q%d" % i
+	chained.add_member("s6", prev, "t2", StructureGraph.BEAM, "steel.ub_305x165x40", 1.0, Vector3.ZERO, "", "beam", "beam")
+	var rc := StructureSolver.solve(chained, _plain())
+	# Five 10 kN loads at 1 m spacing on a 6 m span: M = 25 x 3 - 10 x 2 - 10 x 1 = 45 kN·m at
+	# midspan, plus wL²/8 = 1.8.
+	check(_near(rc.members.s3.moment, 46.8, 1e-6), "chain bends as one span: %f" % rc.members.s3.moment)
+	check(rc.members.s1.moment == rc.members.s6.moment, "every piece gets the span's moment")
+	check(_near(rc.members.s1.shear, 25.0 + 1.2), "span shear is the reaction: %f" % rc.members.s1.shear)
+	check(_near(rc.anchors.a1.load + rc.anchors.a2.load, 50.0 + 2.4 + 2 * 0.46 * 3.0), "all of it reaches the ground")
 
 
 func _cantilever() -> void:
@@ -141,7 +158,7 @@ func _foundation() -> void:
 	var r := rep.result("normal_use")
 	check(r.failures.size() == 1 and r.failures[0] == "pad", "pad fails: %s" % r.failures)
 	check(r.anchors.pad.mode == "bearing", "bearing mode")
-	check(rep.notes[0].begins_with("Foundation pad carries"), "note: %s" % rep.notes[0])
+	check(rep.notes[0].begins_with("Foundation pad is loaded to"), "note: %s" % rep.notes[0])
 	g.nodes.pad.bearing = StructureSections.foundation_capacity("pile", 1.0)
 	check(StructureSolver.stress_test(g).passed(), "a pile holds it")
 

@@ -100,7 +100,7 @@ func _solo_bus() -> void:
 	var reports: Array[StructureReport] = []
 	bus.report_changed.connect(func(r: StructureReport) -> void: reports.append(r))
 	bus.run_stress_test()
-	check(rejected == ["Nothing to test yet"], "no building, no test: %s" % str(rejected))
+	check(rejected == ["Nothing to test yet"], "an empty building, no test: %s" % str(rejected))
 	var house := Samples.house()
 	bus.set_graph_provider(func() -> StructureGraph: return house)
 	bus.run_stress_test()
@@ -111,6 +111,8 @@ func _solo_bus() -> void:
 	bus.run_stress_test(PackedStringArray(["volcano"]))
 	check(rejected.size() == 2 and rejected[1].contains("volcano"), "unknown scenario refused: %s" % str(rejected))
 	bus.set_graph_provider(Callable())
+	bus.run_stress_test()
+	check(rejected.size() == 3 and rejected[2] == "Nothing to test yet", "no provider, no test")
 
 
 func _host_and_clients() -> void:

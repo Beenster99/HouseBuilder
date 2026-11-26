@@ -85,3 +85,37 @@ static func _shuffle(ops: Array[Callable], order_seed: int) -> void:
 		var t := ops[i]
 		ops[i] = ops[j]
 		ops[j] = t
+
+
+## A two-storey masonry house as a BuildingModel, 8 m by 6 m: cavity walls on strip
+## footings, a blockwork spine wall across the middle, a joisted timber first floor, a
+## pitched roof, a front door and windows, and bedrooms upstairs. Returns {model, ids}
+## where ids names the parts ("front_0", "spine_0", "floor_1", ...).
+static func model_house() -> Dictionary:
+	var C := BuildingCommands
+	var m := BuildingModel.new("test_house", "Test house", BuildingCatalog.default_catalog())
+	var ids := {}
+	var put := func(key: String, op: Dictionary) -> void:
+		var r := m.apply(op)
+		assert(not r.is_empty(), "refused: %s" % key)
+		ids[key] = str(r.do.entry.id) if r.do.has("entry") else ""
+	m.apply(C.add_level(3.0, "First floor"))
+	var walls := {"front": [[0, 0, 0], [8, 0, 0]], "right": [[8, 0, 0], [8, 0, 6]],
+			"back": [[8, 0, 6], [0, 0, 6]], "left": [[0, 0, 6], [0, 0, 0]]}
+	for w: String in ["front", "right", "back", "left"]:
+		put.call("strip_" + w, C.place_part("strip_footing", 0, {"a": walls[w][0], "b": walls[w][1]}, "concrete", "strip_600x225"))
+		for lv in [0, 1]:
+			put.call("%s_%d" % [w, lv], C.place_part("wall_loadbearing", lv, {"a": walls[w][0], "b": walls[w][1]}, "masonry", "wall_cavity_300"))
+	put.call("strip_spine", C.place_part("strip_footing", 0, {"a": [4, 0, 0], "b": [4, 0, 6]}, "concrete", "strip_600x225"))
+	put.call("spine_0", C.place_part("wall_loadbearing", 0, {"a": [4, 0, 0], "b": [4, 0, 6]}, "masonry", "wall_block_140"))
+	put.call("ground", C.place_part("slab", 0, {"outline": C.rect(0, 0, 8, 6), "y": 0.0}, "concrete", "slab_150"))
+	put.call("floor_1", C.place_part("slab", 1, {"outline": C.rect(0, 0, 8, 6), "y": 0.0}, "timber", "floor_joist_225"))
+	put.call("roof", C.place_part("roof_pitched", 1, {"outline": C.rect(0, 0, 8, 6), "y": 3.0}, "timber"))
+	put.call("door", C.place_opening("door_external", ids.front_0, 2.0))
+	put.call("window_0", C.place_opening("window_medium", ids.front_0, 6.0))
+	put.call("window_1", C.place_opening("window_medium", ids.front_1, 2.0))
+	put.call("window_2", C.place_opening("window_medium", ids.front_1, 6.0))
+	put.call("bed_1", C.place_room("bedroom", 1, C.rect(0, 0, 4, 6), "Bedroom 1"))
+	put.call("bed_2", C.place_room("bedroom", 1, C.rect(4, 0, 4, 6), "Bedroom 2"))
+	put.call("partition", C.place_part("wall_partition", 1, {"a": [2, 0, 0], "b": [2, 0, 6]}, "timber"))
+	return {"model": m, "ids": ids}

@@ -29,8 +29,19 @@ var revision := 0
 var nodes: Dictionary = {}
 ## id -> {"a": node id, "b": node id, "kind": String, "section": String,
 ##        "width": m (walls and slabs: their width; else 1), "plane": Vector3 (walls: a
-##        horizontal direction along the wall), "loads": {case: kN/m}, "label": String}
+##        horizontal direction along the wall), "loads": {case: kN/m}, "label": String,
+##        "part": the building part it models (several members may share one),
+##        "chain": beams split into pieces along one straight line share a chain id, so
+##        they bend as one beam span by span (default: the member's own id)}
 var members: Dictionary = {}
+## Sections made for this graph (StructureSections shape), looked up before the built-in
+## table: id -> {"material", "axial", "bending", "shear", "weight", "per_width"?}.
+var sections: Dictionary = {}
+## Floor and roof plates, checked as one-metre strips over their span. Their loads reach
+## the structure through the members that hold them up (add those as member loads), so a
+## plate only checks itself. id -> {"section", "span": m, "cantilever": bool,
+## "supports": Array of member ids, "loads": {case: kPa}, "label", "part"}
+var plates: Dictionary = {}
 
 
 func add_node(id: String, pos: Vector3) -> void:
@@ -38,32 +49,78 @@ func add_node(id: String, pos: Vector3) -> void:
 	revision += 1
 
 
-## A foundation. bearing_kn 0 means the ground never gives way.
-func add_anchor(id: String, pos: Vector3, bearing_kn: float = 0.0) -> void:
+## A foundation. bearing_kn 0 means the ground never gives way. part: the foundation part
+## it stands for, if any.
+func add_anchor(id: String, pos: Vector3, bearing_kn: float = 0.0, part: String = "") -> void:
 	add_node(id, pos)
+	make_anchor(id, bearing_kn, part)
+
+
+## Turns an existing node into a foundation.
+func make_anchor(id: String, bearing_kn: float = 0.0, part: String = "") -> void:
 	nodes[id].anchor = true
 	nodes[id].bearing = maxf(bearing_kn, 0.0)
+	if part != "":
+		nodes[id].part = part
+	revision += 1
 
 
 ## Adds a member between two existing nodes. Returns "" or why it was refused.
 func add_member(id: String, a: String, b: String, kind: String, section: String,
-		width: float = 1.0, plane: Vector3 = Vector3.ZERO, label: String = "") -> String:
+		width: float = 1.0, plane: Vector3 = Vector3.ZERO, label: String = "", part: String = "",
+		chain: String = "") -> String:
 	if not nodes.has(a) or not nodes.has(b):
 		return "member %s needs nodes %s and %s" % [id, a, b]
 	if a == b:
 		return "member %s joins %s to itself" % [id, a]
 	if kind not in KINDS:
 		return "member %s has unknown kind %s" % [id, kind]
-	if not StructureSections.has(section):
+	if not has_section(section):
 		return "member %s has unknown section %s" % [id, section]
 	if (nodes[a].pos as Vector3).distance_to(nodes[b].pos) < 0.001:
 		return "member %s has no length" % id
 	var p := Vector3(plane.x, 0.0, plane.z)
 	members[id] = {"a": a, "b": b, "kind": kind, "section": section, "width": maxf(width, 0.01),
 			"plane": p.normalized() if p.length() > 0.0 else Vector3.ZERO, "loads": {},
-			"label": label}
+			"label": label, "part": part if part != "" else id, "chain": chain if chain != "" else id}
 	revision += 1
 	return ""
+
+
+## A section only this graph uses (for sizes worked out from a catalog's properties).
+func add_section(id: String, props: Dictionary) -> void:
+	sections[id] = props.duplicate()
+	revision += 1
+
+
+func has_section(id: String) -> bool:
+	return sections.has(id) or StructureSections.has(id)
+
+
+## A section's numbers: this graph's own first, then StructureSections; {} if unknown.
+func section(id: String) -> Dictionary:
+	return sections.get(id, StructureSections.get_section(id))
+
+
+## A floor or roof plate spanning span metres between its supports (or out from one, as a
+## cantilever). Returns "" or why it was refused.
+func add_plate(id: String, section_id: String, span: float, cantilever: bool,
+		supports: PackedStringArray, label: String = "", part: String = "") -> String:
+	if not has_section(section_id):
+		return "plate %s has unknown section %s" % [id, section_id]
+	var sup: Array = Array(supports)
+	sup.sort()
+	plates[id] = {"section": section_id, "span": maxf(span, 0.0), "cantilever": cantilever,
+			"supports": sup, "loads": {}, "label": label, "part": part if part != "" else id}
+	revision += 1
+	return ""
+
+
+## A pressure on a plate (kPa, unfactored).
+func add_plate_load(plate_id: String, case: String, kpa: float) -> void:
+	var loads: Dictionary = plates[plate_id].loads
+	loads[case] = float(loads.get(case, 0.0)) + kpa
+	revision += 1
 
 
 ## A point load at a node, kN downward (unfactored; case is one of StructureLoads.CASES).
@@ -141,7 +198,7 @@ func to_dict() -> Dictionary:
 		var n: Dictionary = nodes[id]
 		var p: Vector3 = n.pos
 		n_out[id] = {"pos": [p.x, p.y, p.z], "anchor": n.anchor, "bearing": n.bearing,
-				"loads": _sorted(n.loads), "wind_area": n.wind_area}
+				"loads": _sorted(n.loads), "wind_area": n.wind_area, "part": str(n.get("part", ""))}
 	var m_out := {}
 	ids = members.keys()
 	ids.sort()
@@ -149,8 +206,21 @@ func to_dict() -> Dictionary:
 		var m: Dictionary = members[id]
 		var pl: Vector3 = m.plane
 		m_out[id] = {"a": m.a, "b": m.b, "kind": m.kind, "section": m.section, "width": m.width,
-				"plane": [pl.x, pl.y, pl.z], "loads": _sorted(m.loads), "label": m.label}
-	return {"revision": revision, "nodes": n_out, "members": m_out}
+				"plane": [pl.x, pl.y, pl.z], "loads": _sorted(m.loads), "label": m.label, "part": m.part, "chain": m.chain}
+	var s_out := {}
+	ids = sections.keys()
+	ids.sort()
+	for id: String in ids:
+		s_out[id] = sections[id].duplicate()
+	var p_out := {}
+	ids = plates.keys()
+	ids.sort()
+	for id: String in ids:
+		var pl: Dictionary = plates[id]
+		p_out[id] = {"section": pl.section, "span": pl.span, "cantilever": pl.cantilever,
+				"supports": pl.supports.duplicate(), "loads": _sorted(pl.loads), "label": pl.label,
+				"part": pl.part}
+	return {"revision": revision, "nodes": n_out, "members": m_out, "sections": s_out, "plates": p_out}
 
 
 static func from_dict(data: Dictionary) -> StructureGraph:
@@ -164,15 +234,30 @@ static func from_dict(data: Dictionary) -> StructureGraph:
 		g.nodes[id].bearing = float(n.get("bearing", 0.0))
 		g.nodes[id].loads = (n.get("loads", {}) as Dictionary).duplicate()
 		g.nodes[id].wind_area = float(n.get("wind_area", 0.0))
+		if str(n.get("part", "")) != "":
+			g.nodes[id].part = str(n.part)
+	var s_in: Dictionary = data.get("sections", {})
+	for id: String in s_in:
+		g.add_section(id, s_in[id])
 	var m_in: Dictionary = data.get("members", {})
 	for id: String in m_in:
 		var m: Dictionary = m_in[id]
 		var pl: Array = m.get("plane", [0, 0, 0])
 		var why := g.add_member(id, str(m.get("a", "")), str(m.get("b", "")), str(m.get("kind", "")),
 				str(m.get("section", "")), float(m.get("width", 1.0)), Vector3(pl[0], pl[1], pl[2]),
-				str(m.get("label", "")))
+				str(m.get("label", "")), str(m.get("part", "")), str(m.get("chain", "")))
 		if why == "":
 			g.members[id].loads = (m.get("loads", {}) as Dictionary).duplicate()
+		else:
+			push_warning("StructureGraph.from_dict: " + why)
+	var p_in: Dictionary = data.get("plates", {})
+	for id: String in p_in:
+		var pl: Dictionary = p_in[id]
+		var why := g.add_plate(id, str(pl.get("section", "")), float(pl.get("span", 0.0)),
+				bool(pl.get("cantilever", false)), PackedStringArray(pl.get("supports", [])),
+				str(pl.get("label", "")), str(pl.get("part", "")))
+		if why == "":
+			g.plates[id].loads = (pl.get("loads", {}) as Dictionary).duplicate()
 		else:
 			push_warning("StructureGraph.from_dict: " + why)
 	g.revision = int(data.get("revision", g.revision))

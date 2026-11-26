@@ -30,3 +30,9 @@ static func stress_test(graph: StructureGraph, scenarios: Array[StructureScenari
 		report.results.append(solver.solve(sc))
 	Notes.write(report, graph)
 	return report
+
+
+## Building parts that fall once the parts in removed are gone (see
+## StructureBuilding.collapse_after()).
+static func collapse_after(model: BuildingModel, removed: PackedStringArray, options: Dictionary = {}) -> PackedStringArray:
+	return StructureBuilding.collapse_after(model, removed, options)

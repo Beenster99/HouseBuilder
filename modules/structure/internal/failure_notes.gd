@@ -8,11 +8,13 @@ const MAX_NOTES := 12
 static func write(report: StructureReport, graph: StructureGraph) -> void:
 	var notes := PackedStringArray()
 	var said := {}
+	# One note per building part (a wall is several members), its worst member first.
 	for r in report.results:
 		for id in r.failures:
-			if said.has(id) or notes.size() >= MAX_NOTES:
+			var who := _name(graph, id)
+			if said.has(who) or notes.size() >= MAX_NOTES:
 				continue
-			said[id] = true
+			said[who] = true
 			notes.append(_note(r, id, graph))
 	report.notes = notes
 	if report.results.is_empty():
@@ -35,16 +37,20 @@ static func write(report: StructureReport, graph: StructureGraph) -> void:
 	else:
 		var first := report.first_failure()
 		var r := report.result(first.scenario)
-		report.summary = "Fails the %s test: %d over capacity. First to give way: %s at %s." % [
-				r.scenario_title.to_lower(), r.failures.size(), _name(graph, first.id), _pct(first.u)]
+		var names := {}
+		for id in r.failures:
+			names[_name(graph, id)] = true
+		report.summary = "Fails the %s test: %d %s over capacity. First to give way: %s at %s." % [
+				r.scenario_title.to_lower(), names.size(), "part" if names.size() == 1 else "parts",
+				_name(graph, first.id), _pct(first.u)]
 
 
 static func _note(r: StructureResult, id: String, graph: StructureGraph) -> String:
 	var who := _name(graph, id)
 	if r.anchors.has(id):
 		var a: Dictionary = r.anchors[id]
-		return "%s carries %d kN, %s of what the ground can take (%s). Use a bigger pad, a strip or raft footing, or piles." % [
-				who, roundi(a.load), _pct(a.u), r.scenario_title.to_lower()]
+		return "%s is loaded to %s of what the ground under it can take in the %s test. Use a bigger pad, a strip or raft footing, or piles." % [
+				who, _pct(a.u), r.scenario_title.to_lower()]
 	var m: Dictionary = r.members[id]
 	var pct := _pct(m.u)
 	var when := "in the %s test" % r.scenario_title.to_lower()
@@ -55,7 +61,7 @@ static func _note(r: StructureResult, id: String, graph: StructureGraph) -> Stri
 			from = " " + StructureScenario.direction_name(sc.directions[int(m.direction)])
 	match str(m.mode):
 		"unsupported":
-			return "%s is not connected to any foundation, so nothing holds it up. Connect it to a column or wall that reaches the ground." % who
+			return "%s is not connected to any foundation, so nothing holds it up. Put a column, wall or beam under it that carries down to the ground." % who
 		"shear":
 			if m.kind == StructureGraph.WALL:
 				return "%s racks at %s %s%s. Make it longer or stronger, or add another wall in the same line." % [who, pct, when, from]
@@ -90,11 +96,13 @@ static func _pct(u: float) -> String:
 
 
 static func _name(graph: StructureGraph, id: String) -> String:
-	if graph.members.has(id):
-		var m: Dictionary = graph.members[id]
-		if str(m.label) != "":
-			return str(m.label)
-		return "%s %s" % [str(m.kind).capitalize(), id]
+	for dict: Dictionary in [graph.members, graph.plates]:
+		if dict.has(id):
+			var m: Dictionary = dict[id]
+			if str(m.label) != "":
+				return str(m.label)
+			return "%s %s" % [str(m.get("kind", "slab")).capitalize(), id]
 	if graph.nodes.has(id):
-		return "Foundation %s" % id
+		var part := str(graph.nodes[id].get("part", ""))
+		return "Foundation %s" % (part if part != "" else id)
 	return id

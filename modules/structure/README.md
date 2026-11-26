@@ -21,11 +21,20 @@ report.envelope("f0"); report.status("f0")          # utilisation, "green" | "am
 report.first_failure()                              # {"scenario", "id", "u"}
 ```
 
+On the building (`modules/building` api):
+
+```gdscript
+var report := StructureBuilding.stress_test(model)  # BuildingModel
+report.part_envelope("p12"); report.failed_parts()
+report.brief_result()      # {"ok", "failures": part ids, "worst", "scenario"} for contracts
+StructureBuilding.collapse_after(model, ["p7"])      # part ids that fall if p7 goes
+```
+
 In a session only the host solves. `StructureBus` (`Modules.bus("structure")`):
-`set_graph_provider(callable)` on the host, `run_stress_test()` from anyone, and
-`report_changed(report)` on every peer. The report is the event payload, so clients never
-solve; `report.digest()` is equal on every peer, and late joiners get the last report in the
-join snapshot.
+`run_stress_test()` from anyone tests the shared building (`Modules.bus("building").model`;
+`set_graph_provider(callable)` to test something else), and `report_changed(report)` fires on
+every peer. The report is the event payload, so clients never solve; `report.digest()` is
+equal on every peer, and late joiners get the last report in the join snapshot.
 
 ## The model
 
@@ -47,12 +56,29 @@ capacity. Units are metres and kN, Y up.
 - Sections, soils and foundation capacities: `api/structure_sections.gd`; floor loads by room
   type: `api/structure_loads.gd`. Game values for playtesting, not a design code.
 
+Beams split into pieces along one line (a beam with joists landing on it, a wall top) share
+a `chain` and are bent span by span between the points where load leaves them.
+
+**From a BuildingModel** (`internal/building_adapter.gd`): columns, beams, braces and trusses
+become members split wherever another part's end or a connection lies on them (nodes are
+keyed by position to 1 cm). A load-bearing wall becomes uprights at least every metre and at
+the edges of its openings, tied by the wall spanning as a deep beam along its top and bottom
+(over an opening only as deep as the wall above it). Slabs and roofs become plates: their
+area goes to the nearest beam or wall top under them, with dead, room live (from the room
+types) and snow loads, and each is checked over its shortest span between opposite
+supports, or as a cantilever. Ground slabs with nothing under them bear on the ground.
+Foundations anchor the nodes standing on them with the soil's bearing (`model.meta.soil`,
+default clay); a strip or raft spreads its load over its whole area. Section strengths come
+from the catalog's raw properties (`internal/section_props.gd`: steel at fy, timber with
+load-duration factors, reinforced concrete rules of thumb, Rankine buckling for columns).
+
 Simplifications for now: no overturning axial in columns, no deflection checks, each floor
-acts as one rigid plate. A stiffness-matrix solver can replace `internal/load_path_solver.gd`
-behind the same api and data.
+acts as one rigid plate, spans are simply supported (no continuity), a column or wall
+standing on a slab with nothing under it is unsupported (put a beam under it), non-structural
+walls count only through the floor finishes allowance. A stiffness-matrix solver can replace
+`internal/load_path_solver.gd` behind the same api and data.
 
 ## Still to come
 
-- Adapter from the building module's BuildingModel once its api is on main.
 - The stress test button and utilisation overlay in the design room (flag
-  `structure.stress_test`, off).
+  `structure.stress_test`, off), once the design room is on main.
