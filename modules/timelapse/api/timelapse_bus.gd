@@ -4,7 +4,8 @@ extends Node
 ## together. The host builds the schedule (TimelapseSchedule) and owns one shared clock; every
 ## peer replays the same schedule from that clock, so only the clock crosses the network.
 ##
-##   bus.start_timelapse(parts, "Family house")   # anyone may ask; the host schedules it
+##   bus.start_from_model(model, "Family house") # anyone may ask; the host schedules it
+##   bus.start_timelapse(parts, "Family house")  # the same from part Dictionaries
 ##   bus.request_play(false) / request_speed(10.0) / request_seek(42.0)
 ##   bus.day()                                    # the shared build day, same on every peer
 ##
@@ -44,6 +45,15 @@ func register_module() -> void:
 	net.register_event(CLOCK, _apply_clock, _validate_clock)
 	net.register_snapshot_provider("timelapse", self)
 	net.session_ended.connect(func(_reason: String) -> void: _reset())
+	_hook_design.call_deferred()
+
+
+## "Build it" on the design room's top bar, when the design module is loaded (optional).
+func _hook_design() -> void:
+	var design := Modules.bus("design")
+	if design and design.has_method("register_action"):
+		design.register_action("timelapse.build", "Build it", func(model: BuildingModel) -> void:
+			start_from_model(model), 50)
 
 
 func unregister_module() -> void:
@@ -69,6 +79,12 @@ func _process(_delta: float) -> void:
 ## peer to the timelapse view.
 func start_timelapse(parts: Array, building_title: String, open := true, options: Dictionary = {}) -> void:
 	net.request(START, {"parts": parts, "title": building_title, "open": open, "options": options})
+
+
+## The design room's "Build it": schedules the building model as it stands now.
+##   bus.start_from_model((Modules.bus("building") as BuildingBus).model, "Family house")
+func start_from_model(model: BuildingModel, building_title: String = "", open := true) -> void:
+	start_timelapse(BuildingParts.from_model(model), building_title if building_title != "" else model.name, open)
 
 
 func request_play(play: bool) -> void:
