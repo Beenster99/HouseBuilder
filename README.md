@@ -33,7 +33,8 @@ tools/osm/                  offline OpenStreetMap to site pack tool
 ```
 
 Modules now: core, ui (the shell), multiplayer (sessions, crew, sync), sandbox (Phase 0
-shared site). Planned: building, design, structure, timelapse, demolition, contracts, sites.
+shared site), timelapse (construction schedule and synced playback; Timelapse demo on the
+main menu). Planned: building, design, structure, demolition, contracts, sites.
 
 ## Module rules
 
