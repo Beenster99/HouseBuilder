@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="FlagSet" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://modules/core/api/flag_set.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+flags = {
+"core": true,
+"ui": true,
+"multiplayer": true,
+"multiplayer.crew": true,
+"multiplayer.online": true,
+"ui.debug_tab": true,
+"ui.sun_slider": false
+}

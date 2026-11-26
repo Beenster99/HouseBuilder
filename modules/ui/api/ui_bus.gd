@@ -1,0 +1,92 @@
+class_name UiBus
+extends Node
+## The UI module's bus (Modules.bus("ui")). Registers the menus with Router and the audio
+## setting (window and graphics options belong to the Graphics autoload), and applies it
+## when it changes.
+
+signal notice_posted(text: String)
+
+const MAIN_MENU := "main_menu"
+const SETTINGS := "settings"
+
+## The wrist screen (Keys.HOLO in any game scene).
+var holo: WristHolo
+## The see-through info cards on the right (HudSlots.set_info).
+var info: InfoPanel
+## Esc in a game (Menu.open_pause).
+var pause: PauseMenu
+## The "what you're looking at" card (HudSlots look hints).
+var look: LookHints
+
+
+func register_module() -> void:
+	Router.register_scene(MAIN_MENU, "res://modules/ui/internal/main_menu.tscn")
+	Router.register_scene(SETTINGS, "res://modules/ui/internal/settings_menu.tscn")
+	Settings.register("audio", {"master": 1.0, "effects": 1.0})
+	Settings.register(TerminalKit.TEXT_SECTION, {TerminalKit.TEXT_KEY: TerminalKit.TEXT_DEFAULT})
+	Settings.register(AlienSky.SECTION, {AlienSky.KEY: AlienSky.DEFAULT_HOUR})
+	Shots.register("main_menu", MAIN_MENU)
+	Shots.register("settings", SETTINGS)
+	Settings.changed.connect(_on_setting_changed)
+	apply_settings()
+	holo = WristHolo.new()
+	add_child(holo)
+	info = InfoPanel.new()
+	add_child(info)
+	pause = PauseMenu.new()
+	add_child(pause)
+	look = LookHints.new()
+	add_child(look)
+	Router.scene_changed.connect(_on_scene_changed)
+	Menu.register_settings_page(Menu.CHARACTER, "Character", _character_page, 10)
+
+
+func unregister_module() -> void:
+	Menu.unregister_settings_page(Menu.CHARACTER)
+	if holo:
+		holo.close()
+	if pause:
+		pause.close()
+	if Settings.changed.is_connected(_on_setting_changed):
+		Settings.changed.disconnect(_on_setting_changed)
+	if Router.scene_changed.is_connected(_on_scene_changed):
+		Router.scene_changed.disconnect(_on_scene_changed)
+
+
+## Off to a menu: the wrist screen goes (it lives on its own layer, over any scene).
+func _on_scene_changed(_id: String) -> void:
+	if holo and holo.is_open and not holo.allowed():
+		holo.close()
+
+
+## The top of Settings > Character, over the sections modules add (level, payslips...).
+func _character_page() -> Control:
+	var col := VBoxContainer.new()
+	col.add_theme_constant_override("separation", 4)
+	var game := Saves.current_name if Saves.current_name != "" else "No game loaded"
+	col.add_child(BsxTheme.muted("Your profile in %s." % game))
+	if Menu.settings_sections(Menu.CHARACTER).is_empty():
+		col.add_child(BsxTheme.muted("Nothing else to show yet."))
+	return col
+
+
+## Shows a short message in the HUD's notices slot.
+func post_notice(text: String) -> void:
+	notice_posted.emit(text)
+
+
+func apply_settings() -> void:
+	var master: float = Settings.get_value("audio", "master")
+	AudioServer.set_bus_volume_db(0, linear_to_db(maxf(master, 0.0001)))
+	if AudioServer.get_bus_index(Sfx.BUS) < 0:
+		AudioServer.add_bus()
+		var i := AudioServer.bus_count - 1
+		AudioServer.set_bus_name(i, Sfx.BUS)
+		AudioServer.set_bus_send(i, &"Master")
+	var effects: Variant = Settings.get_value("audio", "effects")
+	AudioServer.set_bus_volume_db(AudioServer.get_bus_index(Sfx.BUS),
+			linear_to_db(maxf(float(effects if effects != null else 1.0), 0.0001)))
+
+
+func _on_setting_changed(_section: String, _key: String, _value: Variant) -> void:
+	apply_settings()
