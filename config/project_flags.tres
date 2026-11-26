@@ -14,6 +14,8 @@ flags = {
 "sandbox": true,
 "timelapse": true,
 "timelapse.demo": true,
+"structure": true,
+"structure.stress_test": false,
 "ui.debug_tab": true,
 "ui.sun_slider": false
 }
