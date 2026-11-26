@@ -12,6 +12,8 @@ flags = {
 "multiplayer.online": true,
 "sandbox": true,
 "timelapse": true,
+"demolition": true,
+"demolition.demo": true,
 "timelapse.demo": true,
 "ui.debug_tab": true,
 "ui.sun_slider": false
