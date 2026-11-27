@@ -1,6 +1,6 @@
 extends ModuleTest
 ## Catalog kinds other threads asked for: service runs (pipes and cables, priced by the
-## metre, not structural) and hipped and mono-pitch roofs.
+## metre, not structural), radiator, light and socket points, and hipped and mono-pitch roofs.
 ##   tools/run_tests.sh building
 
 const C := preload("res://modules/building/api/building_commands.gd")
@@ -24,6 +24,11 @@ func run_tests() -> void:
 		if not is_equal_approx(float(q.cost), 10.0 * float(runs[k])):
 			all_ok = false
 	check(all_ok, "every service run is a non-structural line priced by the metre")
+	for k: String in ["radiator", "light_point", "socket_double"]:
+		var r := m.apply(C.place_part(k, 0, {"at": [2.0, 0.0, 2.0]}))
+		check(not r.is_empty() and str(cat.family_of(k)) == "fixture", "a %s is placed as a fixture" % k)
+	check(is_equal_approx(float(BuildingQuantities.part(m, str(m.parts.keys()[-3])).cost), 250.0), "a radiator costs 250")
+	check(cat.services_of("radiator").heating and cat.services_of("light_point").power_w > 0, "and they have services")
 	for k: String in ["roof_hip", "roof_mono"]:
 		var spec := cat.kind(k)
 		check(str(spec.family) == "roof" and str(spec.shape) == "area" and float(spec.pitch) == 35.0, "%s is a pitched roof kind" % k)
