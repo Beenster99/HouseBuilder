@@ -18,6 +18,17 @@ func run_tests() -> void:
 	var ids := HallChannels.channels(hall).map(func(c: Dictionary) -> String: return str(c.id))
 	for want: String in ["plan", "side", "3d", "bom", "cost"]:
 		check(want in ids, "a %s channel" % want)
+	var design := Modules.bus("design") as DesignBus
+	design.register_channel("test.big", "Test board", func(_m: BuildingModel) -> Control:
+		var l := Label.new()
+		l.text = "BIG BOARD"
+		return l)
+	ids = HallChannels.channels(hall).map(func(c: Dictionary) -> String: return str(c.id))
+	check("channel:test.big" in ids, "other modules add wall-screen channels")
+	var ch := HallChannels.make("channel:test.big", hall, 24)
+	check(ch.find_children("*", "Label", true, false).size() == 1, "and the screens show them")
+	ch.free()
+	design.unregister_channel("test.big")
 	var boards: Dictionary = hall.get("boards")
 	var left: Node = boards["left"]
 	check(str((left.get("panels") as Array)[0].view) == "plan", "the left wall starts on the plan")
@@ -104,7 +115,7 @@ func run_tests() -> void:
 	check(str(hall.get("mode")) == "room" and not bool(designer.get("active")), "Esc there comes back to the hall")
 
 	# A wall panel full screen.
-	check(bool(hall.call("open_fullscreen", "right", 0)), "F at a wall shows a panel full screen")
+	check(bool(hall.call("open_fullscreen", "right", 1)), "F at a wall shows a panel full screen")
 	await frames(2)
 	var full: Control = hall.get("fullscreen")
 	check(full != null and full.is_inside_tree(), "the full-screen page is up")

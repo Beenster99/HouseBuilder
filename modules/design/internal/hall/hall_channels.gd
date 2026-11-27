@@ -27,6 +27,8 @@ static func channels(hall: Node) -> Array[Dictionary]:
 	var out: Array[Dictionary] = []
 	out.append_array(BASE)
 	var design := Modules.bus("design") as DesignBus
+	for c: Dictionary in design.channel_list():
+		out.append({"id": "channel:" + str(c.id), "title": str(c.title).to_upper()})
 	for p: Dictionary in design.panel_list():
 		out.append({"id": "panel:" + str(p.id), "title": str(p.title).to_upper()})
 	return out
@@ -56,6 +58,18 @@ static func make(id: String, hall: Node, font: int) -> Control:
 			var c := CostChannel.new()
 			c.setup(hall, font)
 			return c
+	if id.begins_with("channel:"):
+		var design := Modules.bus("design") as DesignBus
+		var ch: Dictionary = design.channels.get(id.trim_prefix("channel:"), {})
+		if not ch.is_empty() and (ch.make as Callable).is_valid():
+			var page: Variant = (ch.make as Callable).call(hall.get("model"))
+			if page is Control:
+				# Laid out for a big page: drawn at its own size, scaled to the screen's text.
+				var scaled: Container = ScaledBox.new(float(font) / PANEL_FONT)
+				var c := page as Control
+				c.theme = _scaled_theme(int(PANEL_FONT))
+				scaled.add_child(c)
+				return scaled
 	if id.begins_with("panel:"):
 		var design := Modules.bus("design") as DesignBus
 		var p: Dictionary = design.panels.get(id.trim_prefix("panel:"), {})

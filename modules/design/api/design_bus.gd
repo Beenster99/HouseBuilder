@@ -22,6 +22,8 @@ signal overlays_changed
 signal overlay_changed(id: String)
 ## A side panel was added or removed.
 signal panels_changed
+## A wall-screen channel came or went (register_channel).
+signal channels_changed
 ## pulse() was called; the open room shares it with every player.
 signal pulse_requested(ids: PackedStringArray)
 ## The room and object palettes changed (a group was registered, or refresh_palette()).
@@ -68,6 +70,8 @@ const OBJECT_GROUPS: Array = [
 	["services", "Services (power, water, heat)"], ["other", "Other fittings"],
 	["doors", "Doors"], ["windows", "Windows"],
 ]
+## Big-screen channels for the design hall's wall panels only: id -> {title, make, order}.
+var channels: Dictionary = {}
 ## The design room open on this machine (it sets and clears this), or null.
 var open_room: Node
 
@@ -310,3 +314,31 @@ func selected_rooms() -> PackedStringArray:
 ## The level the open room is working on (0 with none open).
 func current_level() -> int:
 	return int((open_room.get("session") as Object).get("level")) if open_room != null else 0
+
+
+# --- Wall-screen channels -------------------------------------------------------------------
+
+## Adds a channel the design hall's big wall screens can flip to (the contracts board, the
+## real-world sites...). make(model) -> Control builds it each time a screen shows it; it is
+## drawn full size on a wall several metres across, so lay it out for a big page. Keep it
+## live yourself. Side panels (register_panel) show on the walls too; a channel is for a
+## bigger view than fits the designer's side column.
+func register_channel(id: String, title: String, make: Callable, order: int = 50) -> void:
+	channels[id] = {"title": title, "make": make, "order": order}
+	channels_changed.emit()
+
+
+func unregister_channel(id: String) -> void:
+	if channels.erase(id):
+		channels_changed.emit()
+
+
+## Wall-screen channels, lowest order first: [{id, title, make, order}].
+func channel_list() -> Array[Dictionary]:
+	var out: Array[Dictionary] = []
+	for id: String in channels:
+		var o: Dictionary = channels[id].duplicate()
+		o["id"] = id
+		out.append(o)
+	out.sort_custom(func(x: Dictionary, y: Dictionary) -> bool: return int(x.order) < int(y.order))
+	return out

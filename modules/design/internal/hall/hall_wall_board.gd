@@ -45,12 +45,14 @@ func setup(p_hall: Node, id: String, layout: Array, density: float) -> void:
 		_fill(_slots.size() - 1)
 	screens.connect("changed", _on_screen_changed)
 	(Modules.bus("design") as DesignBus).panels_changed.connect(_on_panels_changed)
+	(Modules.bus("design") as DesignBus).channels_changed.connect(_on_panels_changed)
 
 
 func _exit_tree() -> void:
 	var design := Modules.bus("design") as DesignBus
 	if design.panels_changed.is_connected(_on_panels_changed):
 		design.panels_changed.disconnect(_on_panels_changed)
+		design.channels_changed.disconnect(_on_panels_changed)
 
 
 ## The shared key for panel `i` of this wall.
@@ -71,7 +73,7 @@ func _on_screen_changed(key: String, value: Variant) -> void:
 ## A module offered or took back a window: panels showing one are built again.
 func _on_panels_changed() -> void:
 	for i in panels.size():
-		if str(panels[i].view).begins_with("panel:"):
+		if str(panels[i].view).begins_with("panel:") or str(panels[i].view).begins_with("channel:"):
 			_fill(i)
 
 
