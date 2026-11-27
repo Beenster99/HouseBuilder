@@ -146,13 +146,23 @@ def fetch_osm(bbox: Tuple[float, float, float, float], cache_dir: str, source: s
 def _osm_api_tiled(s: float, w: float, n: float, e: float, log, depth: int) -> bytes:
     """OSM API map call. Dense areas exceed its 50,000 node limit (HTTP 400),
     so the box is split into quarters, up to two levels, and merged."""
-    _throttle()
-    log(f"  osm api: map call{' (part)' if depth else ''}")
-    try:
-        return _http(f"{OSM_API}?bbox={w:.7f},{s:.7f},{e:.7f},{n:.7f}")
-    except urllib.error.HTTPError as ex:
-        if ex.code != 400 or depth >= 2:
-            raise
+    url = f"{OSM_API}?bbox={w:.7f},{s:.7f},{e:.7f},{n:.7f}"
+    for attempt in range(4):
+        _throttle()
+        log(f"  osm api: map call{' (part)' if depth else ''}{f' (retry {attempt})' if attempt else ''}")
+        try:
+            return _http(url)
+        except urllib.error.HTTPError as ex:
+            if ex.code in (429, 502, 503, 504) and attempt < 3:
+                time.sleep(20 * (attempt + 1))  # busy: back off before asking again
+                continue
+            if ex.code != 400 or depth >= 2:
+                raise
+            break
+        except (urllib.error.URLError, OSError):
+            if attempt >= 3:
+                raise
+            time.sleep(20 * (attempt + 1))
     mlat, mlon = (s + n) / 2, (w + e) / 2
     parts = [_osm_api_tiled(a, b, c, d, log, depth + 1) for a, b, c, d in
              ((s, w, mlat, mlon), (s, mlon, mlat, e), (mlat, w, n, mlon), (mlat, mlon, n, e))]

@@ -369,7 +369,8 @@ def assess(ring: geo.Ring, feat: Features, height_at: Callable[[float, float], f
     for poly in feat.areas:
         if _kind(poly) in ("natural:wood", "landuse:forest") and poly.osm != plot_osm:
             if geo.line_line_dist(poly.outer, ring, True, True) == 0.0:
-                add("trees", 1, "Woodland edge", "The plot runs into woodland.", )
+                if not any(f["id"] == "trees" for f in factors):
+                    add("trees", 1, "Woodland edge", "The plot runs into woodland.")
                 break
 
     # Overhead and buried lines.

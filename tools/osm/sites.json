@@ -151,6 +151,199 @@
         "osm": "w881576087",
         "buffer_m": 1.5
       }
+    },
+    {
+      "id": "manston-airfield",
+      "name": "Manston airfield",
+      "description": "A former airport's runway on the Kent coast. A huge, flat, open site for a terminal, but every delivery needs a haul road across the old airfield.",
+      "suited_to": [
+        "airport_terminal",
+        "hospital"
+      ],
+      "lat": 51.342,
+      "lon": 1.346,
+      "radius_m": 600,
+      "plot": {
+        "rect": {
+          "centre": [
+            0,
+            30
+          ],
+          "width": 180,
+          "depth": 90,
+          "align": "road"
+        }
+      }
+    },
+    {
+      "id": "middlehaven-docks",
+      "name": "Middlehaven dockside",
+      "description": "Open former dock land by the Tees in Middlesbrough. Room for a big building, on made and wet ground.",
+      "suited_to": [
+        "hospital",
+        "office",
+        "school"
+      ],
+      "lat": 54.58,
+      "lon": -1.235,
+      "radius_m": 300,
+      "plot": {
+        "osm": "w1182725475"
+      }
+    },
+    {
+      "id": "addenbrookes-car-park",
+      "name": "Addenbrooke's hospital car park",
+      "description": "A small car park squeezed between hospital buildings. A hospital wing has to fit around the wards next door.",
+      "suited_to": [
+        "hospital"
+      ],
+      "lat": 52.175,
+      "lon": 0.14,
+      "radius_m": 300,
+      "plot": {
+        "osm": "w151513733"
+      }
+    },
+    {
+      "id": "hebden-bridge-garden-street",
+      "name": "Hebden Bridge, Garden Street",
+      "description": "A town centre car park in a steep, narrow Pennine valley, beside a river that floods.",
+      "suited_to": [
+        "police_station",
+        "civic"
+      ],
+      "lat": 53.7417,
+      "lon": -2.0119,
+      "radius_m": 300,
+      "plot": {
+        "osm": "w10520458"
+      }
+    },
+    {
+      "id": "york-castle-gateway",
+      "name": "York Castle Gateway",
+      "description": "A construction plot by York's castle and the River Foss. Flood risk, buried history and listed neighbours.",
+      "suited_to": [
+        "police_station",
+        "office",
+        "civic"
+      ],
+      "lat": 53.958,
+      "lon": -1.08,
+      "radius_m": 300,
+      "plot": {
+        "osm": "w1167849573"
+      }
+    },
+    {
+      "id": "shaftesbury-hillside",
+      "name": "Shaftesbury hillside",
+      "description": "Scrubland below Gold Hill, one of England's steepest streets. Room for a school, if you can terrace the slope.",
+      "suited_to": [
+        "school",
+        "house"
+      ],
+      "lat": 51.0055,
+      "lon": -2.196,
+      "radius_m": 300,
+      "plot": {
+        "osm": "w238038630"
+      }
+    },
+    {
+      "id": "robin-hoods-bay",
+      "name": "Robin Hood's Bay clifftop",
+      "description": "Scrub on the steep slope above a Yorkshire fishing village, reached only by lanes too tight for big lorries.",
+      "suited_to": [
+        "house"
+      ],
+      "lat": 54.4344,
+      "lon": -0.534,
+      "radius_m": 300,
+      "plot": {
+        "osm": "w438266704"
+      }
+    },
+    {
+      "id": "edinburgh-parliament-square",
+      "name": "Edinburgh, Parliament Square",
+      "description": "A car park on the Royal Mile, surrounded by some of Scotland's most protected buildings.",
+      "suited_to": [
+        "civic",
+        "office",
+        "police_station"
+      ],
+      "lat": 55.9495,
+      "lon": -3.191,
+      "radius_m": 300,
+      "plot": {
+        "osm": "w69296178"
+      }
+    },
+    {
+      "id": "cambourne-centre",
+      "name": "Cambourne centre car park",
+      "description": "A new town's car park on flat Cambridgeshire clay. Plenty of access: a gentle plot to start on.",
+      "suited_to": [
+        "school",
+        "house",
+        "civic",
+        "police_station"
+      ],
+      "lat": 52.22,
+      "lon": -0.07,
+      "radius_m": 300,
+      "plot": {
+        "osm": "r18088228"
+      }
+    },
+    {
+      "id": "liverpool-warehouse-clearance",
+      "name": "Liverpool warehouse clearance",
+      "description": "An old building in south Liverpool to knock down and replace. Demolition first, then build.",
+      "suited_to": [
+        "house",
+        "school",
+        "office"
+      ],
+      "lat": 53.392,
+      "lon": -2.96,
+      "radius_m": 300,
+      "plot": {
+        "osm": "w271728754",
+        "buffer_m": 3
+      }
+    },
+    {
+      "id": "sheffield-city-gap",
+      "name": "Sheffield city centre gap",
+      "description": "A tiny construction gap in Sheffield's centre, between shops and offices.",
+      "suited_to": [
+        "office",
+        "house"
+      ],
+      "lat": 53.381,
+      "lon": -1.47,
+      "radius_m": 300,
+      "plot": {
+        "osm": "w103016346"
+      }
+    },
+    {
+      "id": "glasgow-allotments",
+      "name": "Glasgow allotments",
+      "description": "Allotments in Glasgow's West End. Flat and roomy, but the trees and neighbours need care.",
+      "suited_to": [
+        "school",
+        "house"
+      ],
+      "lat": 55.858,
+      "lon": -4.22,
+      "radius_m": 300,
+      "plot": {
+        "osm": "w144799344"
+      }
     }
   ]
 }

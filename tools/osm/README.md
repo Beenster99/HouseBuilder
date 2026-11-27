@@ -75,19 +75,31 @@ Use `survey` to find ids, then `build` and `preview` to check the result by eye.
 `sites.json` lists the sample sites. Each entry has `id`, `name`, `description`,
 `suited_to`, `lat`, `lon`, `radius_m` and `plot`, plus optional `notes` and `spacing_m`.
 The plan wants plots that are often not ideal for the job, so aim for a spread of
-ratings. The samples now:
+ratings. The 21 samples now (the Phase 6 target is 20):
 
-| id | rating | why it is hard |
-|---|---|---|
-| `northstowe-meadow` | 2 | the easy one: flat greenfield, but an awkward triangle |
-| `northstowe-powerline` | 3 | flat field with an overhead line across it and no road |
-| `ancoats-phoenix-ironworks` | 3 | big former ironworks: made ground, a neighbour on the boundary |
-| `ancoats-infill` | 3 | city gap site beside a canal, no road frontage |
-| `camden-station-infill` | 3 | tiny plot, neighbours on every side, busy single road |
-| `mk-central-carpark` | 4 | car park hemmed in by a shopping centre, service roads across it |
-| `tewkesbury-floodplain` | 4 | between two rivers: wet ground, lanes across it, listed neighbours |
-| `bath-hillside-garages` | 5 | clear a garage block on a steep hillside, party wall, no road frontage |
-| `clovelly-cliffside` | 5 | replace a cottage on a 46% slope that no vehicle can reach |
+| id | rating | suits | main problems |
+|---|---|---|---|
+| `manston-airfield` | 2 | airport terminal, hospital | no road frontage |
+| `northstowe-meadow` | 2 | hospital, school, airport terminal, civic | awkward plot shape; tight access |
+| `ancoats-infill` | 3 | house, office | no road frontage; poor, wet ground; awkward plot shape |
+| `ancoats-phoenix-ironworks` | 3 | school, hospital, office, civic | neighbours close to the boundary; made ground |
+| `camden-station-infill` | 3 | house, civic | neighbours close to the boundary; tight access; made ground |
+| `glasgow-allotments` | 3 | school, house | awkward plot shape; sloping site; trees to protect |
+| `middlehaven-docks` | 3 | hospital, office, school | neighbours close to the boundary; sloping site; awkward plot shape |
+| `northstowe-powerline` | 3 | house, school | no road frontage; overhead or buried lines |
+| `cambourne-centre` | 4 | school, house, civic, police station | neighbours close to the boundary; road or path crosses the plot; poor, wet ground |
+| `liverpool-warehouse-clearance` | 4 | house, school, office | neighbours close to the boundary; no road frontage; existing buildings to clear |
+| `mk-central-carpark` | 4 | school, police station, office, civic | tight access; road or path crosses the plot; neighbours close to the boundary |
+| `shaftesbury-hillside` | 4 | school, house | sloping site; no road frontage; awkward plot shape |
+| `sheffield-city-gap` | 4 | office, house | no road frontage; neighbours close to the boundary; protected neighbours |
+| `tewkesbury-floodplain` | 4 | police station, school, house, civic | road or path crosses the plot; neighbours close to the boundary; poor, wet ground |
+| `york-castle-gateway` | 4 | police station, office, civic | neighbours close to the boundary; existing buildings to clear; poor, wet ground |
+| `addenbrookes-car-park` | 5 | hospital | neighbours close to the boundary; awkward plot shape; tight access |
+| `bath-hillside-garages` | 5 | house | neighbours close to the boundary; sloping site; no road frontage |
+| `clovelly-cliffside` | 5 | house | sloping site; no road frontage; neighbours close to the boundary |
+| `edinburgh-parliament-square` | 5 | civic, office, police station | neighbours close to the boundary; sloping site; road or path crosses the plot |
+| `hebden-bridge-garden-street` | 5 | police station, civic | sloping site; neighbours close to the boundary; awkward plot shape |
+| `robin-hoods-bay` | 5 | house | sloping site; road or path crosses the plot; awkward plot shape |
 
 `samples/*.preview.png` shows each one from above.
 
