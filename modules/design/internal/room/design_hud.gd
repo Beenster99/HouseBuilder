@@ -21,6 +21,11 @@ var _options: VBoxContainer
 var _actions: HBoxContainer
 var _views: OptionButton
 var _overlay_slot: VBoxContainer
+var _note_popup: PopupPanel
+var _note_text: LineEdit
+var _note_at := Vector3.ZERO
+var _note_target := ""
+const LAYERS := [["rooms", "Rooms"], ["notes", "Notes"], ["pings", "Pings"], ["dimensions", "Wall lengths"]]
 var _save_popup: PopupPanel
 var _save_name: LineEdit
 var _load_popup: PopupPanel
@@ -44,7 +49,10 @@ func _ready() -> void:
 	_session.tool_changed.connect(func(_t: String) -> void: _refresh_tools())
 	_session.level_changed.connect(func(_l: int) -> void: refresh_bar())
 	_session.status.connect(_show_status)
-	_model.changed.connect(func(_op: Dictionary) -> void: _cost_dirty = true)
+	_model.changed.connect(func(op: Dictionary) -> void:
+		_cost_dirty = true
+		if str(op.get("op", "")) == "set_meta" and _session.tool == "note":
+			_refresh_tools())
 	_model.loaded.connect(func() -> void: _cost_dirty = true)
 	_net.peer_joined.connect(func(_p: int, _pr: Dictionary) -> void: refresh_bar())
 	_net.peer_left.connect(func(_p: int, _r: String) -> void: refresh_bar())
@@ -140,6 +148,21 @@ func _build_top() -> void:
 	row.add_child(_button("Save", open_save, "Save this design to your library (Ctrl+S)"))
 	row.add_child(_button("Load", open_load, "Load a design for everyone (Ctrl+O)"))
 	row.add_child(_button("New", _session.new_design, "Start a new, empty design for everyone"))
+	var layers := MenuButton.new()
+	layers.text = "Layers"
+	layers.flat = false
+	layers.focus_mode = FOCUS_NONE
+	layers.tooltip_text = "Show or hide rooms, notes, pings and wall lengths"
+	var pop := layers.get_popup()
+	pop.hide_on_checkable_item_selection = false
+	for i in LAYERS.size():
+		pop.add_check_item(LAYERS[i][1], i)
+		pop.set_item_checked(i, true)
+	pop.id_pressed.connect(func(i: int) -> void:
+		var on := not pop.is_item_checked(i)
+		pop.set_item_checked(i, on)
+		set_layer(str(LAYERS[i][0]), on))
+	row.add_child(layers)
 	_views = OptionButton.new()
 	_views.focus_mode = FOCUS_NONE
 	_views.tooltip_text = "The view you look through: Architect, or another discipline's overlay"
@@ -157,6 +180,13 @@ func _build_actions() -> void:
 	for a: Dictionary in design.action_list():
 		var press: Callable = a.press
 		_actions.add_child(_button(str(a.label), func() -> void: press.call(_model)))
+
+
+func set_layer(id: String, on: bool) -> void:
+	if id == "rooms":
+		(room.get("view") as Node).call("set_show_rooms", on)
+	else:
+		(room.get("marks") as Node).call("set_layer", id, on)
 
 
 func _build_views() -> void:
@@ -240,7 +270,7 @@ func _build_tools() -> void:
 	col.add_child(_options)
 	col.add_child(HSeparator.new())
 	var keys := Label.new()
-	keys.text = "Left drag: use tool\nRight drag: orbit · Middle: pan · Wheel: zoom\nTab 2D/3D · PgUp/PgDn level · Del delete\nCtrl+Z undo · Ctrl+Y redo · R turn · Esc cancel"
+	keys.text = "Left drag: use tool\nRight drag: orbit · Middle: pan · Wheel: zoom\nMiddle click: ping · Tab 2D/3D · PgUp/PgDn level\nDel delete · Ctrl+Z undo · Ctrl+Y redo · R turn · Esc cancel"
 	keys.add_theme_font_size_override("font_size", 13)
 	keys.modulate = BsxTheme.MUTED
 	keys.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
@@ -289,9 +319,42 @@ func _refresh_tools() -> void:
 		"column", "beam":
 			_option("Material", cat.materials_for(DesignSession.KIND[_session.tool]), _session.frame_material,
 					func(v: String) -> void: _session.frame_material = v, func(v: String) -> String: return str(cat.material(v).get("label", v)))
+		"note":
+			_notes_list()
 		"fixture":
 			_option("Furniture", cat.kinds_in("fixture"), _session.fixture_kind, func(v: String) -> void: _session.fixture_kind = v,
 					func(v: String) -> String: return str(cat.kind(v).get("label", v)))
+
+
+func _notes_list() -> void:
+	var notes: Array = (room.get("marks") as Node).get_script().notes_of(_model)
+	var l := Label.new()
+	l.text = "Notes in this design (%d)" % notes.size()
+	_options.add_child(l)
+	for n: Dictionary in notes:
+		var row := HBoxContainer.new()
+		var t := Label.new()
+		t.text = "L%d %s: %s" % [int(n.get("level", 0)), str(n.get("author", "")), str(n.get("text", ""))]
+		t.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		t.size_flags_horizontal = SIZE_EXPAND_FILL
+		row.add_child(t)
+		var key := str(n.key)
+		row.add_child(_button("×", func() -> void: _session.remove_note(key), "Remove this note"))
+		_options.add_child(row)
+
+
+func ask_note(at: Vector3, target: String) -> void:
+	_note_at = at
+	_note_target = target
+	_note_text.text = ""
+	_note_text.placeholder_text = "Note on %s" % (_session.label_of(target) if target != "" else "this spot")
+	_note_popup.popup_centered()
+	_note_text.grab_focus()
+
+
+func _do_note() -> void:
+	_session.add_note(_note_at, _note_target, _note_text.text)
+	_note_popup.hide()
 
 
 func _wall_material() -> void:
@@ -419,6 +482,20 @@ func _build_popups() -> void:
 	col.add_child(_save_name)
 	col.add_child(_button("Save", _do_save))
 	add_child(_save_popup)
+
+	_note_popup = PopupPanel.new()
+	var col3 := VBoxContainer.new()
+	col3.custom_minimum_size = Vector2(420, 0)
+	_note_popup.add_child(col3)
+	var l3 := Label.new()
+	l3.text = "Note for the team"
+	col3.add_child(l3)
+	_note_text = LineEdit.new()
+	_note_text.max_length = 280
+	_note_text.text_submitted.connect(func(_t: String) -> void: _do_note())
+	col3.add_child(_note_text)
+	col3.add_child(_button("Pin note", _do_note))
+	add_child(_note_popup)
 
 	_load_popup = PopupPanel.new()
 	var col2 := VBoxContainer.new()

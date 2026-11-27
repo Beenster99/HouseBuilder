@@ -18,6 +18,10 @@ signal level_changed(level: int)
 signal status(text: String, warn: bool)
 ## The ghost of what the current tool would place, or the drag offset (see preview()).
 signal preview_changed
+## The Note tool was clicked: the HUD asks for the text, then calls add_note().
+signal note_requested(at: Vector3, target: String)
+## This player's tape measure changed: a and b in world space, or nulls.
+signal measure_changed(a: Variant, b: Variant)
 
 const C := preload("res://modules/building/api/building_commands.gd")
 
@@ -36,11 +40,13 @@ const TOOLS: Array[Dictionary] = [
 	{"id": "footing", "label": "Strip footing", "key": KEY_NONE, "hint": "Click both ends of a strip footing under a wall"},
 	{"id": "pad", "label": "Pad footing", "key": KEY_NONE, "hint": "Click to place a pad footing under a column"},
 	{"id": "fixture", "label": "Furniture", "key": KEY_NONE, "hint": "Click to place the chosen fixture; R turns it"},
+	{"id": "note", "label": "Note", "key": KEY_N, "hint": "Click a spot or a part to pin a note for the team"},
+	{"id": "measure", "label": "Measure", "key": KEY_M, "hint": "Click two points to measure between them"},
 ]
 ## Catalog kind each placing tool makes.
 const KIND := {"wall": "wall_loadbearing", "partition": "wall_partition", "slab": "slab", "roof": "roof_flat",
 		"raft": "raft", "column": "column", "beam": "beam", "footing": "strip_footing", "pad": "pad_footing"}
-const TWO_POINT := ["wall", "partition", "beam", "footing"]
+const TWO_POINT := ["wall", "partition", "beam", "footing", "measure"]
 const RECT := ["room", "slab", "roof", "raft"]
 const POINT := ["column", "pad", "fixture"]
 const OPENING := ["door", "window"]
@@ -181,7 +187,7 @@ func hover(p: Variant) -> void:
 		preview_changed.emit()
 		return
 	var at := snap(p)
-	if anchor != null and tool in TWO_POINT:
+	if anchor != null and tool in TWO_POINT and tool != "measure":
 		at = DesignSnap.run(anchor, at, grid)
 	cursor = at
 	presence.set_cursor(at)
@@ -219,6 +225,9 @@ func press(p: Vector3, add := false) -> void:
 				presence.select(sel)
 		elif not hit in sel:
 			presence.select(PackedStringArray([hit]))
+		return
+	if tool == "note":
+		note_requested.emit(at, pick(at))
 		return
 	if tool in POINT:
 		_place_point(at)
@@ -258,6 +267,8 @@ func cancel() -> void:
 	anchor = null
 	if presence:
 		presence.set_anchor(null)
+	if tool == "measure":
+		measure_changed.emit(null, null)
 	preview_changed.emit()
 
 
@@ -341,6 +352,11 @@ func _finish_two_point(end: Vector3) -> void:
 		presence.set_anchor(null)
 		return
 	if (end - start).length() < BuildingModel.MIN_LENGTH:
+		return
+	if tool == "measure":
+		measure_changed.emit(start, end)
+		anchor = null
+		presence.set_anchor(null)
 		return
 	var kind := str(KIND[tool])
 	var a := _local(start)
@@ -455,6 +471,38 @@ func undo() -> void:
 func redo() -> void:
 	cancel()
 	sync.redo()
+
+
+# --- Notes ------------------------------------------------------------------------------
+
+var _note_n := 0
+
+
+## Pins a note for the team at a point (world), linked to an entry ("" for none). Notes live
+## in the design's metadata, so they are shared, saved with it and undoable.
+func add_note(at: Vector3, target: String, text: String) -> void:
+	text = text.strip_edges().left(280)
+	if text == "":
+		return
+	_note_n += 1
+	var key := "note:%d-%d-%d" % [net.local_peer_id(), Time.get_ticks_msec(), _note_n]
+	sync.edit(C.set_design_meta({key: {"at": [at.x, at.y, at.z], "level": level, "target": target, "text": text,
+			"author": net.player_name(net.local_peer_id()), "colour": net.player_colour(net.local_peer_id()).to_html(false)}}))
+
+
+func remove_note(key: String) -> void:
+	if model.meta.has(key):
+		sync.edit(C.set_design_meta({key: null}))
+
+
+## A label for an entry, for pings and notes ("Kitchen", "Load-bearing wall").
+func label_of(id: String) -> String:
+	if model.rooms.has(id):
+		var r: Dictionary = model.rooms[id]
+		return str(r.get("name", "")) if str(r.get("name", "")) != "" else str(catalog.room_type(str(r.type)).get("label", r.type))
+	if model.parts.has(id):
+		return str(catalog.kind(str(model.parts[id].kind)).get("label", model.parts[id].kind))
+	return ""
 
 
 # --- Picking ------------------------------------------------------------------------------

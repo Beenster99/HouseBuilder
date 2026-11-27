@@ -12,6 +12,9 @@ extends Node3D
 const DesignView := preload("res://modules/design/internal/room/design_view.gd")
 const DesignCamera := preload("res://modules/design/internal/room/design_camera.gd")
 const DesignHud := preload("res://modules/design/internal/room/design_hud.gd")
+const DesignMarks := preload("res://modules/design/internal/room/design_marks.gd")
+## A middle press that moves less than this before it lets go is a ping, not a pan, px.
+const TAP_SLOP := 6.0
 
 const PLOT_HALF := 40.0
 const GROUND := Color(0.5, 0.58, 0.45)
@@ -36,6 +39,8 @@ var _left_down := false
 var _sun: DirectionalLight3D
 ## The view this player looks through: "" (Architect) or a DesignBus overlay id.
 var overlay := ""
+var marks: Node3D
+var _middle_from: Variant = null
 
 
 func _ready() -> void:
@@ -53,6 +58,11 @@ func _ready() -> void:
 	view.name = "Building"
 	add_child(view)
 	view.bind(building.model)
+	marks = DesignMarks.new()
+	marks.name = "Marks"
+	add_child(marks)
+	marks.call("bind", building.model, net)
+	session.measure_changed.connect(func(a: Variant, b: Variant) -> void: marks.call("set_measure", a, b))
 	_crew_marks = Node3D.new()
 	_crew_marks.name = "CrewMarks"
 	add_child(_crew_marks)
@@ -69,6 +79,7 @@ func _ready() -> void:
 	layer.add_child(hud)
 	session.preview_changed.connect(_draw_ghost)
 	session.level_changed.connect(_on_level)
+	session.note_requested.connect(func(at: Vector3, target: String) -> void: hud.call("ask_note", at, target))
 	session.presence.selection_changed.connect(func(_p: int, _ids: PackedStringArray) -> void: _tint_dirty = true)
 	session.presence.locks_changed.connect(func() -> void: _tint_dirty = true)
 	building.model.changed.connect(func(_op: Dictionary) -> void: _tint_dirty = true)
@@ -174,6 +185,7 @@ func _draw_grid() -> void:
 
 func _on_level(l: int) -> void:
 	view.show_level(l)
+	marks.call("set_level", l)
 	_draw_grid()
 	var cam := camera as DesignCamera
 	cam.focus.y = session.floor_y()
@@ -407,6 +419,14 @@ func _unhandled_input(event: InputEvent) -> void:
 				session.release(p if p != null else session.cursor if session.cursor != null else Vector3.ZERO)
 			get_viewport().set_input_as_handled()
 			return
+		if mb.button_index == MOUSE_BUTTON_MIDDLE:
+			# A tap pings the spot for the team; a drag pans (the camera handles it).
+			if mb.pressed:
+				_middle_from = mb.position
+			elif _middle_from != null and (mb.position - (_middle_from as Vector2)).length() < TAP_SLOP:
+				ping_here()
+			if not mb.pressed:
+				_middle_from = null
 		if mb.button_index == MOUSE_BUTTON_RIGHT and mb.pressed and (cam.plan or session.anchor != null):
 			session.cancel()
 			if cam.plan:
@@ -471,6 +491,16 @@ func _key(k: InputEventKey) -> bool:
 			session.set_tool(str(t.id))
 			return true
 	return false
+
+
+## Pings the spot under the pointer, labelled with what is there.
+func ping_here() -> void:
+	var p: Variant = _floor_point()
+	if p == null:
+		return
+	var at := session.snap(p)
+	var id := session.pick(at)
+	net.ping(at, id, Vector3.UP, session.label_of(id))
 
 
 func set_overlay(id: String) -> void:

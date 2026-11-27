@@ -1,4 +1,6 @@
 extends ModuleTest
+
+const DesignMarksScript := preload("res://modules/design/internal/room/design_marks.gd")
 ## The design room's tools solo, on a fresh building: snapping, rooms with walls round them
 ## (sharing walls with rooms beside them), wall runs, doors and windows, slabs, columns,
 ## beams, fixtures, picking, select and drag, delete, undo and redo, the cost panel and its
@@ -124,6 +126,32 @@ func run_tests() -> void:
 	s.release(Vector3(2, 3, 2))
 	check(model.rooms_on(1).size() == 1, "a room upstairs")
 
+	# Team notes and the tape measure.
+	var asked: Array = []
+	s.note_requested.connect(func(at: Vector3, target: String) -> void: asked.append([at, target]))
+	s.set_level(0)
+	s.set_tool("note")
+	s.press(Vector3(6.5, 0, 2.0))
+	check(asked.size() == 1 and str(asked[0][1]).begins_with("r"), "the Note tool asks for text, linked to the room: %s" % str(asked))
+	s.add_note(asked[0][0], asked[0][1], "  Bigger window here?  ")
+	var notes: Array = DesignMarksScript.notes_of(model)
+	check(notes.size() == 1 and notes[0].text == "Bigger window here?" and notes[0].target == asked[0][1], "the note is in the design: %s" % str(notes))
+	sync.undo()
+	check(DesignMarksScript.notes_of(model).is_empty(), "notes undo like any edit")
+	sync.redo()
+	s.remove_note(str(DesignMarksScript.notes_of(model)[0].key))
+	check(DesignMarksScript.notes_of(model).is_empty(), "and can be removed")
+	s.add_note(Vector3(1, 0, 1), "", "Keep this")
+	var measured: Array = []
+	s.measure_changed.connect(func(a: Variant, b: Variant) -> void: measured.append([a, b]))
+	s.set_tool("measure")
+	s.press(Vector3(0, 0, 0))
+	s.press(Vector3(3.03, 0, 4.01))
+	check(measured.size() >= 1 and measured.back()[1] is Vector3 and is_equal_approx((measured.back()[1] as Vector3).x, 3.0),
+			"Measure gives both ends, grid-snapped but not held square: %s" % str(measured.back()))
+	check(model.revision == model.revision and s.anchor == null, "measuring changes nothing in the building")
+	s.set_level(1)
+
 	# Costs and notes.
 	var sum := DesignCosts.summary(model)
 	check(float(sum.total) > 1000.0 and float(sum.total) == float(BuildingQuantities.totals(model).cost), "live total: %s" % DesignCosts.money(sum.total))
@@ -136,7 +164,7 @@ func run_tests() -> void:
 	check(no_floor, "and that the upper floor has no slab")
 	check(DesignCosts.money(1234567.4) == "£1,234,567", "money reads well")
 
-	# Save and load.
+	# Save and load (notes go with the design).
 	var before := model.checksum()
 	check(s.save_design("Test house") == OK, "saves")
 	check("Test house" in DesignSession.list_designs(), "listed in the library")
@@ -147,6 +175,7 @@ func run_tests() -> void:
 	check(model.parts.size() > 10 and reloaded.checksum() == model.checksum(), "loads back")
 	var saved := BuildingModel.from_data(JSON.parse_string(FileAccess.get_file_as_string(DesignSession.design_path("Test house"))))
 	check(saved.checksum() == model.checksum(), "the reloaded design is identical to the saved one")
+	check(DesignMarksScript.notes_of(model).size() == 1, "with its note")
 	check(before != 0, "checksum taken")
 
 	s.teardown()

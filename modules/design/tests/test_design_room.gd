@@ -42,7 +42,21 @@ func run_tests() -> void:
 	await frames(2)
 	check(view.call("tints").has(door), "the selection is highlighted")
 
+	var marks: Node3D = room.get("marks")
+	var net := Modules.bus("multiplayer") as MultiplayerBus
+	await get_tree().create_timer(0.3).timeout
+	net.ping(Vector3(2.5, 0, 0), door, Vector3.UP, session.label_of(door))
+	await frames(1)
+	check(marks.call("ping_count") >= 1, "a ping shows a marker")
+	check(session.label_of(door) == "Internal door", "pings and notes name what they point at")
+	session.add_note(Vector3(1, 0, 1), "", "Check this")
+	await frames(1)
+	check(marks.get_node("Notes").get_child_count() == 1, "a note shows as a pin")
+	check(marks.get_node("Dimensions").get_child_count() == 4, "wall lengths show on the working level")
 	var hud: Control = room.get("hud")
+	hud.call("set_layer", "notes", false)
+	check(not marks.get_node("Notes").visible, "the Notes layer hides")
+	hud.call("set_layer", "notes", true)
 	check(hud.find_children("*", "Button", true, false).size() > DesignSession.TOOLS.size(), "the HUD has the tools")
 	var labels := hud.find_children("*", "Button", true, false).map(func(b: Node) -> String: return (b as Button).text)
 	check("Test it" in labels, "and other modules' actions: %s" % str(labels))
