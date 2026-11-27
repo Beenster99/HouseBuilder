@@ -9,6 +9,7 @@ extends RefCounted
 ##   plan.before       # ServicesReport of the building as it is
 ##   plan.after        # ServicesReport once the ops are applied
 ##   plan.notes        # what it did, in words
+##   plan.runs         # how many socket, light, radiator and run parts it puts in
 ##
 ## It furnishes wet rooms that have no fixtures yet (a bathroom gets a WC, basin and bath,
 ## a WC a WC and basin, a kitchen or utility a sink unit, toilets two of each, a commercial
@@ -44,8 +45,13 @@ static func propose(model: BuildingModel, sources: Dictionary = {}) -> Dictionar
 	var notes := PackedStringArray()
 	var cat := model.catalog
 	if model.rooms.is_empty():
-		return {"ops": [], "added": [], "before": before, "after": before,
+		return {"ops": [], "added": [], "before": before, "after": before, "runs": 0,
 			"notes": PackedStringArray(["Nothing to design yet: draw some rooms first."])}
+
+	# 0. What the consultant added last time comes out first (put back below if unchanged).
+	var old := _added_parts(work)
+	if not old.is_empty():
+		work.apply(C.delete(old.keys()))
 
 	# 1. Fixtures for bare wet rooms, along the wall nearest where waste goes.
 	var stack := Vector2.INF
@@ -73,11 +79,11 @@ static func propose(model: BuildingModel, sources: Dictionary = {}) -> Dictionar
 		if not placed.is_empty():
 			notes.append("Fitted out %s with %s." % [ServicesConsultant._room_name(model, rid), ", ".join(placed)])
 
-	# 2. Route the fitted-out copy and put the source units where the routes start.
+	# 2. Route the fitted-out copy and put the plant (source units) where the routes start.
 	var routed := ServicesConsultant.route(work, sources)
 	for s in Rates.SYSTEMS:
 		var sys := routed.system(s)
-		if sys.is_empty() or str(sys.source.how) == "part":
+		if sys.is_empty() or str(sys.source.how) == "part" or Rates.shares(s) != s:
 			continue
 		var kind := str(Rates.SYSTEM[s].source_kind)
 		if not cat.has_kind(kind):
@@ -92,11 +98,138 @@ static func propose(model: BuildingModel, sources: Dictionary = {}) -> Dictionar
 		added.append({"kind": kind, "level": lv, "at": at, "room": room, "why": s})
 		notes.append("Placed the %s %s." % [Rates.SYSTEM[s].source,
 			("in " + ServicesConsultant._room_name(model, room)) if room != "" else "on level %d" % lv])
+
+	# 3. Route again from the plant, then add the sockets, lights, radiators and every run as
+	# parts named ADDED_NAME (replaced the next time).
+	var routed2 := ServicesConsultant.route(work, sources)
+	var fresh: Array = _fittings(work, routed2) + _runs(work, routed2)
+	if _same(old, fresh):
+		work.load_data(BuildingModel.from_data(model.to_data(), model.catalog).to_data())
+		for op: Dictionary in ops:
+			work.apply(op)
+	else:
+		if not old.is_empty():
+			ops.insert(0, C.delete(old.keys()))
+		var counts := {}
+		var lengths := {}
+		for e: Dictionary in fresh:
+			var op := C.place_part(str(e.kind), int(e.level), e.geometry, str(e.get("material", "")))
+			op.entry["name"] = Rates.ADDED_NAME
+			if work.apply(op).is_empty():
+				continue
+			ops.append(op)
+			counts[e.kind] = int(counts.get(e.kind, 0)) + 1
+			if e.has("length"):
+				lengths[e.kind] = float(lengths.get(e.kind, 0.0)) + float(e.length)
+		var bits := PackedStringArray()
+		for s in Rates.SYSTEMS:
+			var k := str(Rates.RUN_KINDS[s])
+			if lengths.has(k):
+				bits.append("%.0f m of %s" % [lengths[k], str(cat.kind(k).get("label", k)).to_lower()])
+		for s: String in Rates.FITTINGS:
+			var k := str(Rates.FITTINGS[s])
+			if counts.has(k):
+				bits.append("%d %s" % [counts[k], str(cat.kind(k).get("label", k)).to_lower()])
+		if not bits.is_empty():
+			notes.append("Added " + ", ".join(bits) + ".")
+		added.append_array(fresh)
 	var after := ServicesConsultant.route(work, sources)
 	if ops.is_empty():
-		notes.append("Nothing to add: every source unit is placed and every wet room has fixtures.")
+		notes.append("Nothing to change: the plant, fixtures and every run are already in.")
 	notes.append(after.summary)
-	return {"ops": ops, "added": added, "before": before, "after": after, "notes": notes}
+	return {"ops": ops, "added": added, "before": before, "after": after, "notes": notes,
+		"runs": fresh.size()}
+
+
+## Parts the consultant added earlier (named ADDED_NAME): id -> entry.
+static func _added_parts(model: BuildingModel) -> Dictionary:
+	var out := {}
+	for pid in BuildingModel.sort_ids(model.parts.keys()):
+		var e: Dictionary = model.parts[pid]
+		if str(e.get("name", "")) == Rates.ADDED_NAME:
+			out[pid] = e
+	return out
+
+
+## A socket, light and radiator part for every room the routes reach where the players
+## placed none: [{kind, level, geometry}].
+static func _fittings(model: BuildingModel, rep: ServicesReport) -> Array:
+	var out: Array = []
+	var heights := {"power": 0.3, "lighting": -0.05, "heating": 0.15}
+	for s: String in Rates.FITTINGS:
+		var kind := str(Rates.FITTINGS[s])
+		if not model.catalog.has_kind(kind):
+			continue
+		var placed := ServicesConsultant._placed_fittings(model, BuildingModel.sort_ids(model.rooms.keys()))
+		for b: Dictionary in rep.system(s).get("branches", []):
+			if not model.rooms.has(str(b.id)) or placed.has("%s/%s" % [b.id, s]) or (b.at as Array).is_empty():
+				continue
+			var lv := int(model.rooms[str(b.id)].level)
+			var y: float = heights[s] if heights[s] >= 0.0 else model.level_height(lv) + heights[s]
+			out.append({"kind": kind, "level": lv, "geometry": {"at": [float(b.at[0]), snappedf(y, 0.01), float(b.at[1])]}})
+	return out
+
+
+## Every routed branch as straight run parts, one per leg: [{kind, level, geometry, length}].
+## A leg between floors belongs to the lower level.
+static func _runs(model: BuildingModel, rep: ServicesReport) -> Array:
+	var out: Array = []
+	for s in Rates.SYSTEMS:
+		var kind := str(Rates.RUN_KINDS[s])
+		if not model.catalog.has_kind(kind):
+			continue
+		var h := float(Rates.SYSTEM[s].height)
+		var mat := ""
+		var mats := model.catalog.materials_for(kind)
+		if not mats.is_empty():
+			mat = mats[0]
+		for b: Dictionary in rep.system(s).get("branches", []):
+			var pts: Array = b.points
+			for k in range(pts.size() - 1):
+				var a := Vector3(float(pts[k][0]), float(pts[k][1]), float(pts[k][2]))
+				var c := Vector3(float(pts[k + 1][0]), float(pts[k + 1][1]), float(pts[k + 1][2]))
+				var lv := _level_at(model, minf(a.y, c.y) - h)
+				var floor_y := model.level_elevation(lv)
+				out.append({"kind": kind, "level": lv, "material": mat, "length": snappedf(a.distance_to(c), 0.01),
+					"geometry": {"a": [a.x, snappedf(a.y - floor_y, 0.001), a.z], "b": [c.x, snappedf(c.y - floor_y, 0.001), c.z]}})
+	return out
+
+
+static func _level_at(model: BuildingModel, y: float) -> int:
+	var lv := 0
+	for l in model.level_count():
+		if model.level_elevation(l) <= y + 0.01:
+			lv = l
+	return lv
+
+
+## True when the parts added last time are exactly what would be added now.
+static func _same(old: Dictionary, fresh: Array) -> bool:
+	if old.size() != fresh.size():
+		return false
+	var want := {}
+	for e: Dictionary in fresh:
+		want[_sig(str(e.kind), int(e.level), e.geometry)] = int(want.get(_sig(str(e.kind), int(e.level), e.geometry), 0)) + 1
+	for pid: String in old:
+		var e: Dictionary = old[pid]
+		var g := {}
+		for k in ["at", "a", "b"]:
+			if e.has(k):
+				g[k] = e[k]
+		var sig := _sig(str(e.kind), int(e.level), g)
+		if int(want.get(sig, 0)) <= 0:
+			return false
+		want[sig] = int(want[sig]) - 1
+	return true
+
+
+static func _sig(kind: String, level: int, g: Dictionary) -> String:
+	var parts := PackedStringArray([kind, str(level)])
+	for k in ["at", "a", "b"]:
+		if g.has(k):
+			for v: Variant in g[k]:
+				parts.append("%.2f" % float(v))
+	return "|".join(parts)
 
 
 static func _has_wet_fixture(model: BuildingModel, rid: String) -> bool:

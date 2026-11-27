@@ -1,7 +1,7 @@
 extends VBoxContainer
 ## The M&E view's panel in the design room: the consultant's verdict, each system's length
-## and cost, what is wrong and why, and buttons to route again, let it design the rest, or
-## ask whether the design is feasible.
+## and cost, what is wrong and why, and buttons to route the services (placing the plant,
+## fixtures and every run) or ask whether the design is feasible.
 
 const WIDTH := 320
 
@@ -24,15 +24,12 @@ func _init() -> void:
 	add_child(_notes)
 	var row := HBoxContainer.new()
 	add_child(row)
-	var route := BsxTheme.button("Route services", func() -> void: _bus.run_consultant())
-	route.custom_minimum_size = Vector2(150, 36)
+	var route := BsxTheme.button("Route services", func() -> void: _bus.route_services())
+	route.custom_minimum_size = Vector2(150, 30)
 	row.add_child(route)
-	var design := BsxTheme.button("Design services", func() -> void: _bus.design_services())
-	design.custom_minimum_size = Vector2(150, 36)
-	row.add_child(design)
 	var check := BsxTheme.button("Check feasibility", func() -> void: _bus.review_feasibility())
-	check.custom_minimum_size = Vector2(304, 36)
-	add_child(check)
+	check.custom_minimum_size = Vector2(150, 30)
+	row.add_child(check)
 	_said = _wrap_label()
 	add_child(_said)
 

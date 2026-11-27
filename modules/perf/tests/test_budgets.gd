@@ -23,7 +23,8 @@ const KNOWN := {
 	"quantities.terminal": [60.0, "building", "the first full costing (about 50 ms); after it an edit recosts only what it touched (about 19 ms)"],
 	"stress.office": [450.0, "structure", "a cold stress test sits near the 500 ms button budget (the live check is off the main thread and reuses unchanged floors)"],
 	"stress.terminal": [900.0, "structure", "a cold stress test of 4,900 members (off the main thread in game; edits re-check in ~0.6 s)"],
-	"route.terminal": [650.0, "services", "routing 384 rooms (runs on a worker thread since 2026-11-27, so no frame waits on it)"],
+	"route.office": [700.0, "services", "routing six systems (lighting and heating added 2026-11-27) on a worker thread, so no frame waits on it"],
+	"route.terminal": [1350.0, "services", "routing 384 rooms, six systems, on a worker thread, so no frame waits on it"],
 	"demolition_physics.office": [40.0, "demolition", "about 800 parts fall at once, each one body until it breaks up (was 110 ms; 22-40 ms alone, 60 with the suite running)"],
 	"demolition_hitch.office": [60.0, "demolition", "the worst physics frame of the collapse (40 ms alone, 60 with the suite running)"],
 }

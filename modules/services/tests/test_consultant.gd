@@ -20,6 +20,7 @@ func run_tests() -> void:
 	_long_wc_branch()
 	_lift_shaft()
 	_designer()
+	_route_adds_everything()
 
 
 func _empty() -> void:
@@ -221,8 +222,69 @@ func _designer() -> void:
 		check(str(rep.system(s).source.how) == "part", "%s comes from a placed unit" % s)
 	var bath := Samples.room_of_type(m, "bathroom")
 	for a: Dictionary in plan.added:
-		if a.room == bath:
+		if a.get("room", "") == bath:
 			check(BuildingModel.outline_has_point(m.rooms[bath].outline, a.at[0], a.at[2]), "%s inside the bathroom" % a.kind)
 	var again := ServicesDesigner.propose(m)
 	check((again.ops as Array).is_empty(), "nothing more to add the second time: %s" % str(again.notes))
 	check(ServicesDesigner.propose(Samples.house(false)).ops == plan.ops, "same plan every time")
+
+
+## The default catalog plus the run and fitting kinds Route services adds (as the building
+## catalog will have them), so these tests do not wait on it.
+static func _catalog_with_runs() -> BuildingCatalog:
+	var d := BuildingCatalog.default_catalog()
+	var kinds := d.kinds.duplicate(true)
+	var mats := d.materials.duplicate(true)
+	for m in ["copper", "pvc"]:
+		if not mats.has(m):
+			mats[m] = {"label": m.capitalize(), "density": 1000.0, "strength": 1.0, "e": 1.0, "colour": "b87333"}
+	for k: String in ServicesRates.RUN_KINDS.values():
+		if not kinds.has(k):
+			var mat := "pvc" if k == "pipe_waste" else "copper"
+			kinds[k] = {"label": k.capitalize(), "family": "service", "shape": "line", "structural": false,
+				"materials": [mat], "sections": {}, "rates": {mat: ["m", 20.0]}}
+	for k: String in ServicesRates.FITTINGS.values():
+		if not kinds.has(k):
+			kinds[k] = {"label": k.capitalize(), "family": "fixture", "shape": "point", "w": 0.3, "d": 0.1, "h": 0.3,
+				"materials": ["copper"], "sections": {}, "rates": {"copper": ["each", 60.0]}}
+	var fams := Array(d.families)
+	if not "service" in fams:
+		fams.append("service")
+	return BuildingCatalog.from_data({"currency": d.currency, "families": fams, "connection_kinds": Array(d.connection_kinds),
+		"materials": mats, "sections": d.sections.duplicate(true), "kinds": kinds, "room_types": d.room_types.duplicate(true)})
+
+
+func _route_adds_everything() -> void:
+	var cat := _catalog_with_runs()
+	var m := BuildingModel.from_data(Samples.house(false).to_data(), cat)
+	check(m.rooms.size() == 8, "house on the extended catalog")
+	var plan := ServicesDesigner.propose(m)
+	var count := {}
+	for op: Dictionary in plan.ops:
+		check(not m.apply(op).is_empty(), "op applies: %s" % str(op).substr(0, 80))
+	for pid: String in m.parts:
+		var k := str(m.parts[pid].kind)
+		count[k] = int(count.get(k, 0)) + 1
+	check(count.get("socket_double", 0) == 8 and count.get("light_point", 0) == 8 and count.get("radiator", 0) == 8,
+		"a socket, light and radiator in every room: %s" % str(count))
+	for k: String in ServicesRates.RUN_KINDS.values():
+		check(count.get(k, 0) > 0, "%s runs added: %d" % [k, count.get(k, 0)])
+	var named := 0
+	for pid: String in m.parts:
+		if str(m.parts[pid].get("name", "")) == ServicesRates.ADDED_NAME:
+			named += 1
+	check(named == int(plan.runs) and named > 30, "added parts are marked as the consultant's: %d" % named)
+	var rep := ServicesConsultant.route(m)
+	check(rep.passed(), "everything served: %s" % rep.summary)
+	for rid: String in rep.rooms:
+		check(rep.rooms[rid].heated != false and rep.rooms[rid].powered, "room %s powered, lit and heated" % rid)
+	var again := ServicesDesigner.propose(m)
+	check((again.ops as Array).is_empty(), "pressing again changes nothing: %s" % str(again.notes))
+	# A room added later: the next press replaces the consultant's parts in one go.
+	m.apply(C.place_room("study", 1, C.rect(10, 0, 3, 4)))
+	m.apply(C.place_part("slab", 1, {"outline": C.rect(10, 0, 3, 4)}, "concrete"))
+	var more := ServicesDesigner.propose(m)
+	check(not (more.ops as Array).is_empty() and more.ops[0].op == "remove", "old runs out first, then the new set")
+	for op: Dictionary in more.ops:
+		m.apply(op)
+	check(ServicesConsultant.route(m).passed(), "the new room is served too")

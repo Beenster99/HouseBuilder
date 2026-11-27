@@ -33,7 +33,7 @@ const EVENT_REPORT := "services.report"
 const EVENT_SOURCE := "services.source"
 const SAVE_SECTION := "services"
 const SAVE_VERSION := 1
-## "Route services" and "Design services" on the design room's top bar, and the M&E view.
+## "Route services" and "Check feasibility" on the design room's top bar, and the M&E view.
 const CONSULTANT_FLAG := "services.consultant"
 const OVERLAY := "services.me"
 ## Live assessment: a moment after the building stops changing, the host routes the
@@ -167,7 +167,6 @@ func unregister_module() -> void:
 	Saves.unregister_section(SAVE_SECTION)
 	if is_instance_valid(_design):
 		_design.unregister_action("services.route")
-		_design.unregister_action("services.design")
 		_design.unregister_action("services.review")
 		_design.unregister_overlay(OVERLAY)
 		if _design.has_method("unregister_panel"):
@@ -200,10 +199,9 @@ func _hook_design() -> void:
 	if design == null or not design.has_method("register_action"):
 		return
 	_design = design
+	# One M&E button: place the plant and fixtures, add every run, then report.
 	design.register_action("services.route", "Route services", func(_model: BuildingModel) -> void:
-		run_consultant(), 55)
-	design.register_action("services.design", "Design services", func(_model: BuildingModel) -> void:
-		design_services(), 56)
+		route_services(), 55)
 	design.register_action("services.review", "Check feasibility", func(_model: BuildingModel) -> void:
 		review_feasibility(), 57)
 	if design.has_method("register_overlay"):
@@ -295,7 +293,13 @@ func _finish_design(plan: Dictionary) -> void:
 	run_consultant()
 
 
-## The last Design services plan (ServicesDesigner.propose), or {}.
+## The M&E button: the consultant places what is missing and adds every run (design_services),
+## then the host routes and reports. One shared edit, one undo step.
+func route_services() -> void:
+	design_services()
+
+
+## The last Route services plan (ServicesDesigner.propose), or {}.
 func last_plan() -> Dictionary:
 	return _plan
 

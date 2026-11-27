@@ -61,10 +61,19 @@ static func route(model: BuildingModel, sources: Dictionary = {}, options: Dicti
 	var demands := {}  # system -> Array of {id, cell, room, what, wc?}
 	for s in Rates.SYSTEMS:
 		demands[s] = []
+	var placed_fittings := _placed_fittings(model, room_ids)
 	for rid in room_ids:
-		var c := _room_centre(grid, model, rid)
-		demands.power.append({"id": rid, "cell": c, "room": rid, "what": "Lighting and sockets",
-			"label": "lighting and sockets in " + _room_name(model, rid)})
+		var r: Dictionary = model.rooms[rid]
+		for s: String in ["power", "lighting", "heating"]:
+			if s == "heating" and not Rates.is_heated(str(r.type)):
+				continue
+			var at := fitting_spot(model, rid, s, placed_fittings)
+			var c: int = grid.nearest(int(r.level), at.x, at.y, rid)
+			if c < 0:
+				c = _room_centre(grid, model, rid)
+			var what: String = {"power": "Sockets", "lighting": "Lights", "heating": "Radiator"}[s]
+			demands[s].append({"id": rid, "cell": c, "room": rid, "what": what, "at": [at.x, at.y],
+				"level": int(r.level), "label": what.to_lower() + " in " + _room_name(model, rid)})
 	for f: Dictionary in fixtures:
 		var c: int = grid.nearest(f.level, f.x, f.z, f.room)
 		if c < 0:
@@ -96,11 +105,18 @@ static func route(model: BuildingModel, sources: Dictionary = {}, options: Dicti
 	# Sources.
 	var src := {}
 	for s in Rates.SYSTEMS:
-		if s == "waste" and demands.waste.is_empty():
+		if Rates.shares(s) != s:
 			continue
-		if s in ["cold_water", "hot_water"] and demands[s].is_empty():
-			continue
-		src[s] = _source(model, grid, room_ids, s, sources, demands)
+		var wanted: bool = not demands[s].is_empty()
+		if s == "power":
+			wanted = wanted or not demands.lighting.is_empty()
+		if s == "hot_water":
+			wanted = wanted or not demands.heating.is_empty()
+		if wanted:
+			src[s] = _source(model, grid, room_ids, s, sources, demands)
+	for s in Rates.SYSTEMS:
+		if Rates.shares(s) != s and src.has(Rates.shares(s)):
+			src[s] = src[Rates.shares(s)]
 	if src.has("hot_water"):
 		var boiler_cell := int(src.hot_water.cell)
 		var broom: String = grid.room_of(boiler_cell)
@@ -140,12 +156,16 @@ static func route(model: BuildingModel, sources: Dictionary = {}, options: Dicti
 		var served := {}  # system -> served for this room
 		for s: String in rep.systems:
 			for d: Dictionary in demands[s]:
-				if d.room != rid or (s == "power" and d.id != rid):
+				if d.room != rid or (s in ["power", "lighting", "heating"] and d.id != rid):
 					continue
 				var ok := _is_served(rep.systems[s], str(d.id))
 				served[s] = bool(served.get(s, true)) and ok
-		if not bool(served.get("power", false)):
-			missing.append("power")
+		for s: String in ["power", "lighting"]:
+			if not bool(served.get(s, false)):
+				missing.append(s)
+		var heated := Rates.is_heated(str(r.type))
+		if heated and not bool(served.get("heating", false)):
+			missing.append("heating")
 		if wet:
 			for s: String in ["cold_water", "hot_water", "waste"]:
 				if s == "hot_water" and not bool(Rates.WET_ROOMS[str(r.type)].hot) and not served.has(s):
@@ -157,12 +177,60 @@ static func route(model: BuildingModel, sources: Dictionary = {}, options: Dicti
 				if served.has(s) and not bool(served[s]):
 					missing.append(s)
 		rep.rooms[rid] = {"name": _room_name(model, rid), "type": str(r.type), "level": int(r.level), "wet": wet,
-			"powered": not "power" in missing,
+			"powered": not "power" in missing and not "lighting" in missing,
+			"heated": (not "heating" in missing) if heated else null,
 			"plumbed": (not "cold_water" in missing and not "hot_water" in missing and not "waste" in missing) if wet else null,
 			"missing": missing}
 
 	_write_notes(rep, model, holes_total)
 	return rep
+
+
+## Where a room's socket, light or radiator goes, in plan (x, z): a fitting of that kind the
+## players placed in the room, else the default spot (sockets near the -Z wall, the light in
+## the middle, the radiator near the +Z wall). The same spot the designer puts a fitting on.
+static func fitting_spot(model: BuildingModel, rid: String, system: String, placed: Dictionary = {}) -> Vector2:
+	var key := "%s/%s" % [rid, system]
+	if placed.has(key):
+		return placed[key]
+	var r: Dictionary = model.rooms[rid]
+	var lo := Vector2(INF, INF)
+	var hi := Vector2(-INF, -INF)
+	var sum := Vector2.ZERO
+	for p: Array in r.outline:
+		var v := Vector2(float(p[0]), float(p[1]))
+		lo = Vector2(minf(lo.x, v.x), minf(lo.y, v.y))
+		hi = Vector2(maxf(hi.x, v.x), maxf(hi.y, v.y))
+		sum += v
+	var mid := sum / float(r.outline.size())
+	var inset := minf(0.3, (hi.y - lo.y) * 0.25)
+	var spot := mid
+	match system:
+		"power":
+			spot = Vector2(mid.x, lo.y + inset)
+		"heating":
+			spot = Vector2(mid.x, hi.y - inset)
+	if not BuildingModel.outline_has_point(r.outline, spot.x, spot.y):
+		spot = mid
+	return Vector2(snappedf(spot.x, 0.01), snappedf(spot.y, 0.01))
+
+
+## Sockets, lights and radiators already in the building: "room/system" -> plan point (the
+## first by id in each room).
+static func _placed_fittings(model: BuildingModel, room_ids: PackedStringArray) -> Dictionary:
+	var out := {}
+	var system_of := {}
+	for s: String in Rates.FITTINGS:
+		system_of[Rates.FITTINGS[s]] = s
+	for pid in BuildingModel.sort_ids(model.parts.keys()):
+		var e: Dictionary = model.parts[pid]
+		if not system_of.has(str(e.kind)) or not e.has("at"):
+			continue
+		var rid := _room_at(model, room_ids, int(e.level), float(e.at[0]), float(e.at[2]))
+		var key := "%s/%s" % [rid, system_of[str(e.kind)]]
+		if rid != "" and not out.has(key):
+			out[key] = Vector2(float(e.at[0]), float(e.at[2]))
+	return out
 
 
 static func _is_served(sys: Dictionary, id: String) -> bool:
@@ -191,7 +259,7 @@ static func _system_result(model: BuildingModel, grid: RefCounted, s: String, so
 	var branches: Array = []
 	for b: Dictionary in solver.branches:
 		var d: Dictionary = by_id[str(b.id)]
-		branches.append({"id": str(b.id), "room": str(d.room), "what": str(d.what), "label": str(d.label),
+		branches.append({"id": str(b.id), "room": str(d.room), "what": str(d.what), "label": str(d.label), "at": d.get("at", []),
 			"wc": bool(d.get("wc", false)), "level": int(d.get("level", -1)),
 			"length": b.length, "cost": b.cost, "to_source": b.to_source, "points": b.points})
 	var unserved: Array = []
@@ -350,7 +418,7 @@ static func _write_notes(rep: ServicesReport, model: BuildingModel, holes_total:
 		var spec: Dictionary = Rates.SYSTEM[s]
 		var where := str(sys.source.room)
 		var where_txt := ("in " + _room_name(model, where)) if where != "" else "on level %d" % int(sys.source.level)
-		if sys.source.how == "auto":
+		if sys.source.how == "auto" and Rates.shares(s) == s:
 			rep.notes.append("No %s placed: the consultant put one %s." % [spec.source, where_txt])
 		rep.notes.append("%s: %.1f m of %s from the %s %s to %d points, %s." % [spec.label, float(sys.length),
 			spec.run, spec.source, where_txt, (sys.branches as Array).size(), _money(float(sys.cost))])

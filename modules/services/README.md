@@ -27,12 +27,19 @@ In a session only the host routes. `ServicesBus` (`Modules.bus("services")`):
 route; `report.digest()` is equal on every peer and late joiners get the sources and last
 report in the join snapshot. Save section `"services"`: the placed sources.
 
-**Design services**: `ServicesDesigner.propose(model)` (or `bus.design_services()`) does the
-design work: it fits out bare wet rooms (bathroom: WC, basin, bath; WC: WC, basin; kitchen
-and utility: a sink unit; toilets and commercial kitchens more), lined up on the wall
-nearest the soil stack, then places a consumer unit, water main, boiler and soil stack part
-where the routes start. The bus sends it to the building as one batch edit (one undo step
-for everyone) and routes again. It only adds; it never moves what players drew.
+**Route services** (one button): `bus.route_services()` asks the M&E expert to do all the
+design work (`ServicesDesigner.propose(model)` on a worker thread). It fits out bare wet
+rooms (bathroom: WC, basin, bath; WC: WC, basin; kitchen and utility: a sink unit; toilets and
+commercial kitchens more), lined up on the wall nearest the soil stack; places a consumer
+unit, water main, boiler and soil stack where the routes start; adds a double socket, a
+ceiling light point and (in heated rooms) a radiator in every room that has none; and lays
+every run as a real part: power and lighting cables, cold, hot and heating pipes and waste
+pipes, one line part per route segment. Everything it adds is named "M&E" and replaced on the
+next press (nothing changes if the design did not), so it never moves what players drew.
+The bus sends it to the building as one batch edit (one undo step for everyone) and routes
+again. Design structure (structure module) adds the raft, foundations and roof. The run and
+fitting kinds (`cable_*`, `pipe_*`, `socket_double`, `light_point`, `radiator`) come from
+the building catalog; kinds it does not have yet are skipped.
 
 **Check feasibility**: `FeasibilityReview.review(model, brief?)` (or
 `bus.review_feasibility()`, which uses the active contract's brief) gives one verdict: does
@@ -43,7 +50,7 @@ the issues worst first, each with what to do, and works on each player's shared 
 building, so everyone gets the same answer.
 
 When structure fails, the verdict also runs the structural engineer's Design structure
-(StructureDesigner) and Design services as dry runs on a copy: `fixes` says what each would
+(StructureDesigner) and Route services as dry runs on a copy: `fixes` says what each would
 add and cost, `fixable` whether together they make it feasible, and `cost.after_fixes` the
 all-in price then ("Design structure would make it work, at £160,110 all in").
 
@@ -54,15 +61,16 @@ for everyone and each player's verdict is redone on a worker thread (`review_don
 "Feasibility" window (`design.register_panel`, order 15) with a tick or cross per area:
 structure, services, brief, cost.
 
-In the design room (flag `services.consultant`, on): "Route services", "Design services" and
-"Check feasibility" on the top bar, and an "M&E" view that tints rooms green (served) or red (missing
+In the design room (flag `services.consultant`, on): "Route services" and "Check
+feasibility" on the top bar, and an "M&E" view that tints rooms green (served) or red (missing
 something), source units blue, with a side panel of the summary, per-system length and cost,
 the notes and both buttons.
 
 ## How it routes
 
-Systems (`api/services_rates.gd`): **power** (consumer unit to a lighting and socket point in
-every room, and the boiler), **cold water** (water main to every WC, basin, bath, shower,
+Systems (`api/services_rates.gd`): **power** (consumer unit to a socket in every room and the
+boiler), **lighting** (consumer unit to a ceiling light point in every room), **heating**
+(boiler to a radiator in every heated room), **cold water** (water main to every WC, basin, bath, shower,
 kitchen sink and the boiler), **hot water** (boiler to every basin, bath, shower and sink),
 **waste** (every wet fixture to the soil stack). Wet rooms (bathroom, WC, kitchen, utility,
 toilets, commercial kitchen) with no fixtures yet are routed to their centre.
@@ -82,7 +90,7 @@ toilets, commercial kitchen) with no fixtures yet are routed to their centre.
   consultant chooses (plant room, utility, garage, hallway...; consumer unit by the front
   door, water main on the street side, stack under the WCs) and says so.
 - Rates are approximate UK installed costs (2025 to 2026) to tune in playtesting.
-- Speed: nothing heavy runs on the main thread. Routing (host), Design services and the
+- Speed: nothing heavy runs on the main thread. Routing (host), Route services and the
   feasibility review run on worker threads on a copy of the building; the main thread only
   takes the building's to_data() snapshot (about 10 ms on a 128-room office, 35 ms on a
   384-room terminal) and applies the report. The grid coarsens past 12,000 cells, so a
@@ -91,6 +99,5 @@ toilets, commercial kitchen) with no fixtures yet are routed to their centre.
 ## Still to come
 
 - A riser fixture kind, so players can mark where vertical runs go.
-- Drawing the route lines themselves in the design room (the view only tints entries now).
 - Contracts reading `report.passed()` and `report.total_cost` for briefs.
-- Ventilation and heating runs; incremental re-routing on big buildings.
+- Ventilation runs; incremental re-routing on big buildings.
