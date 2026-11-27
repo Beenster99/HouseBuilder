@@ -126,6 +126,31 @@ func run_tests() -> void:
 	s.release(Vector3(2, 3, 2))
 	check(model.rooms_on(1).size() == 1, "a room upstairs")
 
+	# Stairs and lifts (from the ground floor up to level 1).
+	s.set_level(0)
+	s.set_tool("stair")
+	s.press(Vector3(10, 0, 6))
+	s.press(Vector3(10, 0, 10))
+	check(model.parts_of_family("circulation").size() == 1, "a stair from the ground floor")
+	s.set_tool("lift")
+	s.press(Vector3(14, 0, 8))
+	check(model.parts_of_family("circulation").size() == 2, "and a lift")
+	check(model.voids_on(1).size() == 2, "both cut the floor above")
+	var ViewScript := preload("res://modules/design/internal/room/design_view.gd")
+	var floor_poly := PackedVector2Array([Vector2(8, 4), Vector2(16, 4), Vector2(16, 12), Vector2(8, 12)])
+	var pieces: Array = ViewScript._cut_voids(floor_poly, model.voids_on(1))
+	var area := 0.0
+	for pc: PackedVector2Array in pieces:
+		area += BuildingModel.outline_area(BuildingCommands.plain(pc))
+	check(pieces.size() >= 2 and is_equal_approx(area, 64.0 - 4.0 - 4.0), "the floor drawn round the holes: %.2f m² in %d pieces" % [area, pieces.size()])
+	s.set_level(1)
+	s.set_tool("lift")
+	s.press(Vector3(20, 3, 8))
+	check(model.parts_of_family("circulation").size() == 2, "no lift from the top floor")
+	sync.undo()
+	sync.undo()
+	check(model.parts_of_family("circulation").is_empty(), "undone")
+
 	# Fit-out: a room's usual layout, or furniture from a description.
 	var parsed := DesignFitout.parse("2 single beds, a desk and three chairs", model.catalog)
 	check(parsed == [["bed_single", 2], ["desk_office", 1], ["hall_chair", 3]], "a description reads: %s" % str(parsed))

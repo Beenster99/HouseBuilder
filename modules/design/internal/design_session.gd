@@ -39,6 +39,8 @@ const TOOLS: Array[Dictionary] = [
 	{"id": "raft", "label": "Raft", "key": KEY_NONE, "hint": "Drag a rectangle for a raft foundation (ground level)"},
 	{"id": "footing", "label": "Strip footing", "key": KEY_NONE, "hint": "Click both ends of a strip footing under a wall"},
 	{"id": "pad", "label": "Pad footing", "key": KEY_NONE, "hint": "Click to place a pad footing under a column"},
+	{"id": "stair", "label": "Stair", "key": KEY_NONE, "hint": "Click the foot of the flight, then its head; it rises to the level above"},
+	{"id": "lift", "label": "Lift", "key": KEY_NONE, "hint": "Click to place a lift shaft running up to the top level"},
 	{"id": "fixture", "label": "Furniture", "key": KEY_NONE, "hint": "Click to place the chosen fixture; R turns it"},
 	{"id": "note", "label": "Note", "key": KEY_N, "hint": "Click a spot or a part to pin a note for the team"},
 	{"id": "measure", "label": "Measure", "key": KEY_M, "hint": "Click two points to measure between them"},
@@ -46,9 +48,9 @@ const TOOLS: Array[Dictionary] = [
 ## Catalog kind each placing tool makes.
 const KIND := {"wall": "wall_loadbearing", "partition": "wall_partition", "slab": "slab", "roof": "roof_flat",
 		"raft": "raft", "column": "column", "beam": "beam", "footing": "strip_footing", "pad": "pad_footing"}
-const TWO_POINT := ["wall", "partition", "beam", "footing", "measure"]
+const TWO_POINT := ["wall", "partition", "beam", "footing", "measure", "stair"]
 const RECT := ["room", "slab", "roof", "raft"]
-const POINT := ["column", "pad", "fixture"]
+const POINT := ["column", "pad", "fixture", "lift"]
 const OPENING := ["door", "window"]
 ## How near the pointer must be to pick a line part beyond its half-thickness, m.
 const PICK_REACH := 0.35
@@ -304,6 +306,12 @@ func _local(p: Vector3) -> Vector3:
 
 
 func _place_point(at: Vector3) -> void:
+	if tool == "lift":
+		if level >= model.level_count() - 1:
+			status.emit("A lift needs a storey above: add one with + Storey first", true)
+			return
+		sync.edit(C.place_lift(level, _local(at), model.level_count() - 1))
+		return
 	var kind := fixture_kind if tool == "fixture" else str(KIND[tool])
 	var mat := frame_material if tool == "column" else ""
 	if not mat in catalog.materials_for(kind):
@@ -357,6 +365,14 @@ func _finish_two_point(end: Vector3) -> void:
 		measure_changed.emit(start, end)
 		anchor = null
 		presence.set_anchor(null)
+		return
+	if tool == "stair":
+		anchor = null
+		presence.set_anchor(null)
+		if level >= model.level_count() - 1:
+			status.emit("A stair rises to the level above: add a storey with + Storey first", true)
+			return
+		sync.edit(C.place_stair(level, _local(start), _local(end), "concrete" if level == 0 else "timber"))
 		return
 	var kind := str(KIND[tool])
 	var a := _local(start)

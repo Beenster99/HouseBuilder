@@ -4,6 +4,8 @@ extends Control
 ## requirement panel, and the status line.
 
 const PANEL_W := 300
+## Height taken by the two-row top bar, px.
+const TOP_H := 108
 const COST_W := 340
 
 var room: Node3D
@@ -105,9 +107,15 @@ func _build_top() -> void:
 	p.offset_right = -8
 	p.offset_top = 8
 	add_child(p)
+	# Two rows: the room's own controls, then views, layers and other modules' buttons.
+	var rows := VBoxContainer.new()
+	p.add_child(rows)
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", 8)
-	p.add_child(row)
+	rows.add_child(row)
+	var row2 := HBoxContainer.new()
+	row2.add_theme_constant_override("separation", 8)
+	rows.add_child(row2)
 	var title := BsxTheme.hud_label("DESIGN ROOM", 20, BsxTheme.ACCENT)
 	row.add_child(title)
 	_crew_label = RichTextLabel.new()
@@ -162,14 +170,14 @@ func _build_top() -> void:
 		var on := not pop.is_item_checked(i)
 		pop.set_item_checked(i, on)
 		set_layer(str(LAYERS[i][0]), on))
-	row.add_child(layers)
+	row2.add_child(layers)
 	_views = OptionButton.new()
 	_views.focus_mode = FOCUS_NONE
 	_views.tooltip_text = "The view you look through: Architect, or another discipline's overlay"
 	_views.item_selected.connect(func(i: int) -> void: room.call("set_overlay", str(_views.get_item_metadata(i))))
-	row.add_child(_views)
+	row2.add_child(_views)
 	_actions = HBoxContainer.new()
-	row.add_child(_actions)
+	row2.add_child(_actions)
 	row.add_child(_button("Menu", Menu.open_pause, "Pause menu (Esc)"))
 
 
@@ -243,7 +251,7 @@ func _build_tools() -> void:
 	var p := _panel(PANEL_W)
 	p.set_anchors_and_offsets_preset(PRESET_LEFT_WIDE)
 	p.offset_left = 8
-	p.offset_top = 64
+	p.offset_top = TOP_H
 	p.offset_bottom = -44
 	p.offset_right = 8 + PANEL_W
 	add_child(p)
@@ -402,7 +410,7 @@ func _build_cost() -> void:
 	p.set_anchors_and_offsets_preset(PRESET_RIGHT_WIDE)
 	p.offset_right = -8
 	p.offset_left = -8 - COST_W
-	p.offset_top = 64
+	p.offset_top = TOP_H
 	p.offset_bottom = -44
 	add_child(p)
 	var col := VBoxContainer.new()

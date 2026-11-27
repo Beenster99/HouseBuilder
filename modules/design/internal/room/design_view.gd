@@ -26,8 +26,22 @@ func bind(m: BuildingModel) -> void:
 	model.entry_removed.connect(refresh)
 	model.loaded.connect(rebuild)
 	model.levels_changed.connect(rebuild)
+	model.changed.connect(_on_changed)
 	Graphics.changed.connect(rebuild)
 	rebuild()
+
+
+## Stairs and lifts cut holes in the floors they pass through: redraw those slabs.
+func _on_changed(op: Dictionary) -> void:
+	var touches := false
+	for pid in model.parts_of_family("circulation"):
+		touches = true
+		break
+	if not touches and str(op.get("op", "")) != "remove":
+		return
+	for pid in model.parts_of_family("slab"):
+		_drop(pid)
+		_build(pid)
 
 
 func rebuild() -> void:
@@ -150,7 +164,11 @@ func _part(root: Node3D, id: String) -> void:
 		"point":
 			var at := _v3(e.at) + Vector3(0, floor_y, 0)
 			var rot := Basis(Vector3.UP, deg_to_rad(float(e.get("rot", 0.0))))
-			if fam == "fixture":
+			if kind == "lift":
+				var shaft := Vector3(float(e.get("w", spec.get("w", 2.0))), model.part_height(id), float(e.get("d", spec.get("d", 2.0))))
+				var c: Variant = _colour(id, Color(0.55, 0.6, 0.68, 0.55)) if _tints.has(id) else ArtStyle.material("glass", "opening")
+				_box(root, at + Vector3(0, shaft.y / 2.0, 0), shaft, rot, c)
+			elif fam == "fixture":
 				var size := Vector3(float(spec.get("w", 0.5)), float(spec.get("h", 0.8)), float(spec.get("d", 0.5)))
 				_box(root, at + Vector3(0, size.y / 2.0, 0), size, rot, colour)
 			elif kind == "pile":
@@ -171,6 +189,8 @@ func _part(root: Node3D, id: String) -> void:
 			var b := _v3(e.b) + Vector3(0, floor_y, 0)
 			if fam == "wall":
 				_wall(root, id, a, b, colour)
+			elif kind == "stair":
+				_stair(root, id, a, b, colour)
 			else:
 				var w := float(sec.get("w", 0.2))
 				var d := float(sec.get("d", 0.3))
@@ -179,7 +199,11 @@ func _part(root: Node3D, id: String) -> void:
 		"area":
 			var t := maxf(float(sec.get("d", 0.2)), 0.05)
 			var y := floor_y + float(e.get("y", 0.0))
-			_prism(root, _outline(e.outline), y - t, y, colour)
+			var pieces: Array = [_outline(e.outline)]
+			if fam == "slab" and absf(float(e.get("y", 0.0))) < 0.01:
+				pieces = _cut_voids(pieces[0], model.voids_on(model.level_of(id)))
+			for poly: PackedVector2Array in pieces:
+				_prism(root, poly, y - t, y, colour)
 		"opening":
 			var pts := model.points_of(id)
 			if pts.size() == 2:
@@ -228,6 +252,43 @@ func _wall(root: Node3D, id: String, a: Vector3, b: Vector3, colour: Variant) ->
 		cursor = maxf(cursor, hole[1])
 	if cursor < length:
 		_linear(root, a + dir * cursor + up * h / 2.0, b + up * h / 2.0, t, h, colour)
+
+
+## A flight of steps from a (foot) to b (head), rising to the next level's floor.
+func _stair(root: Node3D, id: String, a: Vector3, b: Vector3, colour: Variant) -> void:
+	var rise := model.level_height(model.level_of(id))
+	var w := model.stair_width(id)
+	var steps := maxi(2, int(round(rise / 0.18)))
+	for i in steps:
+		var f0 := float(i) / steps
+		var f1 := float(i + 1) / steps
+		var h := rise * f1
+		_linear(root, a.lerp(b, f0) + Vector3(0, h / 2.0, 0), a.lerp(b, f1) + Vector3(0, h / 2.0, 0), w, h, colour)
+
+
+## A floor outline with stair and lift holes taken out, as pieces with no holes in them (each
+## hole splits the floor in two through its middle first, so no piece wraps round a hole).
+static func _cut_voids(poly: PackedVector2Array, voids: Array) -> Array:
+	var pieces: Array = [poly]
+	for v: Dictionary in voids:
+		var hole := _outline(v.outline)
+		if hole.size() < 3:
+			continue
+		var cx := 0.0
+		for p in hole:
+			cx += p.x
+		cx /= hole.size()
+		var big := 10000.0
+		var left := PackedVector2Array([Vector2(-big, -big), Vector2(cx, -big), Vector2(cx, big), Vector2(-big, big)])
+		var right := PackedVector2Array([Vector2(cx, -big), Vector2(big, -big), Vector2(big, big), Vector2(cx, big)])
+		var next: Array = []
+		for piece: PackedVector2Array in pieces:
+			for half: PackedVector2Array in [left, right]:
+				for part: PackedVector2Array in Geometry2D.intersect_polygons(piece, half):
+					for rest: PackedVector2Array in Geometry2D.clip_polygons(part, hole):
+						next.append(rest)
+		pieces = next
+	return pieces
 
 
 func _room(root: Node3D, id: String) -> void:
