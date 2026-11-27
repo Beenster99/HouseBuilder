@@ -32,6 +32,9 @@ var _voids: Dictionary = {}  # level -> voids_on(level), for one flush
 # The entry being built: batch key -> [verts, normals].
 var _geo: Dictionary = {}
 var _geo_level := 0
+## How walls meet at corners and tees, and which walls each one's ends touch (redrawn with it).
+var _joins: WallJoins
+var _wall_nb: Dictionary = {}
 ## A model node the entry being built adds (a library asset), or null.
 var _geo_node: Node3D = null
 var _geo_room := false
@@ -55,6 +58,7 @@ var _fade_count := -1
 
 func bind(m: BuildingModel) -> void:
 	model = m
+	_joins = WallJoins.new(m)
 	model.entry_added.connect(refresh)
 	model.entry_changed.connect(refresh)
 	model.entry_removed.connect(refresh)
@@ -141,6 +145,12 @@ func rebuild() -> void:
 ## stair or lift, the floors it passes through). The work happens at the next flush().
 func refresh(id: String) -> void:
 	_dirty[id] = true
+	# A wall's neighbours join differently when it moves, comes or goes: before and after.
+	for n: String in _wall_nb.get(id, PackedStringArray()):
+		_dirty[n] = true
+	if _joins and model.parts.has(id):
+		for n: String in _joins.neighbours(id):
+			_dirty[n] = true
 	var e := model.entry(id)
 	var old_host := str(_host_of.get(id, ""))
 	var host := str(e.get("host", ""))
@@ -496,7 +506,11 @@ func _wall(id: String, a: Vector3, b: Vector3, colour: Variant) -> void:
 	holes.sort_custom(func(x: Array, z: Array) -> bool: return x[0] < z[0])
 	var dir := (b - a) / length
 	var up := Vector3.UP
-	var cursor := 0.0
+	# Corners and tees: run on over a neighbour's end or stop at its face (WallJoins).
+	var ext := _joins.ends(id) if _joins else Vector2.ZERO
+	_wall_nb[id] = _joins.neighbours(id) if _joins else PackedStringArray()
+	var cursor := -ext.x
+	length += ext.y
 	for hole: Array in holes:
 		if hole[0] > cursor:
 			_linear(a + dir * cursor + up * h / 2.0, a + dir * hole[0] + up * h / 2.0, t, h, colour)
@@ -508,7 +522,7 @@ func _wall(id: String, a: Vector3, b: Vector3, colour: Variant) -> void:
 			_linear(a + dir * hole[0] + up * (top + h) / 2.0, a + dir * hole[1] + up * (top + h) / 2.0, t, h - top, colour)
 		cursor = maxf(cursor, hole[1])
 	if cursor < length:
-		_linear(a + dir * cursor + up * h / 2.0, b + up * h / 2.0, t, h, colour)
+		_linear(a + dir * cursor + up * h / 2.0, a + dir * length + up * h / 2.0, t, h, colour)
 
 
 ## A flight of steps from a (foot) to b (head), rising to the next level's floor.
