@@ -94,6 +94,19 @@ func _board() -> void:
 	check(plot_view != null and plot_view.position.is_equal_approx(-pack.plot_origin()), "the plot view puts the plot centre on the design origin")
 	if plot_view:
 		plot_view.free()
+	var seen: Array = []
+	bus.register_view_extra("test.extra", func(p: SitePack) -> Node3D:
+		seen.append(p)
+		var n := Node3D.new()
+		n.name = "Mine"
+		return n)
+	plot_view = bus.make_plot_view()
+	check(seen.size() == 1 and (seen[0] as SitePack).id() == pack.id() and plot_view.get_node_or_null("Extra_test_extra") != null, "other modules can add to every site view")
+	plot_view.free()
+	bus.unregister_view_extra("test.extra")
+	plot_view = bus.make_view_of(pack)
+	check(plot_view != null and plot_view.get_node_or_null("Extra_test_extra") == null and seen.size() == 1, "and take it away again")
+	plot_view.free()
 	check(_all_text(board).contains("Current site") and _all_text(board).contains(pack.plot_size_text()), "and shows the current site")
 	bus.clear_site()
 	await get_tree().process_frame

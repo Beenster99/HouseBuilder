@@ -285,6 +285,17 @@ func solve(sc: StructureScenario) -> StructureResult:
 				best[id] = row
 	for id: String in _sorted_keys(g.plates):
 		best[id] = _plate(id, sc)
+	# Ageing: materials that have lost a share of their strength (the scenario's capacity
+	# factors) work that much harder for the same load.
+	if not sc.capacity.is_empty():
+		for id: String in best:
+			var row: Dictionary = best[id]
+			if str(row.mode) == "unsupported":
+				continue
+			var sid: String = g.members[id].section if g.members.has(id) else g.plates[id].section
+			var f := float(sc.capacity.get(str(g.section(sid).get("material", "")), 1.0))
+			if f > 0.0 and not is_equal_approx(f, 1.0):
+				row.u = float(row.u) / f
 	res.members = best
 	for n: String in node_ids:
 		if not supported(n):

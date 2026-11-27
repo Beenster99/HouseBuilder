@@ -33,6 +33,8 @@ const SiteView := preload("res://modules/sites/internal/site_view.gd")
 
 var _net: Object
 var _pack: SitePack
+## Additions drawn into every site view: id -> Callable(pack) -> Node3D (register_view_extra).
+var _extras: Dictionary = {}
 var _design: Node
 var _payload: Dictionary = {}
 
@@ -141,11 +143,36 @@ func current() -> SitePack:
 
 ## A fresh 3D view of the loaded site (null if none). The caller owns it.
 func make_view() -> Node3D:
-	if _pack == null:
+	return make_view_of(_pack)
+
+
+## The same as make_view() for any site pack, loaded or not (e.g. looking round an earlier
+## site without making it the crew's current site). null for a null pack.
+func make_view_of(pack: SitePack) -> Node3D:
+	if pack == null:
 		return null
 	var view: Node3D = SiteView.new()
-	view.build(_pack)
+	view.build(pack)
+	for id: String in _extras:
+		var make: Callable = _extras[id]
+		if not make.is_valid():
+			continue
+		var extra = make.call(pack)
+		if extra is Node3D:
+			(extra as Node3D).name = "Extra_%s" % id.validate_node_name()
+			view.add_child(extra)
 	return view
+
+
+## Other modules can add to every site view (in the site pack's coordinates), e.g. the
+## firm's earlier buildings: make.call(pack: SitePack) returns a Node3D or null. Views made
+## after this include it; re-registering an id replaces it.
+func register_view_extra(id: String, make: Callable) -> void:
+	_extras[id] = make
+
+
+func unregister_view_extra(id: String) -> void:
+	_extras.erase(id)
 
 
 ## The site drawn in the building model's coordinates (the plot frame: the plot's centre at
