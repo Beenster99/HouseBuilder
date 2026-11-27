@@ -219,6 +219,8 @@ func _frame() -> void:
 			var why := g.add_member(mid, _node(pa), _node(pb), l.kind, _section(sid, props), 1.0, Vector3.ZERO, l.label, l.part, l.part)
 			if why != "":
 				push_warning("structure: " + why)
+			else:
+				g.shapes[mid] = {"type": "bar", "d": float(cat.section(sec_id).get("d", 0.15))}
 
 
 func _walls() -> void:
@@ -233,6 +235,8 @@ func _walls() -> void:
 		var h: float = w.h
 		var up := Vector3(0, h, 0)
 		var length := a.distance_to(b)
+		g.shapes[w.part] = {"type": "wall", "a": a, "b": b, "h": h, "d": float(sec.get("d", 0.2)),
+				"openings": (w.openings as Array).duplicate(true)}
 		var dir := (b - a) / length
 		var extra: Array = []
 		# Uprights at least every WALL_STEP, so a wall carries what sits on it straight down.
@@ -426,7 +430,7 @@ func _plates() -> void:
 		# Share the plate among its supports, cell by cell. A live check re-runs this after
 		# every edit, and most edits leave most floors alone, so results are kept by what
 		# they were worked out from; the ones that must be worked out go side by side.
-		var info := {"pid": pid, "sid": sid, "outline": outline, "weight": float(props.weight), "dead": dead,
+		var info := {"pid": pid, "sid": sid, "outline": outline, "y": y, "d": float(sec.get("d", 0.2)), "weight": float(props.weight), "dead": dead,
 				"snow": snow, "roof": roof, "supports": supports, "rooms": live_rooms, "pitch": pitch}
 		info["key"] = _plate_key(pid, outline, y, info.weight, dead, snow, roof, supports, live_rooms)
 		info["shared"] = _cached_plate(info.key)
@@ -457,6 +461,11 @@ func _plates() -> void:
 		if pitch > 0.0 and not cantilever:
 			check_span = span * 0.5 / cos(deg_to_rad(pitch))
 		g.add_plate(pid, sid, check_span, cantilever, used, _label(pid), pid)
+		var pts: Array = []
+		for q: Variant in info.outline:
+			pts.append(Vector2(q.x, q.y) if q is Vector2 else Vector2(float(q[0]), float(q[1])))
+		g.shapes[pid] = {"type": "plate", "outline": pts, "y": info.y, "pitch": pitch,
+				"d": float(info.get("d", 0.2))}
 		g.add_plate_load(pid, "dead", dead)
 		g.add_plate_load(pid, "live", max_live)
 		if snow > 0.0:

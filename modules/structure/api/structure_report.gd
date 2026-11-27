@@ -14,6 +14,9 @@ var summary := ""
 ## Building part id -> highest utilisation over every scenario. Filled by compact(); when it
 ## is, results keep only the rows of what failed and of each scenario's worst member.
 var parts: Dictionary = {}
+## The stress diagram (StructureDiagram.build), when the crew has it on; {} otherwise.
+## Not part of the digest.
+var diagram: Dictionary = {}
 
 
 func passed() -> bool:
@@ -117,6 +120,8 @@ func to_dict() -> Dictionary:
 		for k: String in keys:
 			sorted[k] = parts[k]
 		out["parts"] = sorted
+	if not diagram.is_empty():
+		out["diagram"] = diagram
 	return out
 
 
@@ -128,6 +133,7 @@ func compact() -> StructureReport:
 	out.graph_revision = graph_revision
 	out.notes = notes
 	out.summary = summary
+	out.diagram = diagram
 	for r in results:
 		for dict: Dictionary in [r.members, r.anchors]:
 			for id: String in dict:
@@ -158,13 +164,16 @@ static func from_dict(data: Dictionary) -> StructureReport:
 	rep.notes = PackedStringArray(data.get("notes", []))
 	rep.summary = str(data.get("summary", ""))
 	rep.parts = (data.get("parts", {}) as Dictionary).duplicate()
+	rep.diagram = data.get("diagram", {}) as Dictionary
 	return rep
 
 
 ## A fingerprint of the whole result (numbers to 4 decimal places): equal digests mean
 ## every client shows the same utilisation everywhere.
 func digest() -> String:
-	return _canon(to_dict()).md5_text()
+	var d := to_dict()
+	d.erase("diagram")
+	return _canon(d).md5_text()
 
 
 static func _canon(v: Variant) -> String:

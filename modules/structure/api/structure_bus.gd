@@ -24,6 +24,8 @@ signal live_engineer_changed(on: bool)
 signal checking_changed(busy: bool)
 ## The live engineer placed a part; left more are queued (host only).
 signal engineer_placed(left: int)
+## The stress diagram was turned on or off for everyone (set_diagram).
+signal diagram_changed(on: bool)
 
 const EVENT_RUN := "structure.run"
 ## The "Stress test" button and the Engineer view in the design room.
@@ -40,6 +42,11 @@ const EVENT_ENGINEER := "structure.engineer"
 ## "Design structure" pressed (to the host), and the engineer's notes (to everyone).
 const EVENT_DESIGN := "structure.design"
 const EVENT_DESIGNED := "structure.designed"
+## The finite-element style stress diagram over the model (StructureDiagram), shared on/off.
+const EVENT_DIAGRAM := "structure.diagram"
+const DIAGRAM_FLAG := "structure.diagram"
+const LAYER := "structure.diagram"
+const DIAGRAM_SCRIPT := "res://modules/structure/internal/stress_diagram_view.gd"
 ## Seconds of quiet after an edit before the host re-tests.
 const LIVE_DELAY := 0.4
 ## Seconds between the live engineer's placements, so everyone watches them go in.
@@ -84,6 +91,8 @@ var _design_requested := false
 var _job_design := false
 var _place_wait := 0.0
 var _placing := false
+## Whether the crew has the stress diagram showing (shared; see set_diagram).
+var diagram_on := false
 
 
 func register_module() -> void:
@@ -107,6 +116,8 @@ func unregister_module() -> void:
 		_design.unregister_overlay(OVERLAY)
 		if _design.has_method("unregister_panel"):
 			_design.unregister_panel(LIVE_PANEL)
+		if _design.has_method("unregister_layer"):
+			_design.unregister_layer(LAYER)
 	_design = null
 	watch(null)
 	_stop_job()
@@ -115,6 +126,7 @@ func unregister_module() -> void:
 		_net.unregister_event(EVENT_ENGINEER)
 		_net.unregister_event(EVENT_DESIGN)
 		_net.unregister_event(EVENT_DESIGNED)
+		_net.unregister_event(EVENT_DIAGRAM)
 		_net.unregister_snapshot_provider("structure")
 	_net = null
 
@@ -128,6 +140,7 @@ func attach(net: Object) -> void:
 	_net.register_event(EVENT_ENGINEER, _apply_engineer, _validate_engineer)
 	_net.register_event(EVENT_DESIGN, _apply_design, _validate_design)
 	_net.register_event(EVENT_DESIGNED, _apply_designed)
+	_net.register_event(EVENT_DIAGRAM, _apply_diagram, _validate_diagram)
 	_net.register_snapshot_provider("structure", self)
 
 
@@ -308,12 +321,12 @@ func _start_check() -> void:
 	_job_design = _design_requested
 	_design_requested = false
 	var engineer := (live_engineer or _job_design) and _editor.is_valid()
-	_job = WorkerThreadPool.add_task(_check.bind(data, ops, cat, engineer, _watched.revision), false, "structure live check")
+	_job = WorkerThreadPool.add_task(_check.bind(data, ops, cat, engineer, _watched.revision, diagram_on), false, "structure live check")
 	checking_changed.emit(true)
 
 
 ## On a worker thread: works only on its own copy of the building.
-func _check(data: Dictionary, ops: Array, cat: BuildingCatalog, engineer: bool, revision: int) -> void:
+func _check(data: Dictionary, ops: Array, cat: BuildingCatalog, engineer: bool, revision: int, diagram: bool = false) -> void:
 	if not data.is_empty():
 		_mirror = BuildingModel.from_data(data, cat)
 	else:
@@ -323,7 +336,11 @@ func _check(data: Dictionary, ops: Array, cat: BuildingCatalog, engineer: bool, 
 				return
 	var m := _mirror
 	m.revision = revision  # so the report names the same graph revision as the real one
-	var report := StructureBuilding.stress_test(m).compact()
+	var g := StructureBuilding.graph(m)
+	var full := StructureSolver.stress_test(g)
+	if diagram:
+		full.diagram = StructureDiagram.build(g, full)
+	var report := full.compact()
 	# Serialising and fingerprinting a big report takes tens of ms: do it here, not on a frame.
 	var out := {"report": report, "data": report.to_dict(), "digest": report.digest()}
 	if engineer and not report.passed():
@@ -451,6 +468,9 @@ func hook_design(design: Node) -> void:
 	else:
 		design.register_overlay(OVERLAY, "Engineer", overlay_tints, make_panel, 40)
 	report_changed.connect(func(_r: StructureReport) -> void: design.refresh_overlay(OVERLAY))
+	if Flags.is_on(DIAGRAM_FLAG) and design.has_method("register_layer"):
+		design.register_layer(LAYER, "Stress diagram", make_diagram, toggle_diagram,
+				func() -> bool: return diagram_on, 45)
 
 
 ## The Engineer view's colours: each building part by the worst utilisation of any of its
@@ -515,6 +535,8 @@ func _validate_run(_sender: int, payload: Dictionary) -> Variant:
 			return "Unknown stress test: %s" % sid
 		scenarios.append(sc)
 	var report := StructureSolver.stress_test(graph, scenarios)
+	if diagram_on:
+		report.diagram = StructureDiagram.build(graph, report)
 	var data := report.to_dict()
 	return {"scenarios": payload.get("scenarios", []), "report": data, "digest": report.digest()}
 
@@ -530,7 +552,7 @@ func _apply_run(payload: Dictionary) -> void:
 
 
 func get_net_snapshot() -> Dictionary:
-	var out := {"engineer": live_engineer}
+	var out := {"engineer": live_engineer, "diagram": diagram_on}
 	if _report:
 		out["report"] = _report.to_dict()
 	return out
@@ -540,6 +562,9 @@ func apply_net_snapshot(data: Dictionary) -> void:
 	if data.has("engineer"):
 		live_engineer = bool(data.engineer)
 		live_engineer_changed.emit(live_engineer)
+	if data.has("diagram"):
+		diagram_on = bool(data.diagram)
+		diagram_changed.emit(diagram_on)
 	if data.has("report"):
 		_set_report(StructureReport.from_dict(data.report))
 
@@ -548,3 +573,45 @@ func _set_report(report: StructureReport) -> void:
 	_report = report
 	_part_u = {}
 	report_changed.emit(report)
+
+
+# --- Stress diagram ---------------------------------------------------------------------
+
+## Shows or hides the stress diagram for the whole crew. Turning it on has the host work it
+## out with the next check (at once, in a game).
+func set_diagram(on: bool) -> void:
+	if _net:
+		_net.request(EVENT_DIAGRAM, {"on": on})
+	else:
+		_apply_diagram({"on": on})
+
+
+func toggle_diagram() -> void:
+	set_diagram(not diagram_on)
+
+
+## A Node3D drawing the diagram in building coordinates (lay it over the building's own view,
+## at the same transform). It follows every report and hides itself while the diagram is off.
+func make_diagram(_model: BuildingModel = null) -> Node3D:
+	var view: Node3D = load(DIAGRAM_SCRIPT).new()
+	view.call("bind", self)
+	return view
+
+
+func _validate_diagram(_sender: int, payload: Dictionary) -> Variant:
+	return {"on": bool(payload.get("on", false))}
+
+
+func _apply_diagram(payload: Dictionary) -> void:
+	var on := bool(payload.get("on", false))
+	if on == diagram_on:
+		return
+	diagram_on = on
+	diagram_changed.emit(on)
+	if on and _is_host() and (_report == null or _report.diagram.is_empty()):
+		if _live and _watched != null:
+			_dirty = true
+			_wait = 0.0
+		elif _net and _report != null:
+			run_stress_test()
+

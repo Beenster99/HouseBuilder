@@ -42,6 +42,11 @@ var sections: Dictionary = {}
 ## plate only checks itself. id -> {"section", "span": m, "cantilever": bool,
 ## "supports": Array of member ids, "loads": {case: kPa}, "label", "part"}
 var plates: Dictionary = {}
+## Drawing hints for the stress diagram (StructureDiagram), not solved or sent: part id ->
+## {"type": "wall", "a", "b": Vector3 base ends, "h": m, "d": thickness, "openings":
+## [[t0, t1, sill, head]]} or {"type": "plate", "outline": [Vector2 x, z], "y", "d", "pitch"},
+## and member id -> {"type": "bar", "d": section depth} for frame members.
+var shapes: Dictionary = {}
 
 
 func add_node(id: String, pos: Vector3) -> void:

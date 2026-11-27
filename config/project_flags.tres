@@ -32,6 +32,7 @@ flags = {
 "structure": true,
 "structure.stress_test": true,
 "structure.live": true,
+"structure.diagram": true,
 "services": true,
 "services.consultant": true,
 "services.live": true,
