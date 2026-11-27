@@ -102,3 +102,20 @@ and what that adds.
 bar and in the Engineer panel) runs it on the shared building, sends the edit through the
 building sync, asks for a fresh stress test and emits `design_done(notes)`.
 
+
+## Performance
+
+- Graph building indexes candidate points and nodes in grid cells, and each floor finds its
+  supports through a bucket grid, so it grows about linearly with the building.
+- How a floor's load splits among its supports is cached by everything it depends on (a
+  fingerprint of the floor, its supports and the rooms on it), so after an edit only the
+  floors it touched are worked out again.
+- On buildings with 400 or more members the scenarios solve on separate threads; they only
+  read the solver, so the numbers are the same (tested).
+- The live check never copies the building on the main thread after the first time: the
+  bus queues each applied op and the worker replays them on its own copy (`_mirror`). It
+  sends `StructureReport.compact()` (the verdict, notes, per-part utilisation and only the
+  failing and worst rows), a fraction of the full report's size.
+- "Stress test" and "Design structure" in a game go through the live check, so neither
+  solves on a frame. The bus waits for a running check before it is freed, so quitting
+  mid-check is safe.

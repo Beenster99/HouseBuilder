@@ -37,6 +37,9 @@ const PANEL_SCRIPT := "res://modules/structure/internal/stress_panel.gd"
 const LIVE_FLAG := "structure.live"
 const LIVE_PANEL := "structure.live"
 const EVENT_ENGINEER := "structure.engineer"
+## "Design structure" pressed (to the host), and the engineer's notes (to everyone).
+const EVENT_DESIGN := "structure.design"
+const EVENT_DESIGNED := "structure.designed"
 ## Seconds of quiet after an edit before the host re-tests.
 const LIVE_DELAY := 0.4
 ## Seconds between the live engineer's placements, so everyone watches them go in.
@@ -70,6 +73,15 @@ var _job := -1
 var _job_changes := 0
 var _job_out: Dictionary = {}
 var _queue: Array = []
+## The live check's own copy of the building, kept up to date by replaying each edit on the
+## worker thread (copying a big building on the main thread every edit costs a frame).
+## Only touched by the job, or between jobs.
+var _mirror: BuildingModel
+var _pending_ops: Array = []
+var _need_full := true
+var _own_provider := false  # the graph provider is the shared building's (set at start)
+var _design_requested := false
+var _job_design := false
 var _place_wait := 0.0
 var _placing := false
 
@@ -80,6 +92,7 @@ func register_module() -> void:
 	var building := Modules.bus("building") as BuildingBus
 	if building:
 		set_graph_provider(func() -> StructureGraph: return StructureBuilding.graph(building.model))
+		_own_provider = true
 		set_model_provider(func() -> BuildingModel: return building.model)
 		set_edit_handler(func(op: Dictionary, group: String) -> void: building.sync.edit(op, group))
 		if Flags.is_on(LIVE_FLAG):
@@ -96,12 +109,12 @@ func unregister_module() -> void:
 			_design.unregister_panel(LIVE_PANEL)
 	_design = null
 	watch(null)
-	if _job >= 0:
-		WorkerThreadPool.wait_for_task_completion(_job)
-		_job = -1
+	_stop_job()
 	if _net:
 		_net.unregister_event(EVENT_RUN)
 		_net.unregister_event(EVENT_ENGINEER)
+		_net.unregister_event(EVENT_DESIGN)
+		_net.unregister_event(EVENT_DESIGNED)
 		_net.unregister_snapshot_provider("structure")
 	_net = null
 
@@ -113,6 +126,8 @@ func attach(net: Object) -> void:
 		return
 	_net.register_event(EVENT_RUN, _apply_run, _validate_run)
 	_net.register_event(EVENT_ENGINEER, _apply_engineer, _validate_engineer)
+	_net.register_event(EVENT_DESIGN, _apply_design, _validate_design)
+	_net.register_event(EVENT_DESIGNED, _apply_designed)
 	_net.register_snapshot_provider("structure", self)
 
 
@@ -121,6 +136,7 @@ func attach(net: Object) -> void:
 ## Set at start to the building module's shared model.
 func set_graph_provider(provider: Callable) -> void:
 	_provider = provider
+	_own_provider = false
 
 
 ## Asks the host to stress test the current building. scenario_ids defaults to
@@ -145,7 +161,15 @@ func set_edit_handler(handler: Callable) -> void:
 ## The engineer designs the structure: works out what to add and upsize until the
 ## building passes (StructureDesigner), sends it as one shared edit, then asks for a
 ## fresh stress test. Returns the plan; its notes also go out through design_done.
+## While the live check runs (in a game) the work is done on the host in the background:
+## this returns {} at once and design_done follows on every player's machine.
 func design_structure() -> Dictionary:
+	if _live:
+		if _net:
+			_net.request(EVENT_DESIGN, {})
+		else:
+			_apply_design({})
+		return {}
 	var model: BuildingModel = _model_provider.call() if _model_provider.is_valid() else null
 	if model == null or model.parts.is_empty():
 		_plan = {"op": {}, "notes": PackedStringArray(["Nothing to design yet: draw some walls and floors first."]), "passed": false}
@@ -166,9 +190,13 @@ func watch(model: BuildingModel) -> void:
 	if _watched and _watched.changed.is_connected(_on_model_changed):
 		_watched.changed.disconnect(_on_model_changed)
 		_watched.loaded.disconnect(_on_model_loaded)
+	_stop_job()
 	_watched = model
 	_live = model != null
 	_queue.clear()
+	_mirror = null
+	_need_full = true
+	_pending_ops.clear()
 	if model:
 		model.changed.connect(_on_model_changed)
 		model.loaded.connect(_on_model_loaded)
@@ -195,12 +223,35 @@ func pending_placements() -> int:
 	return _queue.size()
 
 
+## Quitting while a live check runs: let it finish first, or the engine dies tearing down
+## the thread pool under it.
+func _exit_tree() -> void:
+	_stop_job()
+
+
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_PREDELETE or what == NOTIFICATION_WM_CLOSE_REQUEST:
+		_stop_job()
+
+
+func _stop_job() -> void:
+	if _job >= 0:
+		WorkerThreadPool.wait_for_task_completion(_job)
+		_job = -1
+		_job_out = {}
+
+
 func _is_host() -> bool:
 	return _net == null or not _net.has_method("is_host") or _net.is_host()
 
 
-func _on_model_changed(_op: Dictionary) -> void:
+func _on_model_changed(op: Dictionary) -> void:
 	_changes += 1
+	if str(op.get("op", "")) == "load" or op.is_empty():
+		_need_full = true
+		_pending_ops.clear()
+	elif not _need_full:
+		_pending_ops.append(op.duplicate(true))
 	if not _placing:
 		_queue.clear()  # the crew changed something: the plan may not fit any more
 	_dirty = true
@@ -235,21 +286,44 @@ func _process(delta: float) -> void:
 func _start_check() -> void:
 	_dirty = false
 	if _watched == null or _watched.parts.is_empty():
+		if _design_requested:
+			_design_requested = false
+			var none := ["Nothing to design yet: draw some walls and floors first."]
+			if _net and _net.has_method("host_emit"):
+				_net.host_emit(EVENT_DESIGNED, {"notes": none})
+			else:
+				design_done.emit(PackedStringArray(none))
 		return
 	_job_changes = _changes
 	_job_out = {}
-	var data := _watched.to_data()
+	var data := {}
+	var ops: Array = []
+	if _need_full or _mirror == null:
+		data = _watched.to_data()
+		_need_full = false
+	else:
+		ops = _pending_ops
+	_pending_ops = []
 	var cat := _watched.catalog
-	var engineer := live_engineer and _editor.is_valid()
-	_job = WorkerThreadPool.add_task(_check.bind(data, cat, engineer, _watched.revision), false, "structure live check")
+	_job_design = _design_requested
+	_design_requested = false
+	var engineer := (live_engineer or _job_design) and _editor.is_valid()
+	_job = WorkerThreadPool.add_task(_check.bind(data, ops, cat, engineer, _watched.revision), false, "structure live check")
 	checking_changed.emit(true)
 
 
 ## On a worker thread: works only on its own copy of the building.
-func _check(data: Dictionary, cat: BuildingCatalog, engineer: bool, revision: int) -> void:
-	var m := BuildingModel.from_data(data, cat)
+func _check(data: Dictionary, ops: Array, cat: BuildingCatalog, engineer: bool, revision: int) -> void:
+	if not data.is_empty():
+		_mirror = BuildingModel.from_data(data, cat)
+	else:
+		for op: Dictionary in ops:
+			if _mirror.apply(op).is_empty():
+				_job_out = {"resync": true}  # lost step: copy the whole building next time
+				return
+	var m := _mirror
 	m.revision = revision  # so the report names the same graph revision as the real one
-	var report := StructureBuilding.stress_test(m)
+	var report := StructureBuilding.stress_test(m).compact()
 	# Serialising and fingerprinting a big report takes tens of ms: do it here, not on a frame.
 	var out := {"report": report, "data": report.to_dict(), "digest": report.digest()}
 	if engineer and not report.passed():
@@ -258,7 +332,17 @@ func _check(data: Dictionary, cat: BuildingCatalog, engineer: bool, revision: in
 
 
 func _finish_check() -> void:
+	if _job_out.get("resync", false):
+		if _job_design:
+			_design_requested = true
+		_mirror = null
+		_need_full = true
+		_dirty = true
+		_wait = 0.0
+		return
 	if _changes != _job_changes:
+		if _job_design:
+			_design_requested = true  # design the building as it is now instead
 		return  # edited while checking: a fresh check is already due
 	var report: StructureReport = _job_out.get("report")
 	if report == null:
@@ -268,6 +352,18 @@ func _finish_check() -> void:
 	else:
 		_set_report(report)
 	var plan: Dictionary = _job_out.get("plan", {})
+	if _job_design:
+		var notes := PackedStringArray(["Nothing to fix: the structure already passes every test."])
+		if not plan.is_empty():
+			_plan = plan
+			notes = plan.notes
+			if not (plan.op as Dictionary).is_empty():
+				_editor.call(plan.op, "")  # one edit, one undo
+		if _net and _net.has_method("host_emit"):
+			_net.host_emit(EVENT_DESIGNED, {"notes": Array(notes)})
+		else:
+			design_done.emit(notes)
+		return
 	if live_engineer and not plan.is_empty() and not (plan.op as Dictionary).is_empty():
 		_plan = plan
 		_queue = (plan.op.ops as Array).duplicate(true)
@@ -289,6 +385,23 @@ func _place_next() -> void:
 	if _queue.is_empty():
 		_dirty = true
 		_wait = 0.0
+
+
+func _validate_design(_sender: int, _payload: Dictionary) -> Variant:
+	if not _live:
+		return "The engineer is not on site"
+	return {}
+
+
+func _apply_design(_payload: Dictionary) -> void:
+	if _live and _is_host():
+		_design_requested = true
+		_dirty = true
+		_wait = 0.0
+
+
+func _apply_designed(payload: Dictionary) -> void:
+	design_done.emit(PackedStringArray(payload.get("notes", [])))
 
 
 func _validate_engineer(_sender: int, payload: Dictionary) -> Variant:
@@ -353,6 +466,8 @@ func overlay_tints(_model: BuildingModel = null) -> Dictionary:
 func part_utilisation() -> Dictionary:
 	if _report == null:
 		return {}
+	if _part_u.is_empty() and not _report.parts.is_empty():
+		_part_u = _report.parts
 	if _part_u.is_empty():
 		for r in _report.results:
 			for dict: Dictionary in [r.members, r.anchors]:
@@ -381,6 +496,13 @@ func make_panel(live: bool = false) -> Control:
 
 
 func _validate_run(_sender: int, payload: Dictionary) -> Variant:
+	# In a game the live check answers in the background instead of solving on this frame.
+	if _live and _own_provider and (payload.get("scenarios", []) as Array).is_empty() and not payload.has("report"):
+		if _watched == null or _watched.parts.is_empty():
+			return "Nothing to test yet"
+		_dirty = true
+		_wait = 0.0
+		return {"queued": true}
 	if not _provider.is_valid():
 		return "Nothing to test yet"
 	var graph = _provider.call()
@@ -398,6 +520,8 @@ func _validate_run(_sender: int, payload: Dictionary) -> Variant:
 
 
 func _apply_run(payload: Dictionary) -> void:
+	if payload.get("queued", false):
+		return
 	var report := StructureReport.from_dict(payload.get("report", {}))
 	# Live checks skip the fingerprint check: it costs a frame's worth of time on every edit.
 	if payload.has("digest") and not payload.get("live", false) and report.digest() != str(payload.digest):

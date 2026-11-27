@@ -20,14 +20,31 @@ static func solve(graph: StructureGraph, scenario: StructureScenario) -> Structu
 
 
 ## Each scenario in turn (normal use, storm, quake by default) with the failure report.
+## Buildings with this many members or more solve their scenarios on separate threads
+## (tests set it to 0 or a huge number to compare the two).
+static var parallel_members := 400
+
+
 static func stress_test(graph: StructureGraph, scenarios: Array[StructureScenario] = []) -> StructureReport:
 	if scenarios.is_empty():
 		scenarios = StructureScenario.standard()
 	var solver = Solver.new(graph)
 	var report := StructureReport.new()
 	report.graph_revision = graph.revision
-	for sc in scenarios:
-		report.results.append(solver.solve(sc))
+	# Scenarios only read the solver, so on a big building they run side by side. Each one's
+	# numbers are worked out the same way whichever thread does it.
+	if scenarios.size() > 1 and graph.members.size() >= parallel_members and OS.get_processor_count() > 1:
+		var threads: Array[Thread] = []
+		for i in range(1, scenarios.size()):
+			var t := Thread.new()
+			t.start(solver.solve.bind(scenarios[i]))
+			threads.append(t)
+		report.results.append(solver.solve(scenarios[0]))
+		for t in threads:
+			report.results.append(t.wait_to_finish())
+	else:
+		for sc in scenarios:
+			report.results.append(solver.solve(sc))
 	Notes.write(report, graph)
 	return report
 

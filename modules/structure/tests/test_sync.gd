@@ -67,6 +67,13 @@ func _order_and_repeats() -> void:
 		digests["unbraced " + rep.digest()] = true
 	check(digests.size() == 2, "build order never changes the result: %d digests" % digests.size())
 	var g := Samples.house()
+	var keep := StructureSolver.parallel_members
+	StructureSolver.parallel_members = 1 << 30
+	var serial := StructureSolver.stress_test(g).digest()
+	StructureSolver.parallel_members = 0
+	var threaded := StructureSolver.stress_test(g).digest()
+	StructureSolver.parallel_members = keep
+	check(serial == threaded, "scenarios on threads give the same report as one after another")
 	var first := StructureSolver.stress_test(g).to_dict()
 	for i in 5:
 		check(StructureSolver.stress_test(g).to_dict() == first, "run %d identical" % i)

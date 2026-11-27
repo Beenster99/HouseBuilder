@@ -11,6 +11,9 @@ var results: Array[StructureResult] = []
 var notes: PackedStringArray = PackedStringArray()
 ## One line for a HUD or toast.
 var summary := ""
+## Building part id -> highest utilisation over every scenario. Filled by compact(); when it
+## is, results keep only the rows of what failed and of each scenario's worst member.
+var parts: Dictionary = {}
 
 
 func passed() -> bool:
@@ -63,6 +66,8 @@ func failed_ids() -> PackedStringArray:
 ## Highest utilisation of any member modelling a building part, across every scenario
 ## (a wall or a long beam is several members).
 func part_envelope(part_id: String) -> float:
+	if not parts.is_empty():
+		return float(parts.get(part_id, 0.0))
 	var u := 0.0
 	for r in results:
 		for dict: Dictionary in [r.members, r.anchors]:
@@ -104,7 +109,45 @@ func to_dict() -> Dictionary:
 	var rs: Array = []
 	for r in results:
 		rs.append(r.to_dict())
-	return {"graph_revision": graph_revision, "results": rs, "notes": Array(notes), "summary": summary}
+	var out := {"graph_revision": graph_revision, "results": rs, "notes": Array(notes), "summary": summary}
+	if not parts.is_empty():
+		var keys := parts.keys()
+		keys.sort()
+		var sorted := {}
+		for k: String in keys:
+			sorted[k] = parts[k]
+		out["parts"] = sorted
+	return out
+
+
+## A small copy for sending to every player after each edit: the verdict, notes, per-part
+## utilisation (parts) and, per scenario, only the rows of what failed and of the worst
+## member. Everything the overlay, panel and brief_result() read gives the same answer.
+func compact() -> StructureReport:
+	var out := StructureReport.new()
+	out.graph_revision = graph_revision
+	out.notes = notes
+	out.summary = summary
+	for r in results:
+		for dict: Dictionary in [r.members, r.anchors]:
+			for id: String in dict:
+				var part := str(dict[id].get("part", id))
+				out.parts[part] = maxf(float(out.parts.get(part, 0.0)), float(dict[id].u))
+		var c := StructureResult.new()
+		c.scenario_id = r.scenario_id
+		c.scenario_title = r.scenario_title
+		c.base_shear = r.base_shear
+		c.failures = r.failures
+		c.unsupported_nodes = r.unsupported_nodes
+		var keep := Array(r.failures)
+		keep.append(r.worst().id)
+		for id: String in keep:
+			if r.members.has(id):
+				c.members[id] = r.members[id]
+			elif r.anchors.has(id):
+				c.anchors[id] = r.anchors[id]
+		out.results.append(c)
+	return out
 
 
 static func from_dict(data: Dictionary) -> StructureReport:
@@ -114,6 +157,7 @@ static func from_dict(data: Dictionary) -> StructureReport:
 		rep.results.append(StructureResult.from_dict(r))
 	rep.notes = PackedStringArray(data.get("notes", []))
 	rep.summary = str(data.get("summary", ""))
+	rep.parts = (data.get("parts", {}) as Dictionary).duplicate()
 	return rep
 
 

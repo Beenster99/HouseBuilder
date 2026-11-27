@@ -18,8 +18,8 @@ const SKIP_OVER_MS := 3000.0
 ## measure id -> [ms (or bytes/s) when listed, owner module, what is slow]. 2026-11-27.
 const KNOWN := {
 	"quantities.terminal": [60.0, "building", "the first full costing (about 50 ms); after it an edit recosts only what it touched (about 19 ms)"],
-	"stress.office": [21000.0, "structure", "the load-path solver is far from linear in members (the live check runs it after every edit)"],
-	"stress.terminal": [120000.0, "structure", "the load-path solver"],
+	"stress.office": [450.0, "structure", "a cold stress test sits near the 500 ms button budget (the live check is off the main thread and reuses unchanged floors)"],
+	"stress.terminal": [900.0, "structure", "a cold stress test of 4,900 members (off the main thread in game; edits re-check in ~0.6 s)"],
 	"route.terminal": [800.0, "services", "routing 384 rooms (runs on a worker thread since 2026-11-27, so no frame waits on it)"],
 	"design_open.terminal": [25500.0, "design", "one MeshInstance3D and BoxMesh per box; all built in one frame"],
 	"design_edit.office": [1050.0, "design", "an edit recosts the whole building and redraws every slab"],
