@@ -143,11 +143,10 @@ func apply_viewport() -> void:
 	apply_surfaces()
 
 
-## The salvage and ship surfaces' detail layer and its bumps (shader globals).
+## The surface detail choice as (detail, normals), for materials that read it. (BSX set
+## these as shader globals; FredDibnah declares none, so setting them only printed errors.)
 func apply_surfaces() -> void:
 	surface_levels = GraphicsOptions.surface_levels()
-	RenderingServer.global_shader_parameter_set("surface_detail", surface_levels.x)
-	RenderingServer.global_shader_parameter_set("surface_normal", surface_levels.y)
 
 
 # --- The world --------------------------------------------------------------------------

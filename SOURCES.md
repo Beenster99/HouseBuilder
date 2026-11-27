@@ -18,6 +18,11 @@ Fixes since the copy (worth porting back to BSX Ltd):
 - Crew avatars appear only in scenes whose root has meta `crew_avatars` = true (BSX's
   first-person scenes would set it); FredDibnah's overhead views use cursors instead.
 - net_stats() no longer reports everything sent before its first call as one second of traffic.
+- boot.gd loads the splash's scenes one at a time (no sub-threads): threaded requests for all of
+  them at once deadlocked compiling scripts on many-core Windows PCs ("Loading scenes 5 / 11").
+  BSX's boot.gd likely has the same bug.
+- Graphics.apply_surfaces() no longer sets the surface_detail / surface_normal shader globals,
+  which aren't declared here and printed errors.
 - New in core here, not in BSX: ArtStyle and the Graphics "Look" option.
 
 ## Design hall (modules/design/internal/hall)

@@ -87,30 +87,30 @@ func _load_scenes(from: float, to: float) -> void:
 	var paths := Warmup.scene_list()
 	if paths.is_empty():
 		return
-	for p in paths:
-		ResourceLoader.load_threaded_request(p, "", true)
-	var pending := Array(paths)
-	while not pending.is_empty():
-		var total := 0.0
-		for p: String in paths:
-			if not pending.has(p):
-				total += 1.0
-				continue
+	# One scene at a time, with no sub-threads: loading several scenes in parallel compiles
+	# their scripts on several threads at once, which deadlocks on many-core PCs (seen on a
+	# 24-thread Windows PC: stuck at "Loading scenes 5 / 11"). Still off the main thread, so
+	# the splash keeps animating.
+	for i in paths.size():
+		var p := paths[i]
+		if ResourceLoader.load_threaded_request(p, "", false) != OK:
+			push_warning("Boot: could not preload %s" % p)
+			continue
+		while true:
 			var progress := []
 			var st := ResourceLoader.load_threaded_get_status(p, progress)
 			if st == ResourceLoader.THREAD_LOAD_LOADED:
 				var res := ResourceLoader.load_threaded_get(p)
 				if res:
 					Warmup.loaded.append(res)
-				pending.erase(p)
-				total += 1.0
-			elif st == ResourceLoader.THREAD_LOAD_FAILED or st == ResourceLoader.THREAD_LOAD_INVALID_RESOURCE:
+				break
+			if st == ResourceLoader.THREAD_LOAD_FAILED or st == ResourceLoader.THREAD_LOAD_INVALID_RESOURCE:
 				push_warning("Boot: could not preload %s" % p)
-				pending.erase(p)
-				total += 1.0
-			else:
-				total += float(progress[0]) if not progress.is_empty() else 0.0
-		_progress(lerpf(from, to, total / paths.size()), "Loading scenes  %d / %d" % [paths.size() - pending.size(), paths.size()])
+				break
+			var part := float(progress[0]) if not progress.is_empty() else 0.0
+			_progress(lerpf(from, to, (i + part) / paths.size()), "Loading scenes  %d / %d" % [i, paths.size()])
+			await get_tree().process_frame
+		_progress(lerpf(from, to, float(i + 1) / paths.size()), "Loading scenes  %d / %d" % [i + 1, paths.size()])
 		await get_tree().process_frame
 
 
