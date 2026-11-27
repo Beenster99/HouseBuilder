@@ -9,6 +9,7 @@ extends Node3D
 ## G shows the ghost of the finished building, Esc goes back to the design office.
 
 const DemoHouse := preload("res://modules/timelapse/internal/demo_house.gd")
+const SiteScript := preload("res://modules/timelapse/internal/timelapse_site.gd")
 
 const COLOURS := {
 	"foundation": Color(0.62, 0.62, 0.6), "frame": Color(0.33, 0.36, 0.4),
@@ -58,6 +59,8 @@ var _hand_over: Button
 var help: HelpBar
 var _ground: MeshInstance3D
 var _settlement: PanelContainer
+## The work site around the build: compound, scaffold, crew, plant and deliveries.
+var site: Node3D
 
 
 func _ready() -> void:
@@ -107,6 +110,9 @@ func _build_world() -> void:
 	ground.material_override = ArtStyle.ground()
 	add_child(ground)
 
+	site = SiteScript.new()
+	site.name = "WorkSite"
+	add_child(site)
 	_ghost_root = Node3D.new()
 	_ghost_root.name = "Ghost"
 	_ghost_root.visible = false
@@ -184,6 +190,7 @@ func _rebuild() -> void:
 	_empty.visible = not bus.is_active()
 	if not bus.is_active():
 		_crane.visible = false
+		site.visible = false
 		return
 	_crane.visible = true
 	_title.text = bus.title.to_upper()
@@ -197,6 +204,8 @@ func _rebuild() -> void:
 	_focus = bounds.get_center()
 	_dist = clampf(maxf(bounds.size.x, maxf(bounds.size.y, bounds.size.z)) * 2.4, 12.0, 300.0)
 	_place_crane(bounds)
+	site.visible = true
+	site.setup(bus.schedule, bounds)
 	_scrub.max_value = bus.total_days()
 	_scrub.step = 0.01
 	_sync_buttons()
@@ -281,11 +290,12 @@ func _add_piece(t: Dictionary) -> void:
 
 # --- Every frame -----------------------------------------------------------------------
 
-func _process(_delta: float) -> void:
+func _process(delta: float) -> void:
 	_place_camera()
 	if not bus.is_active():
 		return
 	var day := bus.day()
+	site.tick(day, delta)
 	var working: Array[Vector3] = []
 	for id: String in _pieces:
 		var piece: Dictionary = _pieces[id]
