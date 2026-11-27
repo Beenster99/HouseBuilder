@@ -27,7 +27,7 @@ import kit
 import registry
 
 OUT = os.path.join(registry.ROOT, "modules", "assets", "internal")
-RECIPES = ["structure", "openings", "circulation", "fixtures", "plant"]
+RECIPES = ["structure", "openings", "circulation", "fixtures", "plant", "services", "envelope", "furniture", "public", "airport", "vehicles", "site", "outdoors"]
 TRI_BUDGET = 60000
 
 
@@ -72,7 +72,7 @@ def build_scene(a: dict) -> dict:
 		bpy.context.scene.collection.objects.link(merged)
 		for ob in obs:
 			bpy.data.objects.remove(ob, do_unlink=True)
-		pieces.append({"node": name, "stage": stage, "slot": slot, "mass": round(mass, 2)})
+		pieces.append({"node": name, "stage": stage, "slot": slot, "mass": max(0.001, round(mass, 3))})
 	sockets = {ob.name[7:]: game(ob.location) for ob in bpy.context.scene.objects if ob.name.startswith("socket.")}
 	g_lo, g_hi = game(lo), game(hi)
 	return {

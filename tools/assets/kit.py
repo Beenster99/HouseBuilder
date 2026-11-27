@@ -117,8 +117,9 @@ def sphere(r, at=(0, 0, 0), slot="cast_iron", name="sphere", segs=20):
 	return _obj(name, bm, slot, _place(at, (0, 0, 0)))
 
 
-def lathe(profile, at=(0, 0, 0), slot="ceramic", name="lathe", segs=24, scale=(1, 1, 1)):
-	"""Spin (radius, z) points round Z: bowls, pans, tanks. `scale` squashes it to an oval."""
+def lathe(profile, at=(0, 0, 0), slot="ceramic", name="lathe", segs=24, scale=(1, 1, 1), rot=(0, 0, 0)):
+	"""Spin (radius, z) points round Z: bowls, pans, tanks. `scale` squashes it to an oval;
+	`rot` (-90, 0, 0) lays its axis along +Y (fuselages, drums, tanks on their side)."""
 	bm = bmesh.new()
 	rings = []
 	for r, z in profile:
@@ -130,7 +131,7 @@ def lathe(profile, at=(0, 0, 0), slot="ceramic", name="lathe", segs=24, scale=(1
 	bm.faces.new(rings[0][::-1])
 	bm.faces.new(rings[-1])
 	bmesh.ops.scale(bm, vec=Vector(scale), verts=bm.verts[:])
-	return _obj(name, bm, slot, _place(at, (0, 0, 0)))
+	return _obj(name, bm, slot, _place(at, rot))
 
 
 # --- profiles (a cross-section run along a length) ------------------------------------------
@@ -253,3 +254,92 @@ def lattice(length, w, chord, web, at=(0, 0, 0), bays=None, slot="plant_yellow",
 				a, b = b, a
 			strut(p(a[0], a[1], t0), p(b[0], b[1], t1), web, slot=slot, name=name + "_web")
 			strut(p(a[0], a[1], t1), p(b[0], b[1], t1), web, slot=slot, name=name + "_tie")
+
+
+# --- sweeps, wheels and other shared shapes ---------------------------------------------------
+
+def circle(r, segs=16):
+	"""A round outline for sweep()."""
+	return [(r * math.cos(2 * math.pi * i / segs), r * math.sin(2 * math.pi * i / segs)) for i in range(segs)]
+
+
+def rect(w, h):
+	"""A rectangular outline for sweep(): w across, h up."""
+	return [(-w / 2, -h / 2), (w / 2, -h / 2), (w / 2, h / 2), (-w / 2, h / 2)]
+
+
+def arc(centre, radius, a0, a1, steps=8, plane="xy"):
+	"""Points on an arc from angle a0 to a1 (degrees) for sweep(): pipe and duct bends."""
+	out = []
+	for i in range(steps + 1):
+		a = math.radians(a0 + (a1 - a0) * i / steps)
+		u, v = radius * math.cos(a), radius * math.sin(a)
+		q = {"xy": (u, v, 0), "xz": (u, 0, v), "yz": (0, u, v)}[plane]
+		out.append((centre[0] + q[0], centre[1] + q[1], centre[2] + q[2]))
+	return out
+
+
+def sweep(path, outline, slot="steel_galvanised", name="sweep", up=(0, 0, 1)):
+	"""Runs a 2D outline (across, up) along a path of points: bends, handrails, cables.
+	`up` must not be parallel to the path."""
+	bm = bmesh.new()
+	pts = [Vector(p) for p in path]
+	upv = Vector(up)
+	rings = []
+	for i, p in enumerate(pts):
+		a = pts[max(i - 1, 0)]
+		b = pts[min(i + 1, len(pts) - 1)]
+		t = (b - a).normalized()
+		side = t.cross(upv)
+		if side.length < 1e-6:
+			side = t.cross(Vector((1, 0, 0)))
+		side.normalize()
+		u = side.cross(t).normalized()
+		rings.append([bm.verts.new(p + side * x + u * y) for x, y in outline])
+	n = len(outline)
+	for r0, r1 in zip(rings, rings[1:]):
+		for i in range(n):
+			j = (i + 1) % n
+			bm.faces.new((r0[i], r0[j], r1[j], r1[i]))
+	bm.faces.new(rings[0][::-1])
+	bm.faces.new(rings[-1])
+	return _obj(name, bm, slot, Matrix.Identity(4))
+
+
+def wheel(r, w, at, axis="x", tyre="rubber", hub="steel_painted"):
+	"""A tyred wheel centred on `at`, its axle along `axis`."""
+	cyl(r, w, at, tyre, "tyre", axis=axis, segs=22)
+	cyl(r * 0.55, w + 0.02, at, hub, "hub", axis=axis, segs=14)
+
+
+def grid_bars(w, h, at, nx, nz, r=0.004, slot="steel_galvanised", name="mesh", plane="xz"):
+	"""Thin bars forming a mesh panel centred on `at` (fences, grilles, cages). `plane` is
+	xz (upright, facing Y), yz (upright, facing X) or xy (flat)."""
+	x, y, z = at
+	def p(u, v):
+		if plane == "xz":
+			return (x + u, y, z + v)
+		if plane == "yz":
+			return (x, y + u, z + v)
+		return (x + u, y + v, z)
+	for i in range(nx + 1 if nx else 0):
+		u = -w / 2 + w * i / nx
+		rod(p(u, -h / 2), p(u, h / 2), r, slot, name, segs=4)
+	for i in range(nz + 1 if nz else 0):
+		v = -h / 2 + h * i / nz
+		rod(p(-w / 2, v), p(w / 2, v), r, slot, name, segs=4)
+
+
+def chunk(size, at=(0, 0, 0), slot="concrete", name="chunk", seed=1, points=14, rot=(0, 0, 0)):
+	"""A broken lump: the convex hull of random points inside a box of `size` centred on
+	`at`. The same seed always gives the same lump (rubble, boulders, broken masonry)."""
+	import random
+	rng = random.Random(seed)
+	bm = bmesh.new()
+	for _ in range(points):
+		bm.verts.new(((rng.random() - 0.5) * size[0], (rng.random() - 0.5) * size[1], (rng.random() - 0.5) * size[2]))
+	out = bmesh.ops.convex_hull(bm, input=bm.verts[:])
+	junk = list({e for e in out.get("geom_interior", []) + out.get("geom_unused", []) if isinstance(e, bmesh.types.BMVert)})
+	if junk:
+		bmesh.ops.delete(bm, geom=junk, context="VERTS")
+	return _obj(name, bm, slot, _place(at, rot))

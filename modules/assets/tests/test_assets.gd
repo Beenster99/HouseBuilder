@@ -6,7 +6,7 @@ extends ModuleTest
 
 func run_tests() -> void:
 	var ids := AssetLibrary.ids()
-	check(ids.size() >= 80, "the manifest lists the library: %d assets" % ids.size())
+	check(ids.size() >= 900, "the manifest lists the library: %d assets" % ids.size())
 	var catalog := BuildingCatalog.default_catalog()
 	for kind: String in catalog.kinds_in("opening") + catalog.kinds_in("fixture"):
 		check(AssetLibrary.id_for_kind(kind) != "", "catalog kind %s has an asset" % kind)
@@ -40,6 +40,15 @@ func run_tests() -> void:
 	var beam := AssetLibrary.make("structure.section.ub_305x165x40", {"length": 6.0})
 	check(is_equal_approx(beam.scale.z, 6.0) and is_equal_approx(beam.scale.x, 1.0), "sections stretch along their length")
 	beam.free()
+	var wall := AssetLibrary.make("structure.cladding.render", {"length": 4.0, "height": 2.7})
+	check(is_equal_approx(wall.scale.z, 4.0) and is_equal_approx(wall.scale.y, 2.7), "walls and cladding stretch along and up")
+	wall.free()
+	var lawn := AssetLibrary.make("landscape.ground.lawn", {"width": 5.0, "length": 8.0})
+	check(is_equal_approx(lawn.scale.x, 5.0) and is_equal_approx(lawn.scale.z, 8.0), "floors and ground stretch both ways on plan")
+	lawn.free()
+	var fence := AssetLibrary.make("boundary.closeboard.h1800", {"length": 12.0})
+	check(is_equal_approx(fence.scale.x, 12.0), "boundaries stretch along x")
+	fence.free()
 
 	var win := AssetLibrary.make("opening.window.medium")
 	check(AssetLibrary.stages("opening.window.medium") == PackedStringArray(["frame", "glazing", "ironmongery"]), "a window builds frame, glazing, ironmongery")

@@ -85,9 +85,12 @@ static func stages(id: String) -> PackedStringArray:
 	return PackedStringArray(info(id).get("stages", []))
 
 
-## A new node for the asset, in the current look. opts: "length" (m, for stretch assets),
-## "size" (Vector3, the box to draw when the id has no model), "family" (for that box's
-## colour).
+## A new node for the asset, in the current look. opts: "length", "height", "width" (m, for
+## stretch assets, see info(id).stretch), "size" (Vector3, the box to draw when the id has
+## no model), "family" (for that box's colour).
+## Stretch assets are 1 m models scaled on the axes their stretch names: "z", "x" or "y"
+## take "length"; "zy" (walls) takes "length" along z and "height" up; "xz" (floors, roof
+## coverings, lawn) takes "width" along x and "length" along z.
 static func make(id: String, opts: Dictionary = {}) -> Node3D:
 	var e := info(id)
 	var node: Node3D = null
@@ -100,11 +103,25 @@ static func make(id: String, opts: Dictionary = {}) -> Node3D:
 		node.set_meta("asset_fallback", true)
 	node.name = id.replace(".", "_")
 	node.set_meta("asset_id", id)
-	if opts.has("length") and str(e.get("stretch", "")) != "":
-		var length := float(opts.length)
-		node.scale = Vector3(1, length, 1) if e.stretch == "y" else Vector3(1, 1, length)
+	var stretch := str(e.get("stretch", ""))
+	if stretch != "":
+		node.scale = _stretch_scale(stretch, opts)
 	apply_look(node)
 	return node
+
+
+static func _stretch_scale(stretch: String, opts: Dictionary) -> Vector3:
+	var length := float(opts.get("length", 1.0))
+	match stretch:
+		"x":
+			return Vector3(length, 1, 1)
+		"y":
+			return Vector3(1, length, 1)
+		"zy":
+			return Vector3(1, float(opts.get("height", 1.0)), length)
+		"xz":
+			return Vector3(float(opts.get("width", 1.0)), 1, length)
+	return Vector3(1, 1, length)
 
 
 ## make() for a building catalog kind or section; a plain box of `size` if nothing draws it.

@@ -24,6 +24,17 @@ origin, stretch down y. Stairs: foot at the origin, climbing toward -z, 3 m rise
 suit). `AssetLibrary.info(id)` gives the manifest entry: aabb, stages, pieces with mass,
 sockets, tags.
 
+Stretch assets are 1 m models scaled by `make()`; `info(id).stretch` says how:
+`z`, `x` or `y` take `length` (sections, pipes, ducts, fences and kerbs along x, piles);
+`zy` takes `length` and `height` (walls, cladding); `xz` takes `width` and `length`
+(floors, roof coverings, lawn).
+
+Categories (the first part of the id): structure, opening, roof, circulation, services,
+fixture, furniture, school, office, police, hospital, airport, vehicle, plant, landscape,
+boundary, street, context (neighbouring buildings), demolition, people.
+`AssetLibrary.ids("hospital")` lists by tag: categories, building types (home, school,
+office, police, hospital, airport) and uses (wall, ceiling, outdoor, temporary, debris).
+
 ## Adding or changing assets
 
 Blender side, in `tools/assets/` (Python, needs `pip install bpy`):
