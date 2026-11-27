@@ -65,6 +65,7 @@ func setup(p_session: DesignSession) -> void:
 	ground.position.y = -0.02
 	add_child(ground)
 	Graphics.changed.connect(func() -> void: ground.material_override = ArtStyle.ground())
+	add_child(DesignPlot.new())
 	view = DesignView.new()
 	view.name = "Building"
 	view.set("labels_fixed", false)

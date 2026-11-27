@@ -126,6 +126,17 @@ func run_tests() -> void:
 	s.set_tool("select")
 	room.call("_draw_ghost")
 	check(not dims.visible, "and hides it after")
+	# The taken contract's plot shows as a red line when no real site is loaded.
+	var contracts := Modules.bus("contracts")
+	if contracts != null and "active" in contracts:
+		var was: Dictionary = contracts.get("active")
+		contracts.set("active", {"site": {"id": "", "plot": [[-10, -8], [10, -8], [10, 8], [-10, 8]]}})
+		var pl: DesignPlot = room.get("plot")
+		await get_tree().create_timer(0.6).timeout
+		check(pl.visible and pl.label.text.contains("20.0 × 16.0"), "the contract's plot shows: %s" % pl.label.text)
+		contracts.set("active", was)
+		await get_tree().create_timer(0.6).timeout
+		check(not pl.visible or not was.is_empty(), "and goes when there's no contract")
 	# Shift+drag on empty floor draws a box that selects all inside it.
 	var whole := (room.get("hud") as Node).get("mini") as DesignMiniWorld
 	var bb := whole.bounds()

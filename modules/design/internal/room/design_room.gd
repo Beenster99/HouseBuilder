@@ -36,6 +36,8 @@ var _grid_mesh: MeshInstance3D
 var _ghost: MeshInstance3D
 ## The live size of what is being drawn: width x length and area.
 var ghost_dims: Label3D
+## The taken contract's plot, a red line.
+var plot: DesignPlot
 var _crew_marks: Node3D
 var _marks: Dictionary = {}  # peer -> {root, line, label}
 var _ghost_mats: Dictionary = {}
@@ -95,6 +97,8 @@ func _ready() -> void:
 	_ghost.mesh = ImmediateMesh.new()
 	_ghost.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	add_child(_ghost)
+	plot = DesignPlot.new()
+	add_child(plot)
 	# Live size while a room or slab is dragged out or reshaped.
 	ghost_dims = Label3D.new()
 	ghost_dims.name = "GhostDims"
