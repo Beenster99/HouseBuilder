@@ -29,7 +29,7 @@ def bed(w, d, h, pillows=1, hospital=False):
 	frame = "steel_painted" if hospital else "hardwood"
 	base = h * 0.55
 	with kit.stage("frame"):
-		kit.box((w - 0.02, d - 0.09, 0.12), (0, 0, base - 0.06), frame, "base")
+		kit.box((w - 0.02, d - 0.04, 0.12), (0, 0.02, base - 0.06), frame, "base")
 		legs(w, d, base - 0.12, 0.05, frame)
 		kit.box((w, 0.04, h + 0.45), (0, -d / 2 + 0.02, (h + 0.45) / 2), frame, "headboard")
 		if hospital:

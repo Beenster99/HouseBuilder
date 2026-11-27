@@ -424,7 +424,7 @@
 			[
 				-0.675,
 				0.0,
-				-0.97
+				-1.0
 			],
 			[
 				0.675,
@@ -437,10 +437,10 @@
 		"file": "models/fixture/fixture.bed_double.glb",
 		"kind": "bed_double",
 		"label": "Double bed",
-		"mass": 332.6,
+		"mass": 338.2,
 		"pieces": [
 			{
-				"mass": 250.38,
+				"mass": 255.96,
 				"node": "frame__hardwood",
 				"slot": "hardwood",
 				"stage": "frame"
@@ -474,7 +474,7 @@
 			[
 				-0.45,
 				0.0,
-				-0.97
+				-1.0
 			],
 			[
 				0.45,
@@ -487,10 +487,10 @@
 		"file": "models/fixture/fixture.bed_single.glb",
 		"kind": "bed_single",
 		"label": "Single bed",
-		"mass": 219.3,
+		"mass": 223.0,
 		"pieces": [
 			{
-				"mass": 166.21,
+				"mass": 169.91,
 				"node": "frame__hardwood",
 				"slot": "hardwood",
 				"stage": "frame"
@@ -984,10 +984,10 @@
 		"file": "models/fixture/fixture.hospital_bed.glb",
 		"kind": "hospital_bed",
 		"label": "Hospital bed",
-		"mass": 2659.2,
+		"mass": 2705.4,
 		"pieces": [
 			{
-				"mass": 2560.95,
+				"mass": 2607.11,
 				"node": "frame__steel_painted",
 				"slot": "steel_painted",
 				"stage": "frame"
