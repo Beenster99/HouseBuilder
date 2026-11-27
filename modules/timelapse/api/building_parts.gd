@@ -31,6 +31,7 @@ const SERVICE_ROOMS := {"stair_core": "stairs", "lift_shaft": "lift"}
 static func from_model(model: BuildingModel) -> Array[Dictionary]:
 	var out: Array[Dictionary] = []
 	var by_id: Dictionary = {}
+	var joins := WallJoins.new(model)
 	for pid: String in BuildingModel.sort_ids(model.parts.keys()):
 		var e: Dictionary = model.parts[pid]
 		var family := model.catalog.family_of(str(e.kind))
@@ -44,7 +45,7 @@ static func from_model(model: BuildingModel) -> Array[Dictionary]:
 		var p := {"id": pid, "kind": kind, "family": family, "material": str(e.get("material", "")),
 				"aabb": box, "supported_by": [], "cost": float(q.get("cost", 0.0)),
 				"mass": float(q.get("mass", 0.0)), "level": model.level_of(pid)}
-		var shape := shape_of(model, pid)
+		var shape := shape_of(model, pid, joins)
 		if not shape.is_empty():
 			p.shape = shape
 		var look := model_of(model, pid)
@@ -178,7 +179,9 @@ static func model_of(model: BuildingModel, pid: String) -> Dictionary:
 ## their real angle ({"obb": Transform3D}, a unit box's transform), slabs, roofs and rooms
 ## as their real outline ({"outline": PackedVector2Array (x, z), "top": y, "thick": m}).
 ## {} when the box is the shape (columns, pads, fixtures).
-static func shape_of(model: BuildingModel, pid: String) -> Dictionary:
+## Walls are run on or stopped short at their ends so corners and tees join up as the design
+## room draws them (`joins`, the design api's WallJoins; made here when not given).
+static func shape_of(model: BuildingModel, pid: String, joins: WallJoins = null) -> Dictionary:
 	var e: Dictionary = model.parts.get(pid, {})
 	if e.is_empty():
 		return {}
@@ -198,6 +201,10 @@ static func shape_of(model: BuildingModel, pid: String) -> Dictionary:
 				var h := model.part_height(pid)
 				var d := float(sec.get("d", 0.1))
 				var y0 := minf(a.y, b.y)
+				var ext := (joins if joins else WallJoins.new(model)).ends(pid)
+				var dir := Vector3(b.x - a.x, 0, b.z - a.z).normalized()
+				a -= dir * ext.x
+				b += dir * ext.y
 				return {"obb": _box_along(Vector3(a.x, y0, a.z), Vector3(b.x, y0, b.z), d, h, 0.0)}
 			var w := float(sec.get("w", sec.get("dia", sec.get("d", 0.2))))
 			var depth := float(sec.get("d", w))

@@ -14,6 +14,9 @@ func run_tests() -> void:
 	var b := dir * 6.0
 	var wid := str(m.apply(BuildingCommands.place_part("wall_loadbearing", 0, {"a": [0, 0, 0], "b": [b.x, 0, b.z]}, "masonry")).do.entry.id)
 	var sid := str(m.apply(BuildingCommands.place_part("slab", 0, {"outline": [[0, 0], [8, 0], [0, 6]]})).do.entry.id)
+	# An L corner away from the rest: the walls must join up, not overlap or leave a notch.
+	var c1 := str(m.apply(BuildingCommands.place_part("wall_loadbearing", 0, {"a": [20, 0, 20], "b": [26, 0, 20]}, "masonry")).do.entry.id)
+	var c2 := str(m.apply(BuildingCommands.place_part("wall_loadbearing", 0, {"a": [26, 0, 20], "b": [26, 0, 26]}, "masonry")).do.entry.id)
 	var jet_kind := "airport.aircraft.jumbo"
 	var jid := ""
 	if m.catalog.kind(jet_kind).has("asset"):
@@ -35,6 +38,14 @@ func run_tests() -> void:
 			"standing its full height, upright")
 	check(obb.origin.distance_to(Vector3(b.x * 0.5, m.part_height(wid) * 0.5, b.z * 0.5)) < 0.01, "centred on its line")
 
+	var thick := WallJoins.new(m).thickness(c1)
+	var lens: Array[float] = []
+	for p in parts:
+		if p.id in [c1, c2]:
+			lens.append(((p.shape.obb as Transform3D).basis.x).length())
+	lens.sort()
+	check(lens.size() == 2 and absf(lens[0] - (6.0 - thick * 0.5)) < 0.01 and absf(lens[1] - (6.0 + thick * 0.5)) < 0.01,
+			"at a corner one wall runs on by half the other's thickness and the other stops at its face: %s" % [lens])
 	check(slab.has("shape") and (slab.shape as Dictionary).has("outline")
 			and (slab.shape.outline as PackedVector2Array).size() == 3, "a triangular slab keeps its three corners")
 
