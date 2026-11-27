@@ -57,5 +57,8 @@ flags = {
 "kits": true,
 "kits.modules": true,
 "kits.preview": true,
-"kits.walk_preview": true
+"kits.walk_preview": true,
+"faces": true,
+"faces.face": true,
+"faces.voice": true
 }
