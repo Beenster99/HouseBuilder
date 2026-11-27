@@ -21,7 +21,6 @@ func _init() -> void:
 	_systems = _wrap_label()
 	add_child(_systems)
 	_notes = _wrap_label()
-	_notes.add_theme_color_override("font_color", BsxTheme.MUTED)
 	add_child(_notes)
 	var row := HBoxContainer.new()
 	add_child(row)
@@ -36,6 +35,11 @@ func _init() -> void:
 	add_child(check)
 	_said = _wrap_label()
 	add_child(_said)
+
+
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_ENTER_TREE and _notes:
+		_notes.add_theme_color_override("font_color", BsxTheme.col(self, "MUTED"))
 
 
 func bind(bus: Node) -> void:

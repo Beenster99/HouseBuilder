@@ -9,8 +9,8 @@ const FONT := 11
 const GOOD := Color(0.36, 0.8, 0.47)
 const WARN := Color(0.98, 0.72, 0.25)
 const BAD := Color(0.95, 0.36, 0.3)
-const IDLE := Color(0.5, 0.55, 0.6)
-const TRACK := Color(1, 1, 1, 0.08)
+## Text, idle and track colours come from the look the panel sits in (BsxTheme.col): the
+## classic dark screen or the pencil UI. Only the status colours are fixed.
 ## Longest issue line shown in Details (characters).
 const LINE_MAX := 96
 const ISSUES_SHOWN := 5
@@ -21,6 +21,7 @@ class Bar extends Control:
 	var fill := 0.0
 	var colour := Color.WHITE
 	var mark := -1.0  # 0..1 where the goal line sits, < 0 for none
+	var ink := Color.WHITE  # the look's text colour, for the track and the goal mark
 
 	func _init() -> void:
 		custom_minimum_size = Vector2(110, 8)
@@ -36,17 +37,18 @@ class Bar extends Control:
 
 	func _draw() -> void:
 		var r := Rect2(Vector2.ZERO, size)
-		draw_rect(r, TRACK)
+		draw_rect(r, Color(ink, 0.1))
 		draw_rect(Rect2(Vector2.ZERO, Vector2(size.x * fill, size.y)), colour)
 		if mark >= 0.0:
 			var x := roundf(size.x * mark)
-			draw_line(Vector2(x, -2), Vector2(x, size.y + 2), Color(1, 1, 1, 0.7), 1.0)
+			draw_line(Vector2(x, -2), Vector2(x, size.y + 2), Color(ink, 0.7), 1.0)
 
 
 var _bus: Node
 var _chip: Label
 var _fix: Label
 var _rows := {}  # area -> {dot, bar, value}
+var _names: Array[Label] = []
 var _details_button: Button
 var _details: Label
 
@@ -59,7 +61,7 @@ func _init() -> void:
 	add_child(head)
 	_chip = _label("…", FONT + 1)
 	head.add_child(_chip)
-	_fix = _label("", FONT - 1, IDLE)
+	_fix = _label("", FONT - 1)
 	_fix.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_fix.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	head.add_child(_fix)
@@ -72,6 +74,7 @@ func _init() -> void:
 		var dot := _label("●", FONT)
 		var name_l := _label({"structure": "Structure", "services": "Services", "requirements": "Brief", "budget": "Cost"}[area], FONT)
 		name_l.custom_minimum_size = Vector2(56, 0)
+		_names.append(name_l)
 		var bar := Bar.new()
 		var value := _label("", FONT)
 		value.custom_minimum_size = Vector2(78, 0)
@@ -89,7 +92,7 @@ func _init() -> void:
 		_details.visible = on
 		_details_button.text = "Details ▾" if on else "Details ▸")
 	add_child(_details_button)
-	_details = _label("", FONT - 1, Color(0.8, 0.84, 0.88))
+	_details = _label("", FONT - 1)
 	_details.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_details.custom_minimum_size = Vector2(WIDTH, 0)
 	_details.visible = false
@@ -101,29 +104,56 @@ func bind(bus: Node) -> void:
 	bus.review_done.connect(_show)
 	if bus.last_review().is_empty():
 		_chip.text = "Assessing…"
-		_chip.add_theme_color_override("font_color", IDLE)
+		_chip.add_theme_color_override("font_color", _idle())
 		bus.call("_schedule")
 	else:
 		_show(bus.last_review())
 
 
-func _label(text: String, font_size: int, colour: Color = Color(0.88, 0.9, 0.92)) -> Label:
+func _label(text: String, font_size: int) -> Label:
 	var l := Label.new()
 	l.text = text
 	l.add_theme_font_size_override("font_size", font_size)
-	l.add_theme_color_override("font_color", colour)
 	return l
 
 
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_ENTER_TREE:
+		_apply_palette()
+
+
+## Text in the look's colours; called when the panel enters the tree and on every refresh.
+func _apply_palette() -> void:
+	if not is_inside_tree():
+		return
+	var text := BsxTheme.col(self, "TEXT")
+	var muted := BsxTheme.col(self, "MUTED")
+	for row: Dictionary in _rows.values():
+		(row.value as Label).add_theme_color_override("font_color", text)
+		(row.bar as Bar).ink = text
+		(row.bar as Bar).queue_redraw()
+	for l: Label in _names:
+		l.add_theme_color_override("font_color", text)
+	_fix.add_theme_color_override("font_color", muted)
+	_details.add_theme_color_override("font_color", muted)
+	_details_button.add_theme_color_override("font_color", muted)
+
+
+func _idle() -> Color:
+	return BsxTheme.col(self, "MUTED") if is_inside_tree() else Color(0.5, 0.55, 0.6)
+
+
 func _show(r: Dictionary) -> void:
+	_apply_palette()
+	var idle := _idle()
 	var areas: Dictionary = r.get("areas", {})
 	var feasible := bool(r.get("feasible", false))
 	if areas.is_empty():
 		_chip.text = "NOTHING YET"
-		_chip.add_theme_color_override("font_color", IDLE)
+		_chip.add_theme_color_override("font_color", idle)
 		_fix.text = "Draw some rooms"
 		for area: String in _rows:
-			_set_row(area, IDLE, 0.0, "–")
+			_set_row(area, idle, 0.0, "–")
 		_details.text = ""
 		return
 	_chip.text = "FEASIBLE" if feasible else "NOT YET"
@@ -144,7 +174,7 @@ func _show(r: Dictionary) -> void:
 
 	var req: Dictionary = areas.get("requirements", {})
 	if req.is_empty():
-		_set_row("requirements", IDLE, 0.0, "no contract")
+		_set_row("requirements", idle, 0.0, "no contract")
 	else:
 		var rt := maxi(int(req.total), 1)
 		_set_row("requirements", GOOD if bool(req.ok) else (WARN if float(req.passed) / rt >= 0.75 else BAD),
@@ -157,7 +187,7 @@ func _show(r: Dictionary) -> void:
 		_set_row("budget", GOOD if f <= 0.9 else (WARN if f <= 1.0 else BAD), f / 1.25,
 			"%s/%s" % [_short(all_in), _short(budget)], 1.0 / 1.25)
 	else:
-		_set_row("budget", IDLE, 0.0, _short(all_in))
+		_set_row("budget", idle, 0.0, _short(all_in))
 
 	var lines := PackedStringArray()
 	for i: Dictionary in (r.get("issues", []) as Array).slice(0, ISSUES_SHOWN):
