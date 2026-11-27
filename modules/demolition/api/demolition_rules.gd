@@ -111,6 +111,18 @@ static func chunks(part: Dictionary, size: float = CHUNK) -> Array[AABB]:
 	return out
 
 
+## How far a charge's fragments mostly fly (m, along the ground from the charge) for a
+## charge of `power` (DemolitionBus.SIZE_POWER) `height` m above the ground: the typical
+## fragment's throw in debris.gd (out at ~9 m/s x power, up ~1.75 m/s x power) plus a slide
+## after landing. A few fly further; this is the zone a blast consultant would rope off.
+static func throw_reach(power: float, height: float) -> float:
+	var v := 9.0 * power
+	var up := 1.75 * power
+	var g := 9.8
+	var t := up / g + sqrt(up * up / (g * g) + 2.0 * maxf(height, 0.0) / g)
+	return v * t + 0.6 * power + 0.5
+
+
 ## Auto-sequence presets for the charge plan: their ids and names.
 const SEQUENCES := {"implode": "Implode", "fall_north": "Fall north", "fall_south": "Fall south",
 		"fall_east": "Fall east", "fall_west": "Fall west"}

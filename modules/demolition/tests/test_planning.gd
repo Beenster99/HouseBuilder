@@ -79,6 +79,27 @@ func run_tests() -> void:
 	view.remove_group(float(view.groups()[0][0]))
 	await frames(1)
 	check(bus.charges.size() < implode.size(), "a group comes off")
+	# The career: locked sizes and presets grey out; a blast consultant shows the debris.
+	var career := _Career.new()
+	view.career = career
+	view._set_size(2)
+	view._refresh_panel()
+	var sizes: Array = view._size_buttons
+	check(sizes[2].disabled and not sizes[1].disabled and view._size == 1, "a locked heavy charge greys out and can't be picked")
+	check(view._sequence.is_item_disabled(1), "locked auto sequences grey out")
+	var before: int = bus.charges.size()
+	view.apply_sequence("fall_north")
+	await frames(1)
+	check(bus.charges.size() == before, "a locked preset does nothing")
+	view._set_preview(true)
+	check(view.debris_zones().is_empty(), "no debris preview without a blast consultant")
+	career.consultant = true
+	view._set_preview(true)
+	var zones: Array = view.debris_zones()
+	check(zones.size() == bus.charges.size() and zones.size() > 0 and float(zones[0].radius) > 1.0,
+			"the blast consultant shows each charge's debris zone: %s" % str(zones.slice(0, 1)))
+	check(DemolitionRules.throw_reach(1.6, 1.0) > DemolitionRules.throw_reach(0.6, 1.0), "heavier charges throw further")
+	view.career = null
 	view._set_size(0)
 	bus.request_plan({})
 	await frames(1)
@@ -86,3 +107,13 @@ func run_tests() -> void:
 	view.queue_free()
 	await frames(1)
 	bus.apply_net_snapshot({})
+
+
+class _Career:
+	var consultant := false
+
+	func locked_tier(id: String) -> int:
+		return {"gear:charge_heavy": 4, "gear:delay_presets": 3}.get(id, 0)
+
+	func effect(name: String, fallback := 0.0) -> float:
+		return 1.0 if name == "debris_preview" and consultant else fallback

@@ -87,6 +87,9 @@ var _size_buttons: Array[Button] = []
 var _preview_button: Button
 var _walk_button: Button
 var _sequence: OptionButton
+## Debris zones shown with the fall preview once the firm has a blast consultant.
+var _debris_zones: Array[Dictionary] = []
+var _debris_root: Node3D
 var _hover := ""
 var _building_root: Node3D
 var _fx_root: Node3D
@@ -755,6 +758,7 @@ func _make_mark(id: String) -> Node3D:
 
 
 func _refresh_preview() -> void:
+	_refresh_debris_zones()
 	var doomed: Dictionary = {}
 	if _preview and not bus.is_fired():
 		for id in bus.predicted():
@@ -777,6 +781,64 @@ func _refresh_preview() -> void:
 					if doomed.has(id):
 						for mi in c.find_children("*", "MeshInstance3D", true, false):
 							(mi as MeshInstance3D).material_override = hot
+
+
+## Where the debris preview says fragments will land: [{part, centre (ground), radius,
+## outside (share of the ring off the plot, 0..1)}], shown while previewing with a blast
+## consultant. Empty otherwise.
+func debris_zones() -> Array[Dictionary]:
+	return _debris_zones
+
+
+func _refresh_debris_zones() -> void:
+	_debris_zones.clear()
+	if _debris_root == null:
+		_debris_root = Node3D.new()
+		_debris_root.name = "DebrisPreview"
+		add_child(_debris_root)
+	for c in _debris_root.get_children():
+		c.queue_free()
+	if not _preview or bus.is_fired() or not debris_preview_on():
+		return
+	var ground: float = debris.get("ground_y") if debris else 0.0
+	var safe := _material("__debris_safe")
+	safe.albedo_color = Color(1.0, 0.75, 0.2, 0.22)
+	safe.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	safe.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	safe.cull_mode = BaseMaterial3D.CULL_DISABLED
+	var over := _material("__debris_over")
+	over.albedo_color = Color(0.9, 0.12, 0.1, 0.35)
+	over.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	over.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	over.cull_mode = BaseMaterial3D.CULL_DISABLED
+	var spill := 0
+	for id: String in bus.charges:
+		var at := bus.charge_point(id)
+		var r := DemolitionRules.throw_reach(bus.power_of(id), at.y - ground)
+		var off := 0
+		for k in 16:
+			var a := TAU * k / 16.0
+			if not bus.on_plot(at.x + cos(a) * r, at.z + sin(a) * r):
+				off += 1
+		var outside := off / 16.0
+		_debris_zones.append({"part": id, "centre": Vector3(at.x, ground, at.z), "radius": r, "outside": outside})
+		if outside > 0.0:
+			spill += 1
+		var disc := MeshInstance3D.new()
+		var m := CylinderMesh.new()
+		m.top_radius = r
+		m.bottom_radius = r
+		m.height = 0.02
+		m.radial_segments = 32
+		m.rings = 1
+		disc.mesh = m
+		disc.material_override = over if outside > 0.0 else safe
+		disc.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		disc.position = Vector3(at.x, ground + 0.03, at.z)
+		_debris_root.add_child(disc)
+	if help and not bus.charges.is_empty():
+		help.say("Blast consultant: %s" % ("debris stays on the plot" if spill == 0
+				else "%d charge%s will throw debris off the plot (red)" % [spill, "" if spill == 1 else "s"]))
 
 
 ## The part under the mouse, or "".
@@ -1215,10 +1277,66 @@ func _build_panel(layer: CanvasLayer) -> void:
 	_refresh_panel()
 
 
+## Contracts' unlock ids for each charge size, and for the auto sequences.
+const SIZE_GEAR := ["gear:charge_small", "gear:charge_standard", "gear:charge_heavy"]
+const PRESET_GEAR := "gear:delay_presets"
+
+
+## 0 when gear `unlock_id` can be used now, else the career tier that opens it (contracts
+## decides; always 0 without a contract or the contracts module).
+func locked_tier(unlock_id: String) -> int:
+	var contracts := _career()
+	if contracts == null or not contracts.has_method("locked_tier"):
+		return 0
+	return int(contracts.call("locked_tier", unlock_id))
+
+
+## Who says what's unlocked: the contracts bus, or `career` when set (tests).
+var career: Object = null
+
+
+func _career() -> Object:
+	return career if career != null else Modules.bus("contracts")
+
+
+## Whether the firm's blast consultant shows where debris will land with the fall preview.
+func debris_preview_on() -> bool:
+	var contracts := _career()
+	return contracts != null and contracts.has_method("effect") and float(contracts.call("effect", "debris_preview", 0.0)) > 0.0
+
+
 func _set_size(i: int) -> void:
-	_size = clampi(i, 0, DemolitionBus.SIZES.size() - 1)
+	var want := clampi(i, 0, DemolitionBus.SIZES.size() - 1)
+	var tier := locked_tier(SIZE_GEAR[want])
+	if tier > 0:
+		if help:
+			help.say("%s charges open at career tier %d" % [DemolitionBus.SIZES[want], tier])
+		if locked_tier(SIZE_GEAR[_size]) == 0:
+			want = _size
+		else:
+			# The biggest size that is open (the small charge is always tier 1).
+			want = 0
+			for k in SIZE_GEAR.size():
+				if locked_tier(SIZE_GEAR[k]) == 0:
+					want = k
+	_size = want
+	_refresh_locks()
+
+
+## Greys out the charge sizes and auto sequences the career hasn't opened yet.
+func _refresh_locks() -> void:
 	for k in _size_buttons.size():
-		_size_buttons[k].set_pressed_no_signal(k == _size)
+		var tier := locked_tier(SIZE_GEAR[k])
+		var b := _size_buttons[k]
+		b.disabled = tier > 0
+		b.set_pressed_no_signal(k == _size)
+		b.tooltip_text = ("%s charges open at career tier %d" % [DemolitionBus.SIZES[k], tier]) if tier > 0 \
+				else "New charges go on %s (key %d): a heavier charge blasts harder and shatters finer" % [DemolitionBus.SIZES[k].to_lower(), k + 1]
+	if _sequence:
+		var tier := locked_tier(PRESET_GEAR)
+		for i in range(1, _sequence.item_count):
+			_sequence.set_item_disabled(i, tier > 0)
+		_sequence.set_item_text(0, "Auto sequence (tier %d)..." % tier if tier > 0 else "Auto sequence...")
 
 
 func _set_delay(d: float) -> void:
@@ -1236,6 +1354,10 @@ func _set_preview(on: bool) -> void:
 ## Replaces the plan with an auto-sequence preset (DemolitionRules.SEQUENCES), every charge
 ## at the chosen size, and shows the fall.
 func apply_sequence(preset: String) -> void:
+	var tier := locked_tier(PRESET_GEAR)
+	if tier > 0:
+		help.say("Auto sequences open at career tier %d" % tier)
+		return
 	var plan := {}
 	var seq := DemolitionRules.sequence(bus.parts, preset, DemolitionBus.MAX_CHARGES)
 	for id: String in seq:
@@ -1281,6 +1403,7 @@ func _refresh_panel() -> void:
 	if _panel_box == null:
 		return
 	_delay_label.text = "%.2f s" % _delay
+	_refresh_locks()
 	_walk_button.visible = _walk_model() != null
 	for c in _panel_box.get_children():
 		c.queue_free()
