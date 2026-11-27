@@ -58,6 +58,9 @@ var _ground: MeshInstance3D
 var _settlement: PanelContainer
 ## The work site around the build: compound, scaffold, crew, plant and deliveries.
 var site: Node3D
+## The real-world site round the build (terrain, roads, neighbours, trees, the plot) when the
+## sites module has one loaded; null on the plain ground.
+var context: Node3D
 
 
 func _ready() -> void:
@@ -110,6 +113,10 @@ func _build_world() -> void:
 	site = SiteScript.new()
 	site.name = "WorkSite"
 	add_child(site)
+	var sites := Modules.bus("sites")
+	if sites != null and sites.has_signal("site_changed"):
+		sites.connect("site_changed", func(_pack: Variant) -> void: _show_context())
+	_show_context()
 	_ghost_root = Node3D.new()
 	_ghost_root.name = "Ghost"
 	_ghost_root.visible = false
@@ -127,6 +134,23 @@ func _build_world() -> void:
 	camera.far = 800.0
 	add_child(camera)
 	camera.make_current()
+
+
+## Puts the loaded real-world site (sites module) round the build, its plot on the design
+## origin as in the design room, in place of the plain ground.
+func _show_context() -> void:
+	if context:
+		context.queue_free()
+		context = null
+	var sites := Modules.bus("sites")
+	if sites != null and sites.has_method("current") and sites.call("current") != null \
+			and sites.has_method("make_plot_view"):
+		var v: Variant = sites.call("make_plot_view")
+		if v is Node3D:
+			context = v
+			context.name = "RealSite"
+			add_child(context)
+	_ground.visible = context == null
 
 
 func _rebuild() -> void:
