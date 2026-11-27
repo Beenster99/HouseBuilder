@@ -29,7 +29,7 @@ var _view_button: Button
 var _grid_pick: OptionButton
 var _cost: RichTextLabel
 ## The help bar along the bottom: keys for the mode, what the pointer is over, messages.
-var help: DesignHelpBar
+var help: HelpBar
 var _summary: RichTextLabel
 var _hover_age := 0.0
 var _cards: Dictionary = {}  # id -> Callable that repaints the card
@@ -394,7 +394,7 @@ func refresh_banner() -> void:
 	_banner_text.text = "[color=#%s][b]%s[/b][/color]   [color=#%s]%s[/color]" % [colour.to_html(false), head,
 			BsxTheme.TEXT.to_html(false), how]
 	if help:
-		help.set_keys(DesignHelpBar.keys_text(mode_keys()))
+		help.set_help(head, HelpBar.keys_text(mode_keys()), colour)
 	_banner.reset_size()
 	_banner.position.x = (size.x - _banner.size.x) * 0.5
 
@@ -604,7 +604,7 @@ func _build_tools() -> void:
 	p.set_anchors_and_offsets_preset(PRESET_LEFT_WIDE)
 	p.offset_left = 8
 	p.offset_top = TOP_H
-	p.offset_bottom = -44
+	p.offset_bottom = -58
 	p.offset_right = 8 + PANEL_W
 	add_child(p)
 	var dock := VBoxContainer.new()
@@ -781,7 +781,7 @@ func _build_cost() -> void:
 	p.offset_right = -8
 	p.offset_left = -8 - COST_W
 	p.offset_top = TOP_H
-	p.offset_bottom = -44
+	p.offset_bottom = -58
 	add_child(p)
 	var dock := VBoxContainer.new()
 	p.add_child(dock)
@@ -876,8 +876,8 @@ func _build_section() -> void:
 	p.set_anchors_and_offsets_preset(PRESET_BOTTOM_WIDE)
 	p.offset_left = 16 + PANEL_W
 	p.offset_right = -16 - COST_W
-	p.offset_bottom = -48
-	p.offset_top = -48 - SECTION_H
+	p.offset_bottom = -62
+	p.offset_top = -62 - SECTION_H
 	p.visible = false
 	add_child(p)
 	_section_box = p
@@ -898,8 +898,12 @@ func show_section(on: bool) -> void:
 # --- Status line ------------------------------------------------------------------------
 
 func _build_status() -> void:
-	help = DesignHelpBar.attach(self, 8, 8, 6)
-	Graphics.changed.connect(help.restyle)
+	help = HelpBar.new()
+	add_child(help)
+	help.set_insets(8, 8)
+	# The bar is a layer of its own: it hides with the HUD (walking inside, the hall).
+	visibility_changed.connect(func() -> void: help.visible = is_visible_in_tree())
+	help.visible = is_visible_in_tree()
 
 
 func _show_status(text: String, warn: bool) -> void:

@@ -71,7 +71,8 @@ var mode := "room"
 var fullscreen: Control
 var full_from := {}
 ## The help bar along the bottom (keys here, what you are looking at), as in the designer.
-var help: DesignHelpBar
+var help: HelpBar
+const HEADS := ["WALL SCREEN", "HOLOTABLE", "DESIGN OFFICE"]
 var _cross: Control
 var _bounds: DesignBounds
 var _designer_opened := false
@@ -448,7 +449,7 @@ func _process(delta: float) -> void:
 		var f := Keys.prompt(Keys.INTERACT)
 		var wall := aimed_wall()
 		if wall != "":
-			help.call("set_keys", DesignHelpBar.keys_text([["LMB", "< or > changes the panel"], [f, "full screen"],
+			help.set_help(HEADS[0], HelpBar.keys_text([["LMB", "< or > changes the panel"], [f, "full screen"],
 					["MMB", "ping it"], ["Esc", "menu"]]))
 			var board: Node = boards[wall]
 			var i := int(board.call("panel_at", (walls[wall] as HallScreen).pointer_px))
@@ -456,11 +457,11 @@ func _process(delta: float) -> void:
 				var view := str((board.get("panels") as Array)[i].view)
 				help.hover("Screen: %s · %s wall" % [HallChannels.title_of(self, view), wall])
 		elif near:
-			help.call("set_keys", DesignHelpBar.keys_text([[f, "design at the holotable"], ["← →", "turn"], ["↑ ↓", "zoom"],
+			help.set_help(HEADS[1], HelpBar.keys_text([[f, "design at the holotable"], ["← →", "turn"], ["↑ ↓", "zoom"],
 					["I J K L", "pan"], ["MMB", "ping"]]))
 			help.hover("Holotable: the live model everyone shares")
 		else:
-			help.call("set_keys", DesignHelpBar.keys_text([["WASD", "walk"], ["Shift", "run"], [f, "use"], ["MMB", "ping"],
+			help.set_help(HEADS[2], HelpBar.keys_text([["WASD", "walk"], ["Shift", "run"], [f, "use"], ["MMB", "ping"],
 					["Esc", "menu"]]))
 
 
@@ -581,8 +582,9 @@ func _build_hud() -> void:
 	_cross = Cross.new()
 	_cross.set_anchors_and_offsets_preset(Control.PRESET_CENTER)
 	layer.add_child(_cross)
-	help = DesignHelpBar.attach(layer, 200, 200, 12)
-	Graphics.changed.connect(help.restyle)
+	help = HelpBar.new()
+	add_child(help)
+	help.set_insets(200, 200)
 
 
 ## A small dot in the middle of the screen to aim with.

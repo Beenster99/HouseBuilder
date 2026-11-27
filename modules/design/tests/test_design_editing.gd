@@ -119,11 +119,11 @@ func run_tests() -> void:
 	check(banner.get_parsed_text().contains("SELECT MODE"), "the banner says Select mode: %s" % banner.get_parsed_text().left(40))
 	s.set_tool("wall")
 	check(banner.get_parsed_text().contains("WALL"), "and the tool otherwise")
-	var help: Control = hud.get("help")
-	check(help != null and help.is_visible_in_tree() and str(help.call("keys")).contains("Esc"),
-			"the help bar along the bottom says what the keys do")
-	help.call("say", "hello", false)
-	check(str(help.call("tip")) == "hello", "and shows messages in the same place")
+	var help: HelpBar = hud.get("help")
+	check(help != null and help.visible and help.shown()[0].contains("Esc") and help.shown()[0].contains("WALL"),
+			"the help bar along the bottom says the mode and what the keys do: %s" % help.shown()[0].left(50))
+	help.say("hello", false)
+	check(help.shown()[1].contains("hello"), "and shows messages in the same place")
 	var summary: RichTextLabel = (hud.get("_summary") as RichTextLabel)
 	hud.call("_refresh_summary")
 	check(summary.get_parsed_text().contains("Rooms") and summary.get_parsed_text().contains("Checks"),
