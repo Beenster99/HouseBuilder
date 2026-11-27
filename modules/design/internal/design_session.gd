@@ -1046,30 +1046,50 @@ func _fresh_ids(count: int) -> Array:
 
 
 ## Furnishes the selected rooms: the room type's usual layout, or what `text` describes
-## ("2 single beds and a desk"). One undo takes it all back.
+## ("2 single beds either side of the window and a desk"). One undo takes it all back.
 func furnish_selection(text: String = "") -> void:
 	var ops: Array = []
 	var placed := 0
 	var wanted := 0
 	var rooms := 0
+	var missing := {}
+	var unknown: PackedStringArray = []
 	for id in presence.my_selection():
 		if not model.rooms.has(id) or not presence.may_edit(id):
 			continue
 		rooms += 1
-		var items := DesignFitout.parse(text, catalog) if text.strip_edges() != "" else DesignFitout.preset(model, id)
+		var items: Array
+		if text.strip_edges() != "":
+			var said := DesignFitout.read(text, catalog, str(model.rooms[id].type))
+			items = said.items
+			unknown = said.unknown
+		else:
+			items = DesignFitout.preset(model, id)
 		var r := DesignFitout.furnish(model, id, items)
 		ops.append_array(r.ops)
 		placed += int(r.placed)
 		wanted += int(r.wanted)
+		for k: String in r.get("missing", {}):
+			missing[k] = int(missing.get(k, 0)) + int(r.missing[k])
 	if rooms == 0:
 		status.emit("Select a room first, then Furnish", true)
 		return
 	if wanted == 0:
-		status.emit("Nothing to put in: try \"2 single beds and a desk\"" if text != "" else "No usual layout for that room", true)
+		var why := "Nothing I know in \"%s\": try \"2 single beds and a desk\"" % ", ".join(unknown) if not unknown.is_empty() \
+				else ("Nothing to put in: try \"2 single beds and a desk\"" if text != "" else "No usual layout for that room")
+		status.emit(why, true)
 		return
 	if not ops.is_empty():
 		sync.edit(C.batch(ops))
-	status.emit("Furnished: %d of %d pieces%s" % [placed, wanted, "" if placed == wanted else " (no room for the rest)"], placed < wanted)
+	var note := ""
+	if not missing.is_empty():
+		var names: PackedStringArray = []
+		for k: String in missing:
+			names.append("%d %s" % [missing[k], str(catalog.kind(k).get("label", k)).to_lower()])
+		note = " (no room for %s)" % ", ".join(names)
+	if not unknown.is_empty():
+		note += " (didn't know \"%s\")" % ", ".join(unknown)
+	status.emit("Furnished: %d of %d pieces%s" % [placed, wanted, note], placed < wanted or not unknown.is_empty())
 
 
 func undo() -> void:

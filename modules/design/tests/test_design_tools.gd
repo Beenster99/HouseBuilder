@@ -153,7 +153,7 @@ func run_tests() -> void:
 
 	# Fit-out: a room's usual layout, or furniture from a description.
 	var parsed := DesignFitout.parse("2 single beds, a desk and three chairs", model.catalog)
-	check(parsed == [["bed_single", 2], ["desk_office", 1], ["hall_chair", 3]], "a description reads: %s" % str(parsed))
+	check(parsed == [["bed_single", 2], ["desk_office", 1], ["furniture.seat.dining_chair", 3]], "a description reads: %s" % str(parsed))
 	var living: String = model.rooms.keys()[0]
 	var fixtures_before := model.parts_of_family("fixture").size()
 	s.set_level(0)
@@ -163,12 +163,13 @@ func run_tests() -> void:
 	check(s.presence.my_selection() == PackedStringArray([living]), "the living room selected")
 	s.furnish_selection()
 	var added := model.parts_of_family("fixture").size() - fixtures_before
-	check(added == 2, "its usual layout adds two sofas: %d" % added)
-	check(BuildingQuantities.fixtures_in(model, living).size() >= 2, "inside the room")
+	check(added == DesignFitout.preset(model, living).size(), "its usual layout: sofa, armchair, coffee table, TV unit: %d" % added)
+	check(BuildingQuantities.fixtures_in(model, living).size() >= added, "inside the room")
 	sync.undo()
 	check(model.parts_of_family("fixture").size() == fixtures_before, "one undo takes the furniture out")
-	s.furnish_selection("3 single beds")
-	check(model.parts_of_family("fixture").size() == fixtures_before + 3, "a description furnishes it")
+	# The partitions drawn across this room earlier leave space for two beds, not three.
+	s.furnish_selection("2 single beds")
+	check(model.parts_of_family("fixture").size() == fixtures_before + 2, "a description furnishes it: %d" % (model.parts_of_family("fixture").size() - fixtures_before))
 	sync.undo()
 
 	# Team notes and the tape measure.

@@ -18,6 +18,8 @@ var _edit_body: VBoxContainer
 var _save_module: PopupPanel
 var _module_name: LineEdit
 var _module_group: LineEdit
+var _furnish: PopupPanel
+var _furnish_text: LineEdit
 
 enum { EDIT, DELETE, CORNER, FURNISH, SAVE_MODULE, WALK, MIRROR_X, MIRROR_Z, FLIP_X, FLIP_Z }
 
@@ -54,6 +56,45 @@ func setup(p_session: DesignSession, p_hud: Control) -> void:
 	b.pressed.connect(_do_save_module)
 	col.add_child(b)
 	hud.add_child(_save_module)
+	_furnish_panel()
+
+
+## Furnish…: describe what goes in ("2 single beds either side of the window, a wardrobe"),
+## or take the room type's usual layout.
+func _furnish_panel() -> void:
+	_furnish = PopupPanel.new()
+	var col := VBoxContainer.new()
+	col.custom_minimum_size = Vector2(380, 0)
+	_furnish.add_child(col)
+	var l := Label.new()
+	l.text = "Furnish this room"
+	col.add_child(l)
+	_furnish_text = LineEdit.new()
+	_furnish_text.placeholder_text = "e.g. 2 single beds, a wardrobe, a desk by the window"
+	_furnish_text.text_submitted.connect(func(_t: String) -> void: _do_furnish(_furnish_text.text))
+	col.add_child(_furnish_text)
+	var row := HBoxContainer.new()
+	var go := Button.new()
+	go.text = "Furnish"
+	go.pressed.connect(func() -> void: _do_furnish(_furnish_text.text))
+	row.add_child(go)
+	var usual := Button.new()
+	usual.text = "Usual layout"
+	usual.tooltip_text = "Furniture this kind of room usually has"
+	usual.pressed.connect(func() -> void: _do_furnish(""))
+	row.add_child(usual)
+	col.add_child(row)
+	var hint := Label.new()
+	hint.text = "Say how many and where: beside the window, facing the TV, around the table, in the corner."
+	hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	hint.modulate = Color(1, 1, 1, 0.6)
+	col.add_child(hint)
+	hud.add_child(_furnish)
+
+
+func _do_furnish(text: String) -> void:
+	_furnish.hide()
+	session.furnish_selection(text)
 
 
 ## Opens the menu for whatever is under `at` (world, raw) at screen point `screen`. False if
@@ -79,7 +120,7 @@ func open_at(at: Vector3, screen: Vector2) -> bool:
 	if room:
 		if _corner >= 0:
 			menu.add_item("Remove this corner", CORNER)
-		menu.add_item("Furnish", FURNISH)
+		menu.add_item("Furnish…", FURNISH)
 		var kits := Modules.bus("kits")
 		if kits and kits.has_method("save_room"):
 			menu.add_item("Save as module…", SAVE_MODULE)
@@ -108,7 +149,9 @@ func _on_item(id: int) -> void:
 		CORNER:
 			session.remove_corner(_corner)
 		FURNISH:
-			session.furnish_selection()
+			_furnish_text.text = ""
+			_furnish.popup_centered()
+			_furnish_text.grab_focus()
 		SAVE_MODULE:
 			_module_name.text = ""
 			_save_module.popup_centered()

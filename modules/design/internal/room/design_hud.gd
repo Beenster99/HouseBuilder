@@ -993,7 +993,7 @@ func _furnish_box() -> void:
 	_options.add_child(l)
 	_options.add_child(_button("Usual layout", func() -> void: _session.furnish_selection(), "Furniture this kind of room usually has"))
 	var text := LineEdit.new()
-	text.placeholder_text = "or describe: 2 single beds, a desk"
+	text.placeholder_text = "or describe: 2 single beds, a desk by the window"
 	var go := func() -> void: _session.furnish_selection(text.text)
 	text.text_submitted.connect(func(_t: String) -> void: go.call())
 	_options.add_child(text)

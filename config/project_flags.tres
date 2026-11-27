@@ -20,6 +20,7 @@ flags = {
 "design.room": true,
 "design.hall": true,
 "design.office": true,
+"design.furnish_layout": true,
 "multiplayer.crew": true,
 "multiplayer.online": true,
 "sandbox": true,

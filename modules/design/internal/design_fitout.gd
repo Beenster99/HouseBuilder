@@ -1,30 +1,38 @@
 class_name DesignFitout
 extends RefCounted
 ## Furnishing a room in one go, two ways (the plan's fit-out options besides placing pieces
-## by hand): the room type's usual layout, or a plain description such as "2 single beds,
-## a desk and a wardrobe". Either gives a list of fixture kinds, which are packed in rows
-## inside the room clear of its walls and returned as one batch of place ops.
+## by hand): the room type's usual layout, or a plain description such as "2 single beds
+## either side of the window, a wardrobe and a desk facing the window". The words are read
+## against every fixture kind (fitout/fitout_words.gd) and laid out like a person would
+## (fitout/fitout_layout.gd), returned as one batch of place ops: one undo, synced like any
+## other edit.
+##
+## Flag design.furnish_layout off: the old packing in rows from one corner.
 
-## The usual contents of each room type: [kind, count] (count -1: one per area_each m²).
+const FLAG := "design.furnish_layout"
+
+## The usual contents of each room type: [what, count]. what is a kind id or words for one
+## (the first that the catalog has wins: "a|b"); count -1: one per AREA_EACH m².
 const PRESETS := {
-	"bedroom": [["bed_double", 1]],
-	"bathroom": [["wc", 1], ["basin", 1], ["bath", 1]],
+	"bedroom": [["bed_double", 1], ["bedside table", 2], ["furniture.wardrobe.double", 1], ["chest of drawers", 1]],
+	"bathroom": [["bath", 1], ["wc", 1], ["basin", 1]],
 	"wc_room": [["wc", 1], ["basin", 1]],
-	"kitchen": [["kitchen_unit", 6], ["dining_table", 1]],
-	"living_room": [["sofa", 2]],
-	"dining_room": [["dining_table", 1]],
-	"study": [["desk_office", 1]],
+	"kitchen": [["furniture.kitchen.sink_1000|kitchen_unit", 1], ["furniture.kitchen.hob_600|kitchen_unit", 1],
+		["furniture.kitchen.base_600|kitchen_unit", 3], ["furniture.appliance.fridge_freezer|kitchen_unit", 1], ["dining_table", 1]],
+	"living_room": [["sofa", 1], ["furniture.seat.armchair|sofa", 1], ["furniture.table.coffee", 1], ["furniture.storage.tv_unit", 1]],
+	"dining_room": [["dining_table", 1], ["furniture.storage.sideboard", 1]],
+	"study": [["desk_office", 1], ["furniture.storage.bookcase_tall", 1]],
 	"office": [["desk_office", -1]],
-	"meeting_room": [["dining_table", 1]],
+	"meeting_room": [["furniture.table.meeting_8|dining_table", 1]],
 	"reception": [["reception_desk", 1], ["sofa", 1]],
 	"classroom": [["desk_teacher", 1], ["desk_pupil", -1]],
 	"school_hall": [["hall_chair", -1]],
 	"staff_room": [["sofa", 2], ["dining_table", 1]],
-	"library": [["desk_pupil", -1]],
+	"library": [["furniture.storage.bookcase_tall", 4], ["desk_pupil", -1]],
 	"toilet_block": [["wc", 4], ["basin", 4]],
 	"custody_cell": [["cell_bench", 1], ["wc", 1]],
 	"custody_desk": [["reception_desk", 1]],
-	"interview_room": [["desk_office", 1]],
+	"interview_room": [["furniture.table.interview|desk_office", 1]],
 	"locker_room": [["locker", 4]],
 	"ward_bay": [["hospital_bed", -1]],
 	"single_room": [["hospital_bed", 1], ["wc", 1], ["basin", 1]],
@@ -33,26 +41,16 @@ const PRESETS := {
 	"gate_lounge": [["hall_chair", -1]],
 }
 ## Area per piece where the count is -1, m².
-const AREA_EACH := {"desk_office": 10.0, "desk_pupil": 2.0, "hall_chair": 1.2, "hospital_bed": 9.0}
-## Clearance from the walls and between pieces, m.
+const AREA_EACH := {"desk_office": 10.0, "desk_pupil": 2.6, "hall_chair": 1.2, "hospital_bed": 9.0}
+const MAX_PIECES := 120
+## Layouts tried at most before settling for the fullest.
+const TRIES := 8
+# The old row packing (flag off).
 const MARGIN := 0.35
 const GAP := 0.5
-const MAX_PIECES := 120
-## Words for fixture kinds beyond their catalog labels.
-const WORDS := {
-	"bed": "bed_double", "beds": "bed_double", "double": "bed_double", "single": "bed_single", "toilet": "wc",
-	"loo": "wc", "sink": "basin", "basin": "basin", "bath": "bath", "shower": "shower", "unit": "kitchen_unit",
-	"units": "kitchen_unit", "cupboard": "kitchen_unit", "sofa": "sofa", "couch": "sofa", "table": "dining_table",
-	"desk": "desk_office", "desks": "desk_office", "pupil": "desk_pupil", "pupils": "desk_pupil", "teacher": "desk_teacher",
-	"chair": "hall_chair", "chairs": "hall_chair", "seat": "hall_chair", "seats": "hall_chair", "reception": "reception_desk",
-	"counter": "reception_desk", "locker": "locker", "lockers": "locker", "bench": "cell_bench",
-	"hospital": "hospital_bed", "wardrobe": "locker",
-}
-const NUMBERS := {"a": 1, "an": 1, "one": 1, "two": 2, "three": 3, "four": 4, "five": 5, "six": 6,
-		"seven": 7, "eight": 8, "nine": 9, "ten": 10, "twelve": 12, "twenty": 20, "thirty": 30}
 
 
-## The preset contents for a room: [[kind, count], ...].
+## The preset contents for a room: [{kind, count, rel, target}, ...].
 static func preset(model: BuildingModel, room_id: String) -> Array:
 	var r: Dictionary = model.rooms.get(room_id, {})
 	if r.is_empty():
@@ -60,71 +58,71 @@ static func preset(model: BuildingModel, room_id: String) -> Array:
 	var area := BuildingModel.outline_area(r.outline)
 	var out: Array = []
 	for item: Array in PRESETS.get(str(r.type), []):
+		var kind := ""
+		for what: String in str(item[0]).split("|"):
+			if kind == "":
+				kind = what if model.catalog.has_kind(what) else DesignFitoutWords.kind_for(what, model.catalog, str(r.type))
+		if kind == "":
+			continue
 		var n := int(item[1])
 		if n < 0:
-			n = maxi(1, floori(area / float(AREA_EACH.get(item[0], 4.0))))
-		out.append([item[0], n])
+			n = clampi(floori(area / float(AREA_EACH.get(kind, 4.0))), 1, MAX_PIECES)
+		out.append({"kind": kind, "count": n, "rel": "", "target": ""})
 	return out
 
 
-## Reads a description into [[kind, count], ...]: "3 single beds and a wardrobe".
-static func parse(text: String, catalog: BuildingCatalog) -> Array:
-	var words := text.to_lower().replace(",", " ").replace(".", " ").replace(" and ", " ").split(" ", false)
-	var counts := {}
-	var order: Array = []
-	var n := 1
-	var i := 0
-	while i < words.size():
-		var w := words[i]
-		if w.is_valid_int():
-			n = clampi(w.to_int(), 1, MAX_PIECES)
-		elif NUMBERS.has(w):
-			n = int(NUMBERS[w])
-		else:
-			var kind := ""
-			# Two-word names first ("single bed", "hospital bed", "pupil desk").
-			if i + 1 < words.size():
-				kind = _kind_for(w + " " + words[i + 1], catalog)
-				if kind != "":
-					i += 1
-			if kind == "":
-				kind = _kind_for(w, catalog)
-			if kind != "":
-				if not counts.has(kind):
-					order.append(kind)
-				counts[kind] = int(counts.get(kind, 0)) + n
-				n = 1
-		i += 1
+## Reads a description into {items: [{kind, count, rel, target}], unknown: [words]}.
+static func read(text: String, catalog: BuildingCatalog, room_type: String = "") -> Dictionary:
+	return DesignFitoutWords.read(text, catalog, room_type)
+
+
+## Just [[kind, count], ...] from a description: "3 single beds and a wardrobe".
+static func parse(text: String, catalog: BuildingCatalog, room_type: String = "") -> Array:
 	var out: Array = []
-	for k: String in order:
-		out.append([k, counts[k]])
+	for it: Dictionary in read(text, catalog, room_type).items:
+		out.append([it.kind, it.count])
 	return out
 
 
-static func _kind_for(word: String, catalog: BuildingCatalog) -> String:
-	for kind: String in catalog.kinds_in("fixture"):
-		var label := str(catalog.kind(kind).get("label", "")).to_lower()
-		if label == word or label.trim_suffix("s") == word.trim_suffix("s") or kind.replace("_", " ") == word:
-			return kind
-	var pair := {"single bed": "bed_single", "double bed": "bed_double", "hospital bed": "hospital_bed",
-			"pupil desk": "desk_pupil", "teacher desk": "desk_teacher", "kitchen unit": "kitchen_unit",
-			"office desk": "desk_office", "reception desk": "reception_desk", "dining table": "dining_table"}
-	if pair.has(word):
-		return pair[word]
-	if pair.has(word.trim_suffix("s")):
-		return pair[word.trim_suffix("s")]
-	return str(WORDS.get(word, ""))
-
-
-## Place ops for the pieces packed in rows inside the room (largest first), as many as fit.
-## Returns {"ops": [...], "placed": int, "wanted": int}.
+## Place ops for the pieces laid out in the room, as many as fit.
+## items: [{kind, count, rel?, target?}] (or [kind, count] pairs).
+## Returns {"ops": [...], "placed": int, "wanted": int, "missing": {kind: count}}.
 static func furnish(model: BuildingModel, room_id: String, items: Array) -> Dictionary:
+	var list: Array = []
+	for it: Variant in items:
+		list.append(it if it is Dictionary else {"kind": str(it[0]), "count": int(it[1])})
+	if not Flags.is_on(FLAG):
+		return _rows(model, room_id, list)
+	if not model.rooms.has(room_id) or list.is_empty():
+		var wanted := 0
+		for it: Dictionary in list:
+			wanted += int(it.count)
+		return {"ops": [], "placed": 0, "wanted": wanted, "missing": {}}
+	# Another try or two with different choices when something is left out; the fullest wins.
+	var wanted := 0
+	for it: Dictionary in list:
+		wanted += int(it.count)
+	var tries := TRIES if wanted <= 30 else 2
+	var best := {}
+	for v in tries:
+		var lay := DesignFitoutLayout.new(model, room_id)
+		lay.variant = v
+		var r := lay.place_all(list)
+		if best.is_empty() or int(r.placed) > int(best.placed):
+			best = r
+		if int(best.placed) >= int(best.wanted):
+			break
+	return best
+
+
+## The old packing: in rows from one corner, largest first.
+static func _rows(model: BuildingModel, room_id: String, items: Array) -> Dictionary:
 	var r: Dictionary = model.rooms.get(room_id, {})
 	var wanted := 0
-	for it: Array in items:
-		wanted += int(it[1])
+	for it: Dictionary in items:
+		wanted += int(it.count)
 	if r.is_empty() or items.is_empty():
-		return {"ops": [], "placed": 0, "wanted": wanted}
+		return {"ops": [], "placed": 0, "wanted": wanted, "missing": {}}
 	var cat := model.catalog
 	var lo := Vector2(INF, INF)
 	var hi := Vector2(-INF, -INF)
@@ -132,9 +130,9 @@ static func furnish(model: BuildingModel, room_id: String, items: Array) -> Dict
 		lo = lo.min(Vector2(float(p[0]), float(p[1])))
 		hi = hi.max(Vector2(float(p[0]), float(p[1])))
 	var pieces: Array = []
-	for it: Array in items:
-		for k in mini(int(it[1]), MAX_PIECES):
-			pieces.append(str(it[0]))
+	for it: Dictionary in items:
+		for k in mini(int(it.count), MAX_PIECES):
+			pieces.append(str(it.kind))
 	pieces.sort_custom(func(a: String, b: String) -> bool:
 		return _footprint(cat, a).x * _footprint(cat, a).y > _footprint(cat, b).x * _footprint(cat, b).y)
 	var ops: Array = []
@@ -155,7 +153,7 @@ static func furnish(model: BuildingModel, room_id: String, items: Array) -> Dict
 			ops.append(BuildingCommands.place_part(kind, int(r.level), {"at": Vector3(cx, 0, cz), "rot": 0.0}))
 		x += f.x + GAP
 		row_d = maxf(row_d, f.y)
-	return {"ops": ops, "placed": ops.size(), "wanted": wanted}
+	return {"ops": ops, "placed": ops.size(), "wanted": wanted, "missing": {}}
 
 
 static func _footprint(cat: BuildingCatalog, kind: String) -> Vector2:
