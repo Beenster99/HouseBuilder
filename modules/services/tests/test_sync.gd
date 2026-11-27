@@ -81,6 +81,29 @@ func _solo_bus() -> void:
 	check(bus.sources.has("power"), "source placed")
 	bus.clear_source("power")
 	check(bus.sources.is_empty(), "source cleared")
+	# The consultant designs: its ops go to the building as one edit, then it routes again.
+	var bare := Samples.house(false)
+	bus.set_model_provider(func() -> BuildingModel: return bare)
+	var edits: Array = []
+	bus.set_edit_handler(func(op: Dictionary) -> void:
+		edits.append(op)
+		bare.apply(op))
+	var said: Array = []
+	bus.design_done.connect(func(notes: PackedStringArray) -> void: said.append(notes))
+	bus.design_services()
+	check(edits.size() == 1 and edits[0].op == "batch", "one batch edit, one undo step")
+	check(bus.last_report().passed(), "after the design every room is served: %s" % bus.last_report().summary)
+	check(said.size() == 1 and "\n".join(said[0]).contains("soil stack"), "it says what it did")
+	bus.design_services()
+	check(edits.size() == 1, "nothing more to add, no edit")
+	bus.set_edit_handler(Callable())
+	# Design room hooks: tints and the panel.
+	var tints := bus.overlay_tints(bare)
+	check(tints.get(Samples.room_of_type(bare, "bathroom")) == Color(0.3, 0.8, 0.45), "served rooms tinted green")
+	var panel: Control = bus.make_panel()
+	add_child(panel)
+	check(panel.get_child_count() > 3, "panel builds")
+	panel.queue_free()
 	bus.set_model_provider(Callable())
 
 

@@ -26,8 +26,17 @@ In a session only the host routes. `ServicesBus` (`Modules.bus("services")`):
 route; `report.digest()` is equal on every peer and late joiners get the sources and last
 report in the join snapshot. Save section `"services"`: the placed sources.
 
-With flag `services.consultant` on and the design module loaded, "Route services" appears on
-the design room's top bar (`design.register_action`). Off for now.
+**Design services**: `ServicesDesigner.propose(model)` (or `bus.design_services()`) does the
+design work: it fits out bare wet rooms (bathroom: WC, basin, bath; WC: WC, basin; kitchen
+and utility: a sink unit; toilets and commercial kitchens more), lined up on the wall
+nearest the soil stack, then places a consumer unit, water main, boiler and soil stack part
+where the routes start. The bus sends it to the building as one batch edit (one undo step
+for everyone) and routes again. It only adds; it never moves what players drew.
+
+In the design room (flag `services.consultant`, on): "Route services" and "Design services"
+on the top bar, and an "M&E" view that tints rooms green (served) or red (missing
+something), source units blue, with a side panel of the summary, per-system length and cost,
+the notes and both buttons.
 
 ## How it routes
 
@@ -58,6 +67,6 @@ toilets, commercial kitchen) with no fixtures yet are routed to their centre.
 ## Still to come
 
 - A riser fixture kind, so players can mark where vertical runs go.
-- Routes overlay and the room checklist in the design room; the quantity surveyor view.
+- Drawing the route lines themselves in the design room (the view only tints entries now).
 - Contracts reading `report.passed()` and `report.total_cost` for briefs.
 - Ventilation and heating runs; incremental re-routing on big buildings.

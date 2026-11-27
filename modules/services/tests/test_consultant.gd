@@ -19,6 +19,7 @@ func run_tests() -> void:
 	_source_parts()
 	_long_wc_branch()
 	_lift_shaft()
+	_designer()
 
 
 func _empty() -> void:
@@ -195,3 +196,33 @@ func _lift_shaft() -> void:
 	var rep := ServicesConsultant.route(m)
 	var office := Samples.room_of_type(m, "office")
 	check(rep.room(office).powered == false, "no route through a lift shaft")
+
+
+func _designer() -> void:
+	var m := Samples.house(false)
+	var before_rev := m.revision
+	var plan := ServicesDesigner.propose(m)
+	check(m.revision == before_rev, "proposing does not change the building")
+	var kinds := {}
+	for a: Dictionary in plan.added:
+		kinds[a.kind] = int(kinds.get(a.kind, 0)) + 1
+	check(kinds.get("wc", 0) == 1 and kinds.get("basin", 0) == 1 and kinds.get("bath", 0) == 1, "bathroom fitted out: %s" % str(kinds))
+	check(kinds.get("kitchen_unit", 0) == 2, "a sink in the kitchen and the utility: %s" % str(kinds))
+	for k in ["consumer_unit", "water_main", "boiler", "soil_stack"]:
+		check(kinds.get(k, 0) == 1, "%s placed" % k)
+	var ok := true
+	for op: Dictionary in plan.ops:
+		ok = ok and not m.apply(op).is_empty()
+	check(ok, "every proposed op applies to the real building")
+	var rep := ServicesConsultant.route(m)
+	check(rep.passed(), "designed building passes: %s" % rep.summary)
+	check(rep.digest() == (plan.after as ServicesReport).digest(), "the plan's after report is what you get")
+	for s in ServicesRates.SYSTEMS:
+		check(str(rep.system(s).source.how) == "part", "%s comes from a placed unit" % s)
+	var bath := Samples.room_of_type(m, "bathroom")
+	for a: Dictionary in plan.added:
+		if a.room == bath:
+			check(BuildingModel.outline_has_point(m.rooms[bath].outline, a.at[0], a.at[2]), "%s inside the bathroom" % a.kind)
+	var again := ServicesDesigner.propose(m)
+	check((again.ops as Array).is_empty(), "nothing more to add the second time: %s" % str(again.notes))
+	check(ServicesDesigner.propose(Samples.house(false)).ops == plan.ops, "same plan every time")

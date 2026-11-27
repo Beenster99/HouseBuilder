@@ -22,7 +22,7 @@ flags = {
 "structure": true,
 "structure.stress_test": false,
 "services": true,
-"services.consultant": false,
+"services.consultant": true,
 "ui.debug_tab": true,
 "ui.sun_slider": false
 }
