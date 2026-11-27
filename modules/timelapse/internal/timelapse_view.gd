@@ -246,6 +246,10 @@ static func fades(t: Dictionary) -> bool:
 
 
 func _add_piece(t: Dictionary) -> void:
+	var shape: Dictionary = t.get("shape", {})
+	if fades(t) and not shape.is_empty():
+		_add_shaped(t, shape)
+		return
 	var box: AABB = t.aabb
 	var size := box.size
 	if t.stage == "site" or t.stage == "landscape":
@@ -288,6 +292,82 @@ func _add_piece(t: Dictionary) -> void:
 		ghost.material_override = _material(t, true)
 		ghost.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 		_ghost_root.add_child(ghost)
+
+
+## A part at its real angle and outline: angled walls, beams and openings as turned boxes,
+## slabs, roofs and rooms as their own polygons.
+func _add_shaped(t: Dictionary, shape: Dictionary) -> void:
+	var pivot := Node3D.new()
+	var mesh := MeshInstance3D.new()
+	var m: Mesh
+	if shape.has("obb"):
+		var bm := BoxMesh.new()
+		m = bm
+		mesh.transform = shape.obb
+	else:
+		m = slab_mesh(shape.outline, float(shape.top), float(shape.thick))
+	mesh.mesh = m
+	mesh.material_override = _material(t, false)
+	pivot.add_child(mesh)
+	pivot.visible = false
+	_build_root.add_child(pivot)
+	_pieces[t.id] = {"pivot": pivot, "mesh": mesh, "axis": 1, "task": t}
+	var ghost := MeshInstance3D.new()
+	ghost.mesh = m
+	ghost.transform = mesh.transform
+	ghost.material_override = _material(t, true)
+	ghost.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	_ghost_root.add_child(ghost)
+
+
+## A polygon outline (x, z) extruded down from `top` by `thick`: top, bottom and sides.
+static func slab_mesh(outline: PackedVector2Array, top: float, thick: float) -> ArrayMesh:
+	var poly := outline
+	if Geometry2D.is_polygon_clockwise(poly):
+		poly = poly.duplicate()
+		poly.reverse()
+	var tris := Geometry2D.triangulate_polygon(poly)
+	var st := SurfaceTool.new()
+	st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	var bottom := top - maxf(thick, 0.02)
+	if tris.is_empty():
+		# Self-crossing outline: fall back to a fan from the first corner.
+		for i in range(1, poly.size() - 1):
+			tris.append_array([0, i, i + 1])
+	var area := 0.0  # twice the signed area in (x, z): > 0 when the interior is left of each edge
+	for i in poly.size():
+		var p := poly[i]
+		var q := poly[(i + 1) % poly.size()]
+		area += p.x * q.y - q.x * p.y
+	for i in range(0, tris.size(), 3):
+		var a := poly[tris[i]]
+		var b := poly[tris[i + 1]]
+		var c := poly[tris[i + 2]]
+		_face(st, Vector3(a.x, top, a.y), Vector3(b.x, top, b.y), Vector3(c.x, top, c.y), Vector3.UP)
+		_face(st, Vector3(a.x, bottom, a.y), Vector3(b.x, bottom, b.y), Vector3(c.x, bottom, c.y), Vector3.DOWN)
+	for i in poly.size():
+		var p := poly[i]
+		var q := poly[(i + 1) % poly.size()]
+		var d := q - p
+		var out := Vector3(d.y, 0, -d.x) * signf(area)
+		var p0 := Vector3(p.x, bottom, p.y)
+		var q0 := Vector3(q.x, bottom, q.y)
+		var p1 := Vector3(p.x, top, p.y)
+		var q1 := Vector3(q.x, top, q.y)
+		_face(st, p0, q0, q1, out)
+		_face(st, p0, q1, p1, out)
+	st.generate_normals()
+	return st.commit()
+
+
+## One triangle wound to face `out` (Godot's front faces wind clockwise seen from outside).
+static func _face(st: SurfaceTool, a: Vector3, b: Vector3, c: Vector3, out: Vector3) -> void:
+	if (c - a).cross(b - a).dot(out) < 0.0:
+		var swap := b
+		b = c
+		c = swap
+	for v: Vector3 in [a, b, c]:
+		st.add_vertex(v)
 
 
 # --- Every frame -----------------------------------------------------------------------

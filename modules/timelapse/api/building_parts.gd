@@ -42,6 +42,9 @@ static func from_model(model: BuildingModel) -> Array[Dictionary]:
 		var p := {"id": pid, "kind": kind, "family": family, "material": str(e.get("material", "")),
 				"aabb": box, "supported_by": [], "cost": float(q.get("cost", 0.0)),
 				"mass": float(q.get("mass", 0.0)), "level": model.level_of(pid)}
+		var shape := shape_of(model, pid)
+		if not shape.is_empty():
+			p.shape = shape
 		if family == "opening" and e.has("host"):
 			p.supported_by.append(str(e.host))
 		out.append(p)
@@ -59,7 +62,8 @@ static func from_model(model: BuildingModel) -> Array[Dictionary]:
 			first = false
 		box.size.y = model.level_height(level)
 		var p := {"id": rid, "kind": SERVICE_ROOMS[str(r.type)], "family": "room", "material": "",
-				"aabb": box, "supported_by": [], "cost": 0.0, "mass": 0.0, "level": level}
+				"aabb": box, "supported_by": [], "cost": 0.0, "mass": 0.0, "level": level,
+				"shape": _outline_shape(r.get("outline", []), box.end.y, box.size.y)}
 		out.append(p)
 		by_id[rid] = p
 
@@ -121,7 +125,8 @@ static func fit_out(model: BuildingModel) -> Array[Dictionary]:
 			continue
 		box.size.y = 0.05
 		out.append({"id": "fit:" + rid, "kind": "fitout", "family": "fixture", "material": "",
-				"aabb": box, "supported_by": [], "cost": cost, "mass": 0.0, "level": level})
+				"aabb": box, "supported_by": [], "cost": cost, "mass": 0.0, "level": level,
+				"shape": _outline_shape(r.get("outline", []), box.end.y, box.size.y)})
 	return out
 
 
@@ -146,3 +151,73 @@ static func _overlap_plan(a: AABB, b: AABB) -> bool:
 static func _add_support(p: Dictionary, carrier: String) -> void:
 	if not (p.supported_by as Array).has(carrier):
 		p.supported_by.append(carrier)
+
+
+## A part's exact shape for drawing, beyond its box: walls, beams, braces and openings at
+## their real angle ({"obb": Transform3D}, a unit box's transform), slabs, roofs and rooms
+## as their real outline ({"outline": PackedVector2Array (x, z), "top": y, "thick": m}).
+## {} when the box is the shape (columns, pads, fixtures).
+static func shape_of(model: BuildingModel, pid: String) -> Dictionary:
+	var e: Dictionary = model.parts.get(pid, {})
+	if e.is_empty():
+		return {}
+	var spec := model.catalog.kind(str(e.kind))
+	var sec := model.catalog.section(str(e.get("section", "")))
+	var pts := model.points_of(pid)
+	var fam := str(spec.get("family", ""))
+	match str(spec.get("shape", "")):
+		"line":
+			if pts.size() < 2 or str(e.kind) == "stair":
+				return {}
+			var a := pts[0]
+			var b := pts[1]
+			if a.distance_to(b) < 0.01:
+				return {}
+			if fam == "wall":
+				var h := model.part_height(pid)
+				var d := float(sec.get("d", 0.1))
+				var y0 := minf(a.y, b.y)
+				return {"obb": _box_along(Vector3(a.x, y0, a.z), Vector3(b.x, y0, b.z), d, h, 0.0)}
+			var w := float(sec.get("w", sec.get("dia", sec.get("d", 0.2))))
+			var depth := float(sec.get("d", w))
+			return {"obb": _box_along(a, b, w, depth, -depth * 0.5)}
+		"opening":
+			if pts.size() < 2:
+				return {}
+			var host: Dictionary = model.parts.get(str(e.get("host", "")), {})
+			var d := float(model.catalog.section(str(host.get("section", ""))).get("d", 0.1)) + 0.02
+			var h := float(e.get("h", spec.get("h", 2.0)))
+			return {"obb": _box_along(pts[0], pts[1], d, h, 0.0)}
+		"area":
+			if pts.size() < 3:
+				return {}
+			var outline: Array = []
+			for q in pts:
+				outline.append([q.x, q.z])
+			var top := pts[0].y
+			return _outline_shape(outline, top, maxf(float(sec.get("d", 0.0)), 0.05))
+	return {}
+
+
+## A box `width` across and `height` tall along the line a-b, its bottom at `lift` (m)
+## from the line: the transform of a unit box centred at the origin.
+static func _box_along(a: Vector3, b: Vector3, width: float, height: float, lift: float) -> Transform3D:
+	var along := b - a
+	var x := along.normalized()
+	var flat := Vector3(along.x, 0, along.z)
+	var up := Vector3.UP if flat.length() > 0.001 else Vector3.BACK
+	var z := x.cross(up).normalized()
+	var y := z.cross(x).normalized()
+	var basis := Basis(x * along.length(), y * height, z * width)
+	var centre := (a + b) * 0.5 + y * (lift + height * 0.5)
+	return Transform3D(basis, centre)
+
+
+static func _outline_shape(outline: Array, top: float, thick: float) -> Dictionary:
+	var poly := PackedVector2Array()
+	for q: Variant in outline:
+		poly.append(Vector2(float(q[0]), float(q[1])))
+	if poly.size() < 3:
+		return {}
+	return {"outline": poly, "top": top, "thick": thick}
+
