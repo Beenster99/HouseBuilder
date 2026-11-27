@@ -365,6 +365,21 @@ func run_tests() -> void:
 	s.undo()
 	await frames(2)
 	check(model.rooms.size() == rooms_before, "each paste undoes on its own")
+	# Finding a part another module names (the engineer's notes): focus_part goes to it and
+	# selects it, part tags draw on it, and the selection info shows its number.
+	check(dbus.focus_part(col_b) and s.presence.my_selection() == PackedStringArray([col_b]), "focus_part selects the part")
+	var camf: Node3D = room.get("camera")
+	check(Vector2((camf.get("focus") as Vector3).x, (camf.get("focus") as Vector3).z).distance_to(Vector2(-54, -58)) < 0.5, "and frames the view on it: %s" % camf.get("focus"))
+	check(str(hud.call("describe", col_b)).contains(col_b), "the selection info shows its number")
+	dbus.set_part_tags("test.failing", {col_b: "%s  140%%" % col_b})
+	await frames(20)
+	var tag := room.find_child("Tag_" + col_b, true, false) as Label3D
+	check(tag != null and tag.text.contains("140%") and Vector2(tag.global_position.x, tag.global_position.z).distance_to(Vector2(-54, -58)) < 0.5,
+			"a tag draws on its part")
+	dbus.set_part_tags("test.failing", {})
+	await frames(20)
+	var tag_left := room.find_child("Tag_" + col_b, true, false)
+	check(tag_left == null, "and clears: %s" % (str(tag_left.get_path()) if tag_left else ""))
 	# The docks' cards stretch up and down (a grip between them), and keep their sizes.
 	var lsplit := hud2.find_child("Split_left", true, false) as VSplitContainer
 	check(lsplit != null and lsplit.get_child_count() == 3, "the left dock's cards sit in a splitter")

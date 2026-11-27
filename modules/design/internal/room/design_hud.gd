@@ -1238,7 +1238,7 @@ func _where(at: Vector3) -> String:
 
 ## One line on an entry: "Kitchen · room · 12.4 m² (min 9) · Ground floor".
 func describe(id: String) -> String:
-	var bits := PackedStringArray([_session.label_of(id)])
+	var bits := PackedStringArray([_session.label_of(id), id])
 	if _model.rooms.has(id):
 		var r: Dictionary = _model.rooms[id]
 		bits.append("room")

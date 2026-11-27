@@ -222,6 +222,43 @@ func pulse(ids: PackedStringArray) -> void:
 	pulse_requested.emit(ids)
 
 
+## Short texts drawn on parts in every view of the design (plan, 3D, small views, holotable),
+## by source: source -> {part id -> text}. Another module's findings ("p145  140%") show on
+## the parts they are about.
+signal part_tags_changed
+var part_tags: Dictionary = {}
+
+## Sets one source's tags ({} clears them).
+func set_part_tags(source: String, tags: Dictionary) -> void:
+	if tags.is_empty():
+		if not part_tags.has(source):
+			return
+		part_tags.erase(source)
+	else:
+		if part_tags.get(source, {}) == tags:
+			return
+		part_tags[source] = tags.duplicate()
+	part_tags_changed.emit()
+
+
+## Every tag now: part id -> text (several sources' texts joined).
+func all_part_tags() -> Dictionary:
+	var out := {}
+	for src: String in part_tags:
+		for id: String in part_tags[src]:
+			out[id] = (str(out[id]) + "\n" if out.has(id) else "") + str(part_tags[src][id])
+	return out
+
+
+## Takes this player to a part: selects it, goes to its level, frames the designer on it and
+## flashes it (a part a note names, say). False if there is no designer open or no such part.
+func focus_part(id: String) -> bool:
+	pulse(PackedStringArray([id]))
+	if open_room == null or not open_room.has_method("focus_part"):
+		return false
+	return bool(open_room.call("focus_part", id))
+
+
 # --- Palettes -------------------------------------------------------------------------------
 
 ## What players pick from to add to the design, grouped, in display order. kind "rooms": room

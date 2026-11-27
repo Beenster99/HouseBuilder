@@ -170,6 +170,22 @@ func begin_stamp(label: String, ghost: Node3D, ops_at: Callable) -> void:
 	session.status.emit("%s: click to place it, R turns it, Esc stops" % label, false)
 
 
+## Takes this player to a part (DesignBus.focus_part): its level, selected, the view framed
+## on it. False if there is no such part.
+func focus_part(id: String) -> bool:
+	if not session.model.has(id):
+		return false
+	var lv := int(session.model.rooms[id].level) if session.model.rooms.has(id) else session.model.level_of(id)
+	if lv != session.level:
+		session.set_level(lv)
+	session.set_tool("select")
+	session.presence.select(PackedStringArray([id]))
+	var r := DesignGuides.box_of(session.model, PackedStringArray([id]))
+	var cam := camera as DesignCamera
+	cam.focus = Vector3(r.get_center().x, session.floor_y(), r.get_center().y)
+	return true
+
+
 ## Ctrl+V: the copy (DesignBus.clipboard) in hand at the pointer, lined up by the guides;
 ## each click puts one down (R or Shift+wheel turns it, Esc stops).
 func paste() -> bool:
