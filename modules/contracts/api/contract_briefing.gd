@@ -111,6 +111,8 @@ static func site_advice(factor_id: String) -> String:
 ## The document as titled sections of plain lines.
 static func sections(brief: Dictionary, catalog: BuildingCatalog = null) -> Array:
 	var cat := catalog if catalog != null else BuildingCatalog.default_catalog()
+	if ContractDemolition.is_demolition(brief):
+		return _demolition_sections(brief, cat)
 	var out: Array = []
 	var spec: Dictionary = ContractGenerator.TYPES.get(str(brief.get("type", "")), {})
 	var client_lines := [story(brief)]
@@ -137,6 +139,41 @@ static func sections(brief: Dictionary, catalog: BuildingCatalog = null) -> Arra
 	if not goals.is_empty():
 		out.append({"title": "Bonus goals", "lines": goals})
 	out.append({"title": "How it will be judged", "lines": _judging_lines(brief, cat)})
+	return out
+
+
+## A demolition job's document: the old building, the neighbours, money, and the judging.
+static func _demolition_sections(brief: Dictionary, cat: BuildingCatalog) -> Array:
+	var out: Array = []
+	var client := [str(brief.get("summary", ""))]
+	if str(brief.get("client_note", "")) != "":
+		client.append(str(brief.client_note))
+	out.append({"title": "The client", "lines": client})
+	var m := BuildingModel.new()
+	m.load_data(ContractDemolition.target_design(brief))
+	out.append({"title": "What to bring down", "lines": PackedStringArray([
+		"%s: %d storey%s, %d parts, about %s m3." % [m.name, m.level_count(), "" if m.level_count() == 1 else "s", m.parts.size(), ContractBrief._num(float(brief.get("volume", 0.0)))],
+		"Masonry walls and concrete floors; the bigger floors stand on concrete columns too.",
+		"Accepting the job loads it into the design room (it cannot be edited) and opens the demolition: plan the charges, then fire."])})
+	var n := (brief.get("neighbours", []) as Array).size()
+	var site := _site(brief)
+	out.append({"title": "The site", "lines": PackedStringArray([
+		"The plot is about %s x %s m. Debris that lands off it has to be cleared at %s a cubic metre." % [ContractBrief._num(float(site.get("w", 0.0))),
+				ContractBrief._num(float(site.get("d", 0.0))), ContractValidator.money(ContractDemolition.CLEANUP_PER_M3)],
+		"No neighbours close by." if n == 0 else "%d neighbouring building%s stand%s just past the boundary: nothing may touch them." % [n, "" if n == 1 else "s", "s" if n == 1 else ""]])})
+	out.append({"title": "Money and time", "lines": PackedStringArray([
+		"Budget: %s for the crew, the charges (%s each) and any clearing up." % [ContractValidator.money(float(brief.get("budget", 0.0))), ContractValidator.money(ContractDemolition.CHARGE_COST)],
+		"Fee: %s, paid at handover if every requirement is met." % ContractValidator.money(float(brief.get("fee", 0.0))),
+		"Experience: %s for a pass." % ContractTiers.xp_text(int(brief.get("xp", 0)))])})
+	var goals := PackedStringArray()
+	for g: Dictionary in brief.get("goals", []):
+		goals.append("%s: +%s" % [ContractBrief.describe(g, cat), ContractValidator.money(float(g.get("bonus", 0.0)))])
+	if not goals.is_empty():
+		out.append({"title": "Bonus goals", "lines": goals})
+	var judge := PackedStringArray()
+	for r: Dictionary in ContractBrief.normalize(brief).requirements:
+		judge.append(ContractBrief.describe(r, cat))
+	out.append({"title": "How it will be judged", "lines": judge})
 	return out
 
 

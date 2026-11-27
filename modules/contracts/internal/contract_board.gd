@@ -329,6 +329,15 @@ func _fill_active() -> void:
 	abandon.add_theme_font_size_override("font_size", BASE - 2)
 	abandon.pressed.connect(func() -> void: bus.abandon())
 	row.add_child(abandon)
+	if ContractDemolition.is_demolition(bus.active):
+		var hand := Button.new()
+		hand.name = "HandOverSite"
+		hand.text = "Hand over the cleared site"
+		hand.disabled = (bus.demolition_result as Dictionary).is_empty()
+		hand.tooltip_text = "Fire the charges first." if hand.disabled else "Settle the job on how the building came down."
+		hand.add_theme_font_size_override("font_size", BASE - 2)
+		hand.pressed.connect(func() -> void: bus.hand_over(int(bus.active.get("deadline_days", 0))))
+		row.add_child(hand)
 	_active_box.add_child(row)
 	_active_box.add_child(HSeparator.new())
 

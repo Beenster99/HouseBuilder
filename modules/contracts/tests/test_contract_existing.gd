@@ -40,7 +40,7 @@ func _twists() -> void:
 	check("extension" in ext.twists and not (ext.existing as Array).is_empty(), "an extension brief has a house on the plot")
 	check(ContractTwists.apply(ContractGenerator.generate(31, "primary_school", 3), 3, ["extension"]).twists.is_empty(), "but not for a school")
 	var start := BuildingModel.from_data(ContractTwists.starting_design(ext))
-	check(start.locked_ids().size() >= 10 and start.rooms.size() == 2, "the design starts from the locked house with its two rooms")
+	check(start.locked_ids().size() == (ext.existing as Array).size() and start.rooms.size() == 2, "the design starts from the whole locked house with its two rooms")
 	var a := ContractValidator.assess(ext, start)
 	var keep := _item(a, "keep_existing")
 	check(bool(keep.get("ok", false)) and str(keep.label).contains("existing house"), "keeping it passes: %s" % keep.get("detail", ""))
@@ -56,7 +56,7 @@ func _twists() -> void:
 	start.apply(C.set_fields(wall, {"locked": null}))
 	start.apply(C.delete([wall]))
 	var broken := _item(ContractValidator.assess(ext, start), "keep_existing")
-	check(not bool(broken.get("ok", true)) and str(broken.detail).contains("removed"), "unlocking and knocking a wall down fails it: %s" % broken.get("detail", ""))
+	check(not bool(broken.get("ok", true)) and str(broken.detail).contains("changed"), "unlocking a wall to knock it down fails it: %s" % broken.get("detail", ""))
 	check(ContractBriefing.text(ext).contains("Keep the existing house as it is"), "the briefing judges it")
 	var shop := ContractGenerator.generate(32, "high_street_shop", 4) if ContractGenerator.TYPES.has("high_street_shop") else {}
 	if shop.is_empty():

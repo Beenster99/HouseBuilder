@@ -19,6 +19,7 @@ flags = {
 "contracts.twists": true,
 "contracts.unlock_tree": true,
 "contracts.clients": true,
+"contracts.demolition_jobs": true,
 "design": true,
 "design.room": true,
 "design.hall": true,

@@ -77,6 +77,10 @@ var board_seed := 1
 ## The contract whose briefing document the design room should open next ("" for none): set
 ## when a contract is taken, cleared by the window that shows it.
 var briefing_pending := ""
+## A demolition job's result so far (DemolitionBus.result), {} before the charges fire.
+var demolition_result: Dictionary = {}
+## Taking a demolition job takes the crew to the demolition view (tests turn it off).
+var open_demolition := true
 var net: MultiplayerBus
 var _design: Node
 ## The building's checksum when structure_report was made: a report for an older design is
@@ -124,6 +128,16 @@ func _hook_net() -> void:
 	var sites := Modules.bus("sites") as SitesBus
 	if sites != null and not sites.site_changed.is_connected(_on_site_changed):
 		sites.site_changed.connect(_on_site_changed)
+	# Demolition jobs are judged on the demolition module's result (asked by name).
+	var demo := Modules.bus("demolition")
+	if demo != null and demo.has_signal("result_changed") and not demo.is_connected("result_changed", _on_demolition_result):
+		demo.connect("result_changed", _on_demolition_result)
+
+
+func _on_demolition_result(r: Dictionary) -> void:
+	if ContractDemolition.is_demolition(active) and not r.is_empty():
+		demolition_result = r.duplicate(true)
+		active_changed.emit()
 
 
 ## The crew moved to a real site: with no contract taken, the host deals a brief for it.
@@ -271,6 +285,8 @@ func building() -> BuildingModel:
 ## {} with no contract taken.
 func assess(model: BuildingModel = null) -> Dictionary:
 	var m := model if model != null else building()
+	if ContractDemolition.is_demolition(active):
+		return ContractDemolition.assess(active, demolition_result)
 	if active.is_empty() or m == null:
 		return {}
 	return ContractValidator.assess(_with_deals(active), m, report_for(m))
@@ -383,6 +399,11 @@ func _validate_accept(_sender: int, p: Dictionary) -> Variant:
 func _validate_handover(_sender: int, p: Dictionary) -> Variant:
 	if active.is_empty():
 		return "no contract taken"
+	if ContractDemolition.is_demolition(active):
+		if demolition_result.is_empty():
+			return "fire the charges first"
+		var da := ContractDemolition.assess(active, demolition_result)
+		return {"settlement": ContractPayout.settle(active, da, {"days": int(active.deadline_days)}), "seed": board_seed + 1}
 	var m := building()
 	if m == null:
 		return "no building"
@@ -438,19 +459,41 @@ func _apply_accept(p: Dictionary) -> void:
 		var cur := sites.current()
 		if cur == null or cur.id() != site_id:
 			sites.load_site(site_id)
-	# A job with a building already on the plot starts the design from it, locked.
+	demolition_result = {}
+	# A job with a building already on the plot starts the design from it, locked; a
+	# demolition job loads the old building and starts the demolition on it.
 	var bb := Modules.bus("building") as BuildingBus
-	if not (active.get("existing", []) as Array).is_empty() and bb != null and (net == null or net.is_host()):
-		bb.sync.load_design(ContractTwists.starting_design(active))
+	if bb != null and (net == null or net.is_host()):
+		if ContractDemolition.is_demolition(active):
+			bb.sync.load_design(ContractDemolition.target_design(active))
+			_start_demolition.call_deferred(str(active.id))
+		elif not (active.get("existing", []) as Array).is_empty():
+			bb.sync.load_design(ContractTwists.starting_design(active))
 	structure_report = {}
 	_report_sum = 0
 	_checked_model = null
 	active_changed.emit()
 
 
+## The host starts the demolition module on the old building (asked by name).
+func _start_demolition(brief_id: String) -> void:
+	var demo := Modules.bus("demolition")
+	var bb := Modules.bus("building") as BuildingBus
+	if str(active.get("id", "")) != brief_id or demo == null or bb == null or not demo.has_method("start_from_model"):
+		return
+	var o := ContractDemolition.start_options(active)
+	o["open"] = open_demolition
+	demo.call("start_from_model", bb.model, o)
+
+
 func _apply_handover(p: Dictionary) -> void:
 	var s: Dictionary = (p.get("settlement", {}) as Dictionary).duplicate(true)
 	s["brief"] = active.duplicate(true)
+	# Bringing down one of the firm's own buildings: the town takes it off its map (by name).
+	var town := Modules.bus("town")
+	if str(active.get("record_id", "")) != "" and bool(s.get("passed", false)) and town != null and town.has_method("demolished"):
+		town.call("demolished", str(active.record_id))
+	demolition_result = {}
 	var before := career.tier()
 	s["unlocked"] = Array(career.record(s))
 	s["tier_up"] = career.tier() if career.tier() > before else 0
@@ -467,6 +510,7 @@ func _apply_handover(p: Dictionary) -> void:
 
 func _apply_abandon(p: Dictionary) -> void:
 	career.lose_xp(int(p.get("xp", 0)))
+	demolition_result = {}
 	if Flags.is_on(ContractClients.FLAG):
 		career.record_abandon(active)
 	active = {}
@@ -515,8 +559,22 @@ func _deal_board(seed: int) -> void:
 		if h.passed:
 			done.append(str(h.brief_id))
 	board = ContractGenerator.board(board_seed, career.tier(), BOARD_SIZE, done)
+	if Flags.is_on(ContractDemolition.FLAG) and not board.is_empty():
+		board[board.size() - 1] = ContractDemolition.generate(board_seed, career.tier(), _own_building(board_seed))
 	board = ContractClients.apply_board(board, career.clients, board_seed, career.tier())
 	board_changed.emit()
+
+
+## Now and then, one of the firm's own buildings (the town module's records, asked by name)
+## to bring down for redevelopment; {} otherwise.
+func _own_building(seed: int) -> Dictionary:
+	var town := Modules.bus("town")
+	if town == null or not town.has_method("records"):
+		return {}
+	var recs: Array = (town.call("records") as Array).filter(func(r: Variant) -> bool: return r is Dictionary and (r as Dictionary).get("model") is Dictionary)
+	if recs.is_empty() or absi(hash([seed, "own"])) % 10 >= 4:
+		return {}
+	return recs[absi(seed) % recs.size()]
 
 
 # Snapshot (joiners) and save
@@ -535,7 +593,8 @@ func save_version() -> int:
 
 func save_data() -> Dictionary:
 	return {"career": career.to_data(), "board": board.duplicate(true), "board_seed": board_seed,
-			"active": active.duplicate(true), "structure_report": structure_report.duplicate(true)}
+			"active": active.duplicate(true), "structure_report": structure_report.duplicate(true),
+			"demolition_result": demolition_result.duplicate(true)}
 
 
 func load_data(data: Dictionary, _from_version: int) -> void:
@@ -543,6 +602,7 @@ func load_data(data: Dictionary, _from_version: int) -> void:
 	board_seed = int(data.get("board_seed", 1))
 	active = (data.get("active", {}) as Dictionary).duplicate(true) if data.get("active") is Dictionary else {}
 	structure_report = (data.get("structure_report", {}) as Dictionary).duplicate(true) if data.get("structure_report") is Dictionary else {}
+	demolition_result = (data.get("demolition_result", {}) as Dictionary).duplicate(true) if data.get("demolition_result") is Dictionary else {}
 	if data.get("board") is Array and not (data.board as Array).is_empty():
 		board = (data.board as Array).duplicate(true)
 		board_changed.emit()
@@ -558,5 +618,6 @@ func reset_data() -> void:
 	_report_sum = 0
 	_checked_model = null
 	last_settlement = {}
+	demolition_result = {}
 	_deal_board(1)
 	active_changed.emit()

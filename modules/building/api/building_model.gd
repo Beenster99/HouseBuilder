@@ -35,7 +35,8 @@ extends RefCounted
 ##     section is present only for kinds that have sections in the catalog.
 ##     locked? true: the part is kept as it is (a frontage to keep, the existing house of an
 ##     extension). Only a set of "locked" itself changes it: no other set, move, retag or
-##     remove, no opening added to a locked wall and no remove that would take it with it.
+##     remove, no opening added to a locked wall (unless the opening is locked too: part of
+##     the same kept building) and no remove that would take it with it.
 ##   room:  {id, type, level, outline = [[x, z], ...], name, locked?}
 ##   connection: {id, a, b, kind, at?}   two part ids, a catalog connection kind and,
 ##                     optionally, where they meet: at = [x, y, z] in world space
@@ -221,7 +222,7 @@ func _add(table_name: String, entry: Variant) -> Dictionary:
 	var norm := _normalize(table_name, e)
 	if norm.is_empty():
 		return {}
-	if norm.has("host") and is_locked(str(norm.host)):
+	if norm.has("host") and is_locked(str(norm.host)) and not bool(norm.get("locked", false)):
 		return {}
 	if table_name == "connections" and _connection_between(str(norm.a), str(norm.b)) != "":
 		return {}

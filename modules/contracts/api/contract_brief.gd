@@ -74,6 +74,8 @@ static func normalize(brief: Variant) -> Dictionary:
 		out["site"] = b.site
 	if b.has("floor_area"):
 		out["floor_area"] = float(b.floor_area)
+	if str(b.get("mode", "")) != "":
+		out["mode"] = str(b.mode)
 	for key: String in ["requirements", "goals"]:
 		var n := 0
 		for r: Variant in b.get(key, []):
@@ -90,7 +92,7 @@ static func normalize(brief: Variant) -> Dictionary:
 		if str(reqs[i].kind) == "budget":
 			at = i
 			break
-	for base: Dictionary in BASE_REQUIREMENTS:
+	for base: Dictionary in BASE_REQUIREMENTS if str(out.get("mode", "")) == "" else []:
 		if not reqs.any(func(r: Dictionary) -> bool: return str(r.kind) == str(base.kind)):
 			reqs.insert(at, base.duplicate())
 			at += 1
@@ -140,6 +142,14 @@ static func describe(req: Dictionary, catalog: BuildingCatalog = null) -> String
 			return "No columns inside the ground-floor rooms"
 		"keep_existing":
 			return "Keep %s as it is" % str(req.get("what", "the existing building"))
+		"demolition_collapse":
+			return "At least %d%% of the building brought down" % roundi(v * 100.0)
+		"debris_within_plot":
+			return "No more than %d%% of the debris off the plot" % roundi(v * 100.0)
+		"neighbours_safe":
+			return "The neighbouring buildings untouched"
+		"charge_budget":
+			return "No more than %d charges" % int(v)
 		"foundation_type":
 			var ws := PackedStringArray()
 			for k: Variant in req.get("allowed", []):
