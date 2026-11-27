@@ -137,8 +137,9 @@ func run_tests() -> void:
 	await frames(1)
 	check(v.help_text().begins_with("SOFA: FITS") and v.help_text().contains("R turn"),
 			"the help bar at the bottom says what you hold and its keys: %s" % v.help_text())
-	var bar: Control = v.hud.find_child("HelpBar", true, false)
-	check(bar != null and is_equal_approx(bar.position.y + bar.size.y, bar.get_viewport_rect().size.y - 14.0), "along the bottom of the screen: %s in %s" % [bar.position, bar.get_viewport_rect().size])
+	var bar: Control = v.help.get_node("Bar")
+	check(v.help is HelpBar and is_equal_approx(bar.position.y + bar.size.y, bar.get_viewport_rect().size.y - HelpBar.MARGIN),
+			"on the shared help bar along the bottom: %s in %s" % [bar.position, bar.get_viewport_rect().size])
 	check(v._ghost != null and v._ghost.visible, "its ghost shows there")
 	check(v._ghost.find_child("FrontArrow", true, false) != null and v._ghost.find_child("FrontTag", true, false) != null,
 			"with an arrow and FRONT on the side it faces")
