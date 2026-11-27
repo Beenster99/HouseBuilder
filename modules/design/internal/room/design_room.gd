@@ -19,7 +19,8 @@ const TAP_SLOP := 6.0
 const WHEEL_HOLD := 0.3
 const DesignWheel := preload("res://modules/design/internal/room/design_wheel.gd")
 
-const PLOT_HALF := 40.0
+## How far out you can build and look: the graph paper never ends, so this is just far.
+const PLOT_HALF := 1500.0
 const GROUND := Color(0.5, 0.58, 0.45)
 const MINE := Color(1.0, 0.85, 0.2)
 ## Height the 2D plan cuts the walls at, m (doors and windows show below it).
@@ -32,7 +33,7 @@ var session: DesignSession
 var view: Node3D
 var camera: Camera3D
 var hud: Control
-var _grid_mesh: MeshInstance3D
+var _grid_mesh: InfiniteGrid
 var _ghost: MeshInstance3D
 ## The live size of what is being drawn: width x length and area.
 var ghost_dims: Label3D
@@ -234,7 +235,7 @@ func _build_world() -> void:
 	var ground := MeshInstance3D.new()
 	ground.name = "Ground"
 	var plane := PlaneMesh.new()
-	plane.size = Vector2(PLOT_HALF * 2.0, PLOT_HALF * 2.0)
+	plane.size = Vector2(PLOT_HALF + 1000.0, PLOT_HALF + 1000.0) * 2.0
 	ground.mesh = plane
 	ground.material_override = ArtStyle.ground()
 	Graphics.changed.connect(func() -> void: ground.material_override = ArtStyle.ground())
@@ -242,9 +243,7 @@ func _build_world() -> void:
 	add_child(ground)
 	# A real site (the sites module), when one is loaded, in place of the plain ground.
 	add_child(DesignSite.new(ground))
-	_grid_mesh = MeshInstance3D.new()
-	_grid_mesh.name = "Grid"
-	_grid_mesh.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	_grid_mesh = InfiniteGrid.new()
 	add_child(_grid_mesh)
 	camera = DesignCamera.new()
 	camera.name = "Camera"
@@ -253,45 +252,11 @@ func _build_world() -> void:
 	camera.make_current()
 
 
-## The working level's grid: 1 m lines, every 5 m darker, and the snap grid near the focus.
+## The working level's graph paper: 1 m lines, every 5 m darker, without end, and the snap
+## grid near the focus.
 func _draw_grid() -> void:
-	var lines := ImmediateMesh.new()
-	var y := session.floor_y() + 0.015
-	var half := PLOT_HALF
-	for pass_n in 3:
-		var mat := StandardMaterial3D.new()
-		mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-		mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-		mat.albedo_color = [Color(0, 0, 0, 0.07), Color(0, 0, 0, 0.16), Color(0, 0, 0, 0.38)][pass_n]
-		lines.surface_begin(Mesh.PRIMITIVE_LINES, mat)
-		if pass_n == 0:
-			# Fine snap grid, 12 m around the middle of the view.
-			if session.grid < 1.0:
-				var f: Vector3 = (camera as DesignCamera).focus
-				var cx := snappedf(f.x, 1.0)
-				var cz := snappedf(f.z, 1.0)
-				var n := int(12.0 / session.grid)
-				for i in range(-n, n + 1):
-					var o := i * session.grid
-					if is_zero_approx(fmod(absf(o), 1.0)):
-						continue
-					lines.surface_add_vertex(Vector3(cx + o, y, cz - 12.0))
-					lines.surface_add_vertex(Vector3(cx + o, y, cz + 12.0))
-					lines.surface_add_vertex(Vector3(cx - 12.0, y, cz + o))
-					lines.surface_add_vertex(Vector3(cx + 12.0, y, cz + o))
-			else:
-				lines.surface_add_vertex(Vector3.ZERO)
-				lines.surface_add_vertex(Vector3.ZERO)
-		else:
-			for i in range(-int(half), int(half) + 1):
-				if (i % 5 == 0) != (pass_n == 2):
-					continue
-				lines.surface_add_vertex(Vector3(i, y, -half))
-				lines.surface_add_vertex(Vector3(i, y, half))
-				lines.surface_add_vertex(Vector3(-half, y, i))
-				lines.surface_add_vertex(Vector3(half, y, i))
-		lines.surface_end()
-	_grid_mesh.mesh = lines
+	_grid_mesh.height = session.floor_y() + 0.015
+	_grid_mesh.set_snap(session.grid, (camera as DesignCamera).focus)
 
 
 func _on_level(l: int) -> void:
