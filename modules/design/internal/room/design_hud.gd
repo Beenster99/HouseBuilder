@@ -1,7 +1,9 @@
 extends Control
-## The design room's HUD: the top bar (crew, level, grid, 2D/3D, undo, redo, save, load,
-## other modules' actions), the tool column with the tool's options, the live cost and
-## requirement panel, and the status line.
+## The design room's HUD, laid out like BSX's design room: the 2D or 3D view in the middle,
+## the top bar (crew, level, grid, 2D/3D, undo, redo, save, load, other modules' actions),
+## the left dock (tools, the tool's options, and the Rooms / Components / Levels browser), the
+## right dock (the View's panel, other modules' live assessment windows, the cost) and the
+## status line.
 
 const PANEL_W := 300
 ## Height taken by the two-row top bar, px.
@@ -24,6 +26,8 @@ var _actions: HBoxContainer
 var _views: OptionButton
 var _overlay_slot: VBoxContainer
 var _side_slot: VBoxContainer
+## The Rooms / Components / Levels tabs under the tools.
+var browser: TabContainer
 var _folded: Dictionary = {}
 var _note_popup: PopupPanel
 var _layers_pop: PopupMenu
@@ -270,9 +274,17 @@ func _build_tools() -> void:
 	p.offset_bottom = -44
 	p.offset_right = 8 + PANEL_W
 	add_child(p)
+	var dock := VBoxContainer.new()
+	p.add_child(dock)
 	var scroll := ScrollContainer.new()
 	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
-	p.add_child(scroll)
+	scroll.size_flags_vertical = SIZE_EXPAND_FILL
+	scroll.size_flags_stretch_ratio = 1.3
+	dock.add_child(scroll)
+	browser = preload("res://modules/design/internal/room/design_browser.gd").new()
+	browser.name = "Browser"
+	browser.set("room", room)
+	dock.add_child(browser)
 	var col := VBoxContainer.new()
 	col.size_flags_horizontal = SIZE_EXPAND_FILL
 	scroll.add_child(col)

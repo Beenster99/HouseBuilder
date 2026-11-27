@@ -38,6 +38,10 @@ var _crew_marks: Node3D
 var _marks: Dictionary = {}  # peer -> {root, line, label}
 var _ghost_mats: Dictionary = {}
 var _tint_dirty := true
+## Entries flashing (DesignBus.pulse): id -> time the flash ends, s.
+var _pulses: Dictionary = {}
+const PULSE := Color(0.3, 1.0, 0.55)
+const PULSE_TIME := 1.2
 var _left_down := false
 var _sun: DirectionalLight3D
 ## The view this player looks through: "" (Architect) or a DesignBus overlay id.
@@ -91,6 +95,8 @@ func _ready() -> void:
 	session.note_requested.connect(func(at: Vector3, target: String) -> void: hud.call("ask_note", at, target))
 	session.presence.selection_changed.connect(func(_p: int, _ids: PackedStringArray) -> void: _tint_dirty = true)
 	session.presence.locks_changed.connect(func() -> void: _tint_dirty = true)
+	session.presence.pulsed.connect(_on_pulsed)
+	design.pulse_requested.connect(_on_pulse_requested)
 	building.model.changed.connect(func(_op: Dictionary) -> void: _tint_dirty = true)
 	building.model.loaded.connect(func() -> void: _tint_dirty = true)
 	design.overlay_changed.connect(func(id: String) -> void:
@@ -217,10 +223,31 @@ func _process(_delta: float) -> void:
 		session.hover(null)
 	else:
 		session.hover(_floor_point())
+	if not _pulses.is_empty():
+		var t := _now()
+		for id: String in _pulses.keys():
+			if t >= float(_pulses[id]):
+				_pulses.erase(id)
+				_tint_dirty = true
 	if _tint_dirty:
 		_tint_dirty = false
 		_update_tints()
 	_update_crew_marks()
+
+
+func _on_pulse_requested(ids: PackedStringArray) -> void:
+	session.presence.pulse(ids)
+
+
+func _on_pulsed(ids: PackedStringArray) -> void:
+	for id in ids:
+		_pulses[id] = _now() + PULSE_TIME
+	_tint_dirty = true
+
+
+## Entries flashing now.
+func pulsing() -> PackedStringArray:
+	return PackedStringArray(_pulses.keys())
 
 
 func _floor_point() -> Variant:
@@ -259,6 +286,8 @@ func _update_tints() -> void:
 		var owner := p.locked_by(id)
 		if owner != 0 and owner != net.local_peer_id():
 			want[id] = net.player_colour(owner).lightened(0.2)
+	for id: String in _pulses:
+		want[id] = PULSE
 	for id: String in view.tints():
 		if not want.has(id):
 			view.tint(id, null)

@@ -22,6 +22,8 @@ signal overlays_changed
 signal overlay_changed(id: String)
 ## A side panel was added or removed.
 signal panels_changed
+## pulse() was called; the open room shares it with every player.
+signal pulse_requested(ids: PackedStringArray)
 
 const ROOM_SCENE := "design.room"
 const ROOM_FLAG := "design.room"
@@ -127,3 +129,9 @@ func panel_list() -> Array[Dictionary]:
 		out.append(o)
 	out.sort_custom(func(x: Dictionary, y: Dictionary) -> bool: return int(x.order) < int(y.order))
 	return out
+
+
+## Flashes entries for a moment in every player's room (the engineer's supports as they land).
+## Call it anywhere, on the host or a client; nothing happens with no room open.
+func pulse(ids: PackedStringArray) -> void:
+	pulse_requested.emit(ids)

@@ -82,6 +82,12 @@ func run_tests() -> void:
 	check(hud.find_children("*", "Button", true, false).size() > DesignSession.TOOLS.size(), "the HUD has the tools")
 	var labels := hud.find_children("*", "Button", true, false).map(func(b: Node) -> String: return (b as Button).text)
 	check("Test it" in labels, "and other modules' actions: %s" % str(labels))
+	var browser: TabContainer = hud.get("browser")
+	browser.call("refresh")
+	check(int(browser.call("room_rows")) >= 1 and int(browser.call("component_rows")) >= 1,
+			"the browser lists the rooms and components")
+	browser.call("_pick_room", 0)
+	check(session.presence.selection_of(session.net.local_peer_id()).size() == 1, "clicking a room selects it")
 	var cost := hud.find_children("*", "RichTextLabel", true, false)
 	await frames(2)
 	var cost_text := ""
@@ -100,6 +106,7 @@ func run_tests() -> void:
 	design.unregister_overlay("test.eng")
 	await frames(2)
 	var live := [null]
+	var panels_before := int(hud.call("side_panel_count"))
 	design.register_panel("test.live", "Structure (live)", func(m: BuildingModel) -> Control:
 		var l := Label.new()
 		l.text = "%d levels" % m.level_count()
@@ -112,7 +119,10 @@ func run_tests() -> void:
 	check(not (live[0] as Control).visible, "a side panel folds")
 	design.unregister_panel("test.live")
 	await frames(1)
-	check(int(hud.call("side_panel_count")) == 0, "an unregistered side panel goes")
+	check(int(hud.call("side_panel_count")) == panels_before, "an unregistered side panel goes")
+	design.pulse(PackedStringArray([door]))
+	await frames(2)
+	check(door in (room.call("pulsing") as PackedStringArray) and view.call("tints").has(door), "a pulse flashes a part")
 	room.call("toggle_plan")
 	check(bool((room.get("camera") as Camera3D).get("plan")), "Tab switches to the 2D plan")
 	room.call("toggle_plan")

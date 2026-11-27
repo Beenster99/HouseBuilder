@@ -14,8 +14,11 @@ extends Node
 signal selection_changed(peer_id: int, ids: PackedStringArray)
 signal locks_changed
 signal peers_changed
+## Entries to flash for a moment on every player's screen (the engineer's new supports).
+signal pulsed(ids: PackedStringArray)
 
 const SELECT_EVENT := "design.select"
+const PULSE_EVENT := "design.pulse"
 const SNAPSHOT := "design.presence"
 const LOCK_TIMEOUT := 8.0
 const LOCK_RENEW := 2.0
@@ -41,6 +44,7 @@ var _last_peer_set: Array = []
 func bind(bus: MultiplayerBus) -> void:
 	net = bus
 	net.register_event(SELECT_EVENT, _apply_select, _validate_select)
+	net.register_event(PULSE_EVENT, _apply_pulse, _validate_pulse)
 	net.claim_changed.connect(_on_claim_changed)
 	net.register_snapshot_provider(SNAPSHOT, self)
 	net.peer_left.connect(_on_peer_left)
@@ -55,6 +59,7 @@ func unbind() -> void:
 	if net == null:
 		return
 	net.unregister_event(SELECT_EVENT)
+	net.unregister_event(PULSE_EVENT)
 	net.unregister_snapshot_provider(SNAPSHOT)
 	net.peer_left.disconnect(_on_peer_left)
 	net.session_started.disconnect(_on_session_started)
@@ -167,6 +172,23 @@ func _drop_other(peer: int) -> void:
 
 func select(ids: PackedStringArray) -> void:
 	net.request(SELECT_EVENT, {"ids": Array(ids)})
+
+
+## Flashes entries for everyone in the session.
+func pulse(ids: PackedStringArray) -> void:
+	if not ids.is_empty():
+		net.request(PULSE_EVENT, {"ids": Array(ids)})
+
+
+func _validate_pulse(_sender: int, p: Dictionary) -> Variant:
+	var ids: Variant = _clean_ids(p.get("ids", []))
+	if ids == null:
+		return "bad pulse"
+	return {"ids": ids}
+
+
+func _apply_pulse(p: Dictionary) -> void:
+	pulsed.emit(PackedStringArray(p.ids))
 
 
 func selection_of(peer: int) -> PackedStringArray:
