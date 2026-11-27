@@ -142,6 +142,10 @@ func _process(delta: float) -> void:
 			_cost_dirty = not current
 			_book_rev = _book.revision
 			_refresh_cost()
+	_step_age += delta
+	if _step_age >= 0.5:
+		_step_age = 0.0
+		refresh_steps()
 	if _summary_dirty and is_inside_tree():
 		_summary_dirty = false
 		_refresh_summary()
@@ -516,8 +520,16 @@ func _build_top() -> void:
 	_section_toggle.tooltip_text = "A section through the building along the bottom (Shift+wheel on it moves the cut)"
 	_section_toggle.toggled.connect(show_section)
 	row2.add_child(_section_toggle)
+	# The workflow comes first on the second row: 1 Get contract, 2 Design, 3 Build it,
+	# 4 Hand over, with each module's buttons under its step.
 	_actions = HBoxContainer.new()
+	_actions.name = "Workflow"
+	_actions.add_theme_constant_override("separation", 4)
 	row2.add_child(_actions)
+	row2.move_child(_actions, 0)
+	var sep := VSeparator.new()
+	row2.add_child(sep)
+	row2.move_child(sep, 1)
 	# Walking inside sits top right, on its own, where it's easy to find.
 	_walk_slot = HBoxContainer.new()
 	row.add_child(_walk_slot)
@@ -538,22 +550,192 @@ func _on_graphics_changed() -> void:
 	_look.set_pressed_no_signal(ArtStyle.realistic())
 
 
+## The workflow's steps, in order, and which top-bar actions (DesignBus.register_action ids)
+## belong under each. Actions not listed go at the end, after the steps.
+const STEPS := [
+	{"id": "contract", "title": "GET CONTRACT", "tip": "Pick a job from the contract board: its brief, plot and budget"},
+	{"id": "design", "title": "DESIGN", "tip": "Draw the building, then let the engineers design and check it",
+			"actions": ["structure.design", "services.design", "structure.stress", "services.route", "services.review"]},
+	{"id": "build", "title": "BUILD IT", "tip": "Watch the crew build it, day by day", "actions": ["timelapse.build"]},
+	{"id": "handover", "title": "HAND OVER", "tip": "Hand the finished building to the client and get paid"},
+]
+var _steps: Dictionary = {}  # step id -> PanelContainer
+var _step_age := 10.0
+var _contract_pop: PopupPanel
+## The step this player is on now, and the one after it.
+var step_now := "design"
+var step_next := "build"
+
+
 func _build_actions() -> void:
 	for c in _actions.get_children():
+		_actions.remove_child(c)
 		c.queue_free()
 	for c in _walk_slot.get_children():
 		c.queue_free()
+	_steps.clear()
 	var design := Modules.bus("design") as DesignBus
+	var placed := {}
+	var n := 0
+	for st: Dictionary in STEPS:
+		n += 1
+		if n > 1:
+			var arrow := Label.new()
+			arrow.text = "›"
+			arrow.modulate = BsxTheme.MUTED
+			_actions.add_child(arrow)
+		var chip := PanelContainer.new()
+		chip.name = "Step_" + str(st.id)
+		chip.tooltip_text = str(st.tip)
+		chip.mouse_filter = MOUSE_FILTER_PASS
+		var h := HBoxContainer.new()
+		h.add_theme_constant_override("separation", 3)
+		chip.add_child(h)
+		var head := Label.new()
+		head.name = "Head"
+		head.text = "%d %s" % [n, st.title]
+		head.add_theme_font_size_override("font_size", 11)
+		head.mouse_filter = MOUSE_FILTER_PASS
+		head.tooltip_text = str(st.tip)
+		h.add_child(head)
+		match str(st.id):
+			"contract":
+				h.add_child(_button("Contracts…", open_contracts, "The contract board: take a job, see the brief"))
+			"handover":
+				var b := _button("Hand over", hand_over, "Hand the finished building to the client (after Build it)")
+				b.name = "HandOver"
+				h.add_child(b)
+		for id: String in st.get("actions", []):
+			if design.actions.has(id):
+				var a: Dictionary = design.actions[id]
+				var press: Callable = a.press
+				h.add_child(_button(str(a.label), func() -> void: press.call(_model)))
+				placed[id] = true
+		_actions.add_child(chip)
+		_steps[st.id] = chip
+	var others := false
 	for a: Dictionary in design.action_list():
+		var id := str(a.get("id", ""))
+		if placed.has(id):
+			continue
 		var press: Callable = a.press
 		var b := _button(str(a.label), func() -> void: press.call(_model))
-		if str(a.get("id", "")) in TOP_RIGHT_ACTIONS:
+		if id in TOP_RIGHT_ACTIONS:
 			b.text = str(a.label).to_upper()
 			b.add_theme_color_override("font_color", BsxTheme.ACCENT)
 			b.tooltip_text = "Walk round inside the design, first person"
 			_walk_slot.add_child(b)
 		else:
+			if not others:
+				others = true
+				_actions.add_child(VSeparator.new())
 			_actions.add_child(b)
+	_step_age = 10.0
+	refresh_steps()
+
+
+## Works out the step this player is on, and lights it: done steps ticked, the current one
+## framed in the accent colour, the next one named.
+func refresh_steps() -> void:
+	if _steps.is_empty():
+		return
+	var contracts := Modules.bus("contracts")
+	var has_contracts := contracts != null and "active" in contracts
+	var taken := has_contracts and not (contracts.get("active") as Dictionary).is_empty()
+	var built := is_built()
+	if has_contracts and not taken:
+		step_now = "contract"
+		step_next = "design"
+	elif not built:
+		step_now = "design"
+		step_next = "build"
+	else:
+		step_now = "handover" if taken else "build"
+		step_next = ""
+	var order := ["contract", "design", "build", "handover"]
+	var at := order.find(step_now)
+	for i in order.size():
+		var id: String = order[i]
+		if not _steps.has(id):
+			continue
+		var chip: PanelContainer = _steps[id]
+		var sb := StyleBoxFlat.new()
+		sb.set_corner_radius_all(3)
+		sb.content_margin_left = 5
+		sb.content_margin_right = 3
+		sb.content_margin_top = 1
+		sb.content_margin_bottom = 1
+		var head := chip.find_child("Head", true, false) as Label
+		var colour := BsxTheme.MUTED
+		var done := id != step_now and (i < at or (id == "contract" and taken))
+		if id == step_now:
+			sb.bg_color = Color(BsxTheme.ACCENT, 0.14)
+			sb.border_color = BsxTheme.ACCENT
+			sb.set_border_width_all(2)
+			colour = BsxTheme.ACCENT
+		elif done:
+			sb.bg_color = Color(0.2, 0.6, 0.3, 0.08)
+			sb.border_color = Color(0.12, 0.55, 0.25, 0.6)
+			sb.set_border_width_all(1)
+			colour = Color(0.12, 0.55, 0.25) if BsxTheme.pencil() else Color(0.45, 1.0, 0.55)
+		else:
+			sb.bg_color = Color(BsxTheme.PANEL, 0.0)
+			sb.border_color = Color(BsxTheme.MUTED, 0.4)
+			sb.set_border_width_all(1)
+		chip.add_theme_stylebox_override("panel", sb)
+		if head:
+			var title := str(STEPS[i].title)
+			head.text = ("▶ %d %s" % [i + 1, title]) if id == step_now else ("✓ " + title) if done else ("%d %s" % [i + 1, title])
+			head.add_theme_color_override("font_color", colour)
+
+
+## True once this design has been built in the timelapse (to its last day).
+func is_built() -> bool:
+	var tl := Modules.bus("timelapse")
+	if tl == null or not tl.has_method("is_active") or not bool(tl.call("is_active")):
+		return false
+	return float(tl.call("day")) >= float(tl.call("total_days")) - 0.01
+
+
+## Step 4: hands the building over. Before it is built, says so and starts the build.
+func hand_over() -> void:
+	var contracts := Modules.bus("contracts")
+	if contracts == null or not "active" in contracts or (contracts.get("active") as Dictionary).is_empty():
+		_show_status("Take a contract first (step 1, Contracts…): there's no client to hand over to.", true)
+		return
+	if not is_built():
+		_show_status("Build it first: the hand-over comes at the end of the build.", true)
+		var design := Modules.bus("design") as DesignBus
+		if design.actions.has("timelapse.build"):
+			(design.actions["timelapse.build"].press as Callable).call(_model)
+		return
+	var tl := Modules.bus("timelapse")
+	contracts.call("hand_over", ceili(float(tl.call("total_days"))))
+	_show_status("Handed over: the client has the keys.", false)
+
+
+## Step 1: the contract board in a window over the designer.
+func open_contracts() -> void:
+	var design := Modules.bus("design") as DesignBus
+	var ch: Dictionary = design.channels.get("contracts.board", {})
+	if ch.is_empty() or not (ch.make as Callable).is_valid():
+		_show_status("No contracts here: design freely.", false)
+		return
+	if _contract_pop:
+		_contract_pop.queue_free()
+	_contract_pop = PopupPanel.new()
+	_contract_pop.name = "ContractsPopup"
+	_contract_pop.add_theme_stylebox_override("panel", BsxTheme.panel_style(8))
+	var scroll := ScrollContainer.new()
+	scroll.custom_minimum_size = Vector2(980, 620)
+	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	_contract_pop.add_child(scroll)
+	var page: Variant = (ch.make as Callable).call(_model)
+	if page is Control:
+		(page as Control).size_flags_horizontal = SIZE_EXPAND_FILL
+		scroll.add_child(page as Control)
+	add_child(_contract_pop)
+	_contract_pop.popup_centered()
 
 
 ## Flips a layer from outside the menu (the mark-up wheel), keeping the menu's tick in step.

@@ -137,6 +137,22 @@ func run_tests() -> void:
 		contracts.set("active", was)
 		await get_tree().create_timer(0.6).timeout
 		check(not pl.visible or not was.is_empty(), "and goes when there's no contract")
+	# The top bar is the workflow: 1 Get contract, 2 Design, 3 Build it, 4 Hand over.
+	var hud2: Node = room.get("hud")
+	var flow := hud2.find_child("Workflow", true, false) as Control
+	check(flow != null and flow.find_child("Step_contract", true, false) != null and flow.find_child("Step_handover", true, false) != null,
+			"the top bar shows the workflow steps")
+	var cbus := Modules.bus("contracts")
+	if cbus != null and "active" in cbus:
+		var was2: Dictionary = cbus.get("active")
+		cbus.set("active", {})
+		hud2.call("refresh_steps")
+		check(str(hud2.get("step_now")) == "contract", "with no contract the step is Get contract")
+		cbus.set("active", {"id": "t", "site": {"id": "", "plot": []}})
+		hud2.call("refresh_steps")
+		check(str(hud2.get("step_now")) == "design" and str(hud2.get("step_next")) == "build", "with one, Design, then Build it")
+		cbus.set("active", was2)
+		hud2.call("refresh_steps")
 	# Shift+drag on empty floor draws a box that selects all inside it.
 	var whole := (room.get("hud") as Node).get("mini") as DesignMiniWorld
 	var bb := whole.bounds()
