@@ -466,16 +466,42 @@ func cancel() -> void:
 	preview_changed.emit()
 
 
+## Said when a tool meets an existing building a brief keeps (locked in the model).
+const KEPT := "Existing building: kept as it is"
+
+
+## An entry the brief keeps as it is (BuildingModel locked): never moved, changed or removed.
+func is_kept(id: String) -> bool:
+	return model.has_method("is_locked") and model.is_locked(id)
+
+
+## `ids` without the kept ones (saying so when any were left out).
+func editable(ids: PackedStringArray) -> PackedStringArray:
+	var out := PackedStringArray()
+	for id in ids:
+		if not is_kept(id):
+			out.append(id)
+	if out.size() < ids.size():
+		status.emit(KEPT, true)
+	return out
+
+
 func _start_drag() -> void:
 	var ids := presence.my_selection()
 	if not _pressed_on in ids:
 		ids = PackedStringArray([_pressed_on])
+	if is_kept(_pressed_on):
+		status.emit(KEPT, true)
+		_press = null
+		return
+	ids = editable(ids)
 	for id in ids:
 		if not presence.may_edit(id):
 			status.emit("%s is moving that" % net.player_name(presence.locked_by(id)), true)
 			_press = null
 			return
 	ids = carried(ids)
+	ids = PackedStringArray(Array(ids).filter(func(id: String) -> bool: return not is_kept(id)))
 	_group_n += 1
 	drag = {"ids": Array(ids), "from": _press, "by": Vector3.ZERO,
 			"group": "drag-%d-%d" % [net.local_peer_id(), _group_n]}
@@ -577,6 +603,9 @@ func _place_opening(at: Vector3) -> void:
 	var wall := wall_at(at)
 	if wall == "":
 		status.emit("Point at a wall to put a %s in it" % tool, true)
+		return
+	if is_kept(wall):
+		status.emit(KEPT, true)
 		return
 	var e: Dictionary = model.parts[wall]
 	var a := _v3(e.a)
@@ -706,7 +735,7 @@ func uncovered(a: Vector3, b: Vector3) -> Array:
 # --- Selection, delete, undo --------------------------------------------------------------
 
 func delete_selection() -> void:
-	var ids := presence.my_selection()
+	var ids := editable(presence.my_selection())
 	var ok: Array = []
 	for id in ids:
 		if model.has(id):
@@ -779,7 +808,7 @@ func end_turn() -> void:
 ## What a turn moves: {base: id -> a copy of the entry as it is, centre: Vector3} or {}.
 func _turn_set() -> Dictionary:
 	var sel := PackedStringArray()
-	for id in presence.my_selection():
+	for id in editable(presence.my_selection()):
 		if model.has(id) and presence.may_edit(id):
 			sel.append(id)
 	if sel.is_empty():
@@ -788,7 +817,7 @@ func _turn_set() -> Dictionary:
 	var base := {}
 	for id in ids:
 		var e := model.entry(id)
-		if not e.has("host"):
+		if not e.has("host") and not is_kept(id):
 			base[id] = e.duplicate(true)
 	var box := _set_out_box(ids)
 	var c := box.get_center()
@@ -832,7 +861,7 @@ static func turn_ops(m: BuildingModel, base: Dictionary, centre: Vector3, deg: f
 
 ## Retags the selected rooms to the current room type.
 func retag_selection() -> void:
-	for id in presence.my_selection():
+	for id in editable(presence.my_selection()):
 		if model.rooms.has(id) and presence.may_edit(id):
 			sync.edit(C.retag(id, room_type))
 
@@ -845,15 +874,18 @@ func retag_selection() -> void:
 ## Returns how many entries it made or moved.
 func mirror_selection(axis: int, copy: bool) -> int:
 	var sel := PackedStringArray()
-	for id in presence.my_selection():
+	for id in (presence.my_selection() if copy else editable(presence.my_selection())):
 		if model.has(id) and presence.may_edit(id):
 			sel.append(id)
 	if sel.is_empty():
-		status.emit("Select something to mirror first", true)
+		if presence.my_selection().is_empty():
+			status.emit("Select something to mirror first", true)
 		return 0
 	# A copy takes every wall round its rooms (a shared one too: the copy needs its own
 	# mirror of it); a flip leaves a shared wall to the room that stays.
 	var ids := carried(sel, copy)
+	if not copy:
+		ids = PackedStringArray(Array(ids).filter(func(id: String) -> bool: return not is_kept(id)))
 	var box := _set_out_box(ids)
 	var line := box.end[axis] if copy else box.get_center()[axis]
 	var ops := mirror_ops(model, ids, axis, line, copy, _fresh_ids(ids.size()))
@@ -937,6 +969,7 @@ static func mirror_ops(m: BuildingModel, ids: PackedStringArray, axis: int, line
 				continue
 			var c: Dictionary = e.duplicate(true)
 			c.merge(fields, true)
+			c.erase("locked")
 			c["id"] = take.call(id)
 			ops.append({"op": "add", "table": "parts", "entry": c})
 		elif not _same_fields(e, fields):
@@ -949,6 +982,7 @@ static func mirror_ops(m: BuildingModel, ids: PackedStringArray, axis: int, line
 			if e.has("host") and new_id.has(str(e.host)) and (id in ids or str(e.host) in ids):
 				var c: Dictionary = e.duplicate(true)
 				c["host"] = new_id[str(e.host)]
+				c.erase("locked")
 				c["id"] = take.call(id)
 				ops.append({"op": "add", "table": "parts", "entry": c})
 	return ops
@@ -992,6 +1026,7 @@ func copy_selection() -> Dictionary:
 	var items: Array = []
 	for id in ids:
 		var e: Dictionary = model.entry(id).duplicate(true)
+		e.erase("locked")  # a copy is the player's own, not the kept original
 		if e.has("at"):
 			e.at = [float(e.at[0]) - c.x, float(e.at[1]), float(e.at[2]) - c.y]
 		for k: String in ["a", "b"]:
@@ -1377,6 +1412,9 @@ func remove_corner(i: int) -> bool:
 
 func _begin_shape(hit: Dictionary, at: Vector3) -> void:
 	var rid := shape_room()
+	if is_kept(rid):
+		status.emit(KEPT, true)
+		return
 	if not presence.may_edit(rid):
 		status.emit("%s is moving that" % net.player_name(presence.locked_by(rid)), true)
 		return

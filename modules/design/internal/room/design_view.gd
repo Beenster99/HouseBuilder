@@ -61,6 +61,8 @@ const GHOST := 0.8
 ## How far parts that would share a face with another (a beam's top with a wall's, a pad's
 ## with a slab's, a column's ends) are set back so the two don't flicker (z-fight), m.
 const INSET := 0.005
+## The tint of an existing building a brief keeps as it is (locked entries).
+const KEPT := Color(0.72, 0.6, 0.42)
 ## A room's label fades in as the room grows from LABEL_FADE to twice that many pixels
 ## across on screen.
 const LABEL_FADE := 45.0
@@ -429,7 +431,7 @@ func _part(id: String) -> void:
 	var sec := cat.section(str(e.get("section", "")))
 	# The game's look (ArtStyle: clean model or realistic), or the highlight when tinted.
 	var colour: Variant = _colour(id, ArtStyle.material(str(e.get("material", "")), fam).albedo_color) \
-			if _tints.has(id) else ArtStyle.material(str(e.get("material", "")), fam)
+			if _tints.has(id) or _kept(id) else ArtStyle.material(str(e.get("material", "")), fam)
 	var floor_y := model.level_elevation(model.level_of(id))
 	match cat.shape_of(kind):
 		"point":
@@ -688,7 +690,16 @@ func _colour(id: String, base: Color) -> Color:
 		var out := base.lerp(t, 0.7)
 		out.a = maxf(base.a, 0.6)
 		return out
+	if _kept(id):
+		var k := base.lerp(KEPT, 0.55)
+		k.a = base.a
+		return k
 	return base
+
+
+## An existing building the brief keeps (locked in the model): drawn in KEPT's sandstone.
+func _kept(id: String) -> bool:
+	return model.has_method("is_locked") and model.is_locked(id)
 
 
 func _mat(c: Variant) -> Material:

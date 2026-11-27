@@ -1312,7 +1312,7 @@ func describe(id: String) -> String:
 			var b: Array = e.b
 			bits.append("%.2f m long" % Vector2(float(b[0]) - float(a[0]), float(b[2]) - float(a[2])).length())
 		bits.append(_level_name(int(e.get("level", 0))))
-	bits.append("right-click: Edit / Delete")
+	bits.append(DesignSession.KEPT if _session.is_kept(id) else "right-click: Edit / Delete")
 	return " · ".join(bits)
 
 

@@ -115,9 +115,15 @@ func open_at(at: Vector3, screen: Vector2) -> bool:
 		session.presence.select(PackedStringArray([_target]))
 	var room := session.model.rooms.has(_target)
 	menu.clear()
-	menu.add_item("Edit…", EDIT)
-	menu.add_item("Delete  (Del)", DELETE)
-	if room:
+	var kept := session.is_kept(_target)
+	if kept:
+		# An existing building the brief keeps: nothing on it can change.
+		menu.add_item(DesignSession.KEPT, -1)
+		menu.set_item_disabled(menu.item_count - 1, true)
+	else:
+		menu.add_item("Edit…", EDIT)
+		menu.add_item("Delete  (Del)", DELETE)
+	if room and not kept:
 		if _corner >= 0:
 			menu.add_item("Remove this corner", CORNER)
 		menu.add_item("Furnish…", FURNISH)
@@ -127,8 +133,9 @@ func open_at(at: Vector3, screen: Vector2) -> bool:
 	menu.add_separator()
 	menu.add_item("Mirror copy to the right  (Shift+M)", MIRROR_X)
 	menu.add_item("Mirror copy below  (Ctrl+Shift+M)", MIRROR_Z)
-	menu.add_item("Flip left to right", FLIP_X)
-	menu.add_item("Flip top to bottom", FLIP_Z)
+	if not kept:
+		menu.add_item("Flip left to right", FLIP_X)
+		menu.add_item("Flip top to bottom", FLIP_Z)
 	if can_walk():
 		menu.add_separator()
 		menu.add_item(WALK_LABEL, WALK)
