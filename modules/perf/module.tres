@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="ModuleManifest" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://modules/core/api/module_manifest.gd" id="1"]
+[ext_resource type="Script" path="res://modules/perf/api/perf_bus.gd" id="2"]
+
+[resource]
+script = ExtResource("1")
+id = "perf"
+display_name = "Performance"
+version = "0.1.0"
+depends_on = PackedStringArray("multiplayer", "building", "design", "structure", "services", "demolition")
+flag = "perf"
+bus = ExtResource("2")
+test_scene = "res://modules/perf/tests/test_frame_stats.gd"
