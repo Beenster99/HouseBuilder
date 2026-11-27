@@ -52,3 +52,21 @@ func run_tests() -> void:
 		real.name = "contracts"
 	check(Modules.bus("contracts") == real, "the real contracts module is back")
 	building.reset_data()
+	# End to end with the real contracts module: a tier 1 firm on a contract.
+	if real != null and real.has_method("locked_tier"):
+		var saved := Flags.all()
+		Flags.set_flag("contracts.unlock_tree", true)
+		real.call("_deal_board", 3)
+		real.call("accept", str((real.get("board") as Array)[0].id))
+		await frames(2)
+		var hc := -1
+		for g: Dictionary in design.palette_groups("objects"):
+			if str(g.id) == "lib:healthcare" and not (g.items as Array).is_empty():
+				hc = int((g.items as Array)[0].get("lock", 0))
+		check(DesignBus.locked_tier("roof:hip") > 1 and (hc == -1 or hc > 1),
+				"on a contract, a new firm's hipped roofs and medical kit are locked: roof tier %d, healthcare %d" % [DesignBus.locked_tier("roof:hip"), hc])
+		real.call("abandon")
+		await frames(2)
+		check(DesignBus.locked_tier("roof:hip") == 0, "and with no contract taken, open again")
+		Flags.use(saved)
+		building.reset_data()

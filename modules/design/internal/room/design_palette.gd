@@ -72,7 +72,7 @@ func fill(kind: String) -> void:
 			if lock > 0:
 				# Not open to this firm yet: greyed, with the tier that opens it.
 				row.set_selectable(0, false)
-				row.set_tooltip_text(0, "Opens when the firm reaches tier %d" % lock)
+				row.set_tooltip_text(0, "Opens at tier %d" % lock)
 			else:
 				row.set_tooltip_text(0, ", ".join(it.get("tags", PackedStringArray())))
 	_show_current()
