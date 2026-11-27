@@ -76,7 +76,10 @@ var _ghost_key := ""
 var _title: Label
 var _where: Label
 var _look: Label
-var _aim_label: Label
+## The help bar along the bottom (same place on every screen): what you're doing, then its keys.
+var _help_bar: PanelContainer
+var _aim_label: RichTextLabel
+var _help_text := ""
 var _palette: PanelContainer
 var _palette_list: VBoxContainer
 ## The Tab menu: "objects" or "rooms", the filter text, which groups are open, the item picked
@@ -713,20 +716,24 @@ func _process(delta: float) -> void:
 	var lv: Dictionary = model.levels[clampi(int(w.level), 0, model.level_count() - 1)]
 	_where.text = "%s   %s%s" % [str(lv.get("name", "Level %d" % int(w.level))).to_upper(), room_name.to_upper(),
 			"   FLYING" if flying else ""]
-	_aim_label.text = _note if Time.get_ticks_msec() < _note_until else _aim_text()
+	_show_help(_note if Time.get_ticks_msec() < _note_until else _aim_text())
 	if walkers.size() > 1:
 		_where.text += "   %d WALKING" % walkers.size()
 
 
 func _aim_text() -> String:
+	if is_palette_open() and edit_id != "":
+		return "Editing %s\n[b]Click[/b] a row to step through its choices   [b]Esc[/b] close" % str(model.catalog.kind(str(model.parts.get(edit_id, {}).get("kind", ""))).get("label", "part"))
+	if is_palette_open():
+		return "Parts menu\n[b]Type[/b] to filter   [b]Click[/b] a group to open it, an item to see it, [b]Take[/b] to hold it   [b]Tab[/b] or [b]Esc[/b] close"
 	if not holding.is_empty():
 		var label := str(holding.get("label", model.catalog.kind(str(holding.type)).get("label", holding.type)))
-		return "%s   %s\nClick put down   R turn   Right-click or Esc drop" % [label, str(spot.get("why", "Aim at a floor"))]
+		return "%s: %s\n[b]Click[/b] put down   [b]R[/b] turn (the arrow shows its front)   [b]Right-click[/b] or [b]Esc[/b] drop" % [label, str(spot.get("why", "Aim at a floor"))]
 	var a := aim()
 	if a.is_empty():
-		return "Flying   Space up   C down   Q to walk" if flying else "Tab  parts"
+		return "Flying\n[b]WASD[/b] move   [b]Space[/b] up   [b]C[/b] down   [b]Q[/b] walk   [b]Tab[/b] parts" if flying else "Walking\n[b]WASD[/b] walk   [b]Shift[/b] run   [b]Space[/b] jump   [b]Q[/b] fly   [b]Tab[/b] parts   [b]Esc[/b] back to the designer"
 	if str(a.info.kind) != "part":
-		return "Floor\nTab  parts"
+		return "Floor\n[b]Tab[/b] parts to place   [b]Q[/b] fly   [b]V[/b] model or real look"
 	var id := str(a.info.id)
 	var e: Dictionary = model.parts.get(id, {})
 	var label2 := str(model.catalog.kind(str(e.get("kind", ""))).get("label", e.get("kind", "Part")))
@@ -736,14 +743,14 @@ func _aim_text() -> String:
 	var held := "   (%s has it)" % net.player_name(owner) if owner != 0 and owner != _me else ""
 	match fam:
 		"wall":
-			return "%s%s\nF door here   Wheel push away or pull towards you   E edit   X remove" % [label2, held]
+			return "%s%s\n[b]Wheel[/b] push it away or pull it towards you   [b]F[/b] door here   [b]E[/b] edit   [b]X[/b] remove" % [label2, held]
 		"fixture", "column":
-			return "%s%s\nClick pick up   R turn   E edit   X remove" % [label2, held]
+			return "%s%s\n[b]Click[/b] pick up   [b]R[/b] turn   [b]E[/b] edit   [b]X[/b] remove" % [label2, held]
 		"slab", "roof":
 			if (a.normal as Vector3).y < -0.5:
-				return "Ceiling (%.2f m storey)\nWheel raise or lower it   E edit" % model.level_height(maxi(model.level_of(id) - (1 if fam == "slab" else 0), 0))
-			return "%s\nTab  parts   E edit" % label2
-	return "%s%s\nE edit   X remove" % [label2, held]
+				return "Ceiling (%.2f m storey)\n[b]Wheel[/b] raise or lower it   [b]E[/b] edit" % model.level_height(maxi(model.level_of(id) - (1 if fam == "slab" else 0), 0))
+			return "%s\n[b]Tab[/b] parts   [b]E[/b] edit" % label2
+	return "%s%s\n[b]E[/b] edit   [b]X[/b] remove" % [label2, held]
 
 
 static func _axis(neg_x: String, pos_x: String, neg_y: String, pos_y: String) -> Vector2:
@@ -1179,19 +1186,23 @@ func _add_hud() -> void:
 	_look = T.label("", "mono_bold", 15, T.AMBER)
 	_look.name = "Look"
 	col.add_child(_look)
-	col.add_child(T.label("WASD walk   Shift run   Space jump   Mouse look   Tab parts   Q fly   V model or real look   Esc back to the designer",
-			"body", 15, T.DIM))
-	_aim_label = T.label("", "body_medium", 18, T.TEXT)
+	_help_bar = PanelContainer.new()
+	_help_bar.name = "HelpBar"
+	_help_bar.add_theme_stylebox_override("panel", T.plate(8.0, true))
+	_help_bar.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	hud.add_child(_help_bar)
+	_aim_label = RichTextLabel.new()
 	_aim_label.name = "Aim"
-	_aim_label.set_anchors_and_offsets_preset(Control.PRESET_CENTER_BOTTOM)
-	_aim_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_aim_label.grow_horizontal = Control.GROW_DIRECTION_BOTH
-	_aim_label.grow_vertical = Control.GROW_DIRECTION_BEGIN
-	_aim_label.position.y -= 60
-	_aim_label.add_theme_constant_override("outline_size", 6)
-	_aim_label.add_theme_color_override("font_outline_color", Color(T.PLATE, 0.9))
+	_aim_label.bbcode_enabled = true
+	_aim_label.fit_content = true
+	_aim_label.scroll_active = false
+	_aim_label.autowrap_mode = TextServer.AUTOWRAP_OFF
 	_aim_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	hud.add_child(_aim_label)
+	_aim_label.add_theme_font_size_override("normal_font_size", 16)
+	_aim_label.add_theme_font_size_override("bold_font_size", 16)
+	_aim_label.add_theme_color_override("default_color", T.TEXT)
+	_help_bar.add_child(_aim_label)
+	hud.get_viewport().size_changed.connect(_place_help)
 	var dot := ColorRect.new()
 	dot.name = "Crosshair"
 	dot.color = Color(0.7, 0.95, 1.0, 0.8)
@@ -1396,10 +1407,38 @@ func _fill_preview() -> void:
 
 
 func _status(text: String) -> void:
-	if _aim_label:
-		_aim_label.text = text
+	_show_help(text)
 	_note = text
 	_note_until = Time.get_ticks_msec() + 2500
+
+
+## The bottom help bar: "What you're doing\nkeys" (the keys line may hold [b] tags). The first
+## line is in bold colour (green holding a part that fits, amber blocked), like the designer's.
+func _show_help(text: String) -> void:
+	if _aim_label == null or text == _help_text:
+		return
+	_help_text = text
+	var lines := text.split("\n", true, 1)
+	var head := lines[0]
+	var how := lines[1] if lines.size() > 1 else ""
+	var col := T.CYAN
+	if not holding.is_empty() and not is_palette_open():
+		col = T.GOOD if bool(spot.get("ok", false)) else T.AMBER
+	_aim_label.text = "[color=#%s][b]%s[/b][/color]%s" % [col.to_html(false), head.to_upper(), ("     " + how) if how != "" else ""]
+	_place_help.call_deferred()
+
+
+func _place_help() -> void:
+	if _help_bar == null or not is_instance_valid(_help_bar):
+		return
+	_help_bar.reset_size()
+	var vs := _help_bar.get_viewport_rect().size
+	_help_bar.position = Vector2((vs.x - _help_bar.size.x) * 0.5, vs.y - _help_bar.size.y - 14.0)
+
+
+## The plain text of the help bar (for tests).
+func help_text() -> String:
+	return _aim_label.get_parsed_text() if _aim_label else ""
 
 
 ## E: the aimed part's rows, each a button that steps to the next choice.

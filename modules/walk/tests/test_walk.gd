@@ -81,7 +81,7 @@ func run_tests() -> void:
 	await _physics(2)
 	var back: String = _wall_at(model, 0.0)
 	check(v.aimed_part() == back, "aiming at the back wall: %s" % v.aimed_part())
-	check(v._aim_text().contains("Wheel push"), "the hint says the wheel pushes it")
+	check(v._aim_text().contains("push it away"), "the hint says the wheel pushes it")
 	var room: String = _room(model, "Hall")
 	var area0 := BuildingModel.outline_area(model.rooms[room].outline)
 	check(v.push(1), "the wheel pushes it")
@@ -115,6 +115,8 @@ func run_tests() -> void:
 	v.body.position = Vector3(2.0, 0.95, 4.5)
 	_face(v, Vector3(2.0, 0.0, 2.5))
 	v.toggle_palette()
+	await frames(1)
+	check(v.help_text().begins_with("PARTS MENU"), "the help bar follows you into the Tab menu: %s" % v.help_text())
 	check(v.is_palette_open() and v._palette.find_child("Group_living", true, false) != null
 			and v._palette.find_child("Group_doors", true, false) != null, "Tab lists the objects in groups")
 	check(v._palette.find_child("Item_sofa", true, false) == null, "the groups start folded")
@@ -132,6 +134,11 @@ func run_tests() -> void:
 	check(not v.is_palette_open() and str(v.holding.get("type", "")) == "sofa", "a sofa in your hands")
 	await _physics(2)
 	check(v.spot.has("at") and bool(v.spot.ok), "it fits where you aim: %s" % v.spot)
+	await frames(1)
+	check(v.help_text().begins_with("SOFA: FITS") and v.help_text().contains("R turn"),
+			"the help bar at the bottom says what you hold and its keys: %s" % v.help_text())
+	var bar: Control = v.hud.find_child("HelpBar", true, false)
+	check(bar != null and is_equal_approx(bar.position.y + bar.size.y, bar.get_viewport_rect().size.y - 14.0), "along the bottom of the screen: %s in %s" % [bar.position, bar.get_viewport_rect().size])
 	check(v._ghost != null and v._ghost.visible, "its ghost shows there")
 	check(v._ghost.find_child("FrontArrow", true, false) != null and v._ghost.find_child("FrontTag", true, false) != null,
 			"with an arrow and FRONT on the side it faces")
@@ -284,6 +291,8 @@ func run_tests() -> void:
 	# Fly: up through the ceiling.
 	v.toggle_fly()
 	check(v.flying and v.body.collision_mask == 0, "Q flies, through walls")
+	await frames(1)
+	check(v._aim_text().begins_with("Flying") or v._aim_text().contains("\n"), "the help bar knows you fly: %s" % v._aim_text())
 	var y0 := v.body.position.y
 	Input.action_press(Keys.JUMP)
 	await _physics(40)
