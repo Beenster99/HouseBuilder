@@ -8,6 +8,7 @@ extends RefCounted
 ##   var brief := ContractGenerator.generate(seed)                       # any type open at rep 0
 ##   var brief := ContractGenerator.generate(seed, "primary_school")
 ##   var board := ContractGenerator.board(seed, career.reputation, 5)    # a job board
+##   var brief := ContractGenerator.generate_on_site(seed, "", reputation)  # on a real plot
 ##
 ## Each brief takes its rooms from the building type's program (internal/building_types.gd),
 ## sized by a roll, prices its budget from the rooms' floor area at the type's rate with
@@ -109,8 +110,45 @@ static func generate(seed: int, type: String = "", reputation: int = 0) -> Dicti
 	}
 
 
+## The hardest site (1 to 5) offered at a reputation.
+static func max_site_rating(reputation: int) -> int:
+	return clampi(2 + reputation / 15, 2, 5)
+
+
+## A brief on a real plot from the sites pool (Phase 6): the plot's outline becomes a
+## within_plot requirement (BuildingModel coordinates, the plot centre at 0, 0), the budget
+## and fee rise by the plot's cost multiplier, the reward by its difficulty, and its problems
+## go in the summary. Falls back to an ordinary brief when no plot suits the type.
+static func generate_on_site(seed: int, type: String = "", reputation: int = 0) -> Dictionary:
+	var b := generate(seed, type, reputation)
+	var kind := str(TYPES_SCRIPT.SITE_KIND.get(str(b.type), ""))
+	var site_id := SitePool.pick(kind, seed, max_site_rating(reputation)) if kind != "" else ""
+	if site_id == "":
+		return b
+	var pack := SitePool.open(site_id)
+	if not pack.ok() or pack.plot_outline_local().size() < 3:
+		return b
+	var mult := maxf(1.0, pack.cost_multiplier_hint())
+	var labels := PackedStringArray()
+	for f: Dictionary in pack.factors():
+		labels.append(str(f.get("label", "")).to_lower())
+	b["id"] = "%s@%s" % [b.id, site_id]
+	b["site"] = {"id": site_id, "name": pack.title(), "plot": pack.plot_outline_local(), "rating": pack.rating(),
+			"soil": pack.soil(), "area": pack.plot_area(), "factors": Array(labels)}
+	(b.requirements as Array).insert((b.requirements as Array).size() - 1, {"id": "plot", "kind": "within_plot"})
+	b["budget"] = snappedf(float(b.budget) * mult, 1000.0)
+	b["fee"] = snappedf(float(b.fee) * mult, 1000.0)
+	b["deadline_days"] = int(snappedf(float(b.deadline_days) * (1.0 + 0.05 * (pack.rating() - 1)), 5.0))
+	b.reputation["reward"] = int(b.reputation.reward) + pack.rating() - 1
+	b["title"] = "%s at %s" % [b.title, pack.title()]
+	var site_line := "The site is %s (%d m2), difficulty %d of 5" % [pack.title(), roundi(pack.plot_area()), pack.rating()]
+	site_line += ": " + _and_list(labels) + "." if not labels.is_empty() else "."
+	b["summary"] = str(b.summary) + " " + site_line
+	return b
+
+
 ## n briefs for a job board, each from its own seed; one of the hand-written briefs leads
-## while it has not been done.
+## while it has not been done, and every other generated one is on a real site.
 static func board(seed: int, reputation: int, n: int = 5, done: Array = []) -> Array:
 	var out: Array = []
 	for b: Dictionary in ContractBrief.authored():
@@ -118,7 +156,7 @@ static func board(seed: int, reputation: int, n: int = 5, done: Array = []) -> A
 			out.append(b)
 	var i := 0
 	while out.size() < n:
-		out.append(generate(seed * 31 + i, "", reputation))
+		out.append(generate_on_site(seed * 31 + i, "", reputation) if i % 2 == 1 else generate(seed * 31 + i, "", reputation))
 		i += 1
 	return out
 

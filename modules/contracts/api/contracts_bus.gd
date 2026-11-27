@@ -244,6 +244,13 @@ func _validate_report(_sender: int, p: Dictionary) -> Variant:
 
 func _apply_accept(p: Dictionary) -> void:
 	active = (p.get("brief", {}) as Dictionary).duplicate(true)
+	# A contract on a real plot puts that site in play for the crew (the host asks once).
+	var site_id := str((active.get("site", {}) as Dictionary).get("id", "")) if active.get("site") is Dictionary else ""
+	var sites := Modules.bus("sites") as SitesBus
+	if site_id != "" and sites != null and (net == null or net.is_host()):
+		var cur := sites.current()
+		if cur == null or cur.id() != site_id:
+			sites.load_site(site_id)
 	structure_report = {}
 	_report_sum = 0
 	active_changed.emit()

@@ -49,6 +49,28 @@ func _generator() -> void:
 	var cost: float = BuildingQuantities.totals(Kit.house()).cost
 	check(float(semi.budget) > cost * 0.6 and float(semi.budget) < cost * 2.0,
 			"a semi's budget (%s) is in range of a real house's cost (%s)" % [ContractValidator.money(semi.budget), ContractValidator.money(cost)])
+	# Briefs on real plots.
+	var onsite := 0
+	var site_ok := true
+	for s in 40:
+		var g := ContractGenerator.generate_on_site(s, "", 100)
+		if g.has("site"):
+			onsite += 1
+			var plot: Array = g.site.plot
+			var has_req := false
+			for r: Dictionary in g.requirements:
+				if str(r.kind) == "within_plot":
+					has_req = true
+			if plot.size() < 3 or not has_req or not str(g.site.name) in str(g.summary) or int(g.site.rating) < 1:
+				site_ok = false
+	check(onsite >= 20, "most briefs find a real plot (%d of 40)" % onsite)
+	check(site_ok, "each has the plot's outline, a within_plot requirement and the site in its summary")
+	var plain := ContractGenerator.generate(11, "primary_school", 100)
+	var sited := ContractGenerator.generate_on_site(11, "primary_school", 100)
+	check(sited.has("site") and float(sited.budget) >= float(plain.budget), "a hard plot raises the budget (%s on %s)" % [
+			ContractValidator.money(sited.budget), str(sited.get("site", {}).get("name", "?"))])
+	check(ContractGenerator.generate_on_site(11, "primary_school", 100) == sited, "and the same seed picks the same plot")
+	check(ContractGenerator.max_site_rating(0) == 2 and ContractGenerator.max_site_rating(100) == 5, "harder plots open up with reputation")
 	var board := ContractGenerator.board(1, 0, 5)
 	check(board.size() == 5 and str(board[0].id) == "house_detached_3bed", "the first board leads with the hand-written house")
 	var later := ContractGenerator.board(1, 0, 5, ["house_detached_3bed"])

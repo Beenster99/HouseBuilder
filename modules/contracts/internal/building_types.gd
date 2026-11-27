@@ -71,6 +71,16 @@ const TYPES := {
 		"goals": [["plant_room", 0.02]]},
 }
 
+## The sites pool's suited_to value for each building type (SitePool.for_building).
+const SITE_KIND := {
+	"bungalow": "house", "terraced_house": "house", "semi_detached": "house", "detached_house": "house",
+	"nursery": "school", "primary_school": "school", "secondary_school": "school",
+	"community_hall": "civic", "library_branch": "civic", "fire_station": "civic",
+	"police_station": "police_station", "office_block": "office",
+	"health_clinic": "hospital", "care_home": "hospital", "hospital_wing": "hospital",
+	"airport_terminal": "airport_terminal",
+}
+
 ## Who asks for each category, for the brief's client line.
 const CLIENTS := {
 	"domestic": ["The Okafor family", "Mr and Mrs Patel", "A retired couple", "Hughes Homes", "A young family", "The Lindqvists"],
