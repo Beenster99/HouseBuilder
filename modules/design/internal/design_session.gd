@@ -96,6 +96,8 @@ var pan_drag := false
 var guides: Array = []
 ## The room sets this while it places something of its own (a saved module): guides then too.
 var placing := false
+## Its plan size while placing (a paste), so the guides line up its edges, not just its middle.
+var placing_size := Vector2.ZERO
 var _guide_boxes: Array[Rect2] = []
 var _guide_key := ""
 ## The pan moved the view (the room says so); a press and release on empty floor that didn't
@@ -388,7 +390,10 @@ func _align(at: Vector3) -> Vector3:
 	elif not shape.is_empty():
 		skip = PackedStringArray([str(shape.room)])
 		box = Rect2(p2, Vector2.ZERO)
-	elif tool in TWO_POINT or tool in RECT or placing:
+	elif placing:
+		# A stamp or paste: its plan size (turned), so its edges and middle line up.
+		box = Rect2(p2 - placing_size * 0.5, placing_size)
+	elif tool in TWO_POINT or tool in RECT:
 		box = Rect2(p2, Vector2.ZERO)
 	elif tool in POINT:
 		var k := catalog.kind(fixture_kind if tool == "fixture" else str(KIND.get(tool, tool)))
@@ -923,6 +928,92 @@ func _set_out_box(ids: PackedStringArray) -> Rect2:
 	for p in pts:
 		r = r.expand(p)
 	return r
+
+
+## Copies the selection (rooms with their walls, doors and contents) for pasting: see
+## DesignBus.clipboard. Returns it ({} when nothing is selected).
+func copy_selection() -> Dictionary:
+	var sel := PackedStringArray()
+	for id in presence.my_selection():
+		if model.has(id):
+			sel.append(id)
+	if sel.is_empty():
+		status.emit("Select something to copy first", true)
+		return {}
+	var ids := carried(sel, true)
+	for pid in model.parts:
+		if model.parts[pid].has("host") and str(model.parts[pid].host) in ids and not pid in ids:
+			ids.append(pid)
+	var box := _set_out_box(ids)
+	var c := box.get_center()
+	var items: Array = []
+	for id in ids:
+		var e: Dictionary = model.entry(id).duplicate(true)
+		if e.has("at"):
+			e.at = [float(e.at[0]) - c.x, float(e.at[1]), float(e.at[2]) - c.y]
+		for k: String in ["a", "b"]:
+			if e.has(k):
+				e[k] = [float(e[k][0]) - c.x, float(e[k][1]), float(e[k][2]) - c.y]
+		if e.has("outline"):
+			var o: Array = []
+			for q: Array in e.outline:
+				o.append([float(q[0]) - c.x, float(q[1]) - c.y])
+			e.outline = o
+		items.append({"table": "rooms" if model.rooms.has(id) else "parts", "id": id, "entry": e})
+	var what := label_of(sel[0]) if sel.size() == 1 else "%d things" % sel.size()
+	var clip := {"label": what, "size": box.size, "items": items}
+	status.emit("Copied %s: Ctrl+V to place copies" % what, false)
+	return clip
+
+
+## The ops that put a copy of `clip` (DesignBus.clipboard) on `level` with its middle at `at`
+## (plan), turned `rot` degrees as parts' "rot" turns; new ids from `fresh`.
+static func paste_ops(clip: Dictionary, level: int, at: Vector3, rot: float, fresh: Array) -> Array:
+	var r := deg_to_rad(rot)
+	var p3 := func(v: Array) -> Array:
+		var q := Vector3(float(v[0]), 0, float(v[2])).rotated(Vector3.UP, r)
+		return [snappedf(q.x + at.x, 0.0001), float(v[1]), snappedf(q.z + at.z, 0.0001)]
+	var ops: Array = []
+	var new_id := {}
+	var n := 0
+	for pass_hosted in [false, true]:
+		for it: Dictionary in clip.get("items", []):
+			var e: Dictionary = (it.entry as Dictionary).duplicate(true)
+			if e.has("host") != pass_hosted:
+				continue
+			if pass_hosted:
+				if not new_id.has(str(e.host)):
+					continue
+				e.host = new_id[str(e.host)]
+			if e.has("at"):
+				e.at = p3.call(e.at)
+				e.rot = snappedf(fposmod(float(e.get("rot", 0.0)) + rot, 360.0), 0.01)
+			for k: String in ["a", "b"]:
+				if e.has(k):
+					e[k] = p3.call(e[k])
+			if e.has("outline"):
+				var o: Array = []
+				for q: Array in e.outline:
+					var v: Array = p3.call([q[0], 0.0, q[1]])
+					o.append([v[0], v[2]])
+				e.outline = o
+			if not pass_hosted:
+				e.level = level
+			if n >= fresh.size():
+				break
+			var nid := str(fresh[n])
+			n += 1
+			if str(it.table) == "rooms":
+				nid = "r" + nid.substr(1)
+			e.id = nid
+			new_id[str(it.id)] = nid
+			ops.append({"op": "add", "table": str(it.table), "entry": e})
+	return ops
+
+
+## paste_ops() with fresh ids for this model.
+func paste_here(clip: Dictionary, at: Vector3, rot: float) -> Array:
+	return paste_ops(clip, level, at, rot, _fresh_ids((clip.get("items", []) as Array).size()))
 
 
 ## Whether an entry already has these values (a set of them would change nothing, and the

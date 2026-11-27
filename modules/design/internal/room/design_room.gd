@@ -170,6 +170,35 @@ func begin_stamp(label: String, ghost: Node3D, ops_at: Callable) -> void:
 	session.status.emit("%s: click to place it, R turns it, Esc stops" % label, false)
 
 
+## Ctrl+V: the copy (DesignBus.clipboard) in hand at the pointer, lined up by the guides;
+## each click puts one down (R or Shift+wheel turns it, Esc stops).
+func paste() -> bool:
+	var clip: Dictionary = design.clipboard if design else {}
+	if clip.is_empty():
+		session.status.emit("Nothing copied yet: select something and Ctrl+C", true)
+		return false
+	begin_stamp("Paste %s" % str(clip.get("label", "")), _paste_ghost(clip), func(_level: int, at: Vector3, rot: float) -> Array:
+		return session.paste_here(clip, at, rot))
+	_stamp["size"] = clip.get("size", Vector2.ZERO)
+	return true
+
+
+## The copy drawn see-through, as it will land, for carrying at the pointer.
+func _paste_ghost(clip: Dictionary) -> Node3D:
+	var m := BuildingModel.new()
+	var fresh: Array = []
+	for i in (clip.get("items", []) as Array).size():
+		fresh.append("p%d" % (i + 1))
+	for op: Dictionary in DesignSession.paste_ops(clip, 0, Vector3.ZERO, 0.0, fresh):
+		m.apply(op)
+	var v: Node3D = DesignView.new()
+	v.name = "PasteGhost"
+	v.set_meta("model", m)  # keeps it alive with the ghost
+	v.call("bind", m)
+	v.call("set_ghost", true)
+	return v
+
+
 func end_stamp() -> void:
 	if _stamp.is_empty():
 		return
@@ -290,6 +319,9 @@ func _process(_delta: float) -> void:
 			session.hover(null)
 	if active and not lent_view:
 		session.placing = stamping()
+		var ps: Vector2 = _stamp.get("size", Vector2.ZERO)
+		var turned := fmod(absf(float(_stamp.get("rot", 0.0))), 180.0)
+		session.placing_size = Vector2(ps.y, ps.x) if absf(turned - 90.0) < 45.0 else ps
 	if not active or lent_view:
 		pass
 	elif _pointer_over_hud():
@@ -665,11 +697,13 @@ func _unhandled_input(event: InputEvent) -> void:
 		return
 	if event is InputEventMouseButton and (event as InputEventMouseButton).shift_pressed and (event as InputEventMouseButton).pressed \
 			and (event as InputEventMouseButton).button_index in [MOUSE_BUTTON_WHEEL_UP, MOUSE_BUTTON_WHEEL_DOWN] \
-			and (session.tool == "fixture" or not session.presence.my_selection().is_empty()):
+			and (stamping() or session.tool == "fixture" or not session.presence.my_selection().is_empty()):
 		# Shift+wheel turns 15° a notch (Alt: 1°).
 		var mw := event as InputEventMouseButton
 		var step := (1.0 if mw.alt_pressed else 15.0) * (1.0 if mw.button_index == MOUSE_BUTTON_WHEEL_UP else -1.0)
-		if session.tool == "fixture":
+		if stamping():
+			_stamp.rot = fposmod(float(_stamp.rot) + step, 360.0)
+		elif session.tool == "fixture":
 			session.fixture_rot = fposmod(session.fixture_rot + step, 360.0)
 			session.preview_changed.emit()
 		else:
@@ -722,6 +756,14 @@ func _key(k: InputEventKey) -> bool:
 			return true
 		KEY_O when ctrl:
 			hud.call("open_load")
+			return true
+		KEY_C when ctrl:
+			var clip := session.copy_selection()
+			if not clip.is_empty() and design:
+				design.clipboard = clip
+			return true
+		KEY_V when ctrl:
+			paste()
 			return true
 		KEY_TAB:
 			toggle_plan()

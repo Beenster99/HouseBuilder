@@ -78,6 +78,11 @@ const OBJECT_GROUPS: Array = [
 var channels: Dictionary = {}
 ## The design room open on this machine (it sets and clears this), or null.
 var open_room: Node
+## What this player last copied (Ctrl+C in the designer), for pasting (Ctrl+V) here or in
+## walk-inside: {label, size: Vector2 (plan, m), items: [{table: "rooms"|"parts", id (as it
+## was, so doors find their walls), entry}]} with every entry's plan points relative to the
+## copy's middle, or {}. Local to this player; a paste goes through the building's sync.
+var clipboard: Dictionary = {}
 
 
 func register_module() -> void:

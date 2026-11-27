@@ -325,6 +325,46 @@ func run_tests() -> void:
 	check(is_equal_approx(float(model.parts[col_b].rot), 120.0), "a tap of R turns 90°")
 	s.undo()
 	await frames(2)
+	# Copy and paste: Ctrl+C copies a room with its walls, door and column; Ctrl+V carries a
+	# see-through copy at the pointer, lined up by the guides; each click puts one down.
+	var dbus := Modules.bus("design") as DesignBus
+	s.presence.select(PackedStringArray([mv_b]))
+	var ckey := func(code: Key, ctrl := true) -> void:
+		var k := InputEventKey.new()
+		k.keycode = code
+		k.ctrl_pressed = ctrl
+		k.pressed = true
+		room.call("_unhandled_input", k)
+	ckey.call(KEY_C)
+	check((dbus.clipboard.get("items", []) as Array).size() >= 6, "Ctrl+C copies the room, its walls, door and column: %d" % (dbus.clipboard.get("items", []) as Array).size())
+	ckey.call(KEY_V)
+	check(bool(room.call("stamping")) and room.find_child("PasteGhost", true, false) != null, "Ctrl+V puts a see-through copy in hand")
+	var rooms_before := model.rooms.size()
+	var parts_before := model.parts.size()
+	await frames(1)
+	s.hover(Vector3(-54, 0, -50.4))
+	check(s.cursor != null and absf((s.cursor as Vector3).x + 54.0) < 0.01 and not s.guides.is_empty(),
+			"the copy lines up with the room above it: %s, %d guides" % [s.cursor, s.guides.size()])
+	room.call("stamp_at", Vector3(-54, 0, -50.5))
+	room.call("stamp_at", Vector3(-54, 0, -45.5))
+	await frames(2)
+	check(model.rooms.size() == rooms_before + 2, "each click puts one down: %d rooms more" % (model.rooms.size() - rooms_before))
+	var door_n := 0
+	for oid in model.parts:
+		if model.parts[oid].has("host"):
+			door_n += 1
+	check(model.parts.size() >= parts_before + 10 and door_n >= 3, "with their walls, columns and doors (%d doors)" % door_n)
+	var pasted := false
+	for r_id in model.rooms_on(s.level):
+		if DesignGuides.room_box(model, r_id).is_equal_approx(Rect2(-56, -52, 4, 3)):
+			pasted = true
+	check(pasted, "where it was put, the same size")
+	ckey.call(KEY_ESCAPE, false)
+	check(not bool(room.call("stamping")), "Esc puts it down")
+	s.undo()
+	s.undo()
+	await frames(2)
+	check(model.rooms.size() == rooms_before, "each paste undoes on its own")
 	# The docks' cards stretch up and down (a grip between them), and keep their sizes.
 	var lsplit := hud2.find_child("Split_left", true, false) as VSplitContainer
 	check(lsplit != null and lsplit.get_child_count() == 3, "the left dock's cards sit in a splitter")
