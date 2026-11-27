@@ -109,6 +109,11 @@ func set_pointer(at: Variant) -> void:
 func ping_at(at: Variant) -> void:
 	if not at is Vector3:
 		return
+	# Through the open designer when there is one: a click on a ping clears it.
+	var room := (Modules.bus("design") as DesignBus).open_room
+	if room and room.has_method("ping_here"):
+		room.call("ping_here", at)
+		return
 	var p := session.snap(at as Vector3)
 	var id := session.pick(p)
 	session.net.ping(p, id, Vector3.UP, session.label_of(id))

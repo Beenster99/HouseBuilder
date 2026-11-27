@@ -1137,7 +1137,7 @@ func mode_keys() -> Array:
 				out = [["LMB", "two points"], ["Esc", "Select"]]
 			_:
 				out = [["LMB", "place"], ["R", "turn"], ["Esc", "Select"]]
-	out.append_array([["Wheel", "zoom"], ["RMB drag", "orbit"], ["MMB", "ping / hold: wheel"], ["Tab", "2D/3D"],
+	out.append_array([["Wheel", "zoom"], ["RMB drag", "orbit"], ["MMB", "ping (on a ping: clear it) · hold: wheel"], ["Tab", "2D/3D"],
 			["PgUp/Dn", "level"], ["Ctrl+Z", "undo"]])
 	return out
 

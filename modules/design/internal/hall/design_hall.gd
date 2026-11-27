@@ -104,6 +104,8 @@ func _ready() -> void:
 	_build_hud()
 	net.ping_received.connect(_on_ping)
 	net.ping_removed.connect(_drop_ping)
+	# A ping cleared early (middle-click on it) comes down here too.
+	(designer.get("marks") as Node).connect("unpinged", _drop_ping)
 	if DisplayServer.get_name() != "headless":
 		Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 	net.set_activity("In the design hall")
@@ -338,6 +340,11 @@ func ping_look() -> void:
 	var q := PhysicsRayQueryParameters3D.create(from, from + dir * 40.0)
 	var r := get_world_3d().direct_space_state.intersect_ray(q)
 	if not r.is_empty():
+		for id: int in _hall_pings:
+			var node := _hall_pings[id].node as Node3D
+			if is_instance_valid(node) and node.global_position.distance_to(r.position as Vector3) < 0.6:
+				(designer.get("marks") as Node).call("unping", id)
+				return
 		net.ping(r.position as Vector3, "hall:spot", r.normal as Vector3, "")
 
 
@@ -452,7 +459,7 @@ func _process(delta: float) -> void:
 		var wall := aimed_wall()
 		if wall != "":
 			help.set_help(HEADS[0], HelpBar.keys_text([["LMB", "< or > changes the panel"], [f, "full screen"],
-					["MMB", "ping it"], ["Esc", "menu"]]))
+					["MMB", "ping it (on a ping: clear it)"], ["Esc", "menu"]]))
 			var board: Node = boards[wall]
 			var i := int(board.call("panel_at", (walls[wall] as HallScreen).pointer_px))
 			if i >= 0:
@@ -460,10 +467,10 @@ func _process(delta: float) -> void:
 				help.hover("Screen: %s · %s wall" % [HallChannels.title_of(self, view), wall])
 		elif near:
 			help.set_help(HEADS[1], HelpBar.keys_text([[f, "design at the holotable"], ["← →", "turn"], ["↑ ↓", "zoom"],
-					["I J K L", "pan"], ["MMB", "ping"]]))
+					["I J K L", "pan"], ["MMB", "ping (on a ping: clear it)"]]))
 			help.hover("Holotable: the live model everyone shares")
 		else:
-			help.set_help(HEADS[2], HelpBar.keys_text([["WASD", "walk"], ["Shift", "run"], [f, "use"], ["MMB", "ping"],
+			help.set_help(HEADS[2], HelpBar.keys_text([["WASD", "walk"], ["Shift", "run"], [f, "use"], ["MMB", "ping (on a ping: clear it)"],
 					["Esc", "menu"]]))
 
 

@@ -811,6 +811,12 @@ func ping_here(where: Variant = null) -> void:
 	var p: Variant = where if where != null else _floor_point()
 	if p == null:
 		return
+	# A middle-click on a ping clears it (for everyone); anywhere else pings.
+	var reach := maxf(1.0, (camera as DesignCamera).metres_per_pixel() * 16.0)
+	var near := int(marks.call("ping_near", p as Vector3, reach))
+	if near >= 0:
+		marks.call("unping", near)
+		return
 	var at := session.snap(p)
 	var id := session.pick(at)
 	net.ping(at, id, Vector3.UP, session.label_of(id))

@@ -18,6 +18,11 @@ var _pings: Node3D
 var _dims: Node3D
 var _measure: Node3D
 var _ping_nodes: Dictionary = {}  # ping id -> {node, born}
+## A ping was cleared early (a middle-click on it): every copy of it comes down.
+signal unpinged(ping_id: int)
+const UNPING_EVENT := "design.unping"
+## Pings fade out over their last this many seconds.
+const PING_FADE := 3.0
 var _dim_nodes: Dictionary = {}  # wall id -> Label3D
 
 
@@ -40,6 +45,11 @@ func bind(m: BuildingModel, bus: MultiplayerBus) -> void:
 	model.levels_changed.connect(redraw)
 	net.ping_received.connect(_on_ping)
 	net.ping_removed.connect(_drop_ping)
+	net.register_event(UNPING_EVENT, func(p: Dictionary) -> void:
+		var id := int(p.get("id", -1))
+		_drop_ping(id)
+		unpinged.emit(id), func(_sender: int, p: Dictionary) -> Variant:
+			return {"id": int(p.get("id", -1))})
 	for p: Dictionary in net.pings():
 		_on_ping(p)
 	redraw()
@@ -140,6 +150,7 @@ func _on_ping(p: Dictionary) -> void:
 	mat.albedo_color = colour
 	mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	mat.no_depth_test = true
+	mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	ring.material_override = mat
 	ring.position.y = 0.06
 	root.add_child(ring)
@@ -175,11 +186,41 @@ func _process(_delta: float) -> void:
 			_drop_ping(id)
 		else:
 			var s := 1.0 + 0.25 * sin(age * 6.0)
-			(p.node as Node3D).get_child(0).scale = Vector3(s, 1, s)
+			var node := p.node as Node3D
+			(node.get_child(0) as Node3D).scale = Vector3(s, 1, s)
+			# Fades out over its last seconds, so it's plainly going.
+			var a := clampf((MultiplayerBus.PING_LIFE - age) / PING_FADE, 0.0, 1.0)
+			var ring := node.get_child(0) as MeshInstance3D
+			(ring.material_override as StandardMaterial3D).albedo_color.a = a
+			(node.get_child(1) as Label3D).modulate.a = a
+			(node.get_child(1) as Label3D).outline_modulate.a = a * 0.85
 
 
 func ping_count() -> int:
 	return _ping_nodes.size()
+
+
+## The design ping nearest `at` within `reach` m (in plan), or -1.
+func ping_near(at: Vector3, reach: float) -> int:
+	var best := -1
+	var best_d := reach
+	for id: int in _ping_nodes:
+		var q := (_ping_nodes[id].node as Node3D).position
+		var d := Vector2(q.x - at.x, q.z - at.z).length()
+		if d <= best_d:
+			best_d = d
+			best = id
+	return best
+
+
+## Clears a ping for everyone, before it fades.
+func unping(id: int) -> void:
+	net.request(UNPING_EVENT, {"id": id})
+
+
+func _exit_tree() -> void:
+	if net:
+		net.unregister_event(UNPING_EVENT)
 
 
 # --- Dimensions and the tape measure -------------------------------------------------------
