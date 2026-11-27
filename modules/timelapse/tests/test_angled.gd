@@ -17,6 +17,8 @@ func run_tests() -> void:
 	# An L corner away from the rest: the walls must join up, not overlap or leave a notch.
 	var c1 := str(m.apply(BuildingCommands.place_part("wall_loadbearing", 0, {"a": [20, 0, 20], "b": [26, 0, 20]}, "masonry")).do.entry.id)
 	var c2 := str(m.apply(BuildingCommands.place_part("wall_loadbearing", 0, {"a": [26, 0, 20], "b": [26, 0, 26]}, "masonry")).do.entry.id)
+	# A gable roof over 8 x 6 m, 3 m up: its slopes, not a flat slab.
+	var rid := str(m.apply(BuildingCommands.place_part("roof_pitched", 0, {"outline": [[-30, 0], [-22, 0], [-22, 6], [-30, 6]], "y": 3.0}, "timber")).do.entry.id)
 	var jet_kind := "airport.aircraft.jumbo"
 	var jid := ""
 	if m.catalog.kind(jet_kind).has("asset"):
@@ -46,6 +48,30 @@ func run_tests() -> void:
 	lens.sort()
 	check(lens.size() == 2 and absf(lens[0] - (6.0 - thick * 0.5)) < 0.01 and absf(lens[1] - (6.0 + thick * 0.5)) < 0.01,
 			"at a corner one wall runs on by half the other's thickness and the other stops at its face: %s" % [lens])
+	var roof: Dictionary = {}
+	for p in parts:
+		if p.id == rid:
+			roof = p
+	check(roof.has("shape") and (roof.shape as Dictionary).has("faces"), "a pitched roof carries its faces")
+	if roof.has("shape") and roof.shape.has("faces"):
+		var top := -INF
+		var base := INF
+		for f: Array in roof.shape.faces:
+			for q: Vector3 in f[0]:
+				top = maxf(top, q.y)
+				base = minf(base, q.y)
+		var pitch := float(m.parts[rid].get("pitch", m.catalog.kind("roof_pitched").get("pitch", 35.0)))
+		var want := RoofShape.rise([[-30, 0], [-22, 0], [-22, 6], [-30, 6]], pitch, "gable")
+		check(absf(base - 3.0) < 0.01 and absf(top - base - want) < 0.01, "on its walls, its ridge %.2f m up (want %.2f)" % [top - base, want])
+		var rm := View.faces_mesh(roof.shape.faces)
+		var rv: PackedVector3Array = rm.surface_get_arrays(0)[Mesh.ARRAY_VERTEX]
+		var ok := rv.size() >= 18
+		var mid := Vector3(-26, 3.0 + want * 0.3, 3)
+		for i in range(0, rv.size(), 3):
+			var n := (rv[i + 2] - rv[i]).cross(rv[i + 1] - rv[i])
+			if n.dot((rv[i] + rv[i + 1] + rv[i + 2]) / 3.0 - mid) <= 0.0:
+				ok = false
+		check(ok, "its faces point outwards")
 	check(slab.has("shape") and (slab.shape as Dictionary).has("outline")
 			and (slab.shape.outline as PackedVector2Array).size() == 3, "a triangular slab keeps its three corners")
 

@@ -295,6 +295,8 @@ func _add_shaped(t: Dictionary, shape: Dictionary) -> void:
 		var bm := BoxMesh.new()
 		m = bm
 		mesh.transform = shape.obb
+	elif shape.has("faces"):
+		m = faces_mesh(shape.faces)
 	else:
 		m = slab_mesh(shape.outline, float(shape.top), float(shape.thick))
 	mesh.mesh = m
@@ -347,6 +349,19 @@ static func slab_mesh(outline: PackedVector2Array, top: float, thick: float) -> 
 		var q1 := Vector3(q.x, top, q.y)
 		_face(st, p0, q0, q1, out)
 		_face(st, p0, q1, p1, out)
+	st.generate_normals()
+	return st.commit()
+
+
+## A mesh of flat faces ([[corners (3 or 4)], outward normal], as RoofShape gives them).
+static func faces_mesh(faces: Array) -> ArrayMesh:
+	var st := SurfaceTool.new()
+	st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	for f: Array in faces:
+		var c: Array = f[0]
+		var n: Vector3 = f[1]
+		for i in range(1, c.size() - 1):
+			_face(st, c[0], c[i], c[i + 1], n)
 	st.generate_normals()
 	return st.commit()
 

@@ -177,7 +177,8 @@ static func model_of(model: BuildingModel, pid: String) -> Dictionary:
 
 ## A part's exact shape for drawing, beyond its box: walls, beams, braces and openings at
 ## their real angle ({"obb": Transform3D}, a unit box's transform), slabs, roofs and rooms
-## as their real outline ({"outline": PackedVector2Array (x, z), "top": y, "thick": m}).
+## as their real outline ({"outline": PackedVector2Array (x, z), "top": y, "thick": m}),
+## pitched roofs as their faces ({"faces": [[[Vector3, ...], normal], ...]}, RoofShape).
 ## {} when the box is the shape (columns, pads, fixtures).
 ## Walls are run on or stopped short at their ends so corners and tees join up as the design
 ## room draws them (`joins`, the design api's WallJoins; made here when not given).
@@ -223,6 +224,16 @@ static func shape_of(model: BuildingModel, pid: String, joins: WallJoins = null)
 			for q in pts:
 				outline.append([q.x, q.z])
 			var top := pts[0].y
+			var form := RoofShape.form_of(str(e.kind)) if fam == "roof" else ""
+			if form != "":
+				# A pitched roof (gable, hip, mono): its slopes, ends and underside, as designed.
+				var faces: Array = []
+				for f: Array in RoofShape.faces(outline, float(e.get("pitch", spec.get("pitch", 35.0))), form):
+					var corners: Array = []
+					for q: Vector3 in f[0]:
+						corners.append(q + Vector3(0, top, 0))
+					faces.append([corners, f[1]])
+				return {"faces": faces}
 			return _outline_shape(outline, top, maxf(float(sec.get("d", 0.0)), 0.05))
 	return {}
 
