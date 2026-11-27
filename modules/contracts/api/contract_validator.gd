@@ -146,7 +146,7 @@ static func check(req: Dictionary, ctx: Dictionary) -> Dictionary:
 			_count(out, n, 1, "No accessible entrance yet." if n == 0 else "%d accessible entrance%s." % [n, "" if n == 1 else "s"],
 					"Put an accessible door (or double doors) in an outside wall on the ground floor.")
 		"vehicle_access":
-			var n := _doors(model, ["door_vehicle"], true).size()
+			var n := _doors(model, vehicle_doors(cat), true).size()
 			_count(out, n, 1, "No vehicle door yet." if n == 0 else "A vehicle door is in place.",
 					"Put a vehicle door in an outside wall of the garage or vehicle bay.")
 		"secure_cells":
@@ -280,7 +280,7 @@ static func _near(req: Dictionary, model: BuildingModel, cat: BuildingCatalog, o
 static func _exits(req: Dictionary, model: BuildingModel, cat: BuildingCatalog, out: Dictionary) -> void:
 	var limit := float(req.get("value", 30.0))
 	var exits := {}  # level -> Array of exit points (Vector2)
-	for pid in _doors(model, EXIT_DOORS, true):
+	for pid in _doors(model, Array(EXIT_DOORS) + Array(vehicle_doors(model.catalog)), true):
 		var pts := model.points_of(pid)
 		var mid := (pts[0] + pts[1]) * 0.5
 		if not exits.has(0):
@@ -379,6 +379,15 @@ static func _rooms_of(model: BuildingModel, type: String) -> PackedStringArray:
 
 
 ## Openings of these kinds, in walls that are not partitions; ground floor only if asked.
+## Every vehicle door kind in the catalog (roller shutters, up and over doors...).
+static func vehicle_doors(cat: BuildingCatalog) -> PackedStringArray:
+	var out := PackedStringArray()
+	for k in cat.kinds_in("opening"):
+		if bool(cat.kind(k).get("vehicle", false)):
+			out.append(k)
+	return out
+
+
 static func _doors(model: BuildingModel, kinds: Array, ground_only: bool) -> PackedStringArray:
 	var out: Array = []
 	for pid: String in model.parts:
