@@ -32,7 +32,8 @@ Stretch assets are 1 m models scaled by `make()`; `info(id).stretch` says how:
 Categories (the first part of the id): structure, opening, roof, circulation, services,
 fixture, furniture, school, office, police, hospital, airport, sport, retail, hospitality,
 industrial, vehicle, plant, landscape, boundary, street, context (neighbouring buildings),
-road, rail, bridge, earthworks, energy, water, demolition, people.
+road, rail, bridge, earthworks, energy, water, demolition, people, home (room contents and
+garden), farm, animal.
 `AssetLibrary.ids("hospital")` lists by tag: categories, building types (home, school,
 office, police, hospital, airport) and uses (wall, ceiling, outdoor, temporary, debris).
 
@@ -47,6 +48,18 @@ Blender side, in `tools/assets/` (Python, needs `pip install bpy`):
 - `python3 tools/assets/build.py [id prefix ...]` rebuilds the .glb files and
   `internal/manifest.json`. `--blend` also saves a .blend to open in Blender.
 - `python3 tools/assets/render.py out [id prefix ...]` renders a contact sheet in both looks.
+
+Models from Torque Shed UE (the owner's other game; tag `torque_shed`, about 450: lorry
+trailers, vans, tractors, buses, trains, pylons, poles, the wind turbine, industrial units,
+farm and school buildings, Dales stone houses, street, farm and playground props, animals):
+`python3 tools/assets/torque_import.py /path/to/torque-shed-ue` reads its .glb files and runs
+its Blender kit scripts, and writes one neutral .glb per asset to
+`tools/assets/vendor/torque_shed/` with `index.json`; `torque_catalog.py` lists what comes
+in and under which id. `recipes/torque.py` builds them like any other asset (no Torque Shed
+checkout needed) and makes the powerline spans and runs and the wind farms from them. Their
+colours get slots named `<surface>_<colour>` (for example `paint_c22`), with PBR values in
+the index; dark opaque window glass is `glass_dark`. Lit parts of lights are in the slot
+`glow` (statement lights) or `light_emitter`.
 
 Then `godot --headless --path . --import` and `tools/run_tests.sh assets`. The gallery
 (main menu, flag `assets.gallery`) shows everything.

@@ -6,10 +6,12 @@ extends ModuleTest
 
 func run_tests() -> void:
 	var ids := AssetLibrary.ids()
-	check(ids.size() >= 1200, "the manifest lists the library: %d assets" % ids.size())
+	check(ids.size() >= 1900, "the manifest lists the library: %d assets" % ids.size())
 	var catalog := BuildingCatalog.default_catalog()
 	for kind: String in catalog.kinds_in("opening") + catalog.kinds_in("fixture"):
 		check(AssetLibrary.id_for_kind(kind) != "", "catalog kind %s has an asset" % kind)
+	check(AssetLibrary.id_for_kind("office.desk.bench_4") == "office.desk.bench_4" and AssetLibrary.id_for_kind("no.such.asset") == "", "an asset id used as a kind draws that asset")
+	check(AssetLibrary.has("energy.line.pylon_lattice") and AssetLibrary.has("vehicle.lorry.trailer_white") and AssetLibrary.has("furniture.light.ring_pendant"), "Torque Shed models and the statement pieces are in the library")
 	check(AssetLibrary.id_for_kind("ub_305x165x40") == "structure.section.ub_305x165x40", "steel sections are found by catalog section id")
 
 	var bad := 0

@@ -542,7 +542,7 @@ for _h in (2.0, 3.5, 5.0):
 reg("earthworks.retaining.gabion", bridge, "Gabion basket", "outdoor", what="gabion")
 for _l in (6.0, 12.0):
 	reg("earthworks.pile.sheet_%d" % _l, bridge, "Sheet pile, %d m" % _l, "outdoor", "structure", what="sheet_pile", span=_l)
-for _w, _l in (("turbine", "Wind turbine, 80 m"), ("solar_ground", "Solar array, ground mounted"), ("solar_roof", "Solar panels, roof row of six"), ("transformer", "Power transformer"), ("substation", "Substation enclosure"),
+for _w, _l in (("solar_ground", "Solar array, ground mounted"), ("solar_roof", "Solar panels, roof row of six"), ("transformer", "Power transformer"), ("substation", "Substation enclosure"),
 	("battery", "Battery storage container"), ("mast_telecom", "Telecoms monopole, 25 m"), ("ev_hub", "EV charging hub, four chargers"), ("fuel_pump", "Fuel pump on island"), ("forecourt_canopy", "Forecourt canopy")):
 	reg("energy.plant." + _w, energy, _l, "outdoor", what=_w)
 for _w, _l in (("water_tower", "Water tower"), ("pump_station", "Pumping station kiosk"), ("settlement_tank", "Settlement tank, 16 m"), ("manhole_chamber", "Manhole chamber")):

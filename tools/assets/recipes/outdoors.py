@@ -426,7 +426,6 @@ _STREET = (("light.column_8m", "lamp", "Street light, 8 m", {}), ("light.column_
 	("furniture.post_box", "post_box", "Pillar box", {}), ("furniture.phone_box", "phone_box", "Telephone box", {}), ("furniture.cycle_stand", "cycle_stand", "Cycle stand", {}),
 	("furniture.flagpole", "flagpole", "Flagpole", {}), ("furniture.fountain", "fountain", "Fountain", {}), ("furniture.statue", "statue", "Statue on plinth", {}), ("furniture.tree_grate", "tree_grate", "Tree grate and stake", {}),
 	("utility.manhole", "manhole", "Manhole cover", {}), ("utility.gully", "gully", "Road gully", {}), ("utility.hydrant", "hydrant", "Fire hydrant", {}), ("utility.cabinet", "cabinet", "Telecoms cabinet", {}),
-	("utility.telegraph_pole", "telegraph_pole", "Telegraph pole", {}), ("utility.pylon", "pylon", "Electricity pylon", {}),
 	("garden.parasol", "parasol", "Parasol", {}), ("garden.pergola", "pergola", "Pergola", {}), ("garden.greenhouse", "greenhouse", "Greenhouse", {}), ("garden.trampoline", "trampoline", "Trampoline", {}),
 	("garden.garage", "garage", "Detached garage", {}), ("garden.oil_tank", "oil_tank", "Heating oil tank", {}), ("garden.rotary_line", "rotary_line", "Rotary washing line", {}))
 

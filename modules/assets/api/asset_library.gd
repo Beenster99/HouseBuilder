@@ -60,10 +60,12 @@ static func info(id: String) -> Dictionary:
 
 
 ## The asset that draws a building catalog kind or section ("door_fire", "ub_305x165x40"),
-## or "" when there is none yet.
+## or "" when there is none yet. A kind that is itself an asset id draws that asset.
 static func id_for_kind(kind: String) -> String:
 	manifest()
-	return str(_by_kind.get(kind, ""))
+	if _by_kind.has(kind):
+		return str(_by_kind[kind])
+	return kind if has(kind) else ""
 
 
 ## The space the model fills, in its own axes.
