@@ -8,6 +8,8 @@ extends Node
 ##   bus.start_demolition(parts, "Office block", {"neighbours": [AABB(...)]})
 ##   bus.start_from_model(model)          # the design room's "Demolish"
 ##   bus.request_charge("p12", 0.5)       # place, move to 0.5 s, or (same delay) remove
+##   bus.request_charge("p12", 0, at, 2)  # a heavy charge at a point on the part
+##   bus.request_plan(DemolitionRules.sequence(bus.parts, "implode"))  # the whole plan at once
 ##   bus.request_fire()                   # 3 s countdown, then each charge at its delay
 ##   bus.request_reset()                  # the building stands again, charges kept
 ##
@@ -32,6 +34,10 @@ const RELEASE := "demolition.release"
 const RESET := "demolition.reset"
 const RESULT := "demolition.result"
 const FRACTURE := "demolition.fracture"
+const PLAN := "demolition.plan"
+## Charge sizes: small, standard, heavy (how hard it blasts and how fine it shatters).
+const SIZES := ["Small", "Standard", "Heavy"]
+const SIZE_POWER := [0.6, 1.0, 1.6]
 const DEMO_FLAG := "demolition.demo"
 const MAX_CHARGES := 40
 const MAX_DELAY := 10.0
@@ -47,6 +53,7 @@ var zone := Rect2()
 var neighbours: Array = []  # AABB
 var charges: Dictionary = {}  # part id -> delay, s
 var charge_at: Dictionary = {}  # part id -> Vector3 (world) where it was placed, when given
+var charge_size: Dictionary = {}  # part id -> 0 small, 1 standard, 2 heavy (1 when missing)
 var fire_at := -1.0
 var blasted_ids: Dictionary = {}
 var released_ids: Dictionary = {}
@@ -72,6 +79,7 @@ func register_module() -> void:
 	net.register_event(RESET, _apply_reset, _validate_reset)
 	net.register_event(RESULT, _apply_result, _host_only)
 	net.register_event(FRACTURE, _apply_fracture, _host_only)
+	net.register_event(PLAN, _apply_plan, _validate_plan)
 	net.register_snapshot_provider("demolition", self)
 	net.session_ended.connect(func(_reason: String) -> void: _clear())
 	_hook_design.call_deferred()
@@ -80,7 +88,7 @@ func register_module() -> void:
 func unregister_module() -> void:
 	Menu.unregister_entry(DEMO_FLAG)
 	if net:
-		for e in [START, CHARGE, FIRE, BLAST, RELEASE, RESET, RESULT, FRACTURE]:
+		for e in [START, CHARGE, FIRE, BLAST, RELEASE, RESET, RESULT, FRACTURE, PLAN]:
 			net.unregister_event(e)
 		net.unregister_snapshot_provider("demolition")
 
@@ -110,11 +118,29 @@ func start_from_model(from: BuildingModel, options: Dictionary = {}) -> void:
 ## Charges `part_id` to go off `delay` s after firing, at world point `at` on it (an inside
 ## face picked when walking in, say; the part's centre when null). Charging a part again at
 ## the same delay takes the charge off; at another delay or point it moves the charge.
-func request_charge(part_id: String, delay: float, at: Variant = null) -> void:
+func request_charge(part_id: String, delay: float, at: Variant = null, size := -1) -> void:
 	var p := {"part": part_id, "delay": delay}
 	if at is Vector3:
 		p["at"] = at
+	if size >= 0:
+		p["size"] = size
 	net.request(CHARGE, p)
+
+
+## Replaces the whole charge plan at once: {part id: delay}, or {part id: {"delay", "at"?,
+## "size"?}}. {} clears every charge. Used by the charge list, the timeline's group moves
+## and the auto-sequence presets (DemolitionRules.sequence).
+func request_plan(plan: Dictionary) -> void:
+	net.request(PLAN, {"plan": plan})
+
+
+## A charge's size (0 small, 1 standard, 2 heavy) and its blast power.
+func size_of(id: String) -> int:
+	return int(charge_size.get(id, 1))
+
+
+func power_of(id: String) -> float:
+	return float(SIZE_POWER[clampi(size_of(id), 0, SIZE_POWER.size() - 1)])
 
 
 ## Where part `id`'s charge sits (world): the point it was placed at, else the part's centre.
@@ -262,6 +288,7 @@ func _apply_start(p: Dictionary) -> void:
 	neighbours = p.get("neighbours", [])
 	charges = (p.get("charges", {}) as Dictionary).duplicate()
 	charge_at = (p.get("charge_at", {}) as Dictionary).duplicate()
+	charge_size = (p.get("charge_size", {}) as Dictionary).duplicate()
 	fire_at = float(p.get("fire_at", -1.0))
 	blasted_ids = (p.get("blasted", {}) as Dictionary).duplicate()
 	released_ids = (p.get("released", {}) as Dictionary).duplicate()
@@ -289,13 +316,15 @@ func _validate_charge(_sender: int, p: Dictionary) -> Variant:
 		return "charges go on the structure above ground"
 	var delay := snappedf(clampf(float(p.get("delay", 0.0)), 0.0, MAX_DELAY), DELAY_STEP)
 	var out := {"part": id, "delay": delay}
+	if p.has("size"):
+		out["size"] = clampi(int(p.size), 0, SIZES.size() - 1)
 	var at: Variant = p.get("at")
 	if at is Vector3:
 		# On the part (a little outside its box at most).
 		var box: AABB = (by_id[id].aabb as AABB).grow(0.5)
 		out["at"] = (at as Vector3).clamp(box.position, box.end)
 	if charges.has(id) and is_equal_approx(float(charges[id]), delay) \
-			and (not out.has("at") or not charge_at.has(id) or (charge_at[id] as Vector3).distance_to(out.at) < 0.3):
+			and (not out.has("size") or int(out.size) == size_of(id)) and (not out.has("at") or not charge_at.has(id) or (charge_at[id] as Vector3).distance_to(out.at) < 0.3):
 		return {"part": id, "remove": true}
 	if not charges.has(id) and charges.size() >= MAX_CHARGES:
 		return "%d charges at most" % MAX_CHARGES
@@ -307,13 +336,71 @@ func _apply_charge(p: Dictionary) -> void:
 	if bool(p.get("remove", false)):
 		charges.erase(id)
 		charge_at.erase(id)
+		charge_size.erase(id)
 	else:
+		if p.has("size"):
+			charge_size[id] = int(p.size)
 		charges[id] = float(p.get("delay", 0.0))
 		if p.get("at") is Vector3:
 			charge_at[id] = p.at
 		else:
 			charge_at.erase(id)
 	charges_changed.emit()
+
+
+func _validate_plan(_sender: int, p: Dictionary) -> Variant:
+	if not is_active():
+		return "nothing to demolish"
+	if is_fired():
+		return "the charges have already fired; reset first"
+	var plan: Variant = p.get("plan")
+	if not plan is Dictionary:
+		return "no plan"
+	var out := {}
+	for id: Variant in plan:
+		var key := str(id)
+		if not by_id.has(key) or released_ids.has(key) or str(by_id[key].get("family", "")) == "foundation":
+			continue
+		var v: Variant = plan[id]
+		var entry: Dictionary = v if v is Dictionary else {"delay": v}
+		var e := {"delay": snappedf(clampf(float(entry.get("delay", 0.0)), 0.0, MAX_DELAY), DELAY_STEP)}
+		if entry.get("at") is Vector3:
+			var box: AABB = (by_id[key].aabb as AABB).grow(0.5)
+			e["at"] = (entry.at as Vector3).clamp(box.position, box.end)
+		if entry.has("size"):
+			e["size"] = clampi(int(entry.size), 0, SIZES.size() - 1)
+		out[key] = e
+		if out.size() >= MAX_CHARGES:
+			break
+	return {"plan": out}
+
+
+func _apply_plan(p: Dictionary) -> void:
+	charges.clear()
+	charge_at.clear()
+	charge_size.clear()
+	var plan: Dictionary = p.get("plan", {})
+	for id: String in plan:
+		var e: Dictionary = plan[id]
+		charges[id] = float(e.delay)
+		if e.get("at") is Vector3:
+			charge_at[id] = e.at
+		if e.has("size"):
+			charge_size[id] = int(e.size)
+	charges_changed.emit()
+
+
+## The plan now in request_plan's form: {part id: {"delay", "at"?, "size"?}}.
+func plan() -> Dictionary:
+	var out := {}
+	for id: String in charges:
+		var e := {"delay": float(charges[id])}
+		if charge_at.has(id):
+			e["at"] = charge_at[id]
+		if charge_size.has(id):
+			e["size"] = charge_size[id]
+		out[id] = e
+	return out
 
 
 func _validate_fire(_sender: int, _p: Dictionary) -> Variant:
@@ -386,6 +473,7 @@ func _clear() -> void:
 	by_id.clear()
 	charges.clear()
 	charge_at.clear()
+	charge_size.clear()
 	fire_at = -1.0
 	blasted_ids.clear()
 	released_ids.clear()
@@ -396,7 +484,7 @@ func get_net_snapshot() -> Dictionary:
 	if not is_active():
 		return {}
 	return {"parts": parts, "title": title, "zone": zone, "neighbours": neighbours,
-			"charges": charges.duplicate(), "charge_at": charge_at.duplicate(), "fire_at": fire_at, "blasted": blasted_ids.duplicate(),
+			"charges": charges.duplicate(), "charge_at": charge_at.duplicate(), "charge_size": charge_size.duplicate(), "fire_at": fire_at, "blasted": blasted_ids.duplicate(),
 			"released": released_ids.duplicate(), "fractured": fractured_ids.duplicate(), "result": result.duplicate(), "open": false}
 
 

@@ -104,6 +104,56 @@ static func chunks(part: Dictionary, size: float = CHUNK) -> Array[AABB]:
 	return out
 
 
+## Auto-sequence presets for the charge plan: their ids and names.
+const SEQUENCES := {"implode": "Implode", "fall_north": "Fall north", "fall_south": "Fall south",
+		"fall_east": "Fall east", "fall_west": "Fall west"}
+## A sequence's charges spread over this many seconds.
+const SEQUENCE_SPAN := 1.5
+
+
+## A charge plan ({part id: delay}) that brings the building down one way: charges on the
+## lowest storey's columns and walls, timed so it implodes (middle first, the outside
+## following) or falls to a side (that side first, the far side last). At most `limit`.
+static func sequence(parts: Array, preset: String, limit := 40) -> Dictionary:
+	var supports: Array[Dictionary] = []
+	var lowest := INF
+	for p: Dictionary in parts:
+		if str(p.get("family", "")) in ["column", "wall"]:
+			lowest = minf(lowest, (p.aabb as AABB).position.y)
+	if lowest == INF:
+		return {}
+	var box := AABB()
+	var first := true
+	for p: Dictionary in parts:
+		if str(p.get("family", "")) in ["column", "wall"] and (p.aabb as AABB).position.y < lowest + 0.5:
+			supports.append(p)
+		box = p.aabb if first else box.merge(p.aabb)
+		first = false
+	var centre := box.get_center()
+	var reach := maxf(Vector2(box.size.x, box.size.z).length() * 0.5, 0.01)
+	var timed: Array = []
+	for p in supports:
+		var c := (p.aabb as AABB).get_center()
+		var t := 0.0
+		match preset:
+			"implode":
+				t = Vector2(c.x - centre.x, c.z - centre.z).length() / reach
+			"fall_north":
+				t = (c.z - box.position.z) / maxf(box.size.z, 0.01)
+			"fall_south":
+				t = (box.end.z - c.z) / maxf(box.size.z, 0.01)
+			"fall_east":
+				t = (box.end.x - c.x) / maxf(box.size.x, 0.01)
+			"fall_west":
+				t = (c.x - box.position.x) / maxf(box.size.x, 0.01)
+		timed.append([snappedf(clampf(t, 0.0, 1.0) * SEQUENCE_SPAN, DemolitionBus.DELAY_STEP), str(p.id)])
+	timed.sort()
+	var out := {}
+	for e: Array in timed.slice(0, limit):
+		out[e[1]] = e[0]
+	return out
+
+
 static func strength(part: Dictionary) -> float:
 	if str(part.get("family", "")) == "foundation":
 		return INF

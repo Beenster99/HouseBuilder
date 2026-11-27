@@ -76,6 +76,17 @@ var _neighbour_hits: Dictionary = {}
 var _charge_marks: Dictionary = {}  # part id -> Node3D
 var _preview := false
 var _delay := 0.0
+## The size new charges go on at (DemolitionBus.SIZES).
+var _size := 1
+## Where on the hovered part the pointer is (world), for placing a charge there.
+var _hover_point: Variant = null
+var _panel: PanelContainer
+var _panel_box: VBoxContainer
+var _delay_label: Label
+var _size_buttons: Array[Button] = []
+var _preview_button: Button
+var _walk_button: Button
+var _sequence: OptionButton
 var _hover := ""
 var _building_root: Node3D
 var _fx_root: Node3D
@@ -583,6 +594,9 @@ func _on_blasted(id: String) -> void:
 	if mark:
 		mark.queue_free()
 		_charge_marks.erase(id)
+	var power := bus.power_of(id)
+	if bus.charges.has(id):
+		at = bus.charge_point(id)
 	_flash(at)
 	_shatter(id)
 	if net.is_host():
@@ -591,8 +605,9 @@ func _on_blasted(id: String) -> void:
 				continue
 			for body: RigidBody3D in _chunks[other]:
 				var d := body.global_position - at
-				if d.length() < BLAST_RADIUS:
-					body.apply_central_impulse(d.normalized() * BLAST_IMPULSE * (1.0 - d.length() / BLAST_RADIUS))
+				var reach := BLAST_RADIUS * sqrt(power)
+				if d.length() < reach:
+					body.apply_central_impulse(d.normalized() * BLAST_IMPULSE * power * (1.0 - d.length() / reach))
 
 
 ## A charge going off breaks its part into fine fragments round the charge, and spalls the
@@ -602,19 +617,20 @@ func _shatter(id: String) -> void:
 	if p.is_empty():
 		return
 	var at := bus.charge_point(id)
-	debris.burst(p.aabb, at, _break_material(p), _part_material(p), 1.0, id)
+	var power := bus.power_of(id)
+	debris.burst(p.aabb, at, _break_material(p), _part_material(p), power, id)
 	for other: Dictionary in bus.parts:
 		if other.id == id or bus.blasted_ids.has(other.id):
 			continue
 		var box: AABB = other.aabb
 		var near := at.clamp(box.position, box.end)
 		var d := near.distance_to(at)
-		if d > SPALL_REACH:
+		if d > SPALL_REACH * power:
 			continue
 		var bit := box.intersection(AABB(at - Vector3.ONE * SPALL_SIZE, Vector3.ONE * SPALL_SIZE * 2.0))
 		if bit.size == Vector3.ZERO:
 			continue
-		debris.burst(bit, near, _break_material(other), _part_material(other), 0.35 * (1.0 - d / SPALL_REACH) + 0.1, str(other.id) + id)
+		debris.burst(bit, near, _break_material(other), _part_material(other), (0.35 * (1.0 - d / (SPALL_REACH * power)) + 0.1) * power, str(other.id) + id)
 
 
 ## How a part breaks: its material, glass for windows.
@@ -703,7 +719,10 @@ func _refresh_charges() -> void:
 				continue
 			_charge_marks[id] = mark
 		(mark.get_node("Delay") as Label3D).text = "%.2fs" % float(bus.charges[id])
+		mark.position = bus.charge_point(id)
+		mark.scale = Vector3.ONE * (0.7 + 0.3 * bus.size_of(id))
 	_refresh_preview()
+	_refresh_panel()
 
 
 func _make_mark(id: String) -> Node3D:
@@ -767,7 +786,9 @@ func part_under_mouse() -> String:
 			camera.project_ray_origin(mouse) + camera.project_ray_normal(mouse) * 800.0)
 	var hit := get_world_3d().direct_space_state.intersect_ray(q)
 	if hit.is_empty() or not (hit.collider as Node).has_meta("part"):
+		_hover_point = null
 		return ""
+	_hover_point = hit.position
 	return str((hit.collider as Node).get_meta("part"))
 
 
@@ -1016,8 +1037,8 @@ func _unhandled_input(event: InputEvent) -> void:
 				if mb.pressed:
 					_dist = clampf(_dist * ZOOM_STEP, 5.0, 500.0)
 			MOUSE_BUTTON_LEFT:
-				if mb.pressed and _hover != "":
-					bus.request_charge(_hover, _delay)
+				if mb.pressed and _hover != "" and not bus.is_fired():
+					bus.request_charge(_hover, _delay, _hover_point, _size)
 	elif event is InputEventMouseMotion:
 		var mm := event as InputEventMouseMotion
 		if _orbiting:
@@ -1030,12 +1051,15 @@ func _unhandled_input(event: InputEvent) -> void:
 	elif event is InputEventKey and event.pressed and not event.echo:
 		match (event as InputEventKey).keycode:
 			KEY_BRACKETLEFT:
-				_delay = maxf(0.0, _delay - DemolitionBus.DELAY_STEP)
+				_set_delay(_delay - DemolitionBus.DELAY_STEP)
 			KEY_BRACKETRIGHT:
-				_delay = minf(DemolitionBus.MAX_DELAY, _delay + DemolitionBus.DELAY_STEP)
+				_set_delay(_delay + DemolitionBus.DELAY_STEP)
 			KEY_P:
-				_preview = not _preview
-				_refresh_preview()
+				_set_preview(not _preview)
+			KEY_1, KEY_2, KEY_3:
+				_set_size((event as InputEventKey).keycode - KEY_1)
+			KEY_I:
+				walk_inside()
 			KEY_F:
 				if not driving_crane():
 					bus.request_fire()
@@ -1079,6 +1103,251 @@ func _build_hud() -> void:
 	col.add_child(_result)
 	help = HelpBar.new()
 	add_child(help)
+	_build_panel(layer)
+
+
+## The charges panel on the right: charge size, delay, auto-sequence presets, the firing
+## timeline in delay groups (pick a group to add to it, move it earlier or later, clear it),
+## the fall preview, walking inside, fire and reset.
+func _build_panel(layer: CanvasLayer) -> void:
+	_panel = PanelContainer.new()
+	_panel.name = "ChargesPanel"
+	_panel.add_theme_stylebox_override("panel", BsxTheme.panel_style(14))
+	_panel.set_anchors_and_offsets_preset(Control.PRESET_TOP_RIGHT)
+	_panel.offset_left = -330
+	_panel.offset_right = -20
+	_panel.offset_top = 20
+	layer.add_child(_panel)
+	var col := VBoxContainer.new()
+	col.add_theme_constant_override("separation", 8)
+	_panel.add_child(col)
+	col.add_child(BsxTheme.hud_label("CHARGES", 18))
+
+	var size_row := HBoxContainer.new()
+	size_row.add_child(BsxTheme.hud_label("Size", 14))
+	for i in DemolitionBus.SIZES.size():
+		var b := Button.new()
+		b.text = DemolitionBus.SIZES[i]
+		b.toggle_mode = true
+		b.tooltip_text = "New charges go on %s (key %d): a heavier charge blasts harder and shatters finer" % [DemolitionBus.SIZES[i].to_lower(), i + 1]
+		b.pressed.connect(_set_size.bind(i))
+		b.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		size_row.add_child(b)
+		_size_buttons.append(b)
+	col.add_child(size_row)
+
+	var delay_row := HBoxContainer.new()
+	delay_row.add_child(BsxTheme.hud_label("Delay", 14))
+	var less := Button.new()
+	less.text = "-"
+	less.tooltip_text = "Earlier: new charges go off sooner after firing ([)"
+	less.pressed.connect(func() -> void: _set_delay(_delay - DemolitionBus.DELAY_STEP))
+	delay_row.add_child(less)
+	_delay_label = BsxTheme.hud_label("0.00 s", 16)
+	_delay_label.custom_minimum_size.x = 70
+	_delay_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	delay_row.add_child(_delay_label)
+	var more := Button.new()
+	more.text = "+"
+	more.tooltip_text = "Later: new charges go off later after firing (])"
+	more.pressed.connect(func() -> void: _set_delay(_delay + DemolitionBus.DELAY_STEP))
+	delay_row.add_child(more)
+	col.add_child(delay_row)
+
+	_sequence = OptionButton.new()
+	_sequence.name = "Sequence"
+	_sequence.tooltip_text = "Plan it for me: charges on the lowest storey timed to bring the building down that way (replaces the plan)"
+	_sequence.add_item("Auto sequence...")
+	for key: String in DemolitionRules.SEQUENCES:
+		_sequence.add_item(DemolitionRules.SEQUENCES[key])
+		_sequence.set_item_metadata(_sequence.item_count - 1, key)
+	_sequence.item_selected.connect(func(i: int) -> void:
+		if i > 0:
+			apply_sequence(str(_sequence.get_item_metadata(i)))
+		_sequence.select(0))
+	col.add_child(_sequence)
+
+	col.add_child(BsxTheme.hud_label("Timeline", 14))
+	var scroll := ScrollContainer.new()
+	scroll.custom_minimum_size = Vector2(0, 220)
+	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	col.add_child(scroll)
+	_panel_box = VBoxContainer.new()
+	_panel_box.name = "Groups"
+	_panel_box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	scroll.add_child(_panel_box)
+
+	var tools := HBoxContainer.new()
+	_preview_button = Button.new()
+	_preview_button.text = "Preview fall"
+	_preview_button.toggle_mode = true
+	_preview_button.tooltip_text = "Show in orange what comes down if the charges fire now (P)"
+	_preview_button.toggled.connect(_set_preview)
+	tools.add_child(_preview_button)
+	var clear := Button.new()
+	clear.text = "Clear all"
+	clear.tooltip_text = "Take every charge off"
+	clear.pressed.connect(func() -> void: bus.request_plan({}))
+	tools.add_child(clear)
+	col.add_child(tools)
+	_walk_button = Button.new()
+	_walk_button.text = "Walk inside (I)"
+	_walk_button.tooltip_text = "Walk round inside the building to put charges on inside walls, columns and floors"
+	_walk_button.pressed.connect(walk_inside)
+	col.add_child(_walk_button)
+	var fire_row := HBoxContainer.new()
+	var fire := Button.new()
+	fire.text = "FIRE (F)"
+	fire.tooltip_text = "Fire: a 3 s countdown, then each charge at its delay"
+	fire.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	fire.pressed.connect(func() -> void: bus.request_fire())
+	fire_row.add_child(fire)
+	var reset := Button.new()
+	reset.text = "Reset (R)"
+	reset.tooltip_text = "Stand the building up again, charges kept"
+	reset.pressed.connect(func() -> void: bus.request_reset())
+	fire_row.add_child(reset)
+	col.add_child(fire_row)
+	_set_size(_size)
+	_refresh_panel()
+
+
+func _set_size(i: int) -> void:
+	_size = clampi(i, 0, DemolitionBus.SIZES.size() - 1)
+	for k in _size_buttons.size():
+		_size_buttons[k].set_pressed_no_signal(k == _size)
+
+
+func _set_delay(d: float) -> void:
+	_delay = clampf(snappedf(d, DemolitionBus.DELAY_STEP), 0.0, DemolitionBus.MAX_DELAY)
+	_refresh_panel()
+
+
+func _set_preview(on: bool) -> void:
+	_preview = on
+	if _preview_button:
+		_preview_button.set_pressed_no_signal(on)
+	_refresh_preview()
+
+
+## Replaces the plan with an auto-sequence preset (DemolitionRules.SEQUENCES), every charge
+## at the chosen size, and shows the fall.
+func apply_sequence(preset: String) -> void:
+	var plan := {}
+	var seq := DemolitionRules.sequence(bus.parts, preset, DemolitionBus.MAX_CHARGES)
+	for id: String in seq:
+		plan[id] = {"delay": seq[id], "size": _size}
+	bus.request_plan(plan)
+	_set_preview(true)
+	help.say("%s: %d charges on the lowest storey" % [DemolitionRules.SEQUENCES.get(preset, preset), plan.size()])
+
+
+## The firing timeline as delay groups: [[delay, [part ids]], ...], earliest first.
+func groups() -> Array:
+	var by_delay := {}
+	for id: String in bus.charges:
+		var d := float(bus.charges[id])
+		if not by_delay.has(d):
+			by_delay[d] = []
+		by_delay[d].append(id)
+	var out: Array = []
+	for d: float in by_delay:
+		out.append([d, by_delay[d]])
+	out.sort_custom(func(a: Array, b: Array) -> bool: return a[0] < b[0])
+	return out
+
+
+## Moves every charge in the group at `delay` by `by` seconds (merging with a group there).
+func shift_group(delay: float, by: float) -> void:
+	var plan := bus.plan()
+	for id: String in plan:
+		if is_equal_approx(float(plan[id].delay), delay):
+			plan[id].delay = clampf(float(plan[id].delay) + by, 0.0, DemolitionBus.MAX_DELAY)
+	bus.request_plan(plan)
+
+
+func remove_group(delay: float) -> void:
+	var plan := bus.plan()
+	for id: String in plan.keys():
+		if is_equal_approx(float(plan[id].delay), delay):
+			plan.erase(id)
+	bus.request_plan(plan)
+
+
+func _refresh_panel() -> void:
+	if _panel_box == null:
+		return
+	_delay_label.text = "%.2f s" % _delay
+	_walk_button.visible = _walk_model() != null
+	for c in _panel_box.get_children():
+		c.queue_free()
+	var gs := groups()
+	if gs.is_empty():
+		_panel_box.add_child(BsxTheme.hud_label("No charges yet: click a column or wall, or pick an auto sequence.", 13))
+		(_panel_box.get_child(_panel_box.get_child_count() - 1) as Label).autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		return
+	for g: Array in gs:
+		var d: float = g[0]
+		var ids: Array = g[1]
+		var row := HBoxContainer.new()
+		var pick := Button.new()
+		pick.text = "%s%.2f s  ·  %d" % ["> " if is_equal_approx(d, _delay) else "", d, ids.size()]
+		pick.flat = true
+		pick.tooltip_text = "Add new charges to this group: %s" % ", ".join(ids.map(func(i: String) -> String: return _part_name(i)))
+		pick.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		pick.alignment = HORIZONTAL_ALIGNMENT_LEFT
+		pick.pressed.connect(_set_delay.bind(d))
+		row.add_child(pick)
+		for spec: Array in [["<", -DemolitionBus.DELAY_STEP, "Earlier"], [">", DemolitionBus.DELAY_STEP, "Later"]]:
+			var b := Button.new()
+			b.text = spec[0]
+			b.tooltip_text = "%s: move this whole group %.2f s %s" % [spec[2], DemolitionBus.DELAY_STEP, str(spec[2]).to_lower()]
+			b.pressed.connect(shift_group.bind(d, float(spec[1])))
+			row.add_child(b)
+		var x := Button.new()
+		x.text = "x"
+		x.tooltip_text = "Take this group's charges off"
+		x.pressed.connect(remove_group.bind(d))
+		row.add_child(x)
+		_panel_box.add_child(row)
+
+
+## "Column, ground floor" for a part id.
+func _part_name(id: String) -> String:
+	var p: Dictionary = bus.by_id.get(id, {})
+	if p.is_empty():
+		return id
+	var level := int(p.get("level", 0))
+	return "%s, %s" % [str(p.get("family", "part")).capitalize(), "ground floor" if level == 0 else "floor %d" % level]
+
+
+## The building model to walk round: the design this demolition came from, when its parts
+## are the model's (and the walk-inside module is loaded with a charges mode).
+func _walk_model() -> BuildingModel:
+	var walk := Modules.bus("walk")
+	if walk == null or not walk.has_method("open") or not bus.is_active() or bus.is_fired():
+		return null
+	var count := 0
+	for m: Dictionary in walk.get_method_list():
+		if str(m.name) == "open":
+			count = (m.args as Array).size()
+	if count < 5:
+		return null
+	var model := bus.model
+	if model == null:
+		var building := Modules.bus("building") as BuildingBus
+		model = building.model if building else null
+	if model == null or bus.parts.is_empty() or not model.parts.has(str(bus.parts[0].id)):
+		return null
+	return model
+
+
+## Walks inside the building to place charges (the walk module's charges mode).
+func walk_inside() -> void:
+	var model := _walk_model()
+	if model == null:
+		return
+	Modules.bus("walk").call("open", model, self, {}, null, {"mode": "charges"})
 
 
 ## The help line: what to do in the mode the player is in (crane, charging, after firing).
@@ -1090,8 +1359,10 @@ func _update_help() -> void:
 	elif bus.is_active() and bus.is_fired():
 		help.set_help("COLLAPSE", HelpBar.keys_text([["R", "reset and try again"]] + view), BsxTheme.WARN)
 	elif bus.is_active():
-		help.set_help("PLACE CHARGES", HelpBar.keys_text([["click a part", "charge it"], ["[ ]", "delay"],
-				["P", "preview"], ["F", "fire"], ["R", "reset"]] + ([["Tab", "crane"]] if _tip != null else []) + view))
+		help.set_help("PLACE CHARGES", HelpBar.keys_text([["click a part", "charge it (again: take it off)"],
+				["[ ]", "delay"], ["1 2 3", "size"], ["P", "preview"], ["F", "fire"], ["R", "reset"]]
+				+ ([["I", "walk inside"]] if _walk_button and _walk_button.visible else [])
+				+ ([["Tab", "crane"]] if _tip != null else []) + view))
 	else:
 		help.set_help("DEMOLITION", "Nothing to demolish yet: build something first.")
 	if _hover != "":
@@ -1108,9 +1379,9 @@ func _hover_text(id: String) -> String:
 					"ground floor" if level == 0 else "floor %d" % level]
 			break
 	if bus.charges.has(id):
-		line += "  ·  charged, %.2f s" % float(bus.charges[id])
+		line += "  ·  %s charge, %.2f s  ·  click again to take it off" % [str(DemolitionBus.SIZES[bus.size_of(id)]).to_lower(), float(bus.charges[id])]
 	elif not bus.is_fired():
-		line += "  ·  click to charge"
+		line += "  ·  click to put a %s charge on it at %.2f s" % [str(DemolitionBus.SIZES[_size]).to_lower(), _delay]
 	return line
 
 
@@ -1127,17 +1398,9 @@ func _update_hud() -> void:
 	if owner != 0:
 		line += "  ·  crane: %s" % net.player_name(owner)
 	_status.text = line
-	var entries: Array = []
-	for id: String in bus.charges:
-		entries.append([float(bus.charges[id]), id])
-	entries.sort()
-	var parts_text: PackedStringArray = []
-	for e: Array in entries.slice(0, 8):
-		parts_text.append("%.2fs %s" % [e[0], e[1]])
-	if entries.size() > 8:
-		parts_text.append("+%d more" % (entries.size() - 8))
-	_plan.text = "Charges %d/%d: %s" % [bus.charges.size(), DemolitionBus.MAX_CHARGES,
-			", ".join(parts_text) if not parts_text.is_empty() else "none yet"]
+	var gs := groups()
+	_plan.text = "Charges %d/%d" % [bus.charges.size(), DemolitionBus.MAX_CHARGES] + \
+			("  ·  %d groups, %.2f to %.2f s" % [gs.size(), gs[0][0], gs.back()[0]] if not gs.is_empty() else "  ·  none yet")
 
 
 func _show_result() -> void:
