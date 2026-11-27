@@ -41,6 +41,14 @@ var _save_name: LineEdit
 var _load_popup: PopupPanel
 var _load_list: ItemList
 var _cost_dirty := true
+## Each part's and room's cost, kept up to date edit by edit.
+var _book: DesignCostBook
+var _book_rev := -1
+var _cost_age := 0.0
+## The cost panel redraws at most this often, s.
+const COST_EVERY := 0.25
+## Rooms listed in the cost panel; the Rooms tab lists them all.
+const COST_ROOMS := 30
 var _status_age := 0.0
 
 
@@ -48,6 +56,9 @@ func _ready() -> void:
 	_session = room.get("session")
 	_model = _session.model
 	_net = _session.net
+	_book = DesignCostBook.new(_model)
+	# Cost the building while the room opens; a design loaded later is costed a slice a frame.
+	_book.update()
 	theme = BsxTheme.get_theme()
 	set_anchors_and_offsets_preset(PRESET_FULL_RECT)
 	mouse_filter = MOUSE_FILTER_IGNORE
@@ -60,10 +71,8 @@ func _ready() -> void:
 	_session.level_changed.connect(func(_l: int) -> void: refresh_bar())
 	_session.status.connect(_show_status)
 	_model.changed.connect(func(op: Dictionary) -> void:
-		_cost_dirty = true
 		if str(op.get("op", "")) == "set_meta" and _session.tool == "note":
 			_refresh_tools())
-	_model.loaded.connect(func() -> void: _cost_dirty = true)
 	_net.peer_joined.connect(func(_p: int, _pr: Dictionary) -> void: refresh_bar())
 	_net.peer_left.connect(func(_p: int, _r: String) -> void: refresh_bar())
 	_net.session_started.connect(func(_h: bool) -> void: refresh_bar())
@@ -82,10 +91,21 @@ func _ready() -> void:
 	refresh_bar()
 
 
+func _exit_tree() -> void:
+	_book.unbind()
+
+
 func _process(delta: float) -> void:
-	if _cost_dirty:
-		_cost_dirty = false
-		_refresh_cost()
+	# Up to 1.5 ms a frame of re-costing (all of it at once after an edit on most buildings),
+	# and the panel redrawn at most four times a second.
+	var current := _book.update(1500)
+	_cost_age += delta
+	if (_book.revision != _book_rev or _cost_dirty) and _cost_age >= COST_EVERY:
+		if current or _cost_age >= 1.0:
+			_cost_age = 0.0
+			_cost_dirty = not current
+			_book_rev = _book.revision
+			_refresh_cost()
 	_status_age += delta
 	if _status_age > 6.0 and _status.modulate.a > 0.0:
 		_status.modulate.a = maxf(0.0, _status.modulate.a - delta)
@@ -463,11 +483,15 @@ func _build_cost() -> void:
 	p.offset_top = TOP_H
 	p.offset_bottom = -44
 	add_child(p)
+	# The right dock scrolls as one: the View's panel, the live windows, then the cost.
+	var scroll := ScrollContainer.new()
+	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	p.add_child(scroll)
 	var col := VBoxContainer.new()
-	p.add_child(col)
+	col.size_flags_horizontal = SIZE_EXPAND_FILL
+	scroll.add_child(col)
 	_overlay_slot = VBoxContainer.new()
 	_overlay_slot.visible = false
-	_overlay_slot.size_flags_vertical = SIZE_EXPAND_FILL
 	col.add_child(_overlay_slot)
 	_side_slot = VBoxContainer.new()
 	_side_slot.name = "SidePanels"
@@ -475,8 +499,8 @@ func _build_cost() -> void:
 	col.add_child(_side_slot)
 	_cost = RichTextLabel.new()
 	_cost.bbcode_enabled = true
-	_cost.scroll_active = true
-	_cost.size_flags_vertical = SIZE_EXPAND_FILL
+	_cost.scroll_active = false
+	_cost.fit_content = true
 	col.add_child(_cost)
 
 
@@ -520,9 +544,10 @@ func side_panel_count() -> int:
 
 
 func _refresh_cost() -> void:
-	var s := DesignCosts.summary(_model)
+	var s := _book.summary()
 	var cur := str(s.currency)
-	var t := "[font_size=14][color=#%s]COST · LIVE[/color][/font_size]\n" % BsxTheme.HUD_DIM.to_html(false)
+	var t := "[font_size=14][color=#%s]COST · LIVE%s[/color][/font_size]\n" % [BsxTheme.HUD_DIM.to_html(false),
+			"" if bool(s.current) else " · costing %d%%" % int(float(s.progress) * 100.0)]
 	t += "[font_size=30][b]%s[/b][/font_size]\n" % DesignCosts.money(s.total, cur)
 	t += "[color=#%s]structure %s · fit-out %s · floor %.0f m²[/color]\n" % [BsxTheme.MUTED.to_html(false),
 			DesignCosts.money(s.structure, cur), DesignCosts.money(s.fit_out, cur), s.floor_area]
@@ -535,7 +560,12 @@ func _refresh_cost() -> void:
 	t += "\n[b]By level[/b]\n"
 	t += _rows(s.levels, cur)
 	t += "\n[b]Rooms[/b]\n"
+	var listed := 0
 	for r: Dictionary in s.rooms:
+		listed += 1
+		if listed > COST_ROOMS:
+			t += "[color=#%s]and %d more in the Rooms tab[/color]\n" % [BsxTheme.MUTED.to_html(false), (s.rooms as Array).size() - COST_ROOMS]
+			break
 		var c := BsxTheme.WARN.to_html(false) if r.short else BsxTheme.TEXT.to_html(false)
 		t += "[color=#%s]%s · L%d · %.1f m²%s[/color]\n" % [c, r.label, int(r.level), r.area,
 				" (min %.0f)" % r.min_area if r.short else ""]

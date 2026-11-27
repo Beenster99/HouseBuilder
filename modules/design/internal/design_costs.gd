@@ -1,6 +1,7 @@
 class_name DesignCosts
 extends RefCounted
-## The live cost and requirement panel's content, worked out from the model after each edit:
+## The live cost and requirement panel's content (the room keeps a DesignCostBook so edits
+## re-cost only what they touch; summary() here works it all out from scratch):
 ## the running total, the split by part family and by level, the room schedule, and plain
 ## notes on what looks wrong with a tip for each (a room under its minimum size, a door in
 ## no wall, a storey with nothing to stand on). Pure, so tests read the same numbers.
@@ -14,63 +15,47 @@ const FAMILY_LABELS := {"foundation": "Foundations", "column": "Columns", "beam"
 ##  levels: [{label, cost}], rooms: [{id, label, area, min_area, short, capacity}],
 ##  notes: [{text, tip, warn}]}
 static func summary(model: BuildingModel) -> Dictionary:
-	var t := BuildingQuantities.totals(model)
-	var fams: Array = []
-	for fam: String in model.catalog.families:
-		var cost := float(t.by_family.get(fam, 0.0))
-		if cost > 0.0:
-			fams.append({"label": FAMILY_LABELS.get(fam, fam.capitalize()), "cost": cost})
-	if float(t.fit_out) > 0.0:
-		fams.append({"label": "Room fit-out", "cost": float(t.fit_out)})
-	var lvls: Array = []
-	for i in model.level_count():
-		lvls.append({"label": str(model.levels[i].get("name", "Level %d" % i)), "cost": float(t.by_level.get(str(i), 0.0))})
-	var rooms: Array = []
-	for rid in BuildingModel.sort_ids(model.rooms.keys()):
-		var e: Dictionary = model.rooms[rid]
-		var q := BuildingQuantities.room(model, rid)
-		var rt := model.catalog.room_type(str(e.type))
-		rooms.append({"id": rid, "label": str(e.get("name", "")) if str(e.get("name", "")) != "" else str(rt.get("label", e.type)),
-				"type": str(e.type), "level": int(e.level), "area": float(q.area), "min_area": float(q.min_area),
-				"short": bool(q.short), "capacity": int(q.capacity)})
-	return {"total": float(t.cost), "structure": float(t.structure), "fit_out": float(t.fit_out),
-			"floor_area": float(t.floor_area), "currency": str(t.currency), "families": fams,
-			"levels": lvls, "rooms": rooms, "notes": notes(model, rooms)}
+	var book := DesignCostBook.new(model)
+	book.update()
+	var out := book.summary()
+	book.unbind()
+	return out
 
 
-static func notes(model: BuildingModel, rooms: Array) -> Array:
+## Notes on what looks wrong, from the room schedule and counts the cost book keeps:
+## per_level [{parts, walls, slabs, rooms}], fam_count {family: parts}.
+static func notes_from(model: BuildingModel, rooms: Array, per_level: Array, fam_count: Dictionary) -> Array:
 	var out: Array = []
+	var shown := 0
+	var short := 0
 	for r: Dictionary in rooms:
 		if r.short:
-			out.append({"warn": true, "text": "%s is %.1f m², under the %.0f m² a %s needs." % [r.label, r.area, r.min_area, r.label.to_lower()],
-					"tip": "Select it and drag a wall out, or paint a bigger room."})
-	var walls := model.parts_of_family("wall")
-	for i in model.level_count():
-		var on := model.parts_on(i)
-		var has_rooms := not model.rooms_on(i).is_empty()
-		var has_walls := false
-		for pid in on:
-			if pid in walls:
-				has_walls = true
-				break
-		if has_rooms and not has_walls:
-			out.append({"warn": true, "text": "%s has rooms but no walls." % str(model.levels[i].get("name", "Level %d" % i)),
+			short += 1
+			if shown < 8:
+				shown += 1
+				out.append({"warn": true, "text": "%s is %.1f m², under the %.0f m² a %s needs." % [r.label, r.area, r.min_area, str(r.label).to_lower()],
+						"tip": "Select it and drag a wall out, or paint a bigger room."})
+	if short > shown:
+		out.append({"warn": true, "text": "%d more rooms are under their minimum size." % (short - shown), "tip": "The Rooms tab marks them (small)."})
+	for i in per_level.size():
+		var lv: Dictionary = per_level[i]
+		var name := str(model.levels[i].get("name", "Level %d" % i))
+		if int(lv.rooms) > 0 and int(lv.walls) == 0:
+			out.append({"warn": true, "text": "%s has rooms but no walls." % name,
 					"tip": "Turn on Walls in the room tool, or draw walls round the rooms."})
-		if i > 0 and not on.is_empty():
-			var floor_found := false
-			for pid in on:
-				if model.catalog.family_of(str(model.parts[pid].kind)) == "slab":
-					floor_found = true
-					break
-			if not floor_found:
-				out.append({"warn": true, "text": "%s has no floor slab." % str(model.levels[i].get("name", "Level %d" % i)),
-						"tip": "Use Floor slab to lay a floor under the rooms on this level."})
+		if i > 0 and int(lv.parts) > 0 and int(lv.slabs) == 0:
+			out.append({"warn": true, "text": "%s has no floor slab." % name,
+					"tip": "Use Floor slab to lay a floor under the rooms on this level."})
 	var top := model.level_count() - 1
-	if not model.parts.is_empty() and model.parts_of_family("roof").is_empty():
+	var walls := int(fam_count.get("wall", 0))
+	var any := false
+	for f: String in fam_count:
+		any = any or int(fam_count[f]) > 0
+	if any and int(fam_count.get("roof", 0)) == 0:
 		out.append({"warn": false, "text": "No roof yet.", "tip": "Go to the top level (%s) and drag a Roof over it." % str(model.levels[top].get("name", ""))})
-	if not walls.is_empty() and model.parts_of_family("opening").is_empty():
+	if walls > 0 and int(fam_count.get("opening", 0)) == 0:
 		out.append({"warn": false, "text": "No doors or windows yet.", "tip": "Pick Door or Window and click on a wall."})
-	if not walls.is_empty() and model.parts_of_family("foundation").is_empty():
+	if walls > 0 and int(fam_count.get("foundation", 0)) == 0:
 		out.append({"warn": false, "text": "Nothing carries the walls into the ground yet.",
 				"tip": "Add a raft under the ground floor, or strip footings under the walls."})
 	return out

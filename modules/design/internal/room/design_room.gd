@@ -97,7 +97,8 @@ func _ready() -> void:
 	session.presence.locks_changed.connect(func() -> void: _tint_dirty = true)
 	session.presence.pulsed.connect(_on_pulsed)
 	design.pulse_requested.connect(_on_pulse_requested)
-	building.model.changed.connect(func(_op: Dictionary) -> void: _tint_dirty = true)
+	# Only an overlay's colours depend on the building itself.
+	building.model.changed.connect(func(_op: Dictionary) -> void: _tint_dirty = _tint_dirty or overlay != "")
 	building.model.loaded.connect(func() -> void: _tint_dirty = true)
 	design.overlay_changed.connect(func(id: String) -> void:
 		if id == overlay:
@@ -278,13 +279,9 @@ func _update_tints() -> void:
 		var colour := MINE if peer == net.local_peer_id() else net.player_colour(peer)
 		for id in p.selections[peer]:
 			want[id] = colour
-	for id: String in building.model.parts:
+	for id: String in p.held:
 		var owner := p.locked_by(id)
-		if owner != 0 and owner != net.local_peer_id():
-			want[id] = net.player_colour(owner).lightened(0.2)
-	for id: String in building.model.rooms:
-		var owner := p.locked_by(id)
-		if owner != 0 and owner != net.local_peer_id():
+		if owner != 0 and owner != net.local_peer_id() and building.model.has(id):
 			want[id] = net.player_colour(owner).lightened(0.2)
 	for id: String in _pulses:
 		want[id] = PULSE

@@ -199,7 +199,7 @@ func run_tests() -> void:
 
 	# Costs and notes.
 	var sum := DesignCosts.summary(model)
-	check(float(sum.total) > 1000.0 and float(sum.total) == float(BuildingQuantities.totals(model).cost), "live total: %s" % DesignCosts.money(sum.total))
+	check(float(sum.total) > 1000.0 and is_equal_approx(float(sum.total), float(BuildingQuantities.totals(model).cost)), "live total: %s" % DesignCosts.money(sum.total))
 	var short := false
 	var no_floor := false
 	for n: Dictionary in sum.notes:
@@ -208,6 +208,17 @@ func run_tests() -> void:
 	check(short, "the panel says the 4 m² bedroom is too small: %s" % str(sum.notes))
 	check(no_floor, "and that the upper floor has no slab")
 	check(DesignCosts.money(1234567.4) == "£1,234,567", "money reads well")
+	var book := DesignCostBook.new(model)
+	book.update()
+	var walls_before := model.parts_of_family("wall")
+	sync.edit(BuildingCommands.place_part("column", 0, {"at": [30.0, 0.0, 30.0]}, "steel"))
+	if not walls_before.is_empty():
+		sync.edit(BuildingCommands.place_opening("window_medium", walls_before[0], 0.8))
+	check(not book.is_current(), "an edit leaves the book a little to re-cost")
+	book.update()
+	check(is_equal_approx(float(book.summary().total), float(BuildingQuantities.totals(model).cost)),
+			"re-costing only what changed matches costing it all: %s" % DesignCosts.money(book.summary().total))
+	book.unbind()
 
 	# Save and load (notes go with the design).
 	var before := model.checksum()

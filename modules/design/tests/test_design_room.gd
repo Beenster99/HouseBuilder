@@ -90,7 +90,7 @@ func run_tests() -> void:
 	GraphicsOptions.set_value("art_style", look_was)
 	Graphics.apply_all()
 	var browser: TabContainer = hud.get("browser")
-	browser.call("refresh")
+	browser.call("refresh", true)
 	check(int(browser.call("room_rows")) >= 1 and int(browser.call("component_rows")) >= 1,
 			"the browser lists the rooms and components")
 	browser.call("_pick_room", 0)

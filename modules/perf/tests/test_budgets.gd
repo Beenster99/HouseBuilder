@@ -24,9 +24,6 @@ const KNOWN := {
 	"stress.office": [450.0, "structure", "a cold stress test sits near the 500 ms button budget (the live check is off the main thread and reuses unchanged floors)"],
 	"stress.terminal": [900.0, "structure", "a cold stress test of 4,900 members (off the main thread in game; edits re-check in ~0.6 s)"],
 	"route.terminal": [800.0, "services", "routing 384 rooms (runs on a worker thread since 2026-11-27, so no frame waits on it)"],
-	"design_open.terminal": [25500.0, "design", "one MeshInstance3D and BoxMesh per box; all built in one frame"],
-	"design_edit.office": [1050.0, "design", "an edit recosts the whole building and redraws every slab"],
-	"design_edit.terminal": [16000.0, "design", "an edit recosts the whole building and redraws every slab"],
 	"demolition_physics.office": [40.0, "demolition", "about 800 parts fall at once, each one body until it breaks up (was 110 ms; 22-40 ms alone, 60 with the suite running)"],
 	"demolition_hitch.office": [60.0, "demolition", "the worst physics frame of the collapse (40 ms alone, 60 with the suite running)"],
 }

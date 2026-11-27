@@ -18,6 +18,7 @@ var _pings: Node3D
 var _dims: Node3D
 var _measure: Node3D
 var _ping_nodes: Dictionary = {}  # ping id -> {node, born}
+var _dim_nodes: Dictionary = {}  # wall id -> Label3D
 
 
 func bind(m: BuildingModel, bus: MultiplayerBus) -> void:
@@ -32,7 +33,11 @@ func bind(m: BuildingModel, bus: MultiplayerBus) -> void:
 	_dims = $Dimensions
 	_measure = $Measure
 	model.changed.connect(_on_changed)
+	model.entry_added.connect(_dim_entry)
+	model.entry_changed.connect(_dim_entry)
+	model.entry_removed.connect(_dim_entry)
 	model.loaded.connect(redraw)
+	model.levels_changed.connect(redraw)
 	net.ping_received.connect(_on_ping)
 	net.ping_removed.connect(_drop_ping)
 	for p: Dictionary in net.pings():
@@ -43,7 +48,6 @@ func bind(m: BuildingModel, bus: MultiplayerBus) -> void:
 func _on_changed(op: Dictionary) -> void:
 	if str(op.get("op", "")) == "set_meta" or str(op.get("op", "")) == "batch":
 		_draw_notes()
-	_draw_dimensions()
 
 
 func set_level(l: int) -> void:
@@ -179,16 +183,27 @@ func ping_count() -> int:
 func _draw_dimensions() -> void:
 	for c in _dims.get_children():
 		c.queue_free()
-	var floor_y := model.level_elevation(level)
+	_dim_nodes.clear()
 	for pid in model.parts_on(level):
-		var e: Dictionary = model.parts[pid]
-		if model.catalog.family_of(str(e.kind)) != "wall":
-			continue
-		var a := Vector3(float(e.a[0]), 0, float(e.a[2]))
-		var b := Vector3(float(e.b[0]), 0, float(e.b[2]))
-		var label := _dim_label("%.2f m" % a.distance_to(b))
-		label.position = (a + b) / 2.0 + Vector3(0, floor_y + model.part_height(pid) + 0.25, 0)
-		_dims.add_child(label)
+		_dim_entry(pid)
+
+
+## Puts a wall's length label up, moves it, or takes it down, as the wall changes.
+func _dim_entry(id: String) -> void:
+	if _dim_nodes.has(id):
+		(_dim_nodes[id] as Node).queue_free()
+		_dim_nodes.erase(id)
+	if not model.parts.has(id):
+		return
+	var e: Dictionary = model.parts[id]
+	if model.catalog.family_of(str(e.kind)) != "wall" or int(e.get("level", -1)) != level:
+		return
+	var a := Vector3(float(e.a[0]), 0, float(e.a[2]))
+	var b := Vector3(float(e.b[0]), 0, float(e.b[2]))
+	var label := _dim_label("%.2f m" % a.distance_to(b))
+	label.position = (a + b) / 2.0 + Vector3(0, model.level_elevation(level) + model.part_height(id) + 0.25, 0)
+	_dims.add_child(label)
+	_dim_nodes[id] = label
 
 
 ## This player's tape: from a to b (world), or clear it with null.

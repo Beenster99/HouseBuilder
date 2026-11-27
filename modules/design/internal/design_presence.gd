@@ -14,6 +14,9 @@ extends Node
 signal selection_changed(peer_id: int, ids: PackedStringArray)
 signal locks_changed
 signal peers_changed
+## Entries someone holds a claim on now: id -> peer (kept from claim_changed, so the room need
+## not ask about every entry).
+var held: Dictionary = {}
 ## Entries to flash for a moment on every player's screen (the engineer's new supports).
 signal pulsed(ids: PackedStringArray)
 
@@ -302,7 +305,11 @@ func _on_session_started(_as_host: bool) -> void:
 	_resync_movers()
 
 
-func _on_claim_changed(_id: String, _peer: int) -> void:
+func _on_claim_changed(id: String, peer: int) -> void:
+	if peer == 0:
+		held.erase(id)
+	else:
+		held[id] = peer
 	locks_changed.emit()
 
 
@@ -312,6 +319,7 @@ func _on_session_ended(_reason: String) -> void:
 		if peer != me:
 			selections.erase(peer)
 	_my_locks.clear()
+	held.clear()
 	locks_changed.emit()
 	_resync_movers()
 
