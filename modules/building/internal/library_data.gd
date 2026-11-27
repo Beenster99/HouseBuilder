@@ -18,14 +18,18 @@ extends RefCounted
 ## Asset categories that can be placed as parts. Structure, openings, roofs and stairs have
 ## their own catalog kinds; roads, rail, bridges, earthworks, demolition, people and the
 ## neighbouring buildings are the site's, not the design's.
-const CATEGORIES: PackedStringArray = ["furniture", "hospital", "school", "office", "police", "hospitality", "retail",
+const CATEGORIES: PackedStringArray = ["furniture", "home", "farm", "animal", "hospital", "school", "office", "police", "hospitality", "retail",
 		"sport", "airport", "services", "industrial", "energy", "water", "street", "landscape", "boundary", "vehicle", "plant"]
 ## Asset id prefixes that are never placed by hand (the services module draws its own fittings).
-const SKIP: PackedStringArray = ["services.pipe.", "services.duct.", "services.tray."]
+## Also whole runs and farms of things (a line of pylons, a wind farm) and whole buildings.
+const SKIP: PackedStringArray = ["services.pipe.", "services.duct.", "services.tray.", "energy.line.", "energy.wind.farm_",
+		"airport.airside.hangar"]
+## Nothing bigger than this (m, along any side) is placed as one part.
+const MAX_SIZE := 100.0
 
 ## The palette group each category goes in.
 const GROUPS := {
-	"furniture": "Furniture", "hospital": "Healthcare", "school": "Education", "office": "Office",
+	"furniture": "Furniture", "home": "Home", "farm": "Farm", "animal": "Animals", "hospital": "Healthcare", "school": "Education", "office": "Office",
 	"police": "Police", "hospitality": "Catering and hotel", "retail": "Retail", "sport": "Sport",
 	"airport": "Airport", "services": "Services", "industrial": "Industrial", "energy": "Energy",
 	"water": "Water", "street": "Street and garden", "landscape": "Landscape", "boundary": "Gates and posts",
@@ -41,6 +45,34 @@ const RULES := {
 	"water.": {"cost": 30000.0}, "street.": {"cost": 900.0, "outdoor": true},
 	"landscape.": {"cost": 150.0, "outdoor": true}, "boundary.": {"cost": 250.0, "outdoor": true},
 	"vehicle.": {"loose": true, "outdoor": true}, "plant.": {"loose": true, "outdoor": true},
+	"home.": {"cost": 150.0}, "farm.": {"cost": 800.0, "outdoor": true}, "animal.": {"loose": true, "outdoor": true},
+
+	# Home
+	"home.art.": {"cost": 120.0}, "home.art.poster": {"cost": 30.0},
+	"home.av.": {"cost": 600.0, "power": 120, "data": true}, "home.av.console": {"cost": 450.0, "power": 150},
+	"home.av.speaker": {"cost": 250.0, "power": 30}, "home.av.tv_32": {"cost": 250.0, "power": 50},
+	"home.av.tv_85": {"cost": 2500.0, "power": 250},
+	"home.bath.corner": {"cost": 1200.0, "cold": true, "hot": true, "drain": true, "cap": {"bath": 1}},
+	"home.bath.freestanding": {"cost": 2500.0, "cold": true, "hot": true, "drain": true, "cap": {"bath": 1}},
+	"home.bath.shower_enclosure": {"cost": 1300.0, "cold": true, "hot": true, "drain": true, "power": 8500, "cap": {"shower": 1}},
+	"home.bath.shower_screen": {"cost": 400.0}, "home.bath.toilet_roll": {"cost": 20.0},
+	"home.bath.towel_rail": {"cost": 250.0, "heat": 400, "heating": true},
+	"home.child.": {"cost": 100.0}, "home.garage.bike_hook": {"cost": 20.0},
+	"home.garage.car_lift": {"cost": 12000.0, "power": 3000},
+	"home.garden.": {"cost": 800.0, "outdoor": true}, "home.garden.hot_tub": {"cost": 7000.0, "power": 3000, "cold": true, "drain": true, "outdoor": true},
+	"home.garden.shed_large": {"cost": 2500.0, "outdoor": true}, "home.garden.summer_house": {"cost": 6000.0, "power": 500, "outdoor": true},
+	"home.light.": {"cost": 120.0, "power": 20},
+	"home.plant.": {"cost": 60.0}, "home.soft.": {"cost": 30.0},
+	"home.utility.aquarium": {"cost": 600.0, "power": 150}, "home.utility.dog_bed": {"cost": 60.0},
+	"home.utility.exercise_bike": {"cost": 600.0, "power": 50}, "home.utility.loft_ladder": {"cost": 400.0},
+	"home.utility.water_cylinder": {"cost": 1500.0, "power": 3000, "cold": true, "hot": true, "heating": true},
+
+	# Farm
+	"farm.bale.": {"loose": true, "outdoor": true},
+	"farm.store.feed_bin_single": {"cost": 6000.0}, "farm.store.feed_bin_twin": {"cost": 11000.0},
+	"farm.store.silage_clamp": {"cost": 15000.0}, "farm.store.slurry_tank": {"cost": 40000.0, "drain": true},
+	"farm.yard.churn_stand": {"cost": 600.0}, "farm.yard.diesel_tank": {"cost": 3000.0},
+	"farm.yard.heap_": {"loose": true}, "farm.yard.trough_": {"cost": 400.0, "cold": true},
 
 	# Furniture: appliances
 	"furniture.appliance.dishwasher": {"cost": 450.0, "power": 2000, "cold": true, "drain": true},

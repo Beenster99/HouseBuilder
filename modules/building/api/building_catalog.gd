@@ -85,6 +85,8 @@ func add_library(manifest: Dictionary) -> int:
 		var box: Array = e.get("aabb", [[0, 0, 0], [0, 0, 0]])
 		var lo: Array = box[0]
 		var hi: Array = box[1]
+		if maxf(float(hi[0]) - float(lo[0]), float(hi[2]) - float(lo[2])) > LIBRARY_SCRIPT.MAX_SIZE:
+			continue
 		kinds[id] = {"label": str(e.get("label", id)), "family": "fixture", "shape": "point", "structural": false,
 			"w": snappedf(float(hi[0]) - float(lo[0]), 0.01), "d": snappedf(float(hi[2]) - float(lo[2]), 0.01),
 			"h": snappedf(float(hi[1]) - float(lo[1]), 0.01),
