@@ -29,6 +29,13 @@ multiplayer (to share the board and the contract).
   the structure requirement asks for a new test.
 - Timelapse: the handover takes the schedule's length in days: `hand_over(int(schedule.days))`.
 
+- Briefs spell out their dimensions: every brief has `site.plot` (a real site's outline, or a
+  plain rectangle centred on 0, 0 with `w`, `d`, `area`), a `within_plot`, `max_storeys` and
+  `max_height` requirement, `min_area` on each room requirement, `floor_area` to aim for, and a
+  `materials` requirement (structural parts in the allowed materials; glass aside).
+  `ContractBrief.spec_lines(brief)` gives them as lines (Plot, Building, Floor area, Rooms,
+  Structure); the Contract panel and the wall screen show them. Draw `site.plot` as the red line.
+
 ## Tuning
 
 XP: a tier needs about four contracts at the tier below (`ContractTiers.TIERS` award vs the

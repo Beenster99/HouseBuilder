@@ -8,6 +8,8 @@ const BRIEFS := [
 		"client": "The Okafor family",
 		"summary": "A family home on a quiet plot: three bedrooms (one a proper double), two bathrooms, a kitchen and a garage, on no more than two floors.",
 		"budget": 180000.0, "fee": 202000.0, "deadline_days": 150, "tier": 3, "xp": 1000,
+		"floor_area": 140.0, "site": {"id": "", "name": "a level greenfield plot", "w": 24.0, "d": 20.0, "area": 480.0, "rating": 1,
+			"plot": [[-12.0, -10.0], [12.0, -10.0], [12.0, 10.0], [-12.0, 10.0]]},
 		"requirements": [
 			{"id": "bedrooms", "kind": "rooms", "type": "bedroom", "count": 3},
 			{"id": "double", "kind": "double_bedroom", "count": 1},
@@ -15,6 +17,9 @@ const BRIEFS := [
 			{"id": "kitchen", "kind": "rooms", "type": "kitchen", "count": 1},
 			{"id": "garage", "kind": "rooms", "type": "garage", "count": 1},
 			{"id": "storeys", "kind": "max_storeys", "value": 2},
+			{"id": "height", "kind": "max_height", "value": 10.0},
+			{"id": "materials", "kind": "materials", "allowed": ["timber", "masonry", "concrete", "steel"]},
+			{"id": "plot", "kind": "within_plot"},
 			{"id": "budget", "kind": "budget"},
 		],
 		"goals": [
@@ -27,6 +32,8 @@ const BRIEFS := [
 		"client": "The county council",
 		"summary": "A primary school for 240 pupils: eight classrooms of 30, a hall, an accessible entrance, and a fire exit within 30 m of every room.",
 		"budget": 900000.0, "fee": 1010000.0, "deadline_days": 420, "tier": 4, "xp": 2000,
+		"floor_area": 1100.0, "site": {"id": "", "name": "a level greenfield plot", "w": 100.0, "d": 60.0, "area": 6000.0, "rating": 1,
+			"plot": [[-50.0, -30.0], [50.0, -30.0], [50.0, 30.0], [-50.0, 30.0]]},
 		"requirements": [
 			{"id": "classrooms", "kind": "rooms", "type": "classroom", "count": 8, "capacity": 30},
 			{"id": "hall", "kind": "rooms", "type": "school_hall", "count": 1},
@@ -35,6 +42,9 @@ const BRIEFS := [
 			{"id": "entrance", "kind": "accessible_entrance"},
 			{"id": "exits", "kind": "exit_distance", "value": 30.0},
 			{"id": "lift", "kind": "lift_if_storeys"},
+			{"id": "height", "kind": "max_height", "value": 10.0},
+			{"id": "materials", "kind": "materials", "allowed": ["masonry", "concrete", "steel", "glulam", "timber"]},
+			{"id": "plot", "kind": "within_plot"},
 			{"id": "budget", "kind": "budget"},
 		],
 		"goals": [
@@ -47,6 +57,8 @@ const BRIEFS := [
 		"client": "The county constabulary",
 		"summary": "A town police station: a public front desk, a custody suite of four cells behind secure doors close to the custody desk, an interview room, and a vehicle bay.",
 		"budget": 600000.0, "fee": 672000.0, "deadline_days": 330, "tier": 5, "xp": 3500,
+		"floor_area": 600.0, "site": {"id": "", "name": "a level greenfield plot", "w": 64.0, "d": 40.0, "area": 2560.0, "rating": 1,
+			"plot": [[-32.0, -20.0], [32.0, -20.0], [32.0, 20.0], [-32.0, 20.0]]},
 		"requirements": [
 			{"id": "front_desk", "kind": "rooms", "type": "reception", "count": 1},
 			{"id": "custody_desk", "kind": "rooms", "type": "custody_desk", "count": 1},
@@ -58,6 +70,9 @@ const BRIEFS := [
 			{"id": "vehicle_door", "kind": "vehicle_access"},
 			{"id": "entrance", "kind": "accessible_entrance"},
 			{"id": "exits", "kind": "exit_distance", "value": 30.0},
+			{"id": "height", "kind": "max_height", "value": 10.0},
+			{"id": "materials", "kind": "materials", "allowed": ["masonry", "concrete", "steel"]},
+			{"id": "plot", "kind": "within_plot"},
 			{"id": "budget", "kind": "budget"},
 		],
 		"goals": [

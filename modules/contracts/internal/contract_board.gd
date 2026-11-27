@@ -106,10 +106,18 @@ func _poke() -> void:
 	refresh.call_deferred()
 
 
+## Colours depend on where the page is drawn (a wall screen keeps the classic look), so
+## they are set again once it is in place.
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_ENTER_TREE and is_instance_valid(bus):
+		refresh()
+
+
 func refresh() -> void:
 	_dirty = false
 	if not is_instance_valid(bus):
 		return
+	_recolour.call_deferred()
 	var p: Dictionary = bus.career.progress()
 	_header.text = "Tier %d · %s" % [int(p.tier), str(p.name)]
 	_money.text = ContractValidator.money(float(bus.career.money))
@@ -126,6 +134,7 @@ func refresh() -> void:
 
 func _fill_offers() -> void:
 	for c in _offers.get_children():
+		c.get_parent().remove_child(c)
 		c.queue_free()
 	var busy := not (bus.active as Dictionary).is_empty()
 	for b: Dictionary in bus.board:
@@ -154,6 +163,7 @@ func _fill_offers() -> void:
 
 func _fill_active() -> void:
 	for c in _active_box.get_children():
+		c.get_parent().remove_child(c)
 		c.queue_free()
 	if (bus.active as Dictionary).is_empty():
 		_active_box.add_child(_wrapped("None taken. Accept one of the contracts on offer to start designing.", BASE - 1, true))
@@ -197,7 +207,8 @@ func _label(text: String, size: int, muted := false, one_line := false) -> Label
 		l.clip_text = true
 	l.add_theme_font_size_override("font_size", size)
 	if muted:
-		l.add_theme_color_override("font_color", BsxTheme.MUTED)
+		l.set_meta("muted", true)
+		l.add_theme_color_override("font_color", BsxTheme.col(self, "MUTED"))
 	return l
 
 
@@ -206,3 +217,12 @@ func _wrapped(text: String, size: int, muted := false) -> Label:
 	l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	l.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	return l
+
+
+func _recolour() -> void:
+	if not is_inside_tree():
+		return
+	var muted := BsxTheme.col(self, "MUTED")
+	for n in find_children("*", "Label", true, false):
+		if n.has_meta("muted"):
+			(n as Label).add_theme_color_override("font_color", muted)

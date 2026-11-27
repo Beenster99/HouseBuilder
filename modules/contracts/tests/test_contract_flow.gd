@@ -38,6 +38,26 @@ func _generator() -> void:
 				all_ok = false
 	check(all_ok, "every generated brief has a budget, a fee above it, a deadline and readable requirements")
 	check(types.size() >= 12, "200 briefs cover at least 12 building types (%d)" % types.size())
+	# Every brief states its plot, size limits, room sizes and materials.
+	var spelled := true
+	for s in 60:
+		var g := ContractGenerator.generate_on_site(s, "", 7)
+		var lines := ContractBrief.spec_lines(g)
+		var kinds := {}
+		for r: Dictionary in g.requirements:
+			kinds[str(r.kind)] = true
+			if str(r.kind) == "rooms" and float(r.get("min_area", 0.0)) <= 0.0:
+				spelled = false
+		if not (kinds.has("within_plot") and kinds.has("materials") and kinds.has("max_height") and kinds.has("max_storeys")) \
+				or (g.site.plot as Array).size() < 3 or float(g.site.w) <= 0.0 or lines.size() < 5 \
+				or not str(lines[0]).begins_with("Plot: ") or not "Structure: " in "\n".join(lines):
+			spelled = false
+	check(spelled, "every brief gives its plot, building limits, room sizes and materials: %s" % ["\n".join(ContractBrief.spec_lines(ContractGenerator.generate(3, "semi_detached", 2)))])
+	var plain_plot := ContractGenerator.generate(3, "semi_detached", 2)
+	check(str(plain_plot.site.id) == "" and float(plain_plot.site.area) >= float(plain_plot.floor_area),
+			"a brief with no real site gets a plain plot big enough for it")
+	check(not "steel" in ContractGenerator.structure_materials("bungalow") and "steel" in ContractGenerator.structure_materials("detached_house"),
+			"materials follow the tier: no steel for a tier 2 bungalow, steel for a tier 3 house")
 	var open := ContractGenerator.types_open(1)
 	check("garden_studio" in open and not "bungalow" in open and not "airport_terminal" in open, "a new firm is offered small works only")
 	for s in 50:
@@ -66,7 +86,7 @@ func _generator() -> void:
 	var site_ok := true
 	for s in 40:
 		var g := ContractGenerator.generate_on_site(s, "", 7)
-		if g.has("site"):
+		if str(g.site.id) != "":
 			onsite += 1
 			var plot: Array = g.site.plot
 			var has_req := false
@@ -79,7 +99,7 @@ func _generator() -> void:
 	check(site_ok, "each has the plot's outline, a within_plot requirement and the site in its summary")
 	var plain := ContractGenerator.generate(11, "primary_school", 7)
 	var sited := ContractGenerator.generate_on_site(11, "primary_school", 7)
-	check(sited.has("site") and float(sited.budget) >= float(plain.budget), "a hard plot raises the budget (%s on %s)" % [
+	check(str(sited.site.id) != "" and float(sited.budget) >= float(plain.budget), "a hard plot raises the budget (%s on %s)" % [
 			ContractValidator.money(sited.budget), str(sited.get("site", {}).get("name", "?"))])
 	check(ContractGenerator.generate_on_site(11, "primary_school", 7) == sited, "and the same seed picks the same plot")
 	check(ContractGenerator.max_site_rating(1) == 2 and ContractGenerator.max_site_rating(7) == 5, "harder plots open up with the tier")
@@ -241,12 +261,13 @@ func _panel() -> void:
 	var model := Kit.house()
 	var panel: RichTextLabel = (design.panels[ContractsBus.PANEL_ID].make as Callable).call(model)
 	add_child(panel)
-	check("Requirements 7 / 7" in panel.text and "Three-bedroom" in panel.text, "it shows the brief and how the design measures up")
+	check("Requirements 10 / 10" in panel.text and "Three-bedroom" in panel.text, "it shows the brief and how the design measures up")
+	check("Plot: 24 x 20 m" in panel.text and "Structure: timber" in panel.text and "bedrooms, 7.5 m2+" in panel.text, "with the plot, the room sizes and the materials")
 	for rid: String in model.rooms.keys():
 		if str(model.rooms[rid].type) == "garage":
 			model.apply(C.retag(rid, "store_room"))
 	await get_tree().create_timer(0.4).timeout
-	check("Requirements 6 / 7" in panel.text and "garage" in panel.text.to_lower(), "an edit refreshes it a moment later")
+	check("Requirements 9 / 10" in panel.text and "garage" in panel.text.to_lower(), "an edit refreshes it a moment later")
 	bus.abandon()
 	check(not design.panels.has(ContractsBus.PANEL_ID), "abandoning the contract takes the window away")
 	panel.queue_free()

@@ -109,6 +109,25 @@ static func check(req: Dictionary, ctx: Dictionary) -> Dictionary:
 			_limit(out, foot, v, "The ground floor has %.0f m2 of rooms." % foot, "Move some rooms upstairs.")
 		"within_plot":
 			_within_plot(ctx, out)
+		"materials":
+			var allowed := PackedStringArray(req.get("allowed", []))
+			var wrong := {}
+			var n := 0
+			for pid in BuildingModel.sort_ids(model.parts.keys()):
+				var e: Dictionary = model.parts[pid]
+				if not bool(cat.kind(str(e.kind)).get("structural", false)) or str(e.material) == "glass":
+					continue
+				n += 1
+				if not str(e.material) in allowed:
+					wrong[str(e.material)] = int(wrong.get(str(e.material), 0)) + 1
+			var bad := 0
+			var words := PackedStringArray()
+			for m: String in wrong:
+				bad += int(wrong[m])
+				words.append("%d in %s" % [int(wrong[m]), ContractBrief.material_word(m)])
+			_count(out, n - bad, n, "The structure uses only %s." % ContractBrief.material_list(allowed) if bad == 0
+					else "Not allowed here: %s." % ", ".join(words),
+					"Change those parts to %s." % ContractBrief.material_list(allowed))
 		"budget":
 			var share := float(req.get("share", 1.0))
 			var cap := float(ctx.brief.budget) * share

@@ -22,7 +22,13 @@ func _house() -> void:
 	var a := ContractValidator.assess(brief, m)
 	check(a.ok, "the test house meets the house brief: %s" % a.summary)
 	check(a.cost < 180000.0 and a.cost > 100000.0, "and comes in under its 180k budget (%s)" % ContractValidator.money(a.cost))
-	check(a.passed == a.total and a.total == 7, "all 7 requirements pass")
+	check(a.passed == a.total and a.total == 10, "all 10 requirements pass")
+	var timber_only := brief.duplicate(true)
+	for r: Dictionary in timber_only.requirements:
+		if str(r.kind) == "materials":
+			r["allowed"] = ["timber"]
+	var mat := _item(ContractValidator.assess(timber_only, Kit.house()), "materials")
+	check(not mat.ok and "brick and block" in str(mat.detail) and "timber" in str(mat.tip), "a structure in the wrong material fails and says which: %s" % mat.detail)
 	# Lose a bedroom: the bedrooms requirement fails and says what to do.
 	var bed := ""
 	for rid: String in m.rooms:
@@ -34,7 +40,7 @@ func _house() -> void:
 	check(not a.ok and not item.ok and is_equal_approx(item.progress, 2.0 / 3.0), "two bedrooms of three: two thirds done")
 	check("1 more bedroom to paint" in str(item.detail), "it says one more bedroom is needed: %s" % item.detail)
 	check(_item(a, "study").ok and _item(a, "study").bonus > 0.0, "and the new study earns its bonus goal")
-	check(a.summary.begins_with("6 of 7 requirements met"), "the summary leads with what is left: %s" % a.summary)
+	check(a.summary.begins_with("9 of 10 requirements met"), "the summary leads with what is left: %s" % a.summary)
 	m.apply(C.retag(bed, "bedroom"))
 	# A third storey breaks the height rule.
 	m.apply(C.add_level(3.0))

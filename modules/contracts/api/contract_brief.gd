@@ -8,7 +8,8 @@ extends RefCounted
 ##    budget (GBP the client will let the build cost), fee (GBP paid on handover),
 ##    deadline_days, tier (the firm tier that is offered it, ContractTiers), xp (earned on
 ##    a passed handover),
-##    site?: {plot: [[x, z], ...]}           # the plot the building must stay inside
+##    site?: {plot: [[x, z], ...], w, d, area, name, rating}   # the plot to stay inside
+##    floor_area?: m2 of rooms to aim for (generated briefs)
 ##    requirements: [requirement, ...],      # hard: all must pass to be paid
 ##    goals: [requirement + {bonus}, ...]}   # soft: each one met pays its bonus
 ##
@@ -21,6 +22,7 @@ extends RefCounted
 ##   max_height       {value}                      m above ground to the highest part
 ##   max_footprint    {value}                      m2 of rooms on the ground floor
 ##   within_plot      {}                           every part and room inside site.plot
+##   materials        {allowed: [material, ...]}   every structural part in one of these (glass aside)
 ##   budget           {share? (1.0)}               build cost <= budget * share
 ##   parts            {kinds: [...], count, level?}
 ##   accessible_entrance {}                        an accessible or double door on the ground floor
@@ -62,6 +64,8 @@ static func normalize(brief: Variant) -> Dictionary:
 	}
 	if b.get("site") is Dictionary:
 		out["site"] = b.site
+	if b.has("floor_area"):
+		out["floor_area"] = float(b.floor_area)
 	for key: String in ["requirements", "goals"]:
 		var n := 0
 		for r: Variant in b.get(key, []):
@@ -83,9 +87,12 @@ static func describe(req: Dictionary, catalog: BuildingCatalog = null) -> String
 			var n := int(req.get("count", 1))
 			var label := room_label(str(req.get("type", "")), cat, n)
 			var cap := int(req.get("capacity", 0))
+			var size := ""
+			if req.has("min_area"):
+				size = " of at least %s m2%s" % [_num(float(req.min_area)), " each" if n != 1 else ""]
 			if cap > 1:
-				return "%d %s for %d each" % [n, label, cap] if n != 1 else "%s %s for %d" % [article(label).capitalize(), label, cap]
-			return "%d %s" % [n, label] if n != 1 else "%s %s" % [article(label).capitalize(), label]
+				return ("%d %s for %d each" % [n, label, cap] if n != 1 else "%s %s for %d" % [article(label).capitalize(), label, cap]) + size
+			return ("%d %s" % [n, label] if n != 1 else "%s %s" % [article(label).capitalize(), label]) + size
 		"double_bedroom":
 			return "At least %d double bedroom (11.5 m2 or more)" % int(req.get("count", 1))
 		"capacity":
@@ -102,6 +109,8 @@ static func describe(req: Dictionary, catalog: BuildingCatalog = null) -> String
 			return "A ground floor of no more than %.0f m2" % v
 		"within_plot":
 			return "Keep inside the plot boundary"
+		"materials":
+			return "Structure in %s" % material_list(PackedStringArray(req.get("allowed", [])))
 		"budget":
 			var share := float(req.get("share", 1.0))
 			return "Build cost within budget" if share >= 1.0 else "Come in %d%% under budget" % roundi((1.0 - share) * 100.0)
@@ -122,6 +131,76 @@ static func describe(req: Dictionary, catalog: BuildingCatalog = null) -> String
 		"structure":
 			return "Passes the structural stress test"
 	return str(req.get("kind", ""))
+
+
+## The brief's dimensions and materials, one line each, for the panel and the wall screen:
+## the plot, the building's limits, the floor area to aim for, each room's size and the
+## structure's materials.
+static func spec_lines(brief: Dictionary, catalog: BuildingCatalog = null) -> PackedStringArray:
+	var cat := catalog if catalog != null else BuildingCatalog.default_catalog()
+	var out := PackedStringArray()
+	var site: Dictionary = brief.get("site", {}) if brief.get("site") is Dictionary else {}
+	if site.has("plot"):
+		var w := float(site.get("w", 0.0))
+		var d := float(site.get("d", 0.0))
+		var size := "%s x %s m, " % [_num(w), _num(d)] if w > 0.0 and d > 0.0 else ""
+		var line := "Plot: %s%s m2, %s" % [size, _num(roundf(float(site.get("area", w * d)))), str(site.get("name", "the plot"))]
+		if int(site.get("rating", 1)) > 1:
+			line += " (difficulty %d of 5)" % int(site.rating)
+		out.append(line + ".")
+	var limits := PackedStringArray()
+	var rooms := PackedStringArray()
+	var mats := ""
+	for r: Dictionary in brief.get("requirements", []):
+		var v := float(r.get("value", 0.0))
+		match str(r.get("kind", "")):
+			"max_storeys":
+				limits.append("%d storey%s" % [int(v), "" if int(v) == 1 else "s"])
+			"max_height":
+				limits.append("%s m tall" % _num(v))
+			"max_footprint":
+				limits.append("%s m2 of rooms on the ground floor" % _num(v))
+			"floor_area":
+				limits.append(describe(r, cat).to_lower())
+			"rooms":
+				var each := float(r.get("min_area", cat.room_type(str(r.type)).get("min_area", 0.0)))
+				var n := int(r.get("count", 1))
+				var cap := int(r.get("capacity", 0))
+				rooms.append("%d %s, %s m2+%s%s" % [n, room_label(str(r.type), cat, n), _num(each), " each" if n != 1 else "",
+						" for %d" % cap if cap > 1 else ""])
+			"double_bedroom":
+				var dn := int(r.get("count", 1))
+				rooms.append("%d double bedroom%s, 11.5 m2+" % [dn, "" if dn == 1 else "s"])
+			"materials":
+				mats = "Structure: %s (glazing is always allowed)." % material_list(PackedStringArray(r.get("allowed", [])))
+	if not limits.is_empty():
+		out.append("Building: at most %s." % ", ".join(limits))
+	if float(brief.get("floor_area", 0.0)) > 0.0:
+		out.append("Floor area: about %s m2 of rooms in all." % _num(float(brief.floor_area)))
+	if not rooms.is_empty():
+		out.append("Rooms: %s." % "; ".join(rooms))
+	if mats != "":
+		out.append(mats)
+	return out
+
+
+## Plain words for a material ("brick and block" for masonry).
+static func material_word(m: String) -> String:
+	return str({"masonry": "brick and block", "concrete": "reinforced concrete", "glulam": "glulam timber"}.get(m, m))
+
+
+## "timber, brick and block or steel".
+static func material_list(mats: PackedStringArray) -> String:
+	var words := PackedStringArray()
+	for m in mats:
+		words.append(material_word(m))
+	if words.size() <= 1:
+		return "".join(words)
+	return ", ".join(words.slice(0, words.size() - 1)) + " or " + words[words.size() - 1]
+
+
+static func _num(v: float) -> String:
+	return str(int(v)) if is_equal_approx(v, roundf(v)) else "%.1f" % v
 
 
 ## "a" or "an" for a word.

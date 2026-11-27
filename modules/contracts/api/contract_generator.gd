@@ -23,6 +23,11 @@ const FEE_MARGIN := 0.12
 ## Budgets also cover routed services (wiring, plumbing, heating: the services module),
 ## which the type rates leave out: about this share of the build on a house.
 const SERVICES_SHARE := 0.08
+## Planning height limit with no other: this much per storey plus a roof allowance, m.
+const PLANNING_STOREY_M := 3.5
+const PLANNING_ROOF_M := 3.0
+## Plot area per m2 of ground floor, by category (gardens, parking, playgrounds).
+const PLOT_RATIO := {"domestic": 3.0, "education": 3.0, "civic": 2.5, "police": 2.5, "office": 1.8, "health": 2.5, "transport": 2.0}
 
 
 ## Share of briefs for the firm's own tier (the rest are from the tiers below).
@@ -75,12 +80,14 @@ static func generate(seed: int, type: String = "", tier: int = 1) -> Dictionary:
 		var req := {"id": room_type, "kind": "rooms", "type": room_type, "count": n}
 		if cap > 0:
 			req["capacity"] = cap
-		reqs.append(req)
 		program_words.append(ContractBrief.describe(req, cat).to_lower())
+		req["min_area"] = snappedf(each, 0.5)
+		reqs.append(req)
 	area *= 1.0 + float(spec.circulation)
 	var storeys: Array = spec.storeys
 	var max_storeys := int(storeys[1])
 	reqs.append({"id": "storeys", "kind": "max_storeys", "value": max_storeys})
+	reqs.append({"id": "materials", "kind": "materials", "allowed": Array(structure_materials(type))})
 	for e: Dictionary in spec.extras:
 		var x := e.duplicate(true)
 		x["id"] = str(x.kind)
@@ -96,9 +103,12 @@ static func generate(seed: int, type: String = "", tier: int = 1) -> Dictionary:
 		var foot := ceilf(area / float(max_storeys) * 1.1 / 10.0) * 10.0
 		reqs.append({"id": "footprint", "kind": "max_footprint", "value": foot})
 		twist = "The plot is tight: the ground floor can take only %.0f m2 of rooms." % foot
+	if not _has_kind(reqs, "max_height"):
+		reqs.append({"id": "height", "kind": "max_height", "value": PLANNING_STOREY_M * max_storeys + PLANNING_ROOF_M})
 	if roll > 0.8 and not _has_kind(reqs, "structure"):
 		reqs.append({"id": "structure", "kind": "structure"})
 		twist = "The client's engineer wants to see a passed stress test."
+	reqs.append({"id": "plot", "kind": "within_plot"})
 	reqs.append({"id": "budget", "kind": "budget"})
 	# Money and time.
 	var slack := rng.randf_range(1.15, 1.45) - (tier - 1) * 0.02
@@ -123,8 +133,36 @@ static func generate(seed: int, type: String = "", tier: int = 1) -> Dictionary:
 		"client": client, "summary": summary, "seed": seed,
 		"budget": budget, "fee": fee, "deadline_days": deadline,
 		"tier": type_tier, "xp": snappedi(roundi(float(ContractTiers.info(type_tier).award) * (0.8 + 0.4 * size)), 10),
-		"requirements": reqs, "goals": goals,
+		"requirements": reqs, "goals": goals, "floor_area": snappedf(area, 5.0),
+		"site": default_plot(area / float(max_storeys), str(spec.category)),
 	}
+
+
+## A plain level plot for a brief with no real site: a rectangle centred on (0, 0) in building
+## model coordinates, about PLOT_RATIO times the ground floor it needs.
+static func default_plot(ground_m2: float, category: String) -> Dictionary:
+	var plot_m2 := maxf(ground_m2 * float(PLOT_RATIO.get(category, 2.0)), 150.0)
+	var w := maxf(12.0, roundf(sqrt(plot_m2 * 1.4)))
+	var d := maxf(12.0, roundf(plot_m2 / w))
+	return {"id": "", "name": "a level greenfield plot", "plot": [[-w / 2, -d / 2], [w / 2, -d / 2], [w / 2, d / 2], [-w / 2, d / 2]],
+			"rating": 1, "soil": "", "area": w * d, "w": w, "d": d, "factors": []}
+
+
+## Structural materials a building type allows: its category's list, cut to what a firm has
+## unlocked by the type's tier.
+static func structure_materials(type: String) -> PackedStringArray:
+	var spec: Dictionary = TYPES.get(type, {})
+	var want: Array = TYPES_SCRIPT.MATERIALS.get(str(spec.get("category", "")), ["timber", "masonry", "concrete", "steel"])
+	var t := int(spec.get("tier", 1))
+	var out := PackedStringArray()
+	for m: String in want:
+		var ok := true
+		for u: Dictionary in ContractCareer.UNLOCKS:
+			if str(u.id) == "material:" + m and int(u.tier) > t:
+				ok = false
+		if ok:
+			out.append(m)
+	return out
 
 
 ## The hardest site (1 to 5) offered at a firm tier.
@@ -150,9 +188,18 @@ static func generate_on_site(seed: int, type: String = "", tier: int = 1) -> Dic
 	for f: Dictionary in pack.factors():
 		labels.append(str(f.get("label", "")).to_lower())
 	b["id"] = "%s@%s" % [b.id, site_id]
-	b["site"] = {"id": site_id, "name": pack.title(), "plot": pack.plot_outline_local(), "rating": pack.rating(),
+	var outline: Array = pack.plot_outline_local()
+	var lo := Vector2(INF, INF)
+	var hi := Vector2(-INF, -INF)
+	for pt: Variant in outline:
+		var v := Vector2(float(pt[0]), float(pt[1]))
+		lo = lo.min(v)
+		hi = hi.max(v)
+	b["site"] = {"id": site_id, "name": pack.title(), "plot": outline, "rating": pack.rating(),
+			"w": roundf(hi.x - lo.x), "d": roundf(hi.y - lo.y),
 			"soil": pack.soil(), "area": pack.plot_area(), "factors": Array(labels)}
-	(b.requirements as Array).insert((b.requirements as Array).size() - 1, {"id": "plot", "kind": "within_plot"})
+	if not _has_kind(b.requirements, "within_plot"):
+		(b.requirements as Array).insert((b.requirements as Array).size() - 1, {"id": "plot", "kind": "within_plot"})
 	b["budget"] = snappedf(float(b.budget) * mult, 1000.0)
 	b["fee"] = snappedf(float(b.fee) * mult, 1000.0)
 	b["deadline_days"] = int(snappedf(float(b.deadline_days) * (1.0 + 0.05 * (pack.rating() - 1)), 5.0))

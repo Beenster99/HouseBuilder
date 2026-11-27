@@ -103,5 +103,16 @@ const CLIENTS := {
 	"transport": ["The regional airport authority"],
 }
 
+## Structural materials each category allows (cut to what the type's tier has unlocked).
+const MATERIALS := {
+	"domestic": ["timber", "masonry", "concrete", "steel"],
+	"education": ["masonry", "concrete", "steel", "glulam", "timber"],
+	"civic": ["masonry", "concrete", "steel", "glulam", "timber"],
+	"police": ["masonry", "concrete", "steel"],
+	"office": ["concrete", "steel", "masonry", "glulam"],
+	"health": ["concrete", "steel", "masonry"],
+	"transport": ["steel", "concrete", "glulam"],
+}
+
 ## Size words for titles, by size roll.
 const SIZES: PackedStringArray = ["Compact", "Modest", "Roomy", "Large", "Grand"]
