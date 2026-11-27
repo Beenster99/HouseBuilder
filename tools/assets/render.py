@@ -81,7 +81,7 @@ def main(argv: list) -> None:
 	scene.collection.objects.link(cam)
 	scene.camera = cam
 	cam.data.lens = 50
-	direction = Vector((0.45, 1.0, 0.95)).normalized()
+	direction = Vector([float(v) for v in os.environ.get("VIEW", "0.45,1.0,0.95").split(",")]).normalized()
 	cam.location = centre + direction * span * 1.25
 	cam.rotation_euler = (centre - cam.location).to_track_quat("-Z", "Y").to_euler()
 	cam.data.clip_end = span * 10

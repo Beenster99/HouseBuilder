@@ -33293,14 +33293,14 @@
 	"furniture.light.arc_floor_lamp": {
 		"aabb": [
 			[
-				-0.22,
+				-0.26,
 				0.0,
-				-1.8361
+				-1.9065
 			],
 			[
-				0.22,
-				2.0675,
-				0.21
+				0.26,
+				2.0624,
+				0.165
 			]
 		],
 		"category": "furniture",
@@ -33308,28 +33308,40 @@
 		"file": "models/furniture/furniture.light.arc_floor_lamp.glb",
 		"kind": "",
 		"label": "Arc floor lamp, marble base",
-		"mass": 128.7,
+		"mass": 86.1,
 		"pieces": [
 			{
-				"mass": 94.64,
+				"mass": 48.96,
 				"node": "base__marble",
 				"slot": "marble",
 				"stage": "base"
 			},
 			{
-				"mass": 10.077,
+				"mass": 0.761,
+				"node": "base__steel_stainless",
+				"slot": "steel_stainless",
+				"stage": "base"
+			},
+			{
+				"mass": 13.694,
 				"node": "arm__steel_stainless",
 				"slot": "steel_stainless",
 				"stage": "arm"
 			},
 			{
-				"mass": 23.018,
+				"mass": 21.705,
 				"node": "shade__steel_stainless",
 				"slot": "steel_stainless",
 				"stage": "shade"
 			},
 			{
-				"mass": 0.998,
+				"mass": 0.165,
+				"node": "shade__plastic_black",
+				"slot": "plastic_black",
+				"stage": "shade"
+			},
+			{
+				"mass": 0.795,
 				"node": "shade__glow",
 				"slot": "glow",
 				"stage": "shade"
@@ -33338,8 +33350,8 @@
 		"sockets": {
 			"light": [
 				0.0,
-				1.29,
-				-1.6161
+				1.2256,
+				-1.6465
 			]
 		},
 		"stages": [
@@ -33353,7 +33365,7 @@
 			"office",
 			"statement"
 		],
-		"tris": 1188
+		"tris": 4516
 	},
 	"furniture.light.ring_pendant": {
 		"aabb": [
@@ -34403,14 +34415,14 @@
 	"furniture.statement.lounge_chair": {
 		"aabb": [
 			[
-				-0.485,
+				-0.445,
 				0.0,
-				-1.2
+				-1.342
 			],
 			[
-				0.485,
-				1.1071,
-				0.6312
+				0.445,
+				1.1677,
+				0.66
 			]
 		],
 		"category": "furniture",
@@ -34418,52 +34430,58 @@
 		"file": "models/furniture/furniture.statement.lounge_chair.glb",
 		"kind": "",
 		"label": "Lounge chair and ottoman, plywood shell and leather",
-		"mass": 65.8,
+		"mass": 58.0,
 		"pieces": [
 			{
-				"mass": 11.154,
+				"mass": 9.825,
 				"node": "frame__aluminium",
 				"slot": "aluminium",
 				"stage": "frame"
 			},
 			{
-				"mass": 0.21,
+				"mass": 0.155,
 				"node": "frame__plastic_black",
 				"slot": "plastic_black",
 				"stage": "frame"
 			},
 			{
-				"mass": 24.87,
+				"mass": 19.141,
 				"node": "frame__hardwood",
 				"slot": "hardwood",
 				"stage": "frame"
 			},
 			{
-				"mass": 1.566,
+				"mass": 1.06,
 				"node": "frame__leather_black",
 				"slot": "leather_black",
 				"stage": "frame"
 			},
 			{
-				"mass": 10.765,
+				"mass": 11.68,
 				"node": "cushions__leather_black",
 				"slot": "leather_black",
 				"stage": "cushions"
 			},
 			{
-				"mass": 6.155,
+				"mass": 8.174,
 				"node": "ottoman__aluminium",
 				"slot": "aluminium",
 				"stage": "ottoman"
 			},
 			{
-				"mass": 7.417,
+				"mass": 0.124,
+				"node": "ottoman__plastic_black",
+				"slot": "plastic_black",
+				"stage": "ottoman"
+			},
+			{
+				"mass": 5.104,
 				"node": "ottoman__hardwood",
 				"slot": "hardwood",
 				"stage": "ottoman"
 			},
 			{
-				"mass": 3.699,
+				"mass": 2.779,
 				"node": "ottoman__leather_black",
 				"slot": "leather_black",
 				"stage": "ottoman"
@@ -34487,7 +34505,7 @@
 			"office",
 			"statement"
 		],
-		"tris": 2264
+		"tris": 9404
 	},
 	"furniture.storage.bedside_table": {
 		"aabb": [
@@ -57046,6 +57064,723 @@
 			"opening"
 		],
 		"tris": 444
+	},
+	"opening.door.vehicle_roller": {
+		"aabb": [
+			[
+				-1.5,
+				-0.005,
+				-0.05
+			],
+			[
+				1.5,
+				3.0,
+				0.36
+			]
+		],
+		"category": "opening",
+		"family": "opening",
+		"file": "models/opening/opening.door.vehicle_roller.glb",
+		"kind": "door_vehicle_roller",
+		"label": "Vehicle door, roller shutter",
+		"mass": 390.6,
+		"pieces": [
+			{
+				"mass": 178.692,
+				"node": "frame__steel_galvanised",
+				"slot": "steel_galvanised",
+				"stage": "frame"
+			},
+			{
+				"mass": 199.947,
+				"node": "leaf__steel_galvanised",
+				"slot": "steel_galvanised",
+				"stage": "leaf"
+			},
+			{
+				"mass": 10.55,
+				"node": "leaf__plant_yellow",
+				"slot": "plant_yellow",
+				"stage": "leaf"
+			},
+			{
+				"mass": 0.34,
+				"node": "leaf__rubber",
+				"slot": "rubber",
+				"stage": "leaf"
+			},
+			{
+				"mass": 0.709,
+				"node": "ironmongery__plastic_grey",
+				"slot": "plastic_grey",
+				"stage": "ironmongery"
+			},
+			{
+				"mass": 0.184,
+				"node": "ironmongery__plastic_yellow",
+				"slot": "plastic_yellow",
+				"stage": "ironmongery"
+			},
+			{
+				"mass": 0.19,
+				"node": "ironmongery__steel_stainless",
+				"slot": "steel_stainless",
+				"stage": "ironmongery"
+			}
+		],
+		"sockets": {
+			"wall": [
+				0.0,
+				0.0,
+				-0.0
+			]
+		},
+		"stages": [
+			"frame",
+			"leaf",
+			"ironmongery"
+		],
+		"stretch": "",
+		"tags": [
+			"door",
+			"opening",
+			"vehicle_door"
+		],
+		"tris": 1556
+	},
+	"opening.door.vehicle_roller_garage": {
+		"aabb": [
+			[
+				-1.2,
+				-0.005,
+				-0.05
+			],
+			[
+				1.2,
+				2.1,
+				0.41
+			]
+		],
+		"category": "opening",
+		"family": "opening",
+		"file": "models/opening/opening.door.vehicle_roller_garage.glb",
+		"kind": "",
+		"label": "Roller vehicle door, 2.4 by 2.1 m",
+		"mass": 157.4,
+		"pieces": [
+			{
+				"mass": 140.284,
+				"node": "frame__steel_galvanised",
+				"slot": "steel_galvanised",
+				"stage": "frame"
+			},
+			{
+				"mass": 7.644,
+				"node": "leaf__paint_white",
+				"slot": "paint_white",
+				"stage": "leaf"
+			},
+			{
+				"mass": 8.29,
+				"node": "leaf__plant_yellow",
+				"slot": "plant_yellow",
+				"stage": "leaf"
+			},
+			{
+				"mass": 0.266,
+				"node": "leaf__rubber",
+				"slot": "rubber",
+				"stage": "leaf"
+			},
+			{
+				"mass": 0.766,
+				"node": "ironmongery__steel_galvanised",
+				"slot": "steel_galvanised",
+				"stage": "ironmongery"
+			},
+			{
+				"mass": 0.19,
+				"node": "ironmongery__steel_stainless",
+				"slot": "steel_stainless",
+				"stage": "ironmongery"
+			}
+		],
+		"sockets": {
+			"wall": [
+				0.0,
+				0.0,
+				-0.0
+			]
+		},
+		"stages": [
+			"frame",
+			"leaf",
+			"ironmongery"
+		],
+		"stretch": "",
+		"tags": [
+			"door",
+			"opening",
+			"vehicle_door"
+		],
+		"tris": 1104
+	},
+	"opening.door.vehicle_roller_garage_double": {
+		"aabb": [
+			[
+				-2.4,
+				-0.005,
+				-0.05
+			],
+			[
+				2.4,
+				2.1,
+				0.36
+			]
+		],
+		"category": "opening",
+		"family": "opening",
+		"file": "models/opening/opening.door.vehicle_roller_garage_double.glb",
+		"kind": "",
+		"label": "Roller vehicle door, 4.8 by 2.1 m",
+		"mass": 296.3,
+		"pieces": [
+			{
+				"mass": 261.356,
+				"node": "frame__steel_galvanised",
+				"slot": "steel_galvanised",
+				"stage": "frame"
+			},
+			{
+				"mass": 15.981,
+				"node": "leaf__paint_white",
+				"slot": "paint_white",
+				"stage": "leaf"
+			},
+			{
+				"mass": 17.333,
+				"node": "leaf__plant_yellow",
+				"slot": "plant_yellow",
+				"stage": "leaf"
+			},
+			{
+				"mass": 0.562,
+				"node": "leaf__rubber",
+				"slot": "rubber",
+				"stage": "leaf"
+			},
+			{
+				"mass": 0.709,
+				"node": "ironmongery__plastic_grey",
+				"slot": "plastic_grey",
+				"stage": "ironmongery"
+			},
+			{
+				"mass": 0.184,
+				"node": "ironmongery__plastic_yellow",
+				"slot": "plastic_yellow",
+				"stage": "ironmongery"
+			},
+			{
+				"mass": 0.19,
+				"node": "ironmongery__steel_stainless",
+				"slot": "steel_stainless",
+				"stage": "ironmongery"
+			}
+		],
+		"sockets": {
+			"wall": [
+				0.0,
+				0.0,
+				-0.0
+			]
+		},
+		"stages": [
+			"frame",
+			"leaf",
+			"ironmongery"
+		],
+		"stretch": "",
+		"tags": [
+			"door",
+			"opening",
+			"vehicle_door"
+		],
+		"tris": 1076
+	},
+	"opening.door.vehicle_roller_industrial": {
+		"aabb": [
+			[
+				-2.0,
+				-0.005,
+				-0.05
+			],
+			[
+				2.0,
+				4.5,
+				0.36
+			]
+		],
+		"category": "opening",
+		"family": "opening",
+		"file": "models/opening/opening.door.vehicle_roller_industrial.glb",
+		"kind": "",
+		"label": "Roller vehicle door, 4 by 4.5 m",
+		"mass": 694.4,
+		"pieces": [
+			{
+				"mass": 242.703,
+				"node": "frame__steel_galvanised",
+				"slot": "steel_galvanised",
+				"stage": "frame"
+			},
+			{
+				"mass": 435.819,
+				"node": "leaf__steel_galvanised",
+				"slot": "steel_galvanised",
+				"stage": "leaf"
+			},
+			{
+				"mass": 14.318,
+				"node": "leaf__plant_yellow",
+				"slot": "plant_yellow",
+				"stage": "leaf"
+			},
+			{
+				"mass": 0.463,
+				"node": "leaf__rubber",
+				"slot": "rubber",
+				"stage": "leaf"
+			},
+			{
+				"mass": 0.709,
+				"node": "ironmongery__plastic_grey",
+				"slot": "plastic_grey",
+				"stage": "ironmongery"
+			},
+			{
+				"mass": 0.184,
+				"node": "ironmongery__plastic_yellow",
+				"slot": "plastic_yellow",
+				"stage": "ironmongery"
+			},
+			{
+				"mass": 0.19,
+				"node": "ironmongery__steel_stainless",
+				"slot": "steel_stainless",
+				"stage": "ironmongery"
+			}
+		],
+		"sockets": {
+			"wall": [
+				0.0,
+				0.0,
+				-0.0
+			]
+		},
+		"stages": [
+			"frame",
+			"leaf",
+			"ironmongery"
+		],
+		"stretch": "",
+		"tags": [
+			"door",
+			"opening",
+			"vehicle_door"
+		],
+		"tris": 2356
+	},
+	"opening.door.vehicle_roller_industrial_large": {
+		"aabb": [
+			[
+				-2.5,
+				-0.005,
+				-0.05
+			],
+			[
+				2.5,
+				5.0,
+				0.36
+			]
+		],
+		"category": "opening",
+		"family": "opening",
+		"file": "models/opening/opening.door.vehicle_roller_industrial_large.glb",
+		"kind": "",
+		"label": "Roller vehicle door, 5 by 5 m",
+		"mass": 940.6,
+		"pieces": [
+			{
+				"mass": 297.671,
+				"node": "frame__steel_galvanised",
+				"slot": "steel_galvanised",
+				"stage": "frame"
+			},
+			{
+				"mass": 623.16,
+				"node": "leaf__steel_galvanised",
+				"slot": "steel_galvanised",
+				"stage": "leaf"
+			},
+			{
+				"mass": 18.086,
+				"node": "leaf__plant_yellow",
+				"slot": "plant_yellow",
+				"stage": "leaf"
+			},
+			{
+				"mass": 0.586,
+				"node": "leaf__rubber",
+				"slot": "rubber",
+				"stage": "leaf"
+			},
+			{
+				"mass": 0.709,
+				"node": "ironmongery__plastic_grey",
+				"slot": "plastic_grey",
+				"stage": "ironmongery"
+			},
+			{
+				"mass": 0.184,
+				"node": "ironmongery__plastic_yellow",
+				"slot": "plastic_yellow",
+				"stage": "ironmongery"
+			},
+			{
+				"mass": 0.19,
+				"node": "ironmongery__steel_stainless",
+				"slot": "steel_stainless",
+				"stage": "ironmongery"
+			}
+		],
+		"sockets": {
+			"wall": [
+				0.0,
+				0.0,
+				-0.0
+			]
+		},
+		"stages": [
+			"frame",
+			"leaf",
+			"ironmongery"
+		],
+		"stretch": "",
+		"tags": [
+			"door",
+			"opening",
+			"vehicle_door"
+		],
+		"tris": 2636
+	},
+	"opening.door.vehicle_up_over": {
+		"aabb": [
+			[
+				-1.5,
+				0.0,
+				-0.051
+			],
+			[
+				1.5,
+				3.05,
+				2.76
+			]
+		],
+		"category": "opening",
+		"family": "opening",
+		"file": "models/opening/opening.door.vehicle_up_over.glb",
+		"kind": "door_vehicle_up_over",
+		"label": "Vehicle door, up and over",
+		"mass": 546.7,
+		"pieces": [
+			{
+				"mass": 514.458,
+				"node": "frame__steel_galvanised",
+				"slot": "steel_galvanised",
+				"stage": "frame"
+			},
+			{
+				"mass": 13.746,
+				"node": "leaf__paint_white",
+				"slot": "paint_white",
+				"stage": "leaf"
+			},
+			{
+				"mass": 2.006,
+				"node": "leaf__steel_galvanised",
+				"slot": "steel_galvanised",
+				"stage": "leaf"
+			},
+			{
+				"mass": 1.155,
+				"node": "ironmongery__steel_stainless",
+				"slot": "steel_stainless",
+				"stage": "ironmongery"
+			},
+			{
+				"mass": 15.192,
+				"node": "ironmongery__steel_galvanised",
+				"slot": "steel_galvanised",
+				"stage": "ironmongery"
+			},
+			{
+				"mass": 0.132,
+				"node": "ironmongery__plastic_black",
+				"slot": "plastic_black",
+				"stage": "ironmongery"
+			}
+		],
+		"sockets": {
+			"wall": [
+				0.0,
+				0.0,
+				-0.0
+			]
+		},
+		"stages": [
+			"frame",
+			"leaf",
+			"ironmongery"
+		],
+		"stretch": "",
+		"tags": [
+			"door",
+			"opening",
+			"vehicle_door"
+		],
+		"tris": 532
+	},
+	"opening.door.vehicle_up_over_garage": {
+		"aabb": [
+			[
+				-1.2,
+				0.0,
+				-0.051
+			],
+			[
+				1.2,
+				2.15,
+				1.95
+			]
+		],
+		"category": "opening",
+		"family": "opening",
+		"file": "models/opening/opening.door.vehicle_up_over_garage.glb",
+		"kind": "",
+		"label": "Up and over vehicle door, 2.4 by 2.1 m",
+		"mass": 400.2,
+		"pieces": [
+			{
+				"mass": 375.984,
+				"node": "frame__steel_galvanised",
+				"slot": "steel_galvanised",
+				"stage": "frame"
+			},
+			{
+				"mass": 7.671,
+				"node": "leaf__paint_white",
+				"slot": "paint_white",
+				"stage": "leaf"
+			},
+			{
+				"mass": 1.583,
+				"node": "leaf__steel_galvanised",
+				"slot": "steel_galvanised",
+				"stage": "leaf"
+			},
+			{
+				"mass": 1.155,
+				"node": "ironmongery__steel_stainless",
+				"slot": "steel_stainless",
+				"stage": "ironmongery"
+			},
+			{
+				"mass": 13.63,
+				"node": "ironmongery__steel_galvanised",
+				"slot": "steel_galvanised",
+				"stage": "ironmongery"
+			},
+			{
+				"mass": 0.132,
+				"node": "ironmongery__plastic_black",
+				"slot": "plastic_black",
+				"stage": "ironmongery"
+			}
+		],
+		"sockets": {
+			"wall": [
+				0.0,
+				0.0,
+				-0.0
+			]
+		},
+		"stages": [
+			"frame",
+			"leaf",
+			"ironmongery"
+		],
+		"stretch": "",
+		"tags": [
+			"door",
+			"opening",
+			"vehicle_door"
+		],
+		"tris": 496
+	},
+	"opening.door.vehicle_up_over_garage_double": {
+		"aabb": [
+			[
+				-2.4,
+				0.0,
+				-0.051
+			],
+			[
+				2.4,
+				2.15,
+				1.95
+			]
+		],
+		"category": "opening",
+		"family": "opening",
+		"file": "models/opening/opening.door.vehicle_up_over_garage_double.glb",
+		"kind": "",
+		"label": "Up and over vehicle door, 4.8 by 2.1 m",
+		"mass": 545.0,
+		"pieces": [
+			{
+				"mass": 511.631,
+				"node": "frame__steel_galvanised",
+				"slot": "steel_galvanised",
+				"stage": "frame"
+			},
+			{
+				"mass": 15.212,
+				"node": "leaf__paint_white",
+				"slot": "paint_white",
+				"stage": "leaf"
+			},
+			{
+				"mass": 3.278,
+				"node": "leaf__steel_galvanised",
+				"slot": "steel_galvanised",
+				"stage": "leaf"
+			},
+			{
+				"mass": 1.155,
+				"node": "ironmongery__steel_stainless",
+				"slot": "steel_stainless",
+				"stage": "ironmongery"
+			},
+			{
+				"mass": 13.63,
+				"node": "ironmongery__steel_galvanised",
+				"slot": "steel_galvanised",
+				"stage": "ironmongery"
+			},
+			{
+				"mass": 0.132,
+				"node": "ironmongery__plastic_black",
+				"slot": "plastic_black",
+				"stage": "ironmongery"
+			}
+		],
+		"sockets": {
+			"wall": [
+				0.0,
+				0.0,
+				-0.0
+			]
+		},
+		"stages": [
+			"frame",
+			"leaf",
+			"ironmongery"
+		],
+		"stretch": "",
+		"tags": [
+			"door",
+			"opening",
+			"vehicle_door"
+		],
+		"tris": 472
+	},
+	"opening.door.vehicle_up_over_tall": {
+		"aabb": [
+			[
+				-1.5,
+				0.0,
+				-0.051
+			],
+			[
+				1.5,
+				2.45,
+				2.22
+			]
+		],
+		"category": "opening",
+		"family": "opening",
+		"file": "models/opening/opening.door.vehicle_up_over_tall.glb",
+		"kind": "",
+		"label": "Up and over vehicle door, 3 by 2.4 m",
+		"mass": 473.2,
+		"pieces": [
+			{
+				"mass": 444.75,
+				"node": "frame__steel_galvanised",
+				"slot": "steel_galvanised",
+				"stage": "frame"
+			},
+			{
+				"mass": 11.012,
+				"node": "leaf__paint_white",
+				"slot": "paint_white",
+				"stage": "leaf"
+			},
+			{
+				"mass": 2.006,
+				"node": "leaf__steel_galvanised",
+				"slot": "steel_galvanised",
+				"stage": "leaf"
+			},
+			{
+				"mass": 1.155,
+				"node": "ironmongery__steel_stainless",
+				"slot": "steel_stainless",
+				"stage": "ironmongery"
+			},
+			{
+				"mass": 14.14,
+				"node": "ironmongery__steel_galvanised",
+				"slot": "steel_galvanised",
+				"stage": "ironmongery"
+			},
+			{
+				"mass": 0.132,
+				"node": "ironmongery__plastic_black",
+				"slot": "plastic_black",
+				"stage": "ironmongery"
+			}
+		],
+		"sockets": {
+			"wall": [
+				0.0,
+				0.0,
+				-0.0
+			]
+		},
+		"stages": [
+			"frame",
+			"leaf",
+			"ironmongery"
+		],
+		"stretch": "",
+		"tags": [
+			"door",
+			"opening",
+			"vehicle_door"
+		],
+		"tris": 532
 	},
 	"opening.extra.awning": {
 		"aabb": [

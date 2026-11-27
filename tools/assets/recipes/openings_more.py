@@ -121,6 +121,73 @@ def garage_door(w=2.4, h=2.1, sectional=False):
 	kit.socket("wall", (0, 0, 0))
 
 
+def vehicle_roller(w=3.0, h=3.0, slot="steel_galvanised", powered=True):
+	"""A roller shutter vehicle door: a curtain of curved laths in side guides, rolling up into
+	a hood over the head inside. Fills the opening w by h; the inside is -y."""
+	with kit.hollow(0.08):
+		with kit.stage("frame"):
+			for s in (-1, 1):
+				kit.box((0.09, 0.08, h), (s * (w / 2 - 0.045), 0, h / 2), "steel_galvanised", "guide")
+				kit.box((0.012, 0.32, 0.36), (s * (w / 2 - 0.006), -0.2, h - 0.18), "steel_galvanised", "end_plate")
+			kit.cyl(0.15, w - 0.03, (0, -0.2, h - 0.18), "steel_galvanised", "barrel_hood", axis="x", segs=20)
+			kit.box((w - 0.03, 0.03, 0.36), (0, -0.045, h - 0.18), "steel_galvanised", "fascia")
+		with kit.stage("leaf"):
+			lath = 0.075
+			n = int((h - 0.36 - 0.1) / lath)
+			for i in range(n):
+				z = 0.1 + lath / 2 + i * lath
+				kit.cyl(0.03, w - 0.2, (0, 0.012, z), slot, "lath", axis="x", segs=8, rot=(0, 0, 0))
+				kit.box((w - 0.2, 0.012, lath), (0, 0, z), slot, "lath_web")
+			kit.box((w - 0.2, 0.06, 0.1), (0, 0, 0.05), "plant_yellow", "bottom_rail")
+			kit.box((w - 0.24, 0.07, 0.02), (0, 0, 0.005), "rubber", "seal")
+		with kit.stage("ironmongery"):
+			if powered:
+				kit.cyl(0.09, 0.3, (w / 2 - 0.2, -0.2, h - 0.5), "plastic_grey", "motor", axis="x", segs=14)
+				kit.box((0.12, 0.08, 0.2), (w / 2 - 0.12, -0.08, 1.3), "plastic_yellow", "control")
+			else:
+				kit.cyl(0.11, 0.03, (w / 2 - 0.03, -0.3, h - 0.18), "steel_galvanised", "chain_wheel", axis="x", segs=16)
+				for dy in (-0.4, -0.2):
+					kit.rod((w / 2 - 0.03, dy, h - 0.2), (w / 2 - 0.03, dy, 1.0), 0.005, "steel_galvanised", "hand_chain", segs=5)
+			kit.box((0.2, 0.03, 0.05), (0, 0.035, 0.12), "steel_stainless", "lift_handle")
+	kit.socket("wall", (0, 0, 0))
+
+
+def vehicle_up_and_over(w=3.0, h=3.0, slot="paint_white", ribs="vertical"):
+	"""A one-piece up-and-over vehicle door: a pressed steel panel in a frame, on pivot arms
+	and springs, with tracks running back under the ceiling inside (-y)."""
+	fr = 0.07
+	with kit.stage("frame"):
+		kit.frame(w, h, fr, 0.08, slot="steel_galvanised", name="frame", bottom=False)
+		for s in (-1, 1):
+			kit.box((0.05, 0.9 * h, 0.04), (s * (w / 2 - fr - 0.03), -0.45 * h - 0.04, h - 0.12), "steel_galvanised", "track")
+			kit.strut((s * (w / 2 - fr - 0.03), -0.9 * h - 0.04, h - 0.12), (s * (w / 2 - fr - 0.03), -0.9 * h - 0.04, h + 0.05), 0.04, 0.04, "steel_galvanised", "track_hanger")
+		kit.box((w - 2 * fr, 0.04, 0.04), (0, -0.9 * h - 0.04, h - 0.12), "steel_galvanised", "track_tie")
+	with kit.stage("leaf"), kit.hollow(0.1):
+		pw, ph = w - 2 * fr - 0.02, h - fr - 0.02
+		kit.box((pw, 0.02, ph), (0, 0, ph / 2 + 0.005), slot, "panel")
+		for s in (-1, 1):
+			kit.box((0.04, 0.045, ph), (s * (pw / 2 - 0.02), -0.005, ph / 2 + 0.005), slot, "stile")
+			kit.box((pw, 0.045, 0.04), (0, -0.005, ph / 2 + 0.005 + s * (ph / 2 - 0.02)), slot, "rail")
+		if ribs == "vertical":
+			n = max(4, int(pw / 0.2))
+			for i in range(1, n):
+				kit.box((0.035, 0.034, ph - 0.12), (-pw / 2 + pw * i / n, 0.004, ph / 2 + 0.005), slot, "rib")
+		else:
+			n = max(4, int(ph / 0.22))
+			for i in range(1, n):
+				kit.box((pw - 0.12, 0.034, 0.035), (0, 0.004, 0.005 + ph * i / n), slot, "rib")
+		kit.box((pw, 0.03, 0.03), (0, -0.03, ph * 0.45), "steel_galvanised", "brace")
+	with kit.stage("ironmongery"):
+		kit.cyl(0.035, 0.03, (0, 0.03, min(1.0, h * 0.4)), "steel_stainless", "lock_handle", axis="y", segs=12)
+		kit.box((0.1, 0.012, 0.03), (0, 0.045, min(1.0, h * 0.4)), "steel_stainless", "handle_bar")
+		for s in (-1, 1):
+			x = s * (w / 2 - fr - 0.03)
+			kit.strut((x, -0.03, h * 0.5), (x, -0.5, h - 0.14), 0.03, 0.008, "steel_galvanised", "pivot_arm")
+			kit.cyl(0.02, 0.55, (x, -0.06, h * 0.5 + 0.35), "steel_galvanised", "spring", segs=8)
+			kit.cyl(0.025, 0.03, (x, -0.02, h - 0.1), "plastic_black", "roller", axis="x", segs=10)
+	kit.socket("wall", (0, 0, 0))
+
+
 def fire_exit(w=1.0, h=2.1, double=False):
 	door(w * (2 if double else 1), h, "steel", "flush")
 	with kit.stage("ironmongery"):
@@ -397,6 +464,15 @@ reg("opening.door.revolving", auto_entrance, "Revolving door", "door", "office",
 reg("opening.door.revolving_large", auto_entrance, "Revolving door, large", "door", "airport", w=3.6, h=2.5, revolving=True)
 reg("opening.door.garage_single", garage_door, "Garage door, up and over", "door", "home")
 reg("opening.door.garage_double", garage_door, "Garage door, double, sectional", "door", "home", w=4.8, sectional=True)
+# (the two types of vehicle door; the 3 m ones are the building catalog's kinds)
+register("opening.door.vehicle_roller", vehicle_roller, "Vehicle door, roller shutter", family="opening", kind="door_vehicle_roller", tags=("opening", "door", "vehicle_door"))
+register("opening.door.vehicle_up_over", vehicle_up_and_over, "Vehicle door, up and over", family="opening", kind="door_vehicle_up_over", tags=("opening", "door", "vehicle_door"))
+for _w, _h, _n in ((2.4, 2.1, "garage"), (4.8, 2.1, "garage_double"), (4.0, 4.5, "industrial"), (5.0, 5.0, "industrial_large")):
+	reg("opening.door.vehicle_roller_" + _n, vehicle_roller, "Roller vehicle door, %g by %g m" % (_w, _h), "door", "vehicle_door", w=_w, h=_h,
+		slot="paint_white" if _h < 2.5 else "steel_galvanised", powered=_h >= 2.5 or _w > 3)
+for _w, _h, _n in ((2.4, 2.1, "garage"), (4.8, 2.1, "garage_double"), (3.0, 2.4, "tall")):
+	reg("opening.door.vehicle_up_over_" + _n, vehicle_up_and_over, "Up and over vehicle door, %g by %g m" % (_w, _h), "door", "vehicle_door", w=_w, h=_h,
+		ribs="horizontal" if _w > 3 else "vertical")
 reg("opening.door.fire_exit", fire_exit, "Fire exit door with panic bar", "door")
 reg("opening.door.fire_exit_double", fire_exit, "Fire exit doors, double", "door", double=True)
 for _w, _h in ((2.4, 2.4), (3.0, 3.0), (4.0, 4.5), (5.0, 5.0), (8.0, 6.0)):

@@ -98,6 +98,8 @@ for _kind, _k in catalog()["kinds"].items():
 		_id = "opening.%s.%s" % (_a, _b) + ("" if _m == _k["materials"][0] else "_" + _m)
 		if _a == "window":
 			register(_id, window, _k["label"], family="opening", kind=_kind, tags=("opening", "window"), w=_k["w"], h=_k["h"])
+		elif _kind.startswith("door_vehicle_"):
+			continue  # (the roller and up-and-over vehicle doors: recipes/openings_more.py)
 		elif _kind == "door_vehicle":
 			register(_id, shutter, _k["label"], family="opening", kind=_kind, tags=("opening", "door"), w=_k["w"], h=_k["h"])
 		else:
