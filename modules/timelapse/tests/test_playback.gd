@@ -96,6 +96,21 @@ func run_tests() -> void:
 	for id: String in view._pieces:
 		solid = solid and is_zero_approx((view._pieces[id].mesh as MeshInstance3D).transparency)
 	check(solid, "at the end every part is solid")
+	# Esc goes back to the design office (the game's start scene) instead of the pause menu.
+	# With no start scene it has nowhere to go, so this test stays put and checks the key.
+	var start := Menu.start()
+	Menu._start = {}
+	var esc := InputEventKey.new()
+	esc.keycode = KEY_ESCAPE
+	esc.physical_keycode = KEY_ESCAPE
+	esc.pressed = true
+	view.get_viewport().push_input(esc)
+	await frames(1)
+	var ui := Modules.bus("ui")
+	var paused: bool = ui != null and ui.get("pause") != null and bool(ui.get("pause").get("is_open"))
+	check(not paused, "Esc in the timelapse doesn't open the pause menu")
+	check(view.find_child("Back", true, false) is Button, "a Back button beside the speeds")
+	Menu._start = start
 	view.queue_free()
 	await frames(1)
 

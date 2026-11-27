@@ -6,7 +6,7 @@ extends Node3D
 ##
 ## Router args {"demo": true} schedules the built-in demo house when nothing is running.
 ## Controls: right drag orbits, middle drag pans, wheel zooms, Space plays or pauses,
-## G shows the ghost of the finished building, Esc pauses the game.
+## G shows the ghost of the finished building, Esc goes back to the design office.
 
 const DemoHouse := preload("res://modules/timelapse/internal/demo_house.gd")
 
@@ -345,7 +345,19 @@ func _place_camera() -> void:
 	camera.global_transform = Transform3D(basis, _focus + basis.z * _dist)
 
 
+## Back to where the building was designed (the game's start scene: the design office).
+func go_back() -> void:
+	var start := Menu.start()
+	if not start.is_empty():
+		Router.goto(str(start.scene), start.get("args", {}))
+
+
 func _unhandled_input(event: InputEvent) -> void:
+	if event is InputEventKey and event.is_action_pressed(Keys.CANCEL) and not event.is_echo():
+		# Esc goes back to the design office rather than opening the pause menu.
+		get_viewport().set_input_as_handled()
+		go_back()
+		return
 	if event is InputEventMouseButton:
 		var mb := event as InputEventMouseButton
 		match mb.button_index:
@@ -438,11 +450,9 @@ func _build_hud() -> void:
 	var spacer := Control.new()
 	spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	row.add_child(spacer)
-	row.add_child(BsxTheme.hud_label("G ghost  ·  Space play/pause", 14))
-	var back := BsxTheme.button("Back to site", func() -> void:
-		var start := Menu.start()
-		if not start.is_empty():
-			Router.goto(str(start.scene), start.get("args", {})))
+	row.add_child(BsxTheme.hud_label("G ghost  ·  Space play/pause  ·  Esc back", 14))
+	var back := BsxTheme.button("Back to design (Esc)", go_back)
+	back.name = "Back"
 	# With a contract taken (the contracts module, optional): hand the finished building over.
 	_hand_over = BsxTheme.button("Hand over", func() -> void:
 		var c := _contracts()
