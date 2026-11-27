@@ -10,6 +10,9 @@ extends RefCounted
 ##   var c := HallChannels.make("plan", hall, 24)  # a Control for a panel
 
 const T := preload("res://modules/ui/api/terminal_kit.gd")
+const ScaledBox := preload("res://modules/design/internal/hall/hall_scaled_box.gd")
+## The text size other modules' panels are made at, px.
+const PANEL_FONT := 12.0
 
 const BASE: Array[Dictionary] = [
 	{"id": "plan", "title": "PLAN"},
@@ -57,13 +60,17 @@ static func make(id: String, hall: Node, font: int) -> Control:
 		if not p.is_empty() and (p.make as Callable).is_valid():
 			var body: Variant = (p.make as Callable).call(hall.get("model"))
 			if body is Control:
+				# Panels are made for the designer's side dock (text about PANEL_FONT px), so the
+				# whole panel is drawn bigger, its own font sizes and all.
+				var scaled: Container = ScaledBox.new(float(font) / PANEL_FONT)
 				var box := ScrollContainer.new()
 				box.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+				scaled.add_child(box)
 				var c := body as Control
 				c.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-				c.theme = _scaled_theme(font)
+				c.theme = _scaled_theme(int(PANEL_FONT))
 				box.add_child(c)
-				return box
+				return scaled
 	var l := T.label("Not available", "body", font, T.DIM)
 	l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	return l
@@ -76,9 +83,12 @@ static func _scaled_theme(font: int) -> Theme:
 	return th
 
 
-## A camera on the designer's world: the plan from above, the side elevation, or a 3D view
-## turning slowly round the building. Drag to turn the 3D view, wheel to zoom. Where this
-## player's pointer is on the drawing is their design pointer for everyone.
+## A camera on a world with the design in it: the plan from above, the side elevation, a
+## section (looking along -z from a cut through the building), or a 3D view turning slowly
+## round it. Drag to turn the 3D view, wheel to zoom, Shift+wheel to move the section's cut.
+## Where this player's pointer is on the drawing is their design pointer for everyone.
+## `hall` is whatever gives the world: model_world(), bounds(), floor_y(), set_pointer(at)
+## (the hall, or the designer's DesignMiniWorld).
 class ModelChannel extends SubViewportContainer:
 	var hall: Node
 	var mode := "plan"
@@ -87,8 +97,13 @@ class ModelChannel extends SubViewportContainer:
 	var zoom := 1.0
 	var yaw := 0.6
 	var pitch := -0.5
+	## The section's cut, m from the building's middle along z.
+	var cut := 0.0
+	## How far the 3D view stands off, in building spans.
+	var distance := 1.2
 	var _drag := false
 	var _hovered := false
+	var _note: Label
 
 	func setup(p_hall: Node, p_mode: String) -> void:
 		hall = p_hall
@@ -106,6 +121,13 @@ class ModelChannel extends SubViewportContainer:
 			cam.projection = Camera3D.PROJECTION_ORTHOGONAL
 		cam.far = 2000.0
 		vp.add_child(cam)
+		if mode == "section":
+			_note = Label.new()
+			_note.add_theme_font_size_override("font_size", 12)
+			_note.modulate = Color(0.1, 0.12, 0.15, 0.8)
+			_note.position = Vector2(8, 4)
+			_note.mouse_filter = Control.MOUSE_FILTER_IGNORE
+			add_child(_note)
 		mouse_exited.connect(func() -> void:
 			if _hovered:
 				_hovered = false
@@ -127,17 +149,27 @@ class ModelChannel extends SubViewportContainer:
 				var h := maxf(box.size.y, 6.0) * 1.3 / zoom
 				cam.size = maxf(h, span / maxf(aspect, 0.1))
 				cam.global_transform = Transform3D(Basis.IDENTITY, Vector3(centre.x, box.position.y + box.size.y * 0.5, box.end.z + 100.0))
+			"section":
+				cut = clampf(cut, -box.size.z * 0.5, box.size.z * 0.5)
+				var h := maxf(box.size.y, 6.0) * 1.3 / zoom
+				cam.size = maxf(h, span / maxf(aspect, 0.1))
+				cam.near = 0.02
+				cam.global_transform = Transform3D(Basis.IDENTITY, Vector3(centre.x, box.position.y + box.size.y * 0.5, centre.z + cut))
+				if _note:
+					_note.text = "SECTION  z = %.1f m   ·   Shift+wheel moves the cut" % (centre.z + cut)
 			"3d":
 				if not _drag:
 					yaw += delta * 0.08
-				var dist := span * 1.2
+				var dist := span * distance
 				var basis := Basis.from_euler(Vector3(pitch, yaw, 0.0))
 				cam.global_transform = Transform3D(basis, centre + basis.z * dist)
 
 	func _gui_input(event: InputEvent) -> void:
 		if event is InputEventMouseButton:
 			var mb := event as InputEventMouseButton
-			if mb.button_index == MOUSE_BUTTON_WHEEL_UP and mb.pressed:
+			if mode == "section" and mb.shift_pressed and mb.pressed and mb.button_index in [MOUSE_BUTTON_WHEEL_UP, MOUSE_BUTTON_WHEEL_DOWN]:
+				cut += 0.25 if mb.button_index == MOUSE_BUTTON_WHEEL_UP else -0.25
+			elif mb.button_index == MOUSE_BUTTON_WHEEL_UP and mb.pressed:
 				zoom = clampf(zoom * 1.15, 0.3, 8.0)
 			elif mb.button_index == MOUSE_BUTTON_WHEEL_DOWN and mb.pressed:
 				zoom = clampf(zoom / 1.15, 0.3, 8.0)
@@ -163,6 +195,8 @@ class ModelChannel extends SubViewportContainer:
 		var y := float(hall.call("floor_y"))
 		if mode == "side":
 			return Vector3(from.x, from.y, float((hall.call("bounds") as AABB).get_center().z))
+		if mode == "section":
+			return Vector3(from.x, from.y, from.z)
 		if absf(dir.y) < 0.0001:
 			return null
 		var t := (y - from.y) / dir.y

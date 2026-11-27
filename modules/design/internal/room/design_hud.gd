@@ -2,13 +2,20 @@ extends Control
 ## The design room's HUD, laid out like BSX's design room: the 2D or 3D view in the middle,
 ## the top bar (crew, level, grid, 2D/3D, undo, redo, save, load, other modules' actions),
 ## the left dock (tools, the tool's options, and the Rooms / Components / Levels browser), the
-## right dock (the View's panel, other modules' live assessment windows, the cost) and the
-## status line.
+## right dock (a small 3D view, the View's panel, other modules' live assessment windows, the
+## cost), an optional section along the bottom of the middle, and the status line. Small
+## text, so the columns hold a lot.
 
 const PANEL_W := 300
 ## Height taken by the two-row top bar, px.
 const TOP_H := 108
 const COST_W := 340
+## Body text size, px.
+const FONT := 14
+## The small 3D view's height, and the section's, px.
+const MINI_H := 230
+const SECTION_H := 280
+const ModelChannel := preload("res://modules/design/internal/hall/hall_channels.gd").ModelChannel
 
 var room: Node3D
 var _session: DesignSession
@@ -50,6 +57,14 @@ const COST_EVERY := 0.25
 ## Rooms listed in the cost panel; the Rooms tab lists them all.
 const COST_ROOMS := 30
 var _status_age := 0.0
+## The whole design for the small views (every level, no plan cut).
+var mini: DesignMiniWorld
+var mini_3d: Control
+var _mini_box: Control
+var _mini_head: Button
+var section: Control
+var _section_box: Control
+var _section_toggle: CheckButton
 
 
 func _ready() -> void:
@@ -59,12 +74,18 @@ func _ready() -> void:
 	_book = DesignCostBook.new(_model)
 	# Cost the building while the room opens; a design loaded later is costed a slice a frame.
 	_book.update()
-	theme = BsxTheme.get_theme()
+	var th := BsxTheme.get_theme().duplicate() as Theme
+	th.default_font_size = FONT
+	theme = th
+	mini = DesignMiniWorld.new()
+	add_child(mini)
+	mini.setup(_session)
 	set_anchors_and_offsets_preset(PRESET_FULL_RECT)
 	mouse_filter = MOUSE_FILTER_IGNORE
 	_build_top()
 	_build_tools()
 	_build_cost()
+	_build_section()
 	_build_status()
 	_build_popups()
 	_session.tool_changed.connect(func(_t: String) -> void: _refresh_tools())
@@ -96,6 +117,7 @@ func _exit_tree() -> void:
 
 
 func _process(delta: float) -> void:
+	mini.watchers = int(mini_3d.is_visible_in_tree()) + int(section.is_visible_in_tree())
 	# Up to 1.5 ms a frame of re-costing (all of it at once after an edit on most buildings),
 	# and the panel redrawn at most four times a second.
 	var current := _book.update(1500)
@@ -146,7 +168,7 @@ func _build_top() -> void:
 	var row2 := HBoxContainer.new()
 	row2.add_theme_constant_override("separation", 8)
 	rows.add_child(row2)
-	var title := BsxTheme.hud_label("DESIGN ROOM", 20, BsxTheme.ACCENT)
+	var title := BsxTheme.hud_label("DESIGN ROOM", 16, BsxTheme.ACCENT)
 	row.add_child(title)
 	_crew_label = RichTextLabel.new()
 	_crew_label.bbcode_enabled = true
@@ -215,6 +237,12 @@ func _build_top() -> void:
 	_views.tooltip_text = "The view you look through: Architect, or another discipline's overlay"
 	_views.item_selected.connect(func(i: int) -> void: room.call("set_overlay", str(_views.get_item_metadata(i))))
 	row2.add_child(_views)
+	_section_toggle = CheckButton.new()
+	_section_toggle.text = "Section"
+	_section_toggle.focus_mode = FOCUS_NONE
+	_section_toggle.tooltip_text = "A section through the building along the bottom (Shift+wheel on it moves the cut)"
+	_section_toggle.toggled.connect(show_section)
+	row2.add_child(_section_toggle)
 	_actions = HBoxContainer.new()
 	row2.add_child(_actions)
 	row.add_child(_button("Menu", Menu.open_pause, "Pause menu (Esc)"))
@@ -331,7 +359,7 @@ func _build_tools() -> void:
 	var col := VBoxContainer.new()
 	col.size_flags_horizontal = SIZE_EXPAND_FILL
 	scroll.add_child(col)
-	col.add_child(BsxTheme.hud_label("TOOLS", 16, BsxTheme.HUD_DIM))
+	col.add_child(BsxTheme.hud_label("TOOLS", 13, BsxTheme.HUD_DIM))
 	var grid := GridContainer.new()
 	grid.columns = 2
 	col.add_child(grid)
@@ -349,7 +377,7 @@ func _build_tools() -> void:
 	col.add_child(HSeparator.new())
 	var keys := Label.new()
 	keys.text = "Left drag: use tool\nRight drag: orbit · Middle: pan · Wheel: zoom\nMiddle click: ping · Hold middle: notes wheel · Tab 2D/3D · PgUp/PgDn level\nDel delete · Ctrl+Z undo · Ctrl+Y redo · R turn · V realistic look · Esc cancel"
-	keys.add_theme_font_size_override("font_size", 13)
+	keys.add_theme_font_size_override("font_size", 12)
 	keys.modulate = BsxTheme.MUTED
 	keys.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	col.add_child(keys)
@@ -483,10 +511,33 @@ func _build_cost() -> void:
 	p.offset_top = TOP_H
 	p.offset_bottom = -44
 	add_child(p)
-	# The right dock scrolls as one: the View's panel, the live windows, then the cost.
+	var dock := VBoxContainer.new()
+	p.add_child(dock)
+	# The small 3D view on top: the whole building, whatever the middle is showing.
+	_mini_head = Button.new()
+	_mini_head.flat = true
+	_mini_head.focus_mode = FOCUS_NONE
+	_mini_head.alignment = HORIZONTAL_ALIGNMENT_LEFT
+	_mini_head.add_theme_font_size_override("font_size", 13)
+	_mini_head.pressed.connect(func() -> void: show_mini_3d(not _mini_box.visible))
+	dock.add_child(_mini_head)
+	_mini_box = PanelContainer.new()
+	_mini_box.add_theme_stylebox_override("panel", StyleBoxEmpty.new())
+	_mini_box.custom_minimum_size.y = MINI_H
+	dock.add_child(_mini_box)
+	var m := ModelChannel.new()
+	m.setup(mini, "3d")
+	m.distance = 0.75
+	m.name = "Mini3D"
+	m.tooltip_text = "Drag to turn, wheel to zoom"
+	mini_3d = m
+	_mini_box.add_child(m)
+	show_mini_3d(true)
+	# Under it the dock scrolls as one: the View's panel, the live windows, then the cost.
 	var scroll := ScrollContainer.new()
 	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
-	p.add_child(scroll)
+	scroll.size_flags_vertical = SIZE_EXPAND_FILL
+	dock.add_child(scroll)
 	var col := VBoxContainer.new()
 	col.size_flags_horizontal = SIZE_EXPAND_FILL
 	scroll.add_child(col)
@@ -518,7 +569,7 @@ func build_side_panels() -> void:
 		var head := Button.new()
 		head.flat = true
 		head.alignment = HORIZONTAL_ALIGNMENT_LEFT
-		head.add_theme_font_size_override("font_size", 16)
+		head.add_theme_font_size_override("font_size", 13)
 		_side_slot.add_child(head)
 		var paint := func() -> void:
 			head.text = ("▸ " if _folded.get(id, false) else "▾ ") + str(p.title)
@@ -544,7 +595,40 @@ func side_panel_count() -> int:
 
 
 func _refresh_cost() -> void:
-	_cost.text = DesignCosts.bbcode(_book.summary(), COST_ROOMS)
+	_cost.text = DesignCosts.bbcode(_book.summary(), COST_ROOMS, 22)
+
+
+## Folds or opens the small 3D view at the top of the right dock.
+func show_mini_3d(on: bool) -> void:
+	_mini_box.visible = on
+	_mini_head.text = ("▾ " if on else "▸ ") + "3D VIEW"
+
+
+# --- Section ----------------------------------------------------------------------------
+
+func _build_section() -> void:
+	var p := _panel(0)
+	p.name = "Section"
+	p.set_anchors_and_offsets_preset(PRESET_BOTTOM_WIDE)
+	p.offset_left = 16 + PANEL_W
+	p.offset_right = -16 - COST_W
+	p.offset_bottom = -48
+	p.offset_top = -48 - SECTION_H
+	p.visible = false
+	add_child(p)
+	_section_box = p
+	var m := ModelChannel.new()
+	m.setup(mini, "section")
+	m.name = "SectionView"
+	section = m
+	p.add_child(m)
+
+
+## Shows or hides the section along the bottom of the middle.
+func show_section(on: bool) -> void:
+	_section_box.visible = on
+	if _section_toggle.button_pressed != on:
+		_section_toggle.set_pressed_no_signal(on)
 
 
 # --- Status line ------------------------------------------------------------------------

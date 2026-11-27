@@ -56,6 +56,8 @@ var wheel: Control
 var embedded := false
 ## Taking the mouse and keys (false while the hall is shown and the designer is put away).
 var active := true
+## True while another camera (walk-inside) has this room's view.
+var lent_view := false
 ## Esc with nothing to cancel, while embedded: back to the hall.
 signal leave_requested
 
@@ -227,10 +229,20 @@ func _process(_delta: float) -> void:
 	if cam.focus.distance_to(_last_focus) > 2.0:
 		_last_focus = cam.focus
 		_draw_grid()
-	if not active:
+	# Another camera has the view (walking inside the design): the designer steps aside,
+	# HUD and all, and comes back when it is given back.
+	var lent := active and get_viewport().get_camera_3d() != camera
+	if lent != lent_view:
+		lent_view = lent
+		hud.visible = active and not lent
+		if lent:
+			session.hover(null)
+	if not active or lent_view:
 		pass
 	elif _pointer_over_hud():
-		session.hover(null)
+		# Over one of the small views (3D, section), the pointer is where it points in there.
+		var c := get_viewport().gui_get_hovered_control()
+		session.hover(c.call("floor_point", c.get_local_mouse_position()) if c.has_method("floor_point") else null)
 	else:
 		session.hover(_floor_point())
 	if not _pulses.is_empty():
@@ -456,7 +468,7 @@ func _ghost_mat(c: Color) -> StandardMaterial3D:
 ## its plan cut comes off, so the hall's screens and table show the whole building.
 func set_active(on: bool) -> void:
 	active = on
-	hud.visible = on
+	hud.visible = on and not lent_view
 	if not on:
 		_left_down = false
 		_middle_from = null
@@ -469,7 +481,7 @@ func set_active(on: bool) -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
-	if not active:
+	if not active or lent_view:
 		return
 	var cam := camera as DesignCamera
 	if event is InputEventMouseButton:

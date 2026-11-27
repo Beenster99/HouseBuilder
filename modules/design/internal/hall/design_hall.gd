@@ -73,6 +73,7 @@ var _cross: Control
 var _bounds := AABB(Vector3(-10, 0, -10), Vector3(20, 6, 20))
 var _bounds_rev := -1
 var _bounds_age := 1.0
+var _designer_opened := false
 
 
 func _ready() -> void:
@@ -119,19 +120,7 @@ func bounds() -> AABB:
 	if model.revision != _bounds_rev and _bounds_age > 0.5:
 		_bounds_rev = model.revision
 		_bounds_age = 0.0
-		var first := true
-		var box := AABB()
-		for id: String in model.parts:
-			var b: AABB = model.aabb_of(id)
-			box = b if first else box.merge(b)
-			first = false
-		for id: String in model.rooms:
-			for p: Variant in model.rooms[id].outline:
-				var v := Vector3(float(p[0]), model.level_elevation(int(model.rooms[id].level)), float(p[1]))
-				box = AABB(v, Vector3.ZERO) if first else box.expand(v)
-				first = false
-		_bounds = box if not first else AABB(Vector3(-10, 0, -10), Vector3(20, 6, 20))
-		_bounds.size.y = maxf(_bounds.size.y, 3.0)
+		_bounds = DesignMiniWorld.model_bounds(model)
 	return _bounds
 
 
@@ -152,29 +141,9 @@ func set_pointer(at: Variant) -> void:
 ## Every player's pointer now: peer -> {at, colour, name}. This player's own, the others'
 ## (from the designer's presence) and anyone walking inside the design (WalkBus, if there).
 func pointers() -> Dictionary:
-	var out := {}
-	var pres: DesignPresence = designer.session.presence
-	var me := net.local_peer_id()
-	var mine: Variant = pres.my_cursor.position if pres.my_cursor.position.y > DesignPresence.HIDDEN_Y + 1.0 else null
-	if mine != null:
-		out[me] = {"at": mine, "colour": net.player_colour(me), "name": net.player_name(me)}
-	var others := pres.others()
-	for peer: int in others:
-		if others[peer].cursor != null:
-			out[peer] = {"at": others[peer].cursor, "colour": net.player_colour(peer), "name": net.player_name(peer)}
-	var walk := Modules.bus("walk")
-	if walk and "walkers" in walk:
-		var walkers: Dictionary = walk.get("walkers")
-		for peer: int in walkers:
-			var w: Dictionary = walkers[peer]
-			if w.has("pos"):
-				out[peer] = {"at": w.pos, "colour": net.player_colour(peer), "name": net.player_name(peer)}
-	return out
+	return DesignMiniWorld.pointers_of(designer.session.presence, net)
 
 
-# --- Modes ------------------------------------------------------------------------------
-
-## True when this player stands at the table.
 func at_table() -> bool:
 	var d := holo.to_local(walker.global_position)
 	return Vector2(d.x, d.z).length() <= TABLE_REACH
@@ -187,6 +156,11 @@ func open_designer() -> void:
 	if mode == "full":
 		close_fullscreen()
 	mode = "designer"
+	# The designer opens on the plan the first time; after that, as it was left.
+	if not _designer_opened:
+		_designer_opened = true
+		if not bool(designer.camera.get("plan")):
+			designer.call("toggle_plan")
 	designer_view.visible = true
 	designer_vp.render_target_update_mode = SubViewport.UPDATE_ALWAYS
 	designer.call("set_active", true)

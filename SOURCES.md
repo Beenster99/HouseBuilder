@@ -18,3 +18,10 @@ Fixes since the copy (worth porting back to BSX Ltd):
   first-person scenes would set it); FredDibnah's overhead views use cursors instead.
 - net_stats() no longer reports everything sent before its first call as one second of traffic.
 - New in core here, not in BSX: ArtStyle and the Graphics "Look" option.
+
+## Design hall (modules/design/internal/hall)
+
+Ported from BSX Ltd at 3f178e4 and repurposed for buildings: hall_screen.gd (ui/api/touch_screen.gd),
+hall_wall_board.gd (design/internal/room/wall_board.gd), hall_holo_table.gd (design/internal/holo/holo_table.gd,
+the table and its controls; the model on it is FredDibnah's DesignView) and hall_scaled_box.gd
+(design/internal/console/scaled_box.gd, unchanged).
