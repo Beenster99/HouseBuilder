@@ -20,6 +20,7 @@ func setup(contracts: Node, building: BuildingModel) -> void:
 	custom_minimum_size = Vector2(300, 0)
 	add_theme_font_size_override("normal_font_size", 14)
 	add_theme_font_size_override("bold_font_size", 15)
+	add_theme_font_size_override("italics_font_size", 14)
 	_timer = Timer.new()
 	_timer.one_shot = true
 	_timer.wait_time = DEBOUNCE
