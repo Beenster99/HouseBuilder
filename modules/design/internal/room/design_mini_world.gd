@@ -18,13 +18,13 @@ var view: Node3D
 ## Small views showing now (each says so while it is visible).
 var watchers := 0
 var _age := 10.0
-var _bounds := AABB(Vector3(-10, 0, -10), Vector3(20, 6, 20))
-var _bounds_rev := -1
+var _bounds: DesignBounds
 var _markers: Dictionary = {}  # peer -> Node3D
 
 
 func setup(p_session: DesignSession) -> void:
 	session = p_session
+	_bounds = DesignBounds.new(session.model)
 	name = "MiniWorld"
 	own_world_3d = true
 	size = Vector2i(2, 2)
@@ -74,10 +74,7 @@ func model_world() -> World3D:
 
 ## The building's extent (world m).
 func bounds() -> AABB:
-	if session.model.revision != _bounds_rev:
-		_bounds_rev = session.model.revision
-		_bounds = model_bounds(session.model)
-	return _bounds
+	return _bounds.box()
 
 
 func floor_y() -> float:
@@ -87,25 +84,6 @@ func floor_y() -> float:
 ## The designer works out the pointer itself from the view under the mouse.
 func set_pointer(_at: Variant) -> void:
 	pass
-
-
-## The building's extent (world m): its parts and room outlines; a default plot when empty.
-static func model_bounds(model: BuildingModel) -> AABB:
-	var first := true
-	var box := AABB()
-	for id: String in model.parts:
-		var b: AABB = model.aabb_of(id)
-		box = b if first else box.merge(b)
-		first = false
-	for id: String in model.rooms:
-		for p: Variant in model.rooms[id].outline:
-			var v := Vector3(float(p[0]), model.level_elevation(int(model.rooms[id].level)), float(p[1]))
-			box = AABB(v, Vector3.ZERO) if first else box.expand(v)
-			first = false
-	if first:
-		return AABB(Vector3(-10, 0, -10), Vector3(20, 6, 20))
-	box.size.y = maxf(box.size.y, 3.0)
-	return box
 
 
 ## Every player's pointer now: peer -> {at, colour, name}. This player's own, the others'

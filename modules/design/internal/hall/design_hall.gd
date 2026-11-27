@@ -70,9 +70,7 @@ var fullscreen: Control
 var full_from := {}
 var _hint: Label
 var _cross: Control
-var _bounds := AABB(Vector3(-10, 0, -10), Vector3(20, 6, 20))
-var _bounds_rev := -1
-var _bounds_age := 1.0
+var _bounds: DesignBounds
 var _designer_opened := false
 
 
@@ -81,6 +79,7 @@ func _ready() -> void:
 	net = Modules.bus("multiplayer") as MultiplayerBus
 	building = Modules.bus("building") as BuildingBus
 	model = building.model
+	_bounds = DesignBounds.new(model)
 	screens = HallScreens.new()
 	screens.name = "Screens"
 	add_child(screens)
@@ -117,11 +116,7 @@ func model_world() -> World3D:
 
 ## The building's extent (world m), for framing the drawings and fitting the table.
 func bounds() -> AABB:
-	if model.revision != _bounds_rev and _bounds_age > 0.5:
-		_bounds_rev = model.revision
-		_bounds_age = 0.0
-		_bounds = DesignMiniWorld.model_bounds(model)
-	return _bounds
+	return _bounds.box()
 
 
 func floor_y() -> float:
@@ -309,7 +304,6 @@ func _unhandled_input(event: InputEvent) -> void:
 
 
 func _process(delta: float) -> void:
-	_bounds_age += delta
 	walker.set("enabled", mode == "room" and not HudSlots.pointer_claimed())
 	var near := mode == "room" and at_table() and not HudSlots.pointer_claimed()
 	if near and not Keys.typing():
