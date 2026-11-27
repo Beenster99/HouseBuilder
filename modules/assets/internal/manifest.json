@@ -90100,7 +90100,7 @@
 		"category": "services",
 		"family": "",
 		"file": "models/services/services.light.downlight.glb",
-		"kind": "",
+		"kind": "light_point",
 		"label": "Recessed downlight",
 		"mass": 1.0,
 		"pieces": [
@@ -93715,7 +93715,7 @@
 		"category": "services",
 		"family": "",
 		"file": "models/services/services.point.double_socket.glb",
-		"kind": "",
+		"kind": "socket_double",
 		"label": "Double socket",
 		"mass": 0.2,
 		"pieces": [
@@ -94216,6 +94216,62 @@
 			"services"
 		],
 		"tris": 856
+	},
+	"services.radiator.double_700": {
+		"aabb": [
+			[
+				-0.3975,
+				0.0,
+				-0.115
+			],
+			[
+				0.407,
+				0.755,
+				-0.013
+			]
+		],
+		"category": "services",
+		"family": "",
+		"file": "models/services/services.radiator.double_700.glb",
+		"kind": "radiator",
+		"label": "700 mm double panel radiator",
+		"mass": 13.7,
+		"pieces": [
+			{
+				"mass": 12.828,
+				"node": "main__paint_white",
+				"slot": "paint_white",
+				"stage": "main"
+			},
+			{
+				"mass": 0.334,
+				"node": "main__steel_stainless",
+				"slot": "steel_stainless",
+				"stage": "main"
+			},
+			{
+				"mass": 0.482,
+				"node": "main__copper",
+				"slot": "copper",
+				"stage": "main"
+			},
+			{
+				"mass": 0.073,
+				"node": "main__plastic_white",
+				"slot": "plastic_white",
+				"stage": "main"
+			}
+		],
+		"sockets": {},
+		"stages": [
+			"main"
+		],
+		"stretch": "",
+		"tags": [
+			"heating",
+			"services"
+		],
+		"tris": 940
 	},
 	"services.radiator.low_2000": {
 		"aabb": [

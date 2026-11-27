@@ -91,8 +91,8 @@ STYLE = {"door_internal": "panel", "door_external": "external", "door_double": "
 	"door_accessible": "flush", "door_secure": "secure"}
 
 for _kind, _k in catalog()["kinds"].items():
-	if _k["family"] != "opening":
-		continue
+	if _k["family"] != "opening" or "." in _kind:
+		continue  # (a kind that is itself an asset id is drawn by that asset)
 	_a, _b = _kind.split("_", 1)
 	for _m in _k["materials"]:
 		_id = "opening.%s.%s" % (_a, _b) + ("" if _m == _k["materials"][0] else "_" + _m)

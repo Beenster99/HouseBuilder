@@ -249,6 +249,8 @@ for _l in (600, 1000, 1400, 1800):
 	for _dbl in (False, True):
 		register("services.radiator.%s_%d" % ("double" if _dbl else "single", _l), radiator, "%d mm %s panel radiator" % (_l, "double" if _dbl else "single"),
 			tags=("services", "heating"), length=_l, h=600, double=_dbl)
+# The building catalog's "radiator" fixture kind (0.8 x 0.6 x 0.1 m).
+register("services.radiator.double_700", radiator, "700 mm double panel radiator", kind="radiator", tags=("services", "heating"), length=700, h=600, double=True)
 register("services.radiator.low_2000", radiator, "2000 mm low-level radiator", tags=("services", "heating"), length=2000, h=300, double=True)
 
 
@@ -299,7 +301,7 @@ def faceplate(what):
 
 for _k, _l in (("socket", "Single socket"), ("double_socket", "Double socket"), ("switch", "Light switch"), ("switch_2g", "Two-gang light switch"),
 		("fused_spur", "Fused spur"), ("cooker", "Cooker switch"), ("data", "Twin data outlet"), ("thermostat", "Room thermostat")):
-	register("services.point." + _k, faceplate, _l, tags=("services", "electrical", "point"), what=_k)
+	register("services.point." + _k, faceplate, _l, kind="socket_double" if _k == "double_socket" else "", tags=("services", "electrical", "point"), what=_k)
 
 
 def light(what):
@@ -341,7 +343,7 @@ def light(what):
 
 for _k, _l in (("pendant", "Pendant light"), ("downlight", "Recessed downlight"), ("batten", "1200 mm LED batten"), ("panel", "600 x 600 LED panel"),
 		("highbay", "High-bay light"), ("bulkhead", "Bulkhead light"), ("emergency", "Emergency light"), ("exit_sign", "Illuminated exit sign"), ("floodlight", "External floodlight")):
-	register("services.light." + _k, light, _l, tags=("services", "electrical", "lighting"), what=_k)
+	register("services.light." + _k, light, _l, kind="light_point" if _k == "downlight" else "", tags=("services", "electrical", "lighting"), what=_k)
 
 
 def device(what):
