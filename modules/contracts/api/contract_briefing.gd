@@ -113,7 +113,10 @@ static func sections(brief: Dictionary, catalog: BuildingCatalog = null) -> Arra
 	var cat := catalog if catalog != null else BuildingCatalog.default_catalog()
 	var out: Array = []
 	var spec: Dictionary = ContractGenerator.TYPES.get(str(brief.get("type", "")), {})
-	out.append({"title": "The client", "lines": [story(brief)]})
+	var client_lines := [story(brief)]
+	if str(brief.get("client_note", "")) != "":
+		client_lines.append(str(brief.client_note))
+	out.append({"title": "The client", "lines": client_lines})
 	out.append({"title": "What to build", "lines": _build_lines(brief, spec, cat)})
 	out.append({"title": "Rooms", "lines": _room_lines(brief, cat)})
 	out.append({"title": "Money and time", "lines": _money_lines(brief)})

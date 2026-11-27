@@ -15,6 +15,8 @@ extends Node
 ##   c.career                       # ContractCareer: money, XP and tier, unlocks
 ##   c.set_xp(ContractTiers.MAX_XP) # testing: jump the firm's XP (Settings > Debug)
 ##   c.site_offer()                 # the brief written for the real site the crew is on
+##   c.locked_tier("roof:hip")      # the tier that opens an unlock id, 0 if open (unlock tree)
+##   c.buy("second_crew")           # a firm upgrade (contracts.buy); c.effect("schedule_factor")
 ##   ContractBriefing.bbcode(brief) # any brief as the client's full briefing document
 ##   signals: board_changed, active_changed, settled(settlement), report_taken, career.changed
 ##
@@ -60,6 +62,9 @@ const EV_ABANDON := "contracts.abandon"
 const EV_REPORT := "contracts.structure_report"
 const EV_SET_XP := "contracts.set_xp"
 const EV_SITE_BRIEF := "contracts.site_brief"
+const EV_BUY := "contracts.buy"
+## Tier unlocks for roof shapes, library groups and gear, and firm upgrades bought with money.
+const UNLOCK_FLAG := "contracts.unlock_tree"
 
 var career := ContractCareer.new()
 var board: Array = []
@@ -87,6 +92,8 @@ var _checked_fresh := false
 func register_module() -> void:
 	Saves.register_section(SAVE_SECTION, self)
 	Menu.register_settings_section(Menu.DEBUG, DEBUG_SECTION, "Contracts: firm XP", make_debug_section, 30)
+	active_changed.connect(_refresh_palette)
+	career.changed.connect(_refresh_palette)
 	_deal_board(board_seed)
 	if Modules.ready_done:
 		_hook_net()
@@ -241,13 +248,14 @@ func bind(bus: MultiplayerBus) -> void:
 	net.register_event(EV_REPORT, _apply_report, _validate_report)
 	net.register_event(EV_SET_XP, _apply_set_xp, _validate_set_xp)
 	net.register_event(EV_SITE_BRIEF, _apply_site_brief, _validate_site_brief)
+	net.register_event(EV_BUY, _apply_buy, _validate_buy)
 	net.register_snapshot_provider(SAVE_SECTION, self)
 
 
 func unbind() -> void:
 	if net == null:
 		return
-	for e: String in [EV_ACCEPT, EV_HANDOVER, EV_ABANDON, EV_REPORT, EV_SET_XP, EV_SITE_BRIEF]:
+	for e: String in [EV_ACCEPT, EV_HANDOVER, EV_ABANDON, EV_REPORT, EV_SET_XP, EV_SITE_BRIEF, EV_BUY]:
 		net.unregister_event(e)
 	net.unregister_snapshot_provider(SAVE_SECTION)
 	net = null
@@ -265,7 +273,41 @@ func assess(model: BuildingModel = null) -> Dictionary:
 	var m := model if model != null else building()
 	if active.is_empty() or m == null:
 		return {}
-	return ContractValidator.assess(active, m, report_for(m))
+	return ContractValidator.assess(_with_deals(active), m, report_for(m))
+
+
+## The brief with the firm's supplier deal on it (ContractValidator reads brief.discount).
+func _with_deals(b: Dictionary) -> Dictionary:
+	var share := effect("material_discount")
+	if share <= 0.0 or career.deal_material == "":
+		return b
+	var out := b.duplicate()
+	out["discount"] = {career.deal_material: share}
+	return out
+
+
+## The tier a firm must reach before it may use an unlock id ("kind:<kind>", "material:<id>",
+## "roof:<shape>", "lib:<group>", "gear:<id>"), or 0 when it is open. Always 0 with the
+## unlock tree off, or with no contract taken (sandbox and free design).
+func locked_tier(unlock_id: String) -> int:
+	if not Flags.is_on(UNLOCK_FLAG) or active.is_empty():
+		return 0
+	var m := building()
+	var t := ContractCareer.tier_of(unlock_id, m.catalog if m != null else BuildingCatalog.default_catalog())
+	return t if t > career.tier() else 0
+
+
+## A firm upgrade's effect (internal/unlocks.gd UPGRADES), or fallback without it or with the
+## unlock tree off.
+func effect(name: String, fallback: float = 0.0) -> float:
+	if not Flags.is_on(UNLOCK_FLAG):
+		return fallback
+	return career.effect(name, fallback)
+
+
+## Buys a firm upgrade for everyone (option: the bulk deal's material).
+func buy(upgrade_id: String, option := "") -> void:
+	_request(EV_BUY, {"id": upgrade_id, "option": option})
 
 
 ## The stress test result if it was made for this design as it is now; {"stale": true} if
@@ -333,7 +375,7 @@ func _validate_accept(_sender: int, p: Dictionary) -> Variant:
 	var b := brief(str(p.get("id", "")))
 	if b.is_empty():
 		return "that contract is no longer on the board"
-	if int(b.get("tier", 1)) > career.tier():
+	if int(b.get("tier", 1)) > career.tier() and not bool(b.get("patron", false)):
 		return "needs a tier %d firm" % int(b.tier)
 	return {"brief": b}
 
@@ -344,8 +386,10 @@ func _validate_handover(_sender: int, p: Dictionary) -> Variant:
 	var m := building()
 	if m == null:
 		return "no building"
-	var a := ContractValidator.assess(active, m, report_for(m))
-	var s := ContractPayout.settle(active, a, {"days": int(p.get("days", active.deadline_days))})
+	var a := ContractValidator.assess(_with_deals(active), m, report_for(m))
+	var days := int(p.get("days", active.deadline_days))
+	days = ceili(days * effect("schedule_factor", 1.0))
+	var s := ContractPayout.settle(active, a, {"days": days})
 	return {"settlement": s, "seed": board_seed + 1}
 
 
@@ -365,6 +409,13 @@ func _validate_set_xp(_sender: int, p: Dictionary) -> Variant:
 	return {"xp": clampi(int(p.get("xp", 0)), 0, ContractTiers.MAX_XP * 10), "seed": board_seed + 1}
 
 
+func _validate_buy(_sender: int, p: Dictionary) -> Variant:
+	if not Flags.is_on(UNLOCK_FLAG):
+		return "firm upgrades are off"
+	var why := career.cannot_buy(str(p.get("id", "")), str(p.get("option", "")))
+	return why if why != "" else {"id": str(p.id), "option": str(p.get("option", ""))}
+
+
 func _validate_site_brief(_sender: int, p: Dictionary) -> Variant:
 	if not active.is_empty():
 		return "a contract is already taken"
@@ -372,7 +423,7 @@ func _validate_site_brief(_sender: int, p: Dictionary) -> Variant:
 	var b := ContractGenerator.for_site(site_id, board_seed * 7919 + site_id.hash() % 100000, career.tier())
 	if b.is_empty():
 		return "cannot read site %s" % site_id
-	return {"brief": b}
+	return {"brief": ContractClients.apply(b, career.clients) if Flags.is_on(ContractClients.FLAG) else b}
 
 
 # Every peer
@@ -399,6 +450,7 @@ func _apply_handover(p: Dictionary) -> void:
 	var before := career.tier()
 	s["unlocked"] = Array(career.record(s))
 	s["tier_up"] = career.tier() if career.tier() > before else 0
+	s["next_unlock"] = career.next_unlock()
 	last_settlement = s
 	active = {}
 	structure_report = {}
@@ -411,6 +463,8 @@ func _apply_handover(p: Dictionary) -> void:
 
 func _apply_abandon(p: Dictionary) -> void:
 	career.lose_xp(int(p.get("xp", 0)))
+	if Flags.is_on(ContractClients.FLAG):
+		career.record_abandon(active)
 	active = {}
 	structure_report = {}
 	_report_sum = 0
@@ -420,6 +474,18 @@ func _apply_abandon(p: Dictionary) -> void:
 
 func _apply_report(p: Dictionary) -> void:
 	_take_report(p.get("report", {}))
+
+
+func _apply_buy(p: Dictionary) -> void:
+	career.buy(str(p.id), str(p.get("option", "")))
+	_refresh_palette()
+
+
+## Locks follow the tier: the design palette greys and frees items (asked by name).
+func _refresh_palette() -> void:
+	var design := Modules.bus("design")
+	if design != null and design.has_signal("palette_changed"):
+		design.emit_signal("palette_changed")
 
 
 func _apply_site_brief(p: Dictionary) -> void:
@@ -445,6 +511,7 @@ func _deal_board(seed: int) -> void:
 		if h.passed:
 			done.append(str(h.brief_id))
 	board = ContractGenerator.board(board_seed, career.tier(), BOARD_SIZE, done)
+	board = ContractClients.apply_board(board, career.clients, board_seed, career.tier())
 	board_changed.emit()
 
 

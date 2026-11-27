@@ -20,6 +20,9 @@ var _bar_text: Label
 var _offers: VBoxContainer
 var _active_box: VBoxContainer
 var _next: RichTextLabel
+var _cols: HBoxContainer
+var _firm: VBoxContainer
+var _firm_button: Button
 var _doc: RichTextLabel
 var _doc_row: HBoxContainer
 ## The offer whose brief is shown while no contract is taken ("" for the first).
@@ -44,6 +47,12 @@ func setup(contracts: Node, building: BuildingModel) -> void:
 	head.add_child(_header)
 	_money = _label("", int(BASE * 1.4))
 	head.add_child(_money)
+	_firm_button = _button("FirmPage", "Firm", func() -> void:
+		_firm.visible = not _firm.visible
+		_cols.visible = not _firm.visible
+		_poke())
+	_firm_button.visible = Flags.is_on(ContractsBus.UNLOCK_FLAG)
+	head.add_child(_firm_button)
 	var xp_row := HBoxContainer.new()
 	xp_row.add_theme_constant_override("separation", BASE)
 	page.add_child(xp_row)
@@ -62,6 +71,22 @@ func setup(contracts: Node, building: BuildingModel) -> void:
 	cols.add_theme_constant_override("separation", BASE)
 	cols.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	page.add_child(cols)
+	_cols = cols
+	# The Firm page (unlock tree): the tier ladder and the upgrades, in place of the lists.
+	var firm_scroll := ScrollContainer.new()
+	firm_scroll.name = "FirmScroll"
+	firm_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	firm_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	firm_scroll.custom_minimum_size = Vector2(0, MIN_LIST_H)
+	page.add_child(firm_scroll)
+	_firm = VBoxContainer.new()
+	_firm.name = "Firm"
+	_firm.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_firm.add_theme_constant_override("separation", BASE / 2)
+	firm_scroll.add_child(_firm)
+	_firm.visibility_changed.connect(func() -> void: firm_scroll.visible = _firm.visible)
+	_firm.visible = false
+	firm_scroll.visible = false
 	var left := _column(cols, "On offer", 1.1)
 	_offers = VBoxContainer.new()
 	_offers.add_theme_constant_override("separation", BASE / 2)
@@ -159,6 +184,49 @@ func refresh() -> void:
 	_fill_active()
 	_fill_doc()
 	_fill_next(p)
+	if _firm.visible:
+		_fill_firm()
+
+
+## The Firm page: what each tier opens (ticked when reached) and the upgrades to buy.
+func _fill_firm() -> void:
+	for c in _firm.get_children():
+		c.get_parent().remove_child(c)
+		c.queue_free()
+	var t: int = bus.career.tier()
+	_firm.add_child(_label("Firm upgrades: kept for good, paid from the firm's money.", int(BASE * 1.2)))
+	for u: Dictionary in ContractCareer.DATA.UPGRADES:
+		var row := HBoxContainer.new()
+		row.name = "Upgrade_" + str(u.id)
+		row.add_theme_constant_override("separation", BASE)
+		var owned: bool = bus.career.has_upgrade(str(u.id))
+		var text := _label("%s · %s · %s" % [str(u.label), ContractValidator.money(float(u.price)), str(u.blurb)], BASE - 1, owned, true)
+		text.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		row.add_child(text)
+		if owned:
+			var have := "Bought" + (" (%s)" % ContractBrief.material_word(bus.career.deal_material) if str(u.get("option", "")) == "material" else "")
+			row.add_child(_label(have, BASE - 2, true))
+		elif str(u.get("option", "")) == "material":
+			for m: String in ["timber", "masonry", "concrete", "steel"]:
+				var mat := m
+				var b := _button("Buy_" + m, "Buy for %s" % ContractBrief.material_word(m), func() -> void: bus.buy(str(u.id), mat))
+				b.disabled = bus.career.cannot_buy(str(u.id), m) != ""
+				row.add_child(b)
+		else:
+			var b := _button("Buy", "Buy", func() -> void: bus.buy(str(u.id)))
+			b.disabled = bus.career.cannot_buy(str(u.id)) != ""
+			row.add_child(b)
+		_firm.add_child(row)
+	_firm.add_child(HSeparator.new())
+	_firm.add_child(_label("What each tier opens", int(BASE * 1.2)))
+	for d: Dictionary in ContractTiers.TIERS:
+		var opens := PackedStringArray()
+		for u: Dictionary in ContractCareer.unlocks_at(int(d.tier)):
+			opens.append(str(u.label))
+		var mark := "✓ " if int(d.tier) <= t else "   "
+		var l := _wrapped("%sTier %d, %s (%s): %s." % [mark, int(d.tier), str(d.name), ContractTiers.xp_text(int(d.xp)), ", ".join(opens)],
+				BASE - 1, int(d.tier) > t)
+		_firm.add_child(l)
 
 
 ## The brief shown: the contract taken, else the offer picked with Read, else the brief for
@@ -215,11 +283,25 @@ func _fill_offers() -> void:
 		read.disabled = busy
 		row.add_child(read)
 		var accept := _button("Accept", "Accept", func() -> void: bus.accept(bid))
-		accept.disabled = busy or int(b.get("tier", 1)) > bus.career.tier()
+		accept.disabled = busy or (int(b.get("tier", 1)) > bus.career.tier() and not bool(b.get("patron", false)))
 		row.add_child(accept)
-		card.add_child(_label("Tier %d · fee %s · %d days · +%s · %s" % [int(b.get("tier", 1)),
+		var line := "Tier %d · fee %s · %d days · +%s · %s" % [int(b.get("tier", 1)),
 				ContractValidator.money(float(b.get("fee", 0.0))), int(b.get("deadline_days", 0)),
-				ContractTiers.xp_text(int(b.get("xp", 0))), str(b.get("client", ""))], BASE - 2, true, true))
+				ContractTiers.xp_text(int(b.get("xp", 0))), str(b.get("client", ""))]
+		# The survey kit reads the site before you take the job.
+		var site: Dictionary = b.get("site", {}) if b.get("site") is Dictionary else {}
+		if bus.effect("survey") > 0.0 and str(site.get("id", "")) != "":
+			var pack := SitePool.open(str(site.id))
+			if pack != null and pack.ok():
+				line += " · survey: difficulty %d, cost ×%.2f" % [pack.rating(), pack.cost_multiplier_hint()]
+		if b.has("client_standing"):
+			line += " (%s)" % ContractClients.LEVELS[int(b.client_standing)]
+		if not (b.get("twists", []) as Array).is_empty():
+			var names := PackedStringArray()
+			for n: Variant in b.get("twist_notes", []):
+				names.append(str((n as Dictionary).get("label", "")))
+			line += " · " + ", ".join(names)
+		card.add_child(_label(line, BASE - 2, true, true))
 		_offers.add_child(card)
 
 

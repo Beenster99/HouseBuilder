@@ -41,7 +41,13 @@ const CIRCULATION: PackedStringArray = ["corridor", "hallway", "fire_exit", "sta
 static func assess(brief: Dictionary, model: BuildingModel, structure_report: Dictionary = {}) -> Dictionary:
 	var b := ContractBrief.normalize(brief)
 	var totals := BuildingQuantities.totals(model)
-	var ctx := {"brief": b, "model": model, "cat": model.catalog, "totals": totals, "report": structure_report}
+	# A supplier deal (brief.discount: {material: share}) takes its share off that material.
+	var cost := float(totals.cost)
+	var disc: Variant = brief.get("discount") if brief is Dictionary else null
+	if disc is Dictionary:
+		for m: Variant in disc:
+			cost -= float((totals.by_material as Dictionary).get(str(m), 0.0)) * float(disc[m])
+	var ctx := {"brief": b, "model": model, "cat": model.catalog, "totals": totals, "report": structure_report, "cost": cost}
 	var items: Array = []
 	var passed := 0
 	var total := 0
@@ -62,7 +68,7 @@ static func assess(brief: Dictionary, model: BuildingModel, structure_report: Di
 		if item.ok:
 			bonus += item.bonus
 	var out := {"ok": passed == total, "items": items, "passed": passed, "total": total, "bonus": bonus,
-			"cost": float(totals.cost), "budget": float(b.get("budget", 0.0)), "totals": totals}
+			"cost": cost, "budget": float(b.get("budget", 0.0)), "totals": totals}
 	out["summary"] = _summary(out)
 	return out
 
@@ -151,7 +157,7 @@ static func check(req: Dictionary, ctx: Dictionary) -> Dictionary:
 		"budget":
 			var share := float(req.get("share", 1.0))
 			var cap := float(ctx.brief.budget) * share
-			var cost := float(ctx.totals.cost)
+			var cost := float(ctx.get("cost", ctx.totals.cost))
 			_limit(out, cost, cap, "The build costs %s of %s." % [money(cost), money(cap)],
 					"Cut %s: %s." % [money(cost - cap), _saving_tip(ctx.totals)])
 		"parts":
