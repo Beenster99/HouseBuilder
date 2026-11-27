@@ -220,9 +220,10 @@ func splitter(id: String) -> VSplitContainer:
 
 func _load_split(sp: VSplitContainer) -> void:
 	var cfg := ConfigFile.new()
-	if cfg.load(LAYOUT_PATH) != OK:
+	var key := str(sp.get_meta("layout_id"))
+	if cfg.load(LAYOUT_PATH) != OK or not cfg.has_section_key("splits", key):
 		return
-	var v: Variant = cfg.get_value("splits", str(sp.get_meta("layout_id")), null)
+	var v: Variant = cfg.get_value("splits", key)
 	if v is Array or v is PackedInt32Array:
 		var offs := PackedInt32Array(v)
 		if offs.size() == sp.split_offsets.size() or sp.split_offsets.is_empty():

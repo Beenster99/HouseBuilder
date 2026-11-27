@@ -262,7 +262,24 @@ func run_tests() -> void:
 	await frames(1)
 	check((ctx.get("_edit") as PopupPanel).visible, "Edit opens the form")
 	(ctx.get("_edit") as PopupPanel).hide()
-	check(not bool(ctx.call("open_at", Vector3(40, 0, 40), Vector2(10, 10))), "nothing there, no menu")
+	check("Walk inside from here" in labels or not bool(ctx.call("can_walk")), "and Walk inside from here")
+	# Bare floor: only Walk inside from here, which starts walk-inside standing on that spot.
+	var walk := Modules.bus("walk")
+	if bool(ctx.call("can_walk")):
+		check(bool(ctx.call("open_at", Vector3(40, 0, 40), Vector2(10, 10))) and menu.item_count == 1 \
+				and menu.get_item_text(0) == "Walk inside from here", "on bare floor the menu is just Walk inside from here")
+		menu.hide()
+		ctx.call("_on_item", menu.get_item_id(0))
+		await frames(3)
+		var wv: Node = walk.get("view")
+		check(bool(walk.call("is_open")) and wv != null, "it opens walk-inside")
+		if wv and wv.has_method("feet"):
+			var f: Vector3 = wv.call("feet")
+			check(Vector2(f.x, f.z).distance_to(Vector2(40, 40)) < 0.5, "standing where I clicked: %s" % f)
+		walk.call("close")
+		await frames(3)
+	else:
+		check(not bool(ctx.call("open_at", Vector3(40, 0, 40), Vector2(10, 10))), "nothing there and no walk-inside, no menu")
 
 	# Stamps.
 	var ghost := Node3D.new()

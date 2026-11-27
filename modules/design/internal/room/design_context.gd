@@ -1,6 +1,7 @@
 extends Node
 ## Right-click on something in the design: a menu with Edit…, Delete and, for rooms, Remove
-## this corner, Furnish and Save as module… Edit opens a small form: a room's type and name,
+## this corner, Furnish and Save as module…, and anywhere (on something or bare floor) Walk
+## inside from here, which starts walk-inside standing on that spot of the level. Edit opens a small form: a room's type and name,
 ## a part's material (and a fixture's turn). Every change goes through the building's sync, so
 ## everyone sees it and it undoes like any edit.
 
@@ -11,13 +12,16 @@ var hud: Control
 var menu: PopupMenu
 var _target := ""
 var _corner := -1
+var _at := Vector3.ZERO
 var _edit: PopupPanel
 var _edit_body: VBoxContainer
 var _save_module: PopupPanel
 var _module_name: LineEdit
 var _module_group: LineEdit
 
-enum { EDIT, DELETE, CORNER, FURNISH, SAVE_MODULE }
+enum { EDIT, DELETE, CORNER, FURNISH, SAVE_MODULE, WALK }
+
+const WALK_LABEL := "Walk inside from here"
 
 
 func setup(p_session: DesignSession, p_hud: Control) -> void:
@@ -58,8 +62,14 @@ func open_at(at: Vector3, screen: Vector2) -> bool:
 	var sh := session.shape_hit(at)
 	_corner = int(sh.i) if str(sh.get("mode", "")) == "corner" else -1
 	_target = session.shape_room() if _corner >= 0 else session.pick(session.snap(at))
+	_at = at
 	if _target == "":
-		return false
+		if not can_walk():
+			return false
+		menu.clear()
+		menu.add_item(WALK_LABEL, WALK)
+		menu.popup(Rect2i(Vector2i(screen), Vector2i.ZERO))
+		return true
 	if not _target in session.presence.my_selection():
 		session.presence.select(PackedStringArray([_target]))
 	var room := session.model.rooms.has(_target)
@@ -73,6 +83,9 @@ func open_at(at: Vector3, screen: Vector2) -> bool:
 		var kits := Modules.bus("kits")
 		if kits and kits.has_method("save_room"):
 			menu.add_item("Save as module…", SAVE_MODULE)
+	if can_walk():
+		menu.add_separator()
+		menu.add_item(WALK_LABEL, WALK)
 	menu.popup(Rect2i(Vector2i(screen), Vector2i.ZERO))
 	return true
 
@@ -95,6 +108,24 @@ func _on_item(id: int) -> void:
 			_module_name.text = ""
 			_save_module.popup_centered()
 			_module_name.grab_focus()
+		WALK:
+			walk_here(_at)
+
+
+## Whether walk-inside is there to start (the walk module, by name, with its flag on).
+func can_walk() -> bool:
+	var walk := Modules.bus("walk")
+	return walk != null and walk.has_method("open") and Flags.is_on("walk.inside") \
+			and not bool(walk.call("is_open"))
+
+
+## Starts walk-inside standing at `at` on the working level, facing up the plan.
+func walk_here(at: Vector3) -> Node:
+	if not can_walk():
+		return null
+	session.cancel()
+	var feet := Vector3(at.x, session.floor_y(), at.z)
+	return Modules.bus("walk").call("open", session.model, self, {"at": feet, "yaw": 0.0})
 
 
 ## The edit form for an entry: a room's type and name, a part's material, a fixture's turn.
