@@ -319,6 +319,27 @@ func unregister_mover(object_id: String) -> void:
 	_session.unregister_mover(object_id)
 
 
+## Many host-driven bodies (debris) streamed compactly: 12 bytes per body that moved, 12
+## times a second, shown 0.12 s behind. Every peer registers the group and puts the same
+## nodes under the same small indices; the host's copies lead, the rest follow.
+##   net.register_mover_group("demo", building_origin)
+##   net.set_group_node("demo", 17, chunk)      # or erase_group_node
+func register_mover_group(group: String, origin: Vector3) -> void:
+	_session.register_mover_group(group, origin)
+
+
+func unregister_mover_group(group: String) -> void:
+	_session.unregister_mover_group(group)
+
+
+func set_group_node(group: String, index: int, node: Node3D) -> void:
+	_session.set_group_node(group, index, node)
+
+
+func erase_group_node(group: String, index: int) -> void:
+	_session.erase_group_node(group, index)
+
+
 ## Peer driving the object: its claim owner, or the host.
 func mover_authority(object_id: String) -> int:
 	return _session.mover_authority(object_id)

@@ -60,6 +60,8 @@ var _max_clients := 0
 var _holds: Dictionary = {}  # object id -> {"peer", "aligned", "locked", "target"}
 var _movers := NetMovers.new()
 var _send_timer := 0.0
+var _groups := NetMoverGroups.new()
+var _group_timer := 0.0
 
 
 func _init() -> void:
@@ -102,6 +104,13 @@ func _process(delta: float) -> void:
 			_send_timer = 1.0 / NetMovers.SEND_RATE
 			_send_moves()
 		_movers.play_back(server_time() - NetMovers.DELAY, _is_mine)
+		if state == State.HOSTING:
+			_group_timer -= delta
+			if _group_timer <= 0.0:
+				_group_timer = 1.0 / NetMoverGroups.RATE
+				_send_groups()
+		else:
+			_groups.play_back(server_time() - NetMoverGroups.DELAY)
 
 
 # --- Session ---------------------------------------------------------------------------
@@ -187,7 +196,7 @@ func net_stats() -> Dictionary:
 		_stats_recv = 0.0
 		_stats_at = now
 	return {"sent_bytes_per_s": _stats.sent_bytes_per_s, "recv_bytes_per_s": _stats.recv_bytes_per_s,
-			"movers": _movers._nodes.size(), "view_delay": NetMovers.DELAY}
+			"movers": _movers._nodes.size() + _groups.node_count(), "view_delay": NetMovers.DELAY}
 
 
 ## Best recent round trip to the host in seconds (0 for the host).
@@ -364,6 +373,41 @@ func register_mover(object_id: String, node: Node3D) -> void:
 
 func unregister_mover(object_id: String) -> void:
 	_movers.unregister(object_id)
+
+
+## A group of host-driven bodies streamed packed (see NetMoverGroups). Every peer registers
+## the group and sets the same nodes under the same indices; the host's copies lead.
+func register_mover_group(group: String, origin: Vector3) -> void:
+	_groups.register(group, origin)
+
+
+func unregister_mover_group(group: String) -> void:
+	_groups.unregister(group)
+
+
+func set_group_node(group: String, index: int, node: Node3D) -> void:
+	_groups.set_node(group, index, node)
+
+
+func erase_group_node(group: String, index: int) -> void:
+	_groups.erase_node(group, index)
+
+
+func _send_groups() -> void:
+	var out := _groups.outgoing()
+	if out.is_empty():
+		return
+	var t := server_time()
+	for g: String in out:
+		for data: PackedByteArray in out[g]:
+			for id in _peers:
+				if id != HOST_ID:
+					_wire.group_moves.rpc_id(id, g, t, data)
+
+
+func _on_group_moves(group: String, t: float, data: PackedByteArray) -> void:
+	if state == State.JOINED:
+		_groups.receive(group, t, data)
 
 
 ## Peer whose copy of the object everyone else follows. "player:<peer id>" movers (a

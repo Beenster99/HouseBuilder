@@ -32,6 +32,12 @@ func moves(t: float, batch: Dictionary) -> void:
 
 # Host -> peer.
 
+## A mover group's packed batch (NetMoverGroups): many host-driven bodies, compactly.
+@rpc("authority", "call_remote", "unreliable_ordered", 3)
+func group_moves(group: String, t: float, data: PackedByteArray) -> void:
+	session._on_group_moves(group, t, data)
+
+
 @rpc("authority", "call_remote", "reliable")
 func welcome(peers: Dictionary, seq: int, snapshot: Dictionary) -> void:
 	session._on_welcome(peers, seq, snapshot)
