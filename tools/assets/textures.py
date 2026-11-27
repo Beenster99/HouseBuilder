@@ -148,7 +148,7 @@ PATTERN_OF = [
 	("leather", "leather"), ("soil", "soil"), ("foliage", "foliage"), ("marble", "marble"),
 	("steel_stainless", "brushed"), ("aluminium", "brushed"), ("steel_galvanised", "galv"), ("galv", "galv"), ("lead", "galv"),
 	("steel_painted", "paint"), ("steel", "paint"), ("cast_iron", "paint"), ("plant_yellow", "paint"), ("hazard_red", "paint"),
-	("clad", "clad"), ("paint_", "paint"), ("enamel_", "paint"), ("roof_felt", "asphalt"), ("worktop", "concrete"),
+	("clad", "clad"), ("container", "clad"), ("ply_brown", "plywood"), ("sand", "soil"), ("paint_", "paint"), ("enamel_", "paint"), ("roof_felt", "asphalt"), ("worktop", "concrete"),
 ]
 
 

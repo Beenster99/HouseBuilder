@@ -1143,6 +1143,19 @@
 		"rough": 0.9,
 		"size": 2.0
 	},
+	"container_blue": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.3,
+		"pattern": "clad",
+		"rgb": [
+			0.006,
+			0.089,
+			0.1706
+		],
+		"rough": 0.45,
+		"size": 1.0
+	},
 	"copper": {
 		"alpha": 1.0,
 		"glow": false,
@@ -5615,6 +5628,19 @@
 		"rough": 0.4,
 		"size": 1.0
 	},
+	"ply_brown": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "plywood",
+		"rgb": [
+			0.1473,
+			0.055,
+			0.01
+		],
+		"rough": 0.55,
+		"size": 1.2
+	},
 	"plywood": {
 		"alpha": 1.0,
 		"glow": false,
@@ -5731,6 +5757,19 @@
 		],
 		"rough": 0.9,
 		"size": 1.0
+	},
+	"sand": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "soil",
+		"rgb": [
+			0.6038,
+			0.42,
+			0.1706
+		],
+		"rough": 0.95,
+		"size": 1.5
 	},
 	"screen": {
 		"alpha": 1.0,
@@ -6068,6 +6107,19 @@
 			0.5029
 		],
 		"rough": 0.55,
+		"size": 1.0
+	},
+	"steel_dark": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.7,
+		"pattern": "paint",
+		"rgb": [
+			0.022,
+			0.0245,
+			0.0272
+		],
+		"rough": 0.5,
 		"size": 1.0
 	},
 	"steel_fff": {

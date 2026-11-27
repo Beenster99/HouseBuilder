@@ -28,7 +28,7 @@ import materials
 import registry
 
 OUT = os.path.join(registry.ROOT, "modules", "assets", "internal")
-RECIPES = ["structure", "openings", "circulation", "fixtures", "plant", "services", "envelope", "furniture", "public", "airport", "vehicles", "site", "outdoors", "openings_more", "leisure", "infra", "depth", "statement", "torque"]
+RECIPES = ["structure", "openings", "circulation", "fixtures", "plant", "services", "envelope", "furniture", "public", "airport", "vehicles", "site", "outdoors", "openings_more", "leisure", "infra", "depth", "statement", "torque", "siteplant", "siteyard"]
 TRI_BUDGET = 60000
 
 

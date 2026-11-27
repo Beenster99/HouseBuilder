@@ -74,3 +74,32 @@ models show their own flat PBR colours.
 
 Then `godot --headless --path . --import` and `tools/run_tests.sh assets`. The gallery
 (main menu, flag `assets.gallery`) shows everything.
+
+## Site plant and equipment (timelapse work site)
+
+`plant.*` machines (recipes `siteplant.py`) are split into stages that move as one, with
+sockets at the pivots. Machines face -z in game; rotate a stage about its pivot socket.
+
+| Machine | Stages | Sockets |
+|---|---|---|
+| `plant.crane.tower*` | base, mast, slew, trolley, hook | slew, trolley, trolley_min, trolley_max, hook, jib_tip |
+| `plant.lifting.mobile_crane*` | carrier, wheels, outriggers, upper, boom, hook | slew, boom_pivot, boom_tip, hook |
+| `plant.lifting.crawler_crane*` | tracks, upper, boom, hook | slew, boom_pivot, boom_tip, hook |
+| `plant.piling.rig*` | tracks, upper, mast, rotary, kelly, casing | slew, bore |
+| `plant.excavator.{mini,midi,20t,45t,breaker}` | tracks, upper, boom, stick, bucket | slew, boom_pivot, stick_pivot, bucket_pivot |
+| `plant.earthmoving.wheel_loader`, `skid_steer` | wheels, body, arms, bucket | arm_pivot, bucket_pivot |
+| `plant.earthmoving.roller` | drum, body, wheels | drum |
+| `plant.lifting.forklift*` | wheels, body, mast, carriage | load |
+| `plant.access.scissor_lift_*` | base, scissors, platform | platform |
+| `plant.truck.concrete_mixer` | chassis, wheels, body, drum | drum, drum_axis (spin about the line between them), chute |
+| `plant.truck.concrete_pump*` | chassis, wheels, body, outriggers, boom | slew, hose |
+| `plant.truck.access_platform*` | chassis, wheels, body, outriggers, boom, basket | slew, boom_pivot, basket |
+| `plant.truck.tipper`, `dropside_*` | chassis, wheels, body | load |
+
+Crane slew, trolley and hook stages turn together about `slew`; the trolley and hook slide
+between `trolley_min` and `trolley_max`. Scissor lifts come stowed, at 6 m and at 10 m: swap
+variants, or move the `platform` stage and hide `scissors`.
+
+Site equipment and stored materials (`siteyard.py`): `plant.cabin.*`, `plant.access.stair_tower*`,
+`plant.temporary.table_form*`, `plant.small.generator*`, `plant.traffic.*`, `plant.fence.heras*`,
+`plant.fence.concrete_barrier*`, `plant.store.*`, `plant.skip.*`.
