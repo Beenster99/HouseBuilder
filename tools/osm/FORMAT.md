@@ -33,7 +33,7 @@ Typical size is 150 to 450 KB for a 300 m radius. Godot reads it with `JSON.pars
 | `version` | int | `1`. A loader should refuse a higher major version. |
 | `id` | string | file-safe id, matches the file name |
 | `name`, `description` | string | shown to players |
-| `suited_to` | string[] | building types this plot was curated for (`house`, `school`, `police_station`, `hospital`, `office`, `airport_terminal`) |
+| `suited_to` | string[] | building types this plot was curated for (`house`, `school`, `police_station`, `hospital`, `office`, `civic`, `airport_terminal`) |
 | `attribution` | string[] | lines that must be shown in game wherever the site is used |
 | `licence` | object | `osm_derived: "ODbL-1.0"` and a note |
 | `generator` | object | tool, creation time, simplification tolerances |

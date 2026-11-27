@@ -119,6 +119,6 @@ tools/osm/
   .gdignore        keeps Godot from importing this folder
 ```
 
-The `.gdignore` means Godot does not see these files. When the `sites` module is written,
-it should ship its own copy of the packs it uses (for example under `modules/sites/data/`),
-built with `--out` pointing there.
+The `.gdignore` keeps Godot from importing the Python tool and cache. The `sites` module's
+curated pool (`SitePool`) reads the packs straight from `res://tools/osm/samples`, so
+`build-all` updates the game's sites too.

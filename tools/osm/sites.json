@@ -8,7 +8,8 @@
       "suited_to": [
         "school",
         "police_station",
-        "office"
+        "office",
+        "civic"
       ],
       "lat": 52.04,
       "lon": -0.759,
@@ -24,7 +25,8 @@
       "suited_to": [
         "hospital",
         "school",
-        "airport_terminal"
+        "airport_terminal",
+        "civic"
       ],
       "lat": 52.278,
       "lon": 0.039,
@@ -78,7 +80,8 @@
       "suited_to": [
         "police_station",
         "school",
-        "house"
+        "house",
+        "civic"
       ],
       "lat": 51.992,
       "lon": -2.159,
@@ -109,7 +112,8 @@
       "suited_to": [
         "school",
         "hospital",
-        "office"
+        "office",
+        "civic"
       ],
       "lat": 53.484,
       "lon": -2.226,
@@ -123,7 +127,8 @@
       "name": "Camden Town infill",
       "description": "A tiny construction gap by Camden Town station. Very little room, busy roads and the Underground underneath.",
       "suited_to": [
-        "house"
+        "house",
+        "civic"
       ],
       "lat": 51.539,
       "lon": -0.1426,
