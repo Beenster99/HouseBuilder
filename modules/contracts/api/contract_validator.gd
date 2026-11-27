@@ -133,6 +133,8 @@ static func check(req: Dictionary, ctx: Dictionary) -> Dictionary:
 			_boundary_gap(ctx, v, out)
 		"column_free":
 			_column_free(model, out)
+		"keep_existing":
+			_keep_existing(model, req.get("entries", {}), out)
 		"foundation_type":
 			_foundation_type(model, PackedStringArray(req.get("allowed", [])), out)
 		"materials":
@@ -664,6 +666,46 @@ static func _column_free(model: BuildingModel, out: Dictionary) -> void:
 	_count(out, n - hit.size(), n, "No columns inside the ground-floor rooms." if hit.is_empty()
 			else "Columns stand inside %s." % _few(hit.keys()),
 			"Move the columns into the walls, or span the floor with deeper beams or trusses.")
+
+
+## Every entry of the building already on the plot is still there, locked and unchanged.
+static func _keep_existing(model: BuildingModel, entries: Variant, out: Dictionary) -> void:
+	var want: Dictionary = entries if entries is Dictionary else {}
+	var kept := 0
+	var lost := 0
+	for id: String in want:
+		var now := model.entry(id) if model.has(id) else {}
+		if now.is_empty():
+			lost += 1
+		elif model.is_locked(id) and _same(now, want[id]):
+			kept += 1
+	var changed := want.size() - kept - lost
+	var detail := "All %d pieces kept as they were." % want.size()
+	if lost > 0 or changed > 0:
+		detail = "%d of %d pieces kept: %s." % [kept, want.size(), ", ".join(PackedStringArray(
+				(["%d removed" % lost] if lost > 0 else []) + (["%d changed" % changed] if changed > 0 else [])))]
+	_count(out, kept, want.size(), detail, "Undo back to the existing building, or abandon and take the job again to start from it.")
+
+
+## Deep equality that ignores int/float (briefs go through JSON in saves and on the wire).
+static func _same(a: Variant, b: Variant) -> bool:
+	if (a is int or a is float) and (b is int or b is float):
+		return absf(float(a) - float(b)) < 0.0005
+	if a is Array and b is Array:
+		if (a as Array).size() != (b as Array).size():
+			return false
+		for i in (a as Array).size():
+			if not _same(a[i], b[i]):
+				return false
+		return true
+	if a is Dictionary and b is Dictionary:
+		if (a as Dictionary).size() != (b as Dictionary).size():
+			return false
+		for k: Variant in a:
+			if not (b as Dictionary).has(k) or not _same(a[k], b[k]):
+				return false
+		return true
+	return str(a) == str(b) if (a is String or a is StringName) and (b is String or b is StringName) else a == b
 
 
 ## Every foundation is one of the allowed kinds, and there is at least one.

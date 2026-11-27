@@ -8,6 +8,8 @@ extends RefCounted
 ##   ContractTwists.apply(brief, firm_tier)   # the brief with its twists (same seed, same twists)
 ##   ContractTwists.table()                   # the twist rows
 ##   brief.twists                             # ids added, [] for none
+##   brief.existing                           # ops for a building already there (locked parts)
+##   ContractTwists.starting_design(brief)    # BuildingModel data to start the design from
 
 const FLAG := "contracts.twists"
 const DATA := preload("res://modules/contracts/internal/twists.gd")
@@ -58,6 +60,10 @@ static func apply(brief: Dictionary, tier: int, force: Array = []) -> Dictionary
 
 static func _fits(b: Dictionary, t: Dictionary) -> bool:
 	var spec: Dictionary = ContractGenerator.TYPES.get(str(b.get("type", "")), {})
+	if t.has("categories") and not str(spec.get("category", "")) in t.categories:
+		return false
+	if t.has("existing") and (b.has("existing") or existing_ops(b, str(t.existing)).is_empty()):
+		return false
 	if t.has("max_storeys"):
 		for r: Dictionary in b.get("requirements", []):
 			if str(r.kind) == "max_storeys" and int(r.value) > int(t.max_storeys):
@@ -101,10 +107,18 @@ static func _apply_one(b: Dictionary, t: Dictionary) -> bool:
 		for r: Dictionary in b.requirements:
 			if str(r.kind) == "materials":
 				r["allowed"] = keep
+	if t.has("existing"):
+		var ops := existing_ops(b, str(t.existing))
+		if ops.is_empty():
+			return false
+		b["existing"] = ops
 	if t.has("require"):
 		var req: Dictionary = (t.require as Dictionary).duplicate(true)
 		req["id"] = str(t.id)
 		req["twist"] = str(t.id)
+		if str(req.kind) == "keep_existing":
+			req["entries"] = existing_entries(b.existing)
+			req["what"] = "the existing house" if str(t.existing) == "house" else "the old frontage"
 		var reqs: Array = b.requirements
 		var at := reqs.size()
 		for i in reqs.size():
@@ -134,3 +148,92 @@ static func _ban_target(b: Dictionary, t: Dictionary) -> String:
 		if str(m) in allowed:
 			return str(m)
 	return ""
+
+
+## The design a brief starts from: empty, or the building already on the plot, locked
+## (BuildingModel.to_data(), for BuildingSync.load_design).
+static func starting_design(brief: Dictionary, building_name := "") -> Dictionary:
+	var m := BuildingModel.new("", building_name if building_name != "" else str(brief.get("title", "New building")))
+	for op: Variant in brief.get("existing", []):
+		if op is Dictionary:
+			m.apply(op)
+	m.apply(BuildingCommands.set_design_meta({"brief": str(brief.get("id", ""))}))
+	return m.to_data()
+
+
+## The existing entries as the model stores them ({id: entry}), to check they are kept.
+static func existing_entries(ops: Array) -> Dictionary:
+	var m := BuildingModel.new()
+	var out := {}
+	for op: Variant in ops:
+		if op is Dictionary:
+			var r := m.apply(op)
+			if not r.is_empty():
+				var id := str(r.do.entry.id)
+				out[id] = m.entry(id)
+	return out
+
+
+## Ops that put a locked building on the brief's plot: "house" (a small single-storey house
+## at the back) or "frontage" (a street wall along the front, -Z). [] if the plot is too small.
+## Ids are x1, x2... so they never meet the design's own.
+static func existing_ops(b: Dictionary, mode: String) -> Array:
+	var site: Dictionary = b.get("site", {}) if b.get("site") is Dictionary else {}
+	var plot: Array = site.get("plot", [])
+	if plot.size() < 3:
+		return []
+	var lo := Vector2(INF, INF)
+	var hi := Vector2(-INF, -INF)
+	for p: Variant in plot:
+		lo = Vector2(minf(lo.x, float(p[0])), minf(lo.y, float(p[1])))
+		hi = Vector2(maxf(hi.x, float(p[0])), maxf(hi.y, float(p[1])))
+	var C := BuildingCommands
+	var ops: Array = []
+	var n := [0]
+	var add := func(op: Dictionary) -> String:
+		n[0] += 1
+		var id := "x%d" % n[0]
+		op.entry["id"] = id
+		op.entry["locked"] = true
+		ops.append(op)
+		return id
+	var corners: Array = []
+	if mode == "house":
+		var w := 6.0
+		var d := 4.5
+		if hi.x - lo.x < w + 4.0 or hi.y - lo.y < d + 6.0:
+			return []
+		var x0 := (lo.x + hi.x) / 2.0 - w / 2.0
+		var z0 := hi.y - 1.2 - d
+		corners = [[x0, 0.0, z0], [x0 + w, 0.0, z0], [x0 + w, 0.0, z0 + d], [x0, 0.0, z0 + d]]
+		var walls: Array = []
+		for side in 4:
+			add.call(C.place_part("strip_footing", 0, {"a": corners[side], "b": corners[(side + 1) % 4]}))
+			walls.append(add.call(C.place_part("wall_loadbearing", 0, {"a": corners[side], "b": corners[(side + 1) % 4]}, "masonry")))
+		add.call(C.place_part("slab", 0, {"outline": C.rect(x0, z0, w, d)}, "concrete"))
+		add.call(C.place_part("roof_pitched", 0, {"outline": C.rect(x0, z0, w, d), "y": 3.0, "pitch": 35.0}))
+		add.call(C.place_opening("door_external", walls[0], w * 0.5))
+		add.call(C.place_opening("window_medium", walls[0], 1.5))
+		add.call(C.place_opening("window_medium", walls[2], w * 0.5))
+		add.call(C.place_room("living_room", 0, C.rect(x0, z0, w * 0.6, d), "Existing living room"))
+		add.call(C.place_room("kitchen", 0, C.rect(x0 + w * 0.6, z0, w * 0.4, d), "Existing kitchen"))
+	elif mode == "frontage":
+		var len := minf(hi.x - lo.x - 3.0, 16.0)
+		if len < 8.0 or hi.y - lo.y < 12.0:
+			return []
+		var x0 := (lo.x + hi.x) / 2.0 - len / 2.0
+		var z := lo.y + 1.5
+		var a := [x0, 0.0, z]
+		var bb := [x0 + len, 0.0, z]
+		corners = [a, bb]
+		add.call(C.place_part("strip_footing", 0, {"a": a, "b": bb}))
+		var wall: String = add.call(C.place_part("wall_loadbearing", 0, {"a": a, "b": bb}, "masonry"))
+		add.call(C.place_opening("door_external", wall, len * 0.5))
+		for k in [0.18, 0.34, 0.66, 0.82]:
+			add.call(C.place_opening("window_medium", wall, len * k))
+	else:
+		return []
+	for c: Array in corners:
+		if not BuildingModel.outline_has_point(plot, float(c[0]), float(c[2])):
+			return []
+	return ops

@@ -33,7 +33,10 @@ extends RefCounted
 ##                     opening's centre from the wall's a end, w? h? sill? (default from the
 ##                     catalog). No level of its own: it is on its wall's level.
 ##     section is present only for kinds that have sections in the catalog.
-##   room:  {id, type, level, outline = [[x, z], ...], name}
+##     locked? true: the part is kept as it is (a frontage to keep, the existing house of an
+##     extension). Only a set of "locked" itself changes it: no other set, move, retag or
+##     remove, no opening added to a locked wall and no remove that would take it with it.
+##   room:  {id, type, level, outline = [[x, z], ...], name, locked?}
 ##   connection: {id, a, b, kind, at?}   two part ids, a catalog connection kind and,
 ##                     optionally, where they meet: at = [x, y, z] in world space
 ##
@@ -218,6 +221,8 @@ func _add(table_name: String, entry: Variant) -> Dictionary:
 	var norm := _normalize(table_name, e)
 	if norm.is_empty():
 		return {}
+	if norm.has("host") and is_locked(str(norm.host)):
+		return {}
 	if table_name == "connections" and _connection_between(str(norm.a), str(norm.b)) != "":
 		return {}
 	_touch(eid)
@@ -233,6 +238,8 @@ func _set_entry(eid: String, fields: Dictionary) -> Dictionary:
 	if table_name == "" or fields.is_empty():
 		return {}
 	var old: Dictionary = _table(table_name)[eid]
+	if bool(old.get("locked", false)) and not (fields.size() == 1 and fields.has("locked")):
+		return {}
 	var merged := old.duplicate(true)
 	for k: String in fields:
 		if k == "id":
@@ -284,6 +291,9 @@ func _remove(ids: Array) -> Dictionary:
 	for gid: String in gone.keys():
 		for cid: String in _conns.get(gid, {}):
 			gone[cid] = true
+	for gid: String in gone:
+		if table_of(gid) != "connections" and is_locked(gid):
+			return {}
 	var restore: Array = []
 	var gone_sorted := sort_ids(gone.keys())
 	for group: int in 4:
@@ -496,6 +506,8 @@ func _norm_part(e: Dictionary) -> Dictionary:
 		out["section"] = sec
 	if str(e.get("name", "")) != "":
 		out["name"] = str(e.name)
+	if bool(e.get("locked", false)):
+		out["locked"] = true
 	var shape := str(spec.shape)
 	if shape != "opening":
 		var lv := _int(e.get("level", 0))
@@ -572,7 +584,10 @@ func _norm_room(e: Dictionary) -> Dictionary:
 	var outline := _outline(e.get("outline"))
 	if lv < 0 or lv >= levels.size() or outline.is_empty():
 		return {}
-	return {"id": str(e.id), "type": type, "level": lv, "outline": outline, "name": str(e.get("name", ""))}
+	var room := {"id": str(e.id), "type": type, "level": lv, "outline": outline, "name": str(e.get("name", ""))}
+	if bool(e.get("locked", false)):
+		room["locked"] = true
+	return room
 
 
 func _norm_connection(e: Dictionary) -> Dictionary:
@@ -690,6 +705,22 @@ func _cached(key: String) -> Variant:
 
 
 # Reading the model
+
+## A locked entry is kept as it is (see "locked?" above).
+func is_locked(eid: String) -> bool:
+	var t := table_of(eid)
+	return t != "" and bool(_table(t)[eid].get("locked", false))
+
+
+## Ids of every locked part and room, sorted.
+func locked_ids() -> PackedStringArray:
+	var out: Array = []
+	for t: String in ["parts", "rooms"]:
+		for eid: String in _table(t):
+			if bool(_table(t)[eid].get("locked", false)):
+				out.append(eid)
+	return sort_ids(out)
+
 
 func has(eid: String) -> bool:
 	return parts.has(eid) or rooms.has(eid) or connections.has(eid)

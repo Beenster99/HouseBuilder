@@ -138,6 +138,8 @@ static func describe(req: Dictionary, catalog: BuildingCatalog = null) -> String
 			return "Nothing within %s m of the boundary" % _num(v)
 		"column_free":
 			return "No columns inside the ground-floor rooms"
+		"keep_existing":
+			return "Keep %s as it is" % str(req.get("what", "the existing building"))
 		"foundation_type":
 			var ws := PackedStringArray()
 			for k: Variant in req.get("allowed", []):

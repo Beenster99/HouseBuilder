@@ -7,6 +7,8 @@ extends RefCounted
 ## have: "" any plot, "site" a real one, or a site factor id such as "slope"), clashes (twists
 ## never paired with it), and what it does: budget/deadline factors, a material change, or
 ## a requirement added (see ContractValidator for each kind), with the checklist tip.
+## categories (optional): the building categories it suits. existing: a building already on
+## the plot that must be kept ("house", "frontage"), set up locked when the job is accepted.
 
 const TWISTS := [
 	{"id": "shoestring", "label": "Shoestring", "tier": 1, "uplift": 0.06, "needs": "", "clashes": [],
@@ -35,6 +37,14 @@ const TWISTS := [
 	{"id": "sloping_plot", "label": "Sloping plot", "tier": 4, "uplift": 0.08, "needs": "slope", "clashes": [],
 		"sentence": "The plot slopes hard: the building must stand on piles, which can be cut to the slope.",
 		"require": {"kind": "foundation_type", "allowed": ["pile"]}},
+	{"id": "extension", "label": "Extension", "tier": 2, "uplift": 0.07, "needs": "", "clashes": ["flood_zone", "soft_ground", "sloping_plot", "keep_frontage"],
+		"categories": ["domestic", "hospitality"],
+		"sentence": "There is already a small house at the back of the plot: it stays as it is, and the new rooms are built on to it.",
+		"existing": "house", "require": {"kind": "keep_existing"}},
+	{"id": "keep_frontage", "label": "Keep the frontage", "tier": 3, "uplift": 0.06, "needs": "", "clashes": ["flood_zone", "soft_ground", "sloping_plot", "extension"],
+		"categories": ["retail", "office", "civic", "hospitality", "leisure", "justice"],
+		"sentence": "The old street front is listed: its wall stays as it is, and the new building goes up behind it.",
+		"existing": "frontage", "require": {"kind": "keep_existing"}},
 ]
 
 ## The chance a brief gets a twist at all, by firm tier (1..7); a second twist comes with

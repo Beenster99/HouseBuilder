@@ -438,6 +438,10 @@ func _apply_accept(p: Dictionary) -> void:
 		var cur := sites.current()
 		if cur == null or cur.id() != site_id:
 			sites.load_site(site_id)
+	# A job with a building already on the plot starts the design from it, locked.
+	var bb := Modules.bus("building") as BuildingBus
+	if not (active.get("existing", []) as Array).is_empty() and bb != null and (net == null or net.is_host()):
+		bb.sync.load_design(ContractTwists.starting_design(active))
 	structure_report = {}
 	_report_sum = 0
 	_checked_model = null
