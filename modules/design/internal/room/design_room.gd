@@ -317,6 +317,8 @@ func _process(_delta: float) -> void:
 		hud.visible = active and not lent
 		if lent:
 			session.hover(null)
+	if active and not lent_view:
+		session.placing = stamping()
 	if not active or lent_view:
 		pass
 	elif _pointer_over_hud():
@@ -487,6 +489,13 @@ func _draw_ghost() -> void:
 	var mat := _ghost_mat(MINE)
 	_draw_handles(im, y + 0.02)
 	ghost_dims.visible = false
+	# Alignment guides: what's being placed lines up with this.
+	if not session.guides.is_empty():
+		var gm := _ghost_mat(DesignGuides.COLOUR)
+		for g: Array in session.guides:
+			var a2: Vector2 = g[0]
+			var b2: Vector2 = g[1]
+			_ghost_lines(im, gm, [Vector3(a2.x, 0, a2.y), Vector3(b2.x, 0, b2.y)], y + 0.03)
 	match str(pv.get("kind", "")):
 		"line":
 			_ghost_lines(im, mat, [pv.a, pv.b], y)

@@ -153,6 +153,17 @@ func run_tests() -> void:
 		check(str(hud2.get("step_now")) == "design" and str(hud2.get("step_next")) == "build", "with one, Design, then Build it")
 		cbus.set("active", was2)
 		hud2.call("refresh_steps")
+	# Alignment guides while placing: lines up with nearby parts, and shows the line.
+	s.sync.edit(BuildingCommands.place_part("column", s.level, {"at": [61.2, 0, 60.0]}, "steel"))
+	await frames(2)
+	s.set_tool("column")
+	s.hover(Vector3(61.2, 0, 64.0))
+	check(absf((s.cursor as Vector3).x - 61.25) > 0.001 and not s.guides.is_empty(),
+			"placing lines up with a part nearby and shows a guide: x %.2f, %d guides" % [(s.cursor as Vector3).x, s.guides.size()])
+	room.call("_draw_ghost")
+	s.set_tool("select")
+	s.hover(Vector3(61.2, 0, 64.0))
+	check(s.guides.is_empty(), "no guides when just pointing")
 	# Shift+drag on empty floor draws a box that selects all inside it.
 	var whole := (room.get("hud") as Node).get("mini") as DesignMiniWorld
 	var bb := whole.bounds()

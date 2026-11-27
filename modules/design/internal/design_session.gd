@@ -91,6 +91,13 @@ var shape: Dictionary = {}
 var handle_reach := 0.35
 ## A left drag on empty floor with nothing selected pans the view (the room moves the camera).
 var pan_drag := false
+## Alignment guides showing now ([[Vector2, Vector2], ...], plan metres): what's being placed
+## or moved lines up with another room's or part's edge or middle. Alt held: none.
+var guides: Array = []
+## The room sets this while it places something of its own (a saved module): guides then too.
+var placing := false
+var _guide_boxes: Array[Rect2] = []
+var _guide_key := ""
 ## The pan moved the view (the room says so); a press and release on empty floor that didn't
 ## pan clears the selection instead.
 var pan_moved := false
@@ -231,6 +238,7 @@ func hover(p: Variant) -> void:
 	var at := snap(p)
 	if anchor != null and tool in TWO_POINT and tool != "measure":
 		at = DesignSnap.run(anchor, at, grid)
+	at = _align(at)
 	cursor = at
 	presence.set_cursor(at)
 	if not shape.is_empty():
@@ -361,6 +369,44 @@ func ids_in_box(a: Vector3, b: Vector3) -> PackedStringArray:
 		if inside.call([Vector2(bb.position.x, bb.position.z), Vector2(bb.end.x, bb.end.z)]):
 			out.append(pid)
 	return out
+
+
+## Lines `at` up with nearby rooms and parts (DesignGuides) while something is being placed,
+## drawn, reshaped or moved; sets `guides`.
+func _align(at: Vector3) -> Vector3:
+	guides = []
+	if Input.is_key_pressed(KEY_ALT):
+		return at
+	var skip := PackedStringArray()
+	var box := Rect2()
+	var p2 := Vector2(at.x, at.z)
+	if not drag.is_empty():
+		skip = PackedStringArray(drag.ids)
+		var from := drag.from as Vector3
+		box = DesignGuides.box_of(model, skip)
+		box.position += Vector2(at.x - from.x, at.z - from.z)
+	elif not shape.is_empty():
+		skip = PackedStringArray([str(shape.room)])
+		box = Rect2(p2, Vector2.ZERO)
+	elif tool in TWO_POINT or tool in RECT or placing:
+		box = Rect2(p2, Vector2.ZERO)
+	elif tool in POINT:
+		var k := catalog.kind(fixture_kind if tool == "fixture" else str(KIND.get(tool, tool)))
+		var w := float(k.get("w", 0.5))
+		var size := Vector2(w, float(k.get("d", w)))
+		box = Rect2(p2 - size * 0.5, size)
+	else:
+		return at
+	var key := "%d|%d|%s" % [model.revision, level, ",".join(skip)]
+	if key != _guide_key or _guide_boxes.is_empty():
+		_guide_key = key
+		_guide_boxes = DesignGuides.boxes(model, level, skip)
+	# A few pixels on screen, but under half a grid step, so every grid point stays reachable.
+	var tol := minf(handle_reach * DesignGuides.SNAP_PX / 12.0, grid * 0.5)
+	var al := DesignGuides.align(box, _guide_boxes, tol)
+	guides = al.guides
+	var off: Vector2 = al.offset
+	return at + Vector3(off.x, 0.0, off.y)
 
 
 ## Esc or right click: drops the drag or the half-drawn part.
