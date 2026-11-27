@@ -3,10 +3,10 @@ extends Control
 ## curator's description. Picking one opens the site viewer and loads it for the crew.
 
 func _ready() -> void:
-	set_anchors_preset(Control.PRESET_FULL_RECT)
+	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	theme = BsxTheme.get_theme()
 	var bg := ColorRect.new()
-	bg.color = Color(0.08, 0.09, 0.11)
+	bg.color = BsxTheme.col(self, "BG")  # paper in the pencil look, dark in the classic one
 	bg.set_anchors_preset(Control.PRESET_FULL_RECT)
 	add_child(bg)
 	var margin := MarginContainer.new()
