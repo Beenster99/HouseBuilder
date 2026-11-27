@@ -28,6 +28,7 @@ const T := preload("res://modules/ui/api/terminal_kit.gd")
 const WalkBuild := preload("res://modules/walk/internal/walk_build.gd")
 const WalkEdits := preload("res://modules/walk/internal/walk_edits.gd")
 const WalkPalette := preload("res://modules/walk/internal/walk_palette.gd")
+const AssetLibrary := preload("res://modules/assets/api/asset_library.gd")
 const C := preload("res://modules/building/api/building_commands.gd")
 
 const LAYER := WalkBuild.LAYER
@@ -838,23 +839,26 @@ func _wall_hits(wall_id: String, box: AABB) -> bool:
 
 ## The part in your hands, where it would go: green for a good spot, amber if not.
 func _update_ghost() -> void:
-	var key := "" if holding.is_empty() else "%s/%s/%s" % [holding.type, holding.get("module", ""), spot.get("ok", false)]
+	var state := "hand" if not spot.has("at") else str(spot.get("ok", false))
+	var key := "" if holding.is_empty() else "%s/%s/%s" % [holding.type, holding.get("module", ""), state]
 	if key != _ghost_key:
 		_ghost_key = key
 		if _ghost:
 			_ghost.queue_free()
 			_ghost = null
 		if key != "":
-			_ghost = _make_ghost()
+			_ghost = _make_ghost(state)
 	if _ghost == null:
 		return
-	_ghost.visible = spot.has("at")
-	if not _ghost.visible:
+	_ghost.visible = true
+	if not spot.has("at"):
+		_hold_in_view()
 		return
+	_ghost.scale = Vector3.ONE
 	if bool(holding.opening):
 		var wall: Dictionary = model.parts.get(str(spot.wall), {})
 		if wall.is_empty() or not spot.has("t"):
-			_ghost.visible = false
+			_hold_in_view()
 			return
 		var a := Vector3(float(wall.a[0]), 0, float(wall.a[2]))
 		var b := Vector3(float(wall.b[0]), 0, float(wall.b[2]))
@@ -865,41 +869,171 @@ func _update_ghost() -> void:
 		_ghost.rotation = Vector3(0, -Vector2(dir.x, dir.z).angle(), 0)
 		return
 	_ghost.position = spot.at
-	_ghost.rotation.y = deg_to_rad(float(holding.rot))
+	_ghost.rotation = Vector3(0, deg_to_rad(float(holding.rot)), 0)
 
 
-func _make_ghost() -> Node3D:
+## Nothing to put it on: the part is held up in front of you, small, turned as it would go
+## down (R turns it), so you can always see what you hold and which way it faces.
+func _hold_in_view() -> void:
+	var basis := camera.global_basis
+	var size: Vector3 = _ghost.get_meta("size", Vector3.ONE)
+	var fit := clampf(0.6 / maxf(maxf(size.x, size.z), size.y), 0.15, 1.0)
+	_ghost.scale = Vector3.ONE * fit
+	# Low and ahead in the view whichever way you look, as if carried in front of you.
+	_ghost.position = camera.global_position - basis.z * 1.3 - basis.y * 0.3 - Vector3(0, size.y * fit * 0.5, 0)
+	# Turned as you'd put it down, relative to where you look.
+	_ghost.rotation = Vector3(0, body.rotation.y + deg_to_rad(float(holding.rot)), 0)
+
+
+## What you hold, drawn where it would go (or in your hands): the part's own model (the
+## asset library's, a box until there is one) tinted green where it fits, amber where it hits
+## something, its outline, and an arrow and FRONT on the floor on the side it faces.
+func _make_ghost(state: String) -> Node3D:
 	var spec := model.catalog.kind(str(holding.type))
 	var g := Node3D.new()
 	g.name = "Ghost"
 	world.add_child(g)
+	# Strong colours: pale ones vanish on the white model look.
+	var col := Color(0.1, 0.72, 0.3) if state == "true" else (Color(0.15, 0.5, 0.95) if state == "hand" else Color(0.95, 0.45, 0.08))
+	var size := Vector3(float(spec.get("w", 0.5)), float(spec.get("h", 0.8)), float(spec.get("d", 0.5)))
+	var body_node: Node3D = null
 	if holding.has("module"):
 		var kits := Modules.bus("kits")
 		var made: Variant = kits.call("make_ghost", str(holding.module)) if kits and kits.has_method("make_ghost") else null
 		if made is Node3D:
-			g.add_child(made as Node3D)
-			return g
-	var col := Color(0.35, 1.0, 0.5) if spot.get("ok", false) else Color(1.0, 0.7, 0.2)
+			body_node = made as Node3D
+			size = _bounds_of(body_node)
+	elif bool(holding.opening):
+		size = Vector3(float(spec.get("w", 0.9)), float(spec.get("h", 2.0)), 0.3)
+	elif model.catalog.family_of(str(holding.type)) == "column":
+		var secs := model.catalog.sections_for(str(holding.type), "")
+		var sec := model.catalog.section(str(secs[0]) if not secs.is_empty() else "")
+		size = Vector3(float(sec.get("w", 0.3)), model.level_height(where().level), float(sec.get("d", sec.get("w", 0.3))))
+	else:
+		body_node = AssetLibrary.make_kind(str(holding.type), {"size": size, "family": "fixture"})
+	g.set_meta("size", size)
+	var tint := StandardMaterial3D.new()
+	tint.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	tint.albedo_color = Color(col.r, col.g, col.b, 0.7)
+	tint.emission_enabled = true
+	tint.emission = col * 0.25
+	tint.cull_mode = BaseMaterial3D.CULL_DISABLED
+	if body_node == null:
+		var mi := MeshInstance3D.new()
+		var bm := BoxMesh.new()
+		bm.size = size
+		mi.mesh = bm
+		mi.position.y = size.y * 0.5
+		body_node = mi
+	g.add_child(body_node)
+	for mi: MeshInstance3D in body_node.find_children("*", "MeshInstance3D", true, false) + ([body_node] if body_node is MeshInstance3D else []):
+		mi.material_override = tint
+		mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	g.add_child(_outline_box(size, col))
+	if not model.catalog.family_of(str(holding.type)) in ["column"]:
+		_front_marker(g, size, col)
+	return g
+
+
+## The box's twelve edges as thin bars, drawn through walls so you see it behind things.
+static func _outline_box(size: Vector3, col: Color) -> Node3D:
+	var root := Node3D.new()
+	root.name = "Outline"
 	var m := StandardMaterial3D.new()
 	m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	m.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-	m.albedo_color = Color(col.r, col.g, col.b, 0.35)
+	m.no_depth_test = true
+	m.albedo_color = col.darkened(0.25)
+	var t := 0.025
+	var h := size * 0.5
+	for axis in 3:
+		for p: Vector2 in [Vector2(-1, -1), Vector2(1, -1), Vector2(1, 1), Vector2(-1, 1)]:
+			var mi := MeshInstance3D.new()
+			var bm := BoxMesh.new()
+			var at := Vector3.ZERO
+			match axis:
+				0:
+					bm.size = Vector3(size.x + t, t, t)
+					at = Vector3(0, h.y + h.y * p.x, h.z * p.y)
+				1:
+					bm.size = Vector3(t, size.y + t, t)
+					at = Vector3(h.x * p.x, h.y, h.z * p.y)
+				_:
+					bm.size = Vector3(t, t, size.z + t)
+					at = Vector3(h.x * p.x, h.y + h.y * p.y, 0)
+			mi.mesh = bm
+			mi.position = at
+			mi.material_override = m
+			mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+			root.add_child(mi)
+	return root
+
+
+## An arrow on the floor out from the front face (-z: the side a fitting faces), and FRONT.
+static func _front_marker(g: Node3D, size: Vector3, col: Color) -> void:
+	var z0 := -size.z * 0.5 - 0.05
+	var w := clampf(size.x * 0.6, 0.35, 0.8)
+	var ln := clampf(size.z * 0.8, 0.45, 0.8)
+	var im := ImmediateMesh.new()
+	im.surface_begin(Mesh.PRIMITIVE_TRIANGLES)
+	for v: Vector3 in [Vector3(-w * 0.5, 0.03, z0), Vector3(w * 0.5, 0.03, z0), Vector3(0, 0.03, z0 - ln)]:
+		im.surface_add_vertex(v)
+	im.surface_end()
+	var arrow := MeshInstance3D.new()
+	arrow.name = "FrontArrow"
+	arrow.mesh = im
+	var m := StandardMaterial3D.new()
+	m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	m.cull_mode = BaseMaterial3D.CULL_DISABLED
-	var mi := MeshInstance3D.new()
-	var bm := BoxMesh.new()
-	if bool(holding.opening):
-		bm.size = Vector3(float(spec.get("w", 0.9)), float(spec.get("h", 2.0)), 0.3)
-	elif model.catalog.family_of(str(holding.type)) == "column":
-		var sec := model.catalog.section(str(model.catalog.sections_for(str(holding.type), "")[0]) if not model.catalog.sections_for(str(holding.type), "").is_empty() else "")
-		bm.size = Vector3(float(sec.get("w", 0.3)), model.level_height(where().level), float(sec.get("d", sec.get("w", 0.3))))
-	else:
-		bm.size = Vector3(float(spec.get("w", 0.5)), float(spec.get("h", 0.8)), float(spec.get("d", 0.5)))
-	mi.mesh = bm
-	mi.material_override = m
-	mi.position.y = bm.size.y * 0.5
-	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-	g.add_child(mi)
-	return g
+	m.no_depth_test = true
+	# Drawn after the see-through body, so it's never hidden under it.
+	m.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	m.render_priority = 10
+	m.albedo_color = col
+	arrow.material_override = m
+	arrow.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	g.add_child(arrow)
+	# The front face itself, solid, so the side it faces reads even with the arrow hidden.
+	var face := MeshInstance3D.new()
+	face.name = "FrontFace"
+	var qm := QuadMesh.new()
+	qm.size = Vector2(size.x, size.y)
+	face.mesh = qm
+	face.position = Vector3(0, size.y * 0.5, -size.z * 0.5 - 0.01)
+	face.rotation.y = PI
+	var fm := m.duplicate() as StandardMaterial3D
+	fm.no_depth_test = false
+	fm.render_priority = 0
+	fm.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	fm.albedo_color = Color(col, 0.6)
+	face.material_override = fm
+	face.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	g.add_child(face)
+	var tag := Label3D.new()
+	tag.name = "FrontTag"
+	tag.text = "FRONT"
+	tag.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	tag.no_depth_test = true
+	tag.font_size = 48
+	tag.pixel_size = 0.004
+	tag.modulate = col.darkened(0.15)
+	tag.render_priority = 11
+	tag.outline_render_priority = 10
+	tag.outline_modulate = Color(1, 1, 1, 0.9)
+	tag.outline_size = 12
+	tag.position = Vector3(0, 0.15, z0 - ln - 0.1)
+	g.add_child(tag)
+
+
+static func _bounds_of(n: Node3D) -> Vector3:
+	var box := AABB()
+	var first := true
+	for mi: MeshInstance3D in n.find_children("*", "MeshInstance3D", true, false):
+		if mi.mesh == null:
+			continue
+		var b := mi.transform * mi.mesh.get_aabb()
+		box = b if first else box.merge(b)
+		first = false
+	return box.size if not first else Vector3.ONE
 
 
 # The world and you
@@ -1031,7 +1165,7 @@ func _add_hud() -> void:
 	hud.layer = 6
 	add_child(hud)
 	var box := PanelContainer.new()
-	box.add_theme_stylebox_override("panel", T.box(Color(0.02, 0.05, 0.09, 0.8), T.CYAN, 1, 10.0))
+	box.add_theme_stylebox_override("panel", T.plate(10.0, true))
 	box.position = Vector2(20, 20)
 	box.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	hud.add_child(box)
@@ -1055,7 +1189,7 @@ func _add_hud() -> void:
 	_aim_label.grow_vertical = Control.GROW_DIRECTION_BEGIN
 	_aim_label.position.y -= 60
 	_aim_label.add_theme_constant_override("outline_size", 6)
-	_aim_label.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.8))
+	_aim_label.add_theme_color_override("font_outline_color", Color(T.PLATE, 0.9))
 	_aim_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	hud.add_child(_aim_label)
 	var dot := ColorRect.new()
@@ -1068,7 +1202,7 @@ func _add_hud() -> void:
 	hud.add_child(dot)
 	_palette = PanelContainer.new()
 	_palette.name = "Palette"
-	_palette.add_theme_stylebox_override("panel", T.box(Color(0.02, 0.05, 0.09, 0.92), T.CYAN, 1, 12.0))
+	_palette.add_theme_stylebox_override("panel", T.plate(12.0))
 	_palette.set_anchors_and_offsets_preset(Control.PRESET_RIGHT_WIDE)
 	_palette.custom_minimum_size.x = 380
 	_palette.offset_left = -400

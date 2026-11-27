@@ -132,6 +132,30 @@ func run_tests() -> void:
 	await _physics(2)
 	check(v.spot.has("at") and bool(v.spot.ok), "it fits where you aim: %s" % v.spot)
 	check(v._ghost != null and v._ghost.visible, "its ghost shows there")
+	check(v._ghost.find_child("FrontArrow", true, false) != null and v._ghost.find_child("FrontTag", true, false) != null,
+			"with an arrow and FRONT on the side it faces")
+	check(v._ghost.find_children("*", "MeshInstance3D", true, false).size() >= 3, "drawn as the part's model with its outline")
+	var front_was: Vector3 = (v._ghost.find_child("FrontTag", true, false) as Node3D).global_position - v._ghost.global_position
+	v.turn()
+	await _settle()
+	var front_now: Vector3 = (v._ghost.find_child("FrontTag", true, false) as Node3D).global_position - v._ghost.global_position
+	check(absf(Vector2(front_was.x, front_was.z).angle_to(Vector2(front_now.x, front_now.z))) > 1.4, "R turns its front a quarter")
+	v.turn()
+	v.turn()
+	v.turn()
+	var aim_was := v._pitch
+	v.look(Vector2(0, -2000))
+	v.toggle_fly()
+	v.body.position.y += 30.0
+	await _settle()
+	var in_view: Vector3 = v._ghost.global_position - v.camera.global_position
+	check(not v.spot.has("at") and v._ghost.visible and in_view.length() < 2.5 and v._ghost.scale.x <= 1.0,
+			"aimed at nothing, it's held up in front of you: %s" % in_view)
+	v.toggle_fly()
+	v.body.position = Vector3(2.0, 0.95, 4.5)
+	_face(v, Vector3(2.0, 0.0, 2.5))
+	await _settle()
+	check(v.spot.has("at") and is_equal_approx(v._ghost.scale.x, 1.0), "and back on the floor at full size when you aim at it (pitch was %.2f)" % aim_was)
 	var parts_before := model.parts.size()
 	check(v.put_down(), "click puts it down")
 	await frames(2)
@@ -313,6 +337,13 @@ func run_tests() -> void:
 	walk.set_preview_maker(kept_preview)
 	walk.unregister_module()
 	design.queue_free()
+
+
+## A couple of physics ticks and drawn frames (the ghost follows on drawn frames).
+func _settle() -> void:
+	await _physics(2)
+	for i in 2:
+		await get_tree().process_frame
 
 
 func _physics(n: int) -> void:
