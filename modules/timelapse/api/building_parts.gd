@@ -255,9 +255,10 @@ static func shape_of(model: BuildingModel, pid: String, joins: WallJoins = null,
 			var top := pts[0].y
 			var form := RoofShape.form_of(str(e.kind)) if fam == "roof" else ""
 			if form != "":
-				# A pitched roof (gable, hip, mono): its slopes, ends and underside, as designed.
+				# A pitched roof (gable, hip, mono): its slopes, ends and underside, joined with
+				# the other pitched roofs on its level (valleys on L, T and cross plans).
 				var faces: Array = []
-				for f: Array in RoofShape.faces(outline, float(e.get("pitch", spec.get("pitch", 35.0))), form, RoofShape.EAVE):
+				for f: Array in RoofShape.part_faces(model, pid, RoofShape.EAVE):
 					var corners: Array = []
 					for q: Vector3 in f[0]:
 						corners.append(q + Vector3(0, top, 0))
