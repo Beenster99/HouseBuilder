@@ -88,6 +88,7 @@ func _process(delta: float) -> void:
 		_fit()
 	model_root.rotation.y = turn
 	model_root.scale = Vector3.ONE * scale_fit * zoom
+	view.set("lod_distance", 60.0 * scale_fit * zoom)
 	view.position = -_centre - Vector3(pan.x, 0, pan.y)
 	view.position.y = -_centre.y
 	layers.position = view.position

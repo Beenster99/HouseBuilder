@@ -32,6 +32,13 @@ var _voids: Dictionary = {}  # level -> voids_on(level), for one flush
 # The entry being built: batch key -> [verts, normals].
 var _geo: Dictionary = {}
 var _geo_level := 0
+## How far from the camera (world m) library models keep their detail before a plain box
+## stands in; a scaled-down copy (the holotable) sets it in its own units.
+var lod_distance := 60.0
+## Parts drawn with their library model (else a box until their turn), and those waiting.
+var _model_ok: Dictionary = {}
+var _model_wait: Dictionary = {}
+const MODEL_BUDGET_US := 3000
 ## How walls meet at corners and tees, and which walls each one's ends touch (redrawn with it).
 var _joins: WallJoins
 var _wall_nb: Dictionary = {}
@@ -69,6 +76,7 @@ func bind(m: BuildingModel) -> void:
 
 
 func _process(_delta: float) -> void:
+	_upgrade_models()
 	flush()
 	if labels_fixed:
 		fade_labels(get_viewport().get_camera_3d())
@@ -420,21 +428,11 @@ func _part(id: String) -> void:
 				var shaft := Vector3(float(e.get("w", spec.get("w", 2.0))), model.part_height(id), float(e.get("d", spec.get("d", 2.0))))
 				var c: Variant = _colour(id, Color(0.55, 0.6, 0.68, 0.55)) if _tints.has(id) else ArtStyle.material("glass", "opening")
 				_box(at + Vector3(0, shaft.y / 2.0, 0), shaft, rot, c)
-			elif fam == "fixture" and str(spec.get("asset", "")) != "":
-				# A library asset (an airliner, a car, a bed...): its own model at true size,
-				# so it reads on the plan and in 3D as what it is, not a box.
-				var size := Vector3(float(spec.get("w", 0.5)), float(spec.get("h", 0.8)), float(spec.get("d", 0.5)))
-				_geo_node = AssetLibrary.make_kind(kind, {"size": size, "family": "fixture"})
-				_geo_node.name = "Asset_" + id
-				_geo_node.position = at
-				_geo_node.rotation.y = deg_to_rad(float(e.get("rot", 0.0)))
-				if _tints.has(id):
-					# Selected or in someone's hands: a see-through box of their colour round it.
-					var t: Color = _tints[id]
-					_box(at + Vector3(0, size.y / 2.0, 0), size, rot, Color(t.r, t.g, t.b, 0.3))
 			elif fam == "fixture":
+				# Its library model (a bed, a car, an airliner...) at true size, else a box.
 				var size := Vector3(float(spec.get("w", 0.5)), float(spec.get("h", 0.8)), float(spec.get("d", 0.5)))
-				_box(at + Vector3(0, size.y / 2.0, 0), size, rot, colour)
+				if not _model_of(id, kind, "fixture", size, size, at, deg_to_rad(float(e.get("rot", 0.0)))):
+					_box(at + Vector3(0, size.y / 2.0, 0), size, rot, colour)
 			elif kind == "pile":
 				var length := float(e.get("length", spec.get("length", 10.0)))
 				var dia := float(sec.get("dia", 0.45))
@@ -490,10 +488,54 @@ func _part(id: String) -> void:
 				var h := float(e.get("h", spec.get("h", 2.0)))
 				if model.level_of(id) == level:
 					h = minf(h, maxf(0.05, cut - float(e.get("sill", spec.get("sill", 0.0)))))
+				var dir := pts[1] - pts[0]
+				var w := Vector2(dir.x, dir.z).length()
+				var t := float(cat.section(str(model.parts.get(str(e.get("host", "")), {}).get("section", ""))).get("d", 0.2))
+				if _model_of(id, kind, "opening", Vector3(w, h, t), Vector3(w, float(e.get("h", spec.get("h", 2.0))), 0.0),
+						(pts[0] + pts[1]) * 0.5, atan2(-dir.z, dir.x)):
+					return
 				var glass := str(e.get("material", "")) == "glass" or kind.begins_with("window")
 				var c: Variant = _colour(id, GLASS if glass else DOOR) if _tints.has(id) \
 						else ArtStyle.material("glass" if glass else "timber", "opening" if glass else "fixture")
 				_linear(pts[0] + Vector3(0, h / 2.0, 0), pts[1] + Vector3(0, h / 2.0, 0), 0.06, h, c)
+
+
+## A part drawn as its library model (when the kind has one): `size` its box, `fit` what the
+## model is scaled to (0: its own size), standing at `pos` (bottom centre) turned `yaw`. While
+## tinted (selected, or in someone's hands) a see-through box of that colour goes round it.
+## False if the kind has no model (draw it some other way).
+func _model_of(id: String, kind: String, fam: String, size: Vector3, fit: Vector3, pos: Vector3, yaw: float) -> bool:
+	if AssetLibrary.id_for_kind(kind) == "" and str(model.catalog.kind(kind).get("asset", "")) == "":
+		return false
+	if not _model_ok.has(id):
+		# A box for now; the model comes a few at a time over the next frames, so opening a
+		# big design (an airport) stays quick.
+		if not _model_wait.has(id):
+			_model_wait[id] = true
+		return false
+	_geo_node = AssetLibrary.make_kind(kind, {"size": size, "family": fam, "fit": fit, "lod": lod_distance})
+	_geo_node.name = "Asset_" + id
+	_geo_node.position = pos
+	_geo_node.rotation.y = yaw
+	if _tints.has(id):
+		var t: Color = _tints[id]
+		_box(pos + Vector3(0, size.y / 2.0, 0), size, Basis(Vector3.UP, yaw), Color(t.r, t.g, t.b, 0.3))
+	return true
+
+
+## Swaps waiting boxes for their library models, a few milliseconds' worth a frame.
+func _upgrade_models() -> void:
+	if _model_wait.is_empty():
+		return
+	var end := Time.get_ticks_usec() + MODEL_BUDGET_US
+	for id: String in _model_wait.keys():
+		_model_wait.erase(id)
+		_model_ok[id] = true
+		if model.parts.has(id):
+			_drop(id)
+			_build(id)
+		if Time.get_ticks_usec() > end:
+			break
 
 
 ## A wall drawn in pieces around its openings: solid runs, and the pieces under and over each.

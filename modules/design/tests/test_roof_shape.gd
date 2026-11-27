@@ -45,7 +45,7 @@ func run_tests() -> void:
 	var s := DesignSession.new()
 	add_child(s)
 	s.setup(Modules.bus("multiplayer") as MultiplayerBus, building.model, building.sync)
-	check("gable" in s.roof_forms() and "flat" in s.roof_forms(), "the Roof tool offers flat and gable: %s" % str(s.roof_forms()))
+	check(Array(s.roof_forms()) == ["flat", "gable", "hip", "mono"], "the Roof tool offers flat, gable, hip and mono-pitch: %s" % str(s.roof_forms()))
 	s.set_tool("roof")
 	s.roof_form = "gable"
 	s.roof_pitch = 40.0
@@ -54,6 +54,10 @@ func run_tests() -> void:
 	var roofs := building.model.parts_of_family("roof")
 	check(roofs.size() == 1 and str(building.model.parts[roofs[0]].kind) == "roof_pitched" and is_equal_approx(float(building.model.parts[roofs[0]].pitch), 40.0),
 			"it places a pitched roof at 40°")
+	s.roof_form = "hip"
+	s.press(Vector3(10, 0, 0))
+	s.press(Vector3(16, 0, 4))
+	check(Array(building.model.parts_of_family("roof")).any(func(r: String) -> bool: return str(building.model.parts[r].kind) == "roof_hip"), "and a hipped one")
 	s.teardown()
 	s.queue_free()
 	building.reset_data()

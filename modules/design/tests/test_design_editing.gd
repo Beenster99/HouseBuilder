@@ -233,6 +233,14 @@ func run_tests() -> void:
 	check(mv_b != "" and top_wall != "", "a second room with its own top wall")
 	s.sync.edit(BuildingCommands.place_opening(s.door_kind, top_wall, 1.0))
 	await frames(2)
+	var door_id := ""
+	for oid in model.parts:
+		if str(model.parts[oid].get("host", "")) == top_wall:
+			door_id = oid
+	await frames(3)
+	var door_node := room.get("view").find_child("Asset_" + door_id, true, false) as Node3D
+	check(door_node != null and door_node.find_children("*", "MeshInstance3D", true, false).size() > 1,
+			"a door draws as the library's door model (a box for its first frame or two)")
 	var rooms_n := model.rooms.size()
 	var parts_n := model.parts.size()
 	s.presence.select(PackedStringArray([mv_b]))

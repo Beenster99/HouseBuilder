@@ -170,7 +170,7 @@ func run_tests() -> void:
 		var view: Node3D = (load("res://modules/design/internal/room/design_view.gd") as GDScript).new()
 		add_child(view)
 		view.call("bind", ma)
-		await frames(2)
+		await frames(4)
 		var drawn: Node3D = view.find_child("Asset_" + str((jets.call(ma) as Array)[0]), true, false)
 		check(drawn != null and drawn.visible and drawn.find_children("*", "MeshInstance3D", true, false).size() > 1,
 				"and Ana's view draws the airliner's own model")
