@@ -47,10 +47,30 @@ class FakeNet:
 
 func run_tests() -> void:
 	_pack()
+	_plot_frame()
 	_pool()
 	_view()
 	_solo_bus()
 	_peers()
+
+
+func _plot_frame() -> void:
+	var pack := SitePool.open(BATH)
+	var local := pack.plot_outline_local()
+	check(local.size() == pack.plot_outline().size() and local.size() >= 3, "plot outline in building coordinates")
+	var c := Vector2.ZERO
+	for p: Array in local:
+		c += Vector2(p[0], p[1])
+	c /= local.size()
+	check(c.length() < 0.01, "centred on the building's origin: %s" % c)
+	check(pack.plot_contains_local(0.0, 0.0), "the origin is on the plot")
+	var b := pack.plot_bounds_local()
+	check(not pack.plot_contains_local(b.end.x + 5.0, 0.0), "outside the box is off the plot")
+	var p3 := Vector3(3.0, 1.0, -2.0)
+	check(pack.to_plot(pack.from_plot(p3)).is_equal_approx(p3), "to_plot undoes from_plot")
+	var world := pack.from_plot(Vector3(1.0, 0.0, 2.0))
+	check(is_equal_approx(pack.ground_at_local(1.0, 2.0), pack.height_at(world.x, world.z)), "ground height in building coordinates")
+	check(pack.plot_area() > 10.0, "plot area: %.0f m²" % pack.plot_area())
 
 
 func _pack() -> void:

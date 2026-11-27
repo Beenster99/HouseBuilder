@@ -28,3 +28,12 @@ and a viewer with an orbit camera, the plot's problems and the OpenStreetMap cre
 
 Packs are read from `res://tools/osm/samples`, which `tools/.gdignore` keeps out of exported
 builds: a release build needs the packs copied in or an export include filter.
+
+## Plot frame
+
+The building model is drawn around (0, 0). On a site, that origin is the plot's centre
+(`SitePack.plot_origin()`), with y = 0 at the plot's mean ground (the pack datum) and the same
+axes (x east, z south). `plot_outline_local()`, `plot_bounds_local()`,
+`plot_contains_local(x, z)`, `ground_at_local(x, z)` and `plot_area()` work in those
+coordinates; `to_plot()` / `from_plot()` convert points. Any `suited_to` string the packs use
+(including `civic`) works with `SitePool.for_building()` / `pick()`.

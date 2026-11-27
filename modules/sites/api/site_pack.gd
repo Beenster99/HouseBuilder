@@ -153,6 +153,62 @@ func plot_centre() -> Vector2:
 	return c / maxf(o.size(), 1)
 
 
+# --- The plot frame: the building model's coordinates on this site ------------------------
+# The building model is drawn around (0, 0). On a site, its (0, 0) is the plot's centre and
+# its y = 0 is the plot's mean ground (the pack's datum), with the same axes: x east, z south.
+
+## Where the building model's origin sits in pack coordinates.
+func plot_origin() -> Vector3:
+	var c := plot_centre()
+	return Vector3(c.x, 0.0, c.y)
+
+
+## A pack point in the building model's coordinates.
+func to_plot(p: Vector3) -> Vector3:
+	return p - plot_origin()
+
+
+## A building model point in pack coordinates (to draw it on the site).
+func from_plot(p: Vector3) -> Vector3:
+	return p + plot_origin()
+
+
+## The plot boundary in building model coordinates: [[x, z], ...], as BuildingModel outlines.
+func plot_outline_local() -> Array:
+	var o := plot_origin()
+	var out: Array = []
+	for p: Array in plot_outline():
+		out.append([float(p[0]) - o.x, float(p[1]) - o.z])
+	return out
+
+
+## The plot's bounding box in building model coordinates (position = north-west corner).
+func plot_bounds_local() -> Rect2:
+	var outline := plot_outline_local()
+	if outline.is_empty():
+		return Rect2()
+	var r := Rect2(Vector2(outline[0][0], outline[0][1]), Vector2.ZERO)
+	for p: Array in outline:
+		r = r.expand(Vector2(p[0], p[1]))
+	return r
+
+
+## True when a building model point (x, z) is inside the plot.
+func plot_contains_local(x: float, z: float) -> bool:
+	return BuildingModel.outline_has_point(plot_outline_local(), x, z)
+
+
+## The plot's area in square metres.
+func plot_area() -> float:
+	return BuildingModel.outline_area(plot_outline())
+
+
+## Ground height (y) under a building model point.
+func ground_at_local(x: float, z: float) -> float:
+	var o := plot_origin()
+	return height_at(x + o.x, z + o.z)
+
+
 func ground() -> Dictionary:
 	return plot().get("ground", {})
 
