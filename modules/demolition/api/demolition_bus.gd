@@ -51,6 +51,9 @@ var by_id: Dictionary = {}
 var title := ""
 var zone := Rect2()
 var neighbours: Array = []  # AABB
+## The site's plot boundary (x, z), when the demolition is on a real site; empty otherwise
+## (the drop zone stands in for it then). Debris outside it counts against a demolition job.
+var plot := PackedVector2Array()
 var charges: Dictionary = {}  # part id -> delay, s
 var charge_at: Dictionary = {}  # part id -> Vector3 (world) where it was placed, when given
 var charge_size: Dictionary = {}  # part id -> 0 small, 1 standard, 2 heavy (1 when missing)
@@ -112,6 +115,12 @@ func start_demolition(building_parts: Array, building_title: String, options: Di
 func start_from_model(from: BuildingModel, options: Dictionary = {}) -> void:
 	var o := options.duplicate()
 	o["from_model"] = true
+	if not o.has("plot"):
+		# On a real site (the sites module, optional): its plot boundary, for the debris measure.
+		var sites := Modules.bus("sites")
+		var pack: Variant = sites.call("current") if sites != null and sites.has_method("current") else null
+		if pack != null and (pack as Object).has_method("plot_outline_local"):
+			o["plot"] = pack.call("plot_outline_local")
 	start_demolition(BuildingParts.from_model(from), from.name, o)
 
 
@@ -274,7 +283,8 @@ func _validate_start(_sender: int, p: Dictionary) -> Variant:
 	var options: Dictionary = p.get("options", {})
 	return {"parts": list, "title": str(p.get("title", "Building")),
 			"zone": DemolitionRules.drop_zone(list, float(options.get("margin", ZONE_MARGIN))),
-			"neighbours": options.get("neighbours", []), "open": bool(options.get("open", true)),
+			"neighbours": options.get("neighbours", []), "plot": _plot_of(options.get("plot", [])),
+			"open": bool(options.get("open", true)),
 				"from_model": bool(options.get("from_model", false))}
 
 
@@ -286,6 +296,7 @@ func _apply_start(p: Dictionary) -> void:
 	title = str(p.get("title", ""))
 	zone = p.get("zone", Rect2())
 	neighbours = p.get("neighbours", [])
+	plot = p.get("plot", PackedVector2Array())
 	charges = (p.get("charges", {}) as Dictionary).duplicate()
 	charge_at = (p.get("charge_at", {}) as Dictionary).duplicate()
 	charge_size = (p.get("charge_size", {}) as Dictionary).duplicate()
@@ -302,6 +313,27 @@ func _apply_start(p: Dictionary) -> void:
 	started.emit(title)
 	if bool(p.get("open", true)) and Router.has_scene(VIEW_SCENE) and Router.current_id != VIEW_SCENE:
 		Router.goto(VIEW_SCENE)
+
+
+## A plot outline ([[x, z], ...] or PackedVector2Array) as a PackedVector2Array.
+static func _plot_of(v: Variant) -> PackedVector2Array:
+	if v is PackedVector2Array:
+		return v
+	var out := PackedVector2Array()
+	if v is Array:
+		for q: Variant in v:
+			if q is Vector2:
+				out.append(q)
+			elif q is Array and (q as Array).size() >= 2:
+				out.append(Vector2(float(q[0]), float(q[1])))
+	return out if out.size() >= 3 else PackedVector2Array()
+
+
+## Whether ground point (x, z) is on the plot (inside the drop zone when there is no plot).
+func on_plot(x: float, z: float) -> bool:
+	if plot.size() >= 3:
+		return Geometry2D.is_point_in_polygon(Vector2(x, z), plot)
+	return zone.has_point(Vector2(x, z))
 
 
 func _validate_charge(_sender: int, p: Dictionary) -> Variant:
@@ -468,6 +500,7 @@ func _apply_result(p: Dictionary) -> void:
 
 func _clear() -> void:
 	model = null
+	plot = PackedVector2Array()
 	fractured_ids.clear()
 	parts = []
 	by_id.clear()
@@ -483,7 +516,7 @@ func _clear() -> void:
 func get_net_snapshot() -> Dictionary:
 	if not is_active():
 		return {}
-	return {"parts": parts, "title": title, "zone": zone, "neighbours": neighbours,
+	return {"parts": parts, "title": title, "zone": zone, "neighbours": neighbours, "plot": plot,
 			"charges": charges.duplicate(), "charge_at": charge_at.duplicate(), "charge_size": charge_size.duplicate(), "fire_at": fire_at, "blasted": blasted_ids.duplicate(),
 			"released": released_ids.duplicate(), "fractured": fractured_ids.duplicate(), "result": result.duplicate(), "open": false}
 

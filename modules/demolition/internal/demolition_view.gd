@@ -992,6 +992,7 @@ func _watch_settle() -> void:
 func assess() -> Dictionary:
 	var debris_in := 0.0
 	var debris_total := 0.0
+	var outside := 0.0
 	var standing := 0.0
 	for p: Dictionary in bus.parts:
 		if bus.blasted_ids.has(p.id) or str(p.get("family", "")) == "foundation":
@@ -1009,10 +1010,12 @@ func assess() -> Dictionary:
 					var at := (c as Node3D).global_position
 					if bus.zone.has_point(Vector2(at.x, at.z)):
 						debris_in += vol
+					if not bus.on_plot(at.x, at.z):
+						outside += vol
 				else:
 					standing += vol
-	return DemolitionRules.score(debris_in, debris_total, standing, bus.total_volume(),
-			_neighbour_hits.size(), bus.charges.size())
+	return DemolitionRules.result(debris_in, debris_total, standing, bus.total_volume(),
+			_neighbour_hits.size(), bus.charges.size(), outside)
 
 
 # --- Camera and input ------------------------------------------------------------------
@@ -1408,6 +1411,7 @@ func _show_result() -> void:
 	if r.is_empty():
 		_result.text = ""
 		return
-	_result.text = "%s  ·  %d / 100  ·  down %d%%  ·  in zone %d%%  ·  neighbours hit %d" % [
+	_result.text = "%s  ·  %d / 100  ·  down %d%%  ·  in zone %d%%  ·  off the plot %d%%  ·  neighbours hit %d  ·  charges %d" % [
 			str(r.get("grade", "")).to_upper(), int(r.get("score", 0)), int(float(r.get("down", 0)) * 100.0),
-			int(float(r.get("contained", 0)) * 100.0), int(r.get("neighbour_hits", 0))]
+			int(float(r.get("contained", 0)) * 100.0), int(float(r.get("debris_outside", 0)) * 100.0),
+			int(r.get("neighbour_hits", 0)), int(r.get("charges_used", r.get("charges", 0)))]

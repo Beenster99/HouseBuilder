@@ -73,3 +73,9 @@ func run_tests() -> void:
 	bus.request_charge("col_0_0_0", 0.0)
 	check(bus.charge_point("col_0_0_0").distance_to((col.aabb as AABB).get_center()) < 0.01, "no point given: the part's centre")
 	bus.apply_net_snapshot({})
+
+	# A plot: debris is judged against it (the drop zone stands in without one).
+	bus.start_demolition(DemoOffice.parts(), "Office", {"open": false, "plot": [[0, 0], [5, 0], [5, 5], [0, 5]]})
+	check(bus.plot.size() == 4 and bus.on_plot(2, 2) and not bus.on_plot(8, 2), "debris is judged against the plot")
+	bus.apply_net_snapshot({})
+	check(bus.plot.is_empty(), "and the plot goes with the site")

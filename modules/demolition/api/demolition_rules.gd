@@ -3,6 +3,13 @@ extends RefCounted
 ## Pure demolition rules, the same on every peer: what loses support when parts go, how a
 ## part breaks into chunks, how strong each family is, and the score.
 ##
+## The result (DemolitionBus.result, result()) carries score, grade, contained, down,
+## neighbour_hits and charges, and the measures a demolition job is judged on:
+##   collapsed         share of the building brought down, 0..1
+##   debris_outside    share of the debris that landed off the plot, 0..1 (debris_outside_m3: m³)
+##   neighbours_hit    protected neighbours struck
+##   charges_used      charges fired
+##
 ## Parts are BuildingParts Dictionaries ({id, family, kind, aabb, supported_by, material}).
 ## unsupported() is the support-graph check; a demolition started from a BuildingModel also
 ## asks the structure module (StructureBuilding.collapse_after) on the host.
@@ -197,4 +204,18 @@ static func score(debris_in: float, debris_total: float, standing: float, total:
 	elif down >= 0.5:
 		grade = "Partial"
 	return {"score": pts, "contained": contained, "down": down, "neighbour_hits": neighbour_hits,
-			"charges": charges, "grade": grade}
+			"charges": charges, "grade": grade,
+			# The measures a demolition job's brief is judged on (contracts' demolition_collapse,
+			# debris_within_plot, neighbours_safe, charge_budget).
+			"collapsed": down, "debris_outside": 0.0, "debris_outside_m3": 0.0, "neighbours_hit": neighbour_hits,
+			"charges_used": charges}
+
+
+## score() plus the debris measure against the plot: `outside` m³ of `debris_total` landed
+## off the plot.
+static func result(debris_in: float, debris_total: float, standing: float, total: float,
+		neighbour_hits: int, charges: int, outside: float) -> Dictionary:
+	var r := score(debris_in, debris_total, standing, total, neighbour_hits, charges)
+	r.debris_outside = 0.0 if debris_total <= 0.0 else clampf(outside / debris_total, 0.0, 1.0)
+	r.debris_outside_m3 = maxf(outside, 0.0)
+	return r

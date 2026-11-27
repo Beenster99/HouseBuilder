@@ -42,3 +42,11 @@ func run_tests() -> void:
 	check(clean.score >= 90 and clean.grade == "Textbook", "a clean drop scores high: %s" % str(clean))
 	check(hit.score < clean.score - 20 and hit.grade != "Textbook", "hitting a neighbour costs dearly")
 	check(half.score < clean.score and half.grade == "Partial", "half standing is partial: %s" % str(half))
+
+	# The measures a demolition job is judged on.
+	var job := DemolitionRules.result(90.0, 100.0, 12.0, 120.0, 1, 9, 20.0)
+	check(is_equal_approx(float(job.collapsed), 0.9) and is_equal_approx(float(job.debris_outside), 0.2)
+			and is_equal_approx(float(job.debris_outside_m3), 20.0) and int(job.neighbours_hit) == 1 and int(job.charges_used) == 9,
+			"a result carries share collapsed, debris off the plot, neighbours hit and charges used: %s" % str(job))
+	check(DemolitionBus._plot_of([[0, 0], [10, 0], [10, 8]]).size() == 3 and DemolitionBus._plot_of([[0, 0]]).is_empty(),
+			"a plot outline reads from [[x, z], ...]")
