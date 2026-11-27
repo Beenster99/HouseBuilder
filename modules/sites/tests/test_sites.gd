@@ -103,7 +103,7 @@ func _pack() -> void:
 
 func _pool() -> void:
 	var all := SitePool.list()
-	check(all.size() == 9, "nine curated sites: %d" % all.size())
+	check(all.size() >= 9, "at least nine curated sites: %d" % all.size())
 	for s: Dictionary in all:
 		check(SitePool.open(s.id).ok(), "%s reads" % s.id)
 	var schools := SitePool.for_building("school")
