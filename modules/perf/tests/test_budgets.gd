@@ -59,6 +59,12 @@ func _model_budgets(size: String) -> void:
 		m.apply(BuildingCommands.delete([str(r.do.entry.id)])), PerfBudget.CLICK_MS / 10.0)
 	_timed("save.%s" % size, 2, func() -> void: var _d := m.to_data(), PerfBudget.CLICK_MS * 2.0)
 	_timed("quantities.%s" % size, 1, func() -> void: BuildingQuantities.totals(m), PerfBudget.CLICK_MS)
+	# The per-edit path: costs are kept on the model, so after an edit only what it touched is
+	# recosted (the design room's cost panel does this on every edit).
+	BuildingQuantities.totals(m)
+	_timed("quantities_edit.%s" % size, 1, func() -> void:
+		m.apply(BuildingCommands.place_part("column", 0, {"at": [2.0, 0.0, 2.0]}, "steel"))
+		BuildingQuantities.totals(m), PerfBudget.CLICK_MS)
 	if _should_measure("stress.%s" % size):
 		_timed("stress.%s" % size, 1, func() -> void: StructureBuilding.stress_test(m), PerfBudget.HEAVY_MS)
 	if _should_measure("route.%s" % size):
