@@ -14,7 +14,7 @@ func run_tests() -> void:
 	await frames(3)
 	check(bool(hall.get_meta("crew_avatars", false)), "the hall shows the crew's avatars")
 	var walls: Dictionary = hall.get("walls")
-	check(walls.size() == 4, "four walls of screens")
+	check(walls.size() == (3 if Flags.is_on("design.office") else 4), "walls of screens (the office's front wall is glass)")
 	var ids := HallChannels.channels(hall).map(func(c: Dictionary) -> String: return str(c.id))
 	for want: String in ["plan", "side", "3d", "bom", "cost"]:
 		check(want in ids, "a %s channel" % want)

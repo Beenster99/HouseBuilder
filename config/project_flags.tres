@@ -16,6 +16,7 @@ flags = {
 "design": true,
 "design.room": true,
 "design.hall": true,
+"design.office": true,
 "multiplayer.crew": true,
 "multiplayer.online": true,
 "sandbox": true,

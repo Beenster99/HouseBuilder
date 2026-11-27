@@ -14,6 +14,7 @@ the live cost panel and the design library. Start on the main menu opens it.
 | `internal/design_presence.gd` (`DesignPresence`) | Selections (host-validated event `design.select`), soft locks (session claims, which the building's host validator honours; they lapse 8 s after a drag stops moving) and cursors (movers `player:<peer>:design_cursor` / `design_anchor`). |
 | `internal/design_snap.gd` (`DesignSnap`) | Grid, corner and 45° snapping. |
 | `internal/design_costs.gd` (`DesignCosts`) | The cost panel's numbers and notes with tips, from `BuildingQuantities`. |
+| `internal/hall/office/` | The design hall as an office (flag `design.office`): `hall_office` (full-height window wall onto the vista, the sun through it, halo ring and ceiling LED lights, two lounges from the asset library, the Vista console: F there or drop a picture file on the game), `vista_sync` (node "Vista" under the bus: host-validated event and join snapshot `design.vista`, the host keeps the last one in `user://design/vista.webp`), `vista_image` (any picture to a 2:1 panorama: a 2:1 picture wraps all round, any other photo is spread across the window and mirrored round the back; WebP up to 1.4 MB). `default_vista.webp` is generated mountains. |
 | `internal/room/` | The scene: `design_room` (world, input, crew marks, ghost), `design_view` (draws the model; the 2D plan cuts walls at 1.2 m), `design_camera` (orbit and plan), `design_hud`. |
 
 ## Controls

@@ -19,6 +19,7 @@ const HallWallBoard := preload("res://modules/design/internal/hall/hall_wall_boa
 const HallChannels := preload("res://modules/design/internal/hall/hall_channels.gd")
 const HallHoloTable := preload("res://modules/design/internal/hall/hall_holo_table.gd")
 const T := preload("res://modules/ui/api/terminal_kit.gd")
+const HallOffice := preload("res://modules/design/internal/hall/office/hall_office.gd")
 
 ## The hall's inside, m: 24 wide (x), 6 high, 18 deep (z).
 const ROOM_SIZE := Vector3(24, 6, 18)
@@ -91,6 +92,8 @@ func _ready() -> void:
 	add_child(holo)
 	holo.call("setup", self, model)
 	for id: String in WALLS:
+		if id == "front" and has_node("Office"):
+			continue  # the office's window wall
 		_add_wall(id, WALLS[id])
 	walker = HallWalker.new()
 	add_child(walker)
@@ -476,6 +479,12 @@ func _build_shell() -> void:
 	_slab("WallLeft", Vector3(0.3, ROOM_SIZE.y, ROOM_SIZE.z), Vector3(-half.x - 0.15, half.y, 0), wall_mat)
 	_slab("WallRight", Vector3(0.3, ROOM_SIZE.y, ROOM_SIZE.z), Vector3(half.x + 0.15, half.y, 0), wall_mat)
 	_slab("WallBack", Vector3(ROOM_SIZE.x, ROOM_SIZE.y, 0.3), Vector3(0, half.y, half.z + 0.15), wall_mat)
+	if Flags.is_on(HallOffice.FLAG):
+		# The office: a window wall onto the vista, its sky, lights and furniture.
+		var office := HallOffice.new()
+		add_child(office)
+		office.setup(self, env)
+		return
 	_slab("WallFront", Vector3(ROOM_SIZE.x, ROOM_SIZE.y, 0.3), Vector3(0, half.y, -half.z - 0.15), wall_mat)
 	for x: float in [-7.0, 0.0, 7.0]:
 		for z: float in [-4.5, 4.5]:

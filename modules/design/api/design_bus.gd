@@ -38,6 +38,8 @@ const ROOM_FLAG := "design.room"
 ## the table. Start goes here while its flag is on, else straight to the designer.
 const HALL_SCENE := "design.hall"
 const HALL_FLAG := "design.hall"
+## The hall as an office: a window wall onto a vista any player can change (shared).
+const OFFICE_FLAG := "design.office"
 const START_PRIORITY := 20
 const SETTINGS := "design"
 
@@ -88,12 +90,16 @@ func register_module() -> void:
 			Menu.set_start(HALL_SCENE, START_PRIORITY)
 			Menu.register_entry(HALL_SCENE, "Design Room", HALL_SCENE, 2)
 			Shots.register("design_hall", HALL_SCENE)
+			if Flags.is_on(OFFICE_FLAG) and get_node_or_null("Vista") == null:
+				add_child(preload("res://modules/design/internal/hall/office/vista_sync.gd").new())
 		else:
 			Menu.set_start(ROOM_SCENE, START_PRIORITY)
 			Menu.register_entry(ROOM_SCENE, "Design Room", ROOM_SCENE, 2)
 
 
 func unregister_module() -> void:
+	if get_node_or_null("Vista"):
+		get_node("Vista").free()
 	Menu.clear_start(ROOM_SCENE)
 	Menu.unregister_entry(ROOM_SCENE)
 	Menu.clear_start(HALL_SCENE)
