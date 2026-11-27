@@ -93,6 +93,11 @@ static func stages(id: String) -> PackedStringArray:
 ## Stretch assets are 1 m models scaled on the axes their stretch names: "z", "x" or "y"
 ## take "length"; "zy" (walls) takes "length" along z and "height" up; "xz" (floors, roof
 ## coverings, lawn) takes "width" along x and "length" along z.
+## "fit" (Vector3, m) scales a fixed-size model to fill that box, so it matches the footprint
+## the building model gives the part (a zero component keeps the model's own size).
+## "lod" (m) draws the full model up to that distance from the camera and a plain box of its
+## size beyond it: use it wherever many assets stand in one scene (design views, timelapse,
+## demolition), so every view shows the real model close up.
 static func make(id: String, opts: Dictionary = {}) -> Node3D:
 	var e := info(id)
 	var node: Node3D = null
@@ -108,8 +113,34 @@ static func make(id: String, opts: Dictionary = {}) -> Node3D:
 	var stretch := str(e.get("stretch", ""))
 	if stretch != "":
 		node.scale = _stretch_scale(stretch, opts)
+	elif opts.has("fit") and not e.is_empty() and not node.has_meta("asset_fallback"):
+		var fit: Vector3 = opts.fit
+		var own := bounds(id).size
+		for k in 3:
+			if fit[k] > 0.0 and own[k] > 0.001:
+				node.scale[k] = fit[k] / own[k]
+	if float(opts.get("lod", 0.0)) > 0.0 and not e.is_empty() and not node.has_meta("asset_fallback"):
+		_add_lod(node, bounds(id), float(opts.lod), str(e.get("family", "")))
 	apply_look(node)
 	return node
+
+
+## Beyond `far` metres the model's meshes give way to one box of its bounds.
+static func _add_lod(node: Node3D, b: AABB, far: float, family: String) -> void:
+	for mi in _meshes(node):
+		mi.visibility_range_end = far
+		mi.visibility_range_end_margin = far * 0.1
+		mi.visibility_range_fade_mode = GeometryInstance3D.VISIBILITY_RANGE_FADE_DISABLED
+	var proxy := MeshInstance3D.new()
+	proxy.name = "lod_box"
+	var bm := BoxMesh.new()
+	bm.size = b.size
+	proxy.mesh = bm
+	proxy.position = b.get_center()
+	proxy.visibility_range_begin = far
+	proxy.visibility_range_begin_margin = far * 0.1
+	proxy.set_meta("asset_box", family)
+	node.add_child(proxy)
 
 
 static func _stretch_scale(stretch: String, opts: Dictionary) -> Vector3:

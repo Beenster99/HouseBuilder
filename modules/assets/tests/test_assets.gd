@@ -52,6 +52,22 @@ func run_tests() -> void:
 	check(is_equal_approx(fence.scale.x, 12.0), "boundaries stretch along x")
 	fence.free()
 
+	# "lod": the real model close up, a box of its size far off. "fit": fill a given box.
+	var far := AssetLibrary.make("opening.window.medium", {"lod": 40.0})
+	var proxy := far.get_node_or_null("lod_box") as MeshInstance3D
+	check(proxy != null and is_equal_approx(proxy.visibility_range_begin, 40.0), "lod adds a far box")
+	if proxy:
+		check((proxy.mesh as BoxMesh).size.is_equal_approx(AssetLibrary.bounds("opening.window.medium").size), "the far box is the model's size")
+	for c in far.get_children():
+		if c is MeshInstance3D and c != proxy:
+			check(is_equal_approx((c as MeshInstance3D).visibility_range_end, 40.0), "lod hides the model beyond its distance: %s" % c.name)
+	far.free()
+	var own := AssetLibrary.bounds("opening.window.medium").size
+	var fitted := AssetLibrary.make("opening.window.medium", {"fit": Vector3(own.x * 2.0, 0.0, 0.0)})
+	check(is_equal_approx(fitted.scale.x, 2.0) and is_equal_approx(fitted.scale.y, 1.0), "fit scales only the axes it names")
+	fitted.free()
+	check(AssetLibrary.make_kind("no_such_kind", {"size": Vector3.ONE, "lod": 40.0}).get_node_or_null("lod_box") == null, "a fallback box needs no far box")
+
 	var win := AssetLibrary.make("opening.window.medium")
 	check(AssetLibrary.stages("opening.window.medium") == PackedStringArray(["frame", "glazing", "ironmongery"]), "a window builds frame, glazing, ironmongery")
 	AssetLibrary.show_stages(win, ["frame"])

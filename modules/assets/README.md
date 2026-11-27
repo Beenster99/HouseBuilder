@@ -103,3 +103,10 @@ variants, or move the `platform` stage and hide `scissors`.
 Site equipment and stored materials (`siteyard.py`): `plant.cabin.*`, `plant.access.stair_tower*`,
 `plant.temporary.table_form*`, `plant.small.generator*`, `plant.traffic.*`, `plant.fence.heras*`,
 `plant.fence.concrete_barrier*`, `plant.store.*`, `plant.skip.*`.
+
+## Drawing placed parts in a view
+
+Every view should draw a placed part with the library model, not a box of its size:
+`AssetLibrary.make_kind(kind, {"size": box, "family": fam, "fit": box, "lod": 60.0})`.
+`fit` scales the model to the part's footprint, `lod` swaps it for a plain box beyond that
+distance, and a kind with no model still gives the box of `size`.
