@@ -24,6 +24,7 @@ flags = {
 "sites.real_sites": true,
 "structure": true,
 "structure.stress_test": true,
+"structure.live": true,
 "services": true,
 "services.consultant": true,
 "services.live": true,

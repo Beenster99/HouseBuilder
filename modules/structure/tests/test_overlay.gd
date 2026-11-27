@@ -44,6 +44,9 @@ func _real_design_room() -> void:
 	check(design.actions.has(StructureBus.ACTION), "Stress test button on the design room's top bar")
 	check(design.overlays.has(StructureBus.OVERLAY), "Engineer view in the View picker")
 	check(str(design.overlays[StructureBus.OVERLAY].label) == "Engineer", "named Engineer")
+	if Flags.is_on(StructureBus.LIVE_FLAG) and design.has_method("register_panel"):
+		check(design.panels.has(StructureBus.LIVE_PANEL), "the live engineer window is always open")
+		check(not (design.overlays[StructureBus.OVERLAY].panel as Callable).is_valid(), "so the Engineer view adds no second panel")
 
 
 func _tints_and_panel() -> void:

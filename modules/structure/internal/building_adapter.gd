@@ -42,6 +42,8 @@ var lines: Array = []  # {part, kind, a, b, section_id, label} for columns, beam
 var walls: Array = []  # {part, a, b, h, sec, mat, label, openings: [[t0, t1, sill, top]]}
 var plates: Array = []  # part ids of slabs and roofs
 var foundations: Array = []  # part ids
+var _seg_for: Array = []
+var _seg_cache: Array = []
 var points: Array = []  # Vector3 station candidates
 
 
@@ -359,7 +361,7 @@ func _plates() -> void:
 			snow = StructureLoads.SNOW_KPA * clampf((60.0 - pitch) / 30.0, 0.0, 1.0)
 		var live_rooms := _rooms_at(y) if not roof else []
 		# Share the plate among its supports, cell by cell.
-		var cell := maxf(0.25, sqrt(area / 4000.0))
+		var cell := maxf(0.5, sqrt(area / 1000.0))
 		var bb := _bounds(outline)
 		var got := {}  # member id -> {case: kN}
 		var span := 0.0
@@ -433,19 +435,16 @@ func _nearest(supports: Array, x: float, z: float) -> Dictionary:
 	var best_id := ""
 	var best_d := INF
 	var by_part := {}  # part -> [distance, direction]
-	for mid: String in supports:
-		var m: Dictionary = g.members[mid]
-		var pa: Vector3 = g.nodes[m.a].pos
-		var pb: Vector3 = g.nodes[m.b].pos
-		var a2 := Vector2(pa.x, pa.z)
-		var d2 := Vector2(pb.x, pb.z) - a2
-		var t := clampf((p - a2).dot(d2) / maxf(d2.length_squared(), 1e-12), 0.0, 1.0)
+	for seg: Array in _segments(supports):
+		var a2: Vector2 = seg[1]
+		var d2: Vector2 = seg[2]
+		var t := clampf((p - a2).dot(d2) * float(seg[3]), 0.0, 1.0)
 		var q := a2 + d2 * t
 		var dist := p.distance_to(q)
 		if dist < best_d - 1e-9:
 			best_d = dist
-			best_id = mid
-		var part := str(m.part)
+			best_id = seg[0]
+		var part: String = seg[4]
 		if not by_part.has(part) or dist < float(by_part[part][0]):
 			by_part[part] = [dist, (q - p).normalized() if dist > 1e-6 else Vector2.ZERO]
 	var span := -1.0
@@ -460,6 +459,22 @@ func _nearest(supports: Array, x: float, z: float) -> Dictionary:
 				if span < 0.0 or sp < span:
 					span = sp
 	return {"id": best_id, "d": best_d, "span": span}
+
+
+## Supports in plan, worked out once per plate: [[member id, a, b - a, 1 / |b - a|², part]].
+func _segments(supports: Array) -> Array:
+	if _seg_for == supports:
+		return _seg_cache
+	_seg_for = supports
+	_seg_cache = []
+	for mid: String in supports:
+		var m: Dictionary = g.members[mid]
+		var pa: Vector3 = g.nodes[m.a].pos
+		var pb: Vector3 = g.nodes[m.b].pos
+		var a2 := Vector2(pa.x, pa.z)
+		var d2 := Vector2(pb.x, pb.z) - a2
+		_seg_cache.append([mid, a2, d2, 1.0 / maxf(d2.length_squared(), 1e-12), str(m.part)])
+	return _seg_cache
 
 
 static func _bounds(outline: Array) -> Rect2:

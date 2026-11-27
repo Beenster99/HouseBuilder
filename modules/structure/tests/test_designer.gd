@@ -108,7 +108,7 @@ func _bus() -> void:
 	var sent: Array = []
 	var said: Array = []
 	bus.set_model_provider(func() -> BuildingModel: return model)
-	bus.set_edit_handler(func(op: Dictionary) -> void:
+	bus.set_edit_handler(func(op: Dictionary, _group: String) -> void:
 		sent.append(op)
 		model.apply(op))
 	bus.design_done.connect(func(notes: PackedStringArray) -> void: said.append(notes))
