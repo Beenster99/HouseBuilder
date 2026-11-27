@@ -24827,6 +24827,2554 @@
 		],
 		"tris": 276
 	},
+	"context.type.apartment_building": {
+		"aabb": [
+			[
+				-15.504,
+				-0.04,
+				-11.2
+			],
+			[
+				15.504,
+				18.3,
+				8.1
+			]
+		],
+		"category": "context",
+		"family": "context",
+		"file": "models/context/context.type.apartment_building.glb",
+		"kind": "",
+		"label": "Apartment building",
+		"mass": 1478484.6,
+		"pieces": [
+			{
+				"mass": 1094400.0,
+				"node": "walls__brick",
+				"slot": "brick",
+				"stage": "walls"
+			},
+			{
+				"mass": 112031.956,
+				"node": "roof__concrete",
+				"slot": "concrete",
+				"stage": "roof"
+			},
+			{
+				"mass": 20966.479,
+				"node": "roof__roof_felt",
+				"slot": "roof_felt",
+				"stage": "roof"
+			},
+			{
+				"mass": 60825.601,
+				"node": "walls__render",
+				"slot": "render",
+				"stage": "walls"
+			},
+			{
+				"mass": 68418.097,
+				"node": "openings__glass",
+				"slot": "glass",
+				"stage": "openings"
+			},
+			{
+				"mass": 12779.668,
+				"node": "openings__aluminium",
+				"slot": "aluminium",
+				"stage": "openings"
+			},
+			{
+				"mass": 15542.991,
+				"node": "roof__steel_painted",
+				"slot": "steel_painted",
+				"stage": "roof"
+			},
+			{
+				"mass": 633.054,
+				"node": "walls__steel_painted",
+				"slot": "steel_painted",
+				"stage": "walls"
+			},
+			{
+				"mass": 68850.06,
+				"node": "walls__concrete",
+				"slot": "concrete",
+				"stage": "walls"
+			},
+			{
+				"mass": 10134.68,
+				"node": "openings__paving",
+				"slot": "paving",
+				"stage": "openings"
+			},
+			{
+				"mass": 12960.003,
+				"node": "roof__aluminium",
+				"slot": "aluminium",
+				"stage": "roof"
+			},
+			{
+				"mass": 942.0,
+				"node": "roof__steel_dark",
+				"slot": "steel_dark",
+				"stage": "roof"
+			}
+		],
+		"sockets": {
+			"front_door": [
+				0.0,
+				0.0,
+				-9.0
+			]
+		},
+		"stages": [
+			"walls",
+			"roof",
+			"openings"
+		],
+		"stretch": "",
+		"tags": [
+			"building",
+			"building_type",
+			"context",
+			"outdoor"
+		],
+		"tris": 3804
+	},
+	"context.type.bus_station": {
+		"aabb": [
+			[
+				-30.0,
+				-0.04,
+				-36.0
+			],
+			[
+				30.0,
+				7.3,
+				4.85
+			]
+		],
+		"category": "context",
+		"family": "context",
+		"file": "models/context/context.type.bus_station.glb",
+		"kind": "",
+		"label": "Bus station",
+		"mass": 1593128.0,
+		"pieces": [
+			{
+				"mass": 330480.0,
+				"node": "walls__aluminium",
+				"slot": "aluminium",
+				"stage": "walls"
+			},
+			{
+				"mass": 50971.712,
+				"node": "roof__aluminium",
+				"slot": "aluminium",
+				"stage": "roof"
+			},
+			{
+				"mass": 12528.988,
+				"node": "roof__roof_felt",
+				"slot": "roof_felt",
+				"stage": "roof"
+			},
+			{
+				"mass": 28260.236,
+				"node": "openings__glass",
+				"slot": "glass",
+				"stage": "openings"
+			},
+			{
+				"mass": 3662.498,
+				"node": "openings__steel_painted",
+				"slot": "steel_painted",
+				"stage": "openings"
+			},
+			{
+				"mass": 4555.219,
+				"node": "openings__plastic_blue",
+				"slot": "plastic_blue",
+				"stage": "openings"
+			},
+			{
+				"mass": 235.105,
+				"node": "openings__paint_white",
+				"slot": "paint_white",
+				"stage": "openings"
+			},
+			{
+				"mass": 805410.512,
+				"node": "roof__steel_painted",
+				"slot": "steel_painted",
+				"stage": "roof"
+			},
+			{
+				"mass": 31500.12,
+				"node": "roof__glass",
+				"slot": "glass",
+				"stage": "roof"
+			},
+			{
+				"mass": 750.911,
+				"node": "roof__paint_white",
+				"slot": "paint_white",
+				"stage": "roof"
+			},
+			{
+				"mass": 22790.044,
+				"node": "walls__steel_painted",
+				"slot": "steel_painted",
+				"stage": "walls"
+			},
+			{
+				"mass": 132479.997,
+				"node": "ground__asphalt",
+				"slot": "asphalt",
+				"stage": "ground"
+			},
+			{
+				"mass": 36708.0,
+				"node": "ground__paving",
+				"slot": "paving",
+				"stage": "ground"
+			},
+			{
+				"mass": 172.8,
+				"node": "ground__paint_white",
+				"slot": "paint_white",
+				"stage": "ground"
+			},
+			{
+				"mass": 1632.0,
+				"node": "ground__concrete",
+				"slot": "concrete",
+				"stage": "ground"
+			},
+			{
+				"mass": 960.0,
+				"node": "openings__screen",
+				"slot": "screen",
+				"stage": "openings"
+			},
+			{
+				"mass": 10081.167,
+				"node": "ground__plastic_red",
+				"slot": "plastic_red",
+				"stage": "ground"
+			},
+			{
+				"mass": 109867.5,
+				"node": "ground__glass_dark",
+				"slot": "glass_dark",
+				"stage": "ground"
+			},
+			{
+				"mass": 10081.168,
+				"node": "ground__plastic_green",
+				"slot": "plastic_green",
+				"stage": "ground"
+			}
+		],
+		"sockets": {
+			"front_door": [
+				0.0,
+				0.0,
+				4.5
+			]
+		},
+		"stages": [
+			"walls",
+			"roof",
+			"openings",
+			"ground"
+		],
+		"stretch": "",
+		"tags": [
+			"building",
+			"building_type",
+			"context",
+			"outdoor"
+		],
+		"tris": 1580
+	},
+	"context.type.business_centre": {
+		"aabb": [
+			[
+				-22.0,
+				-0.04,
+				-29.0
+			],
+			[
+				22.0,
+				13.9,
+				8.1
+			]
+		],
+		"category": "context",
+		"family": "context",
+		"file": "models/context/context.type.business_centre.glb",
+		"kind": "",
+		"label": "Business centre",
+		"mass": 1483563.4,
+		"pieces": [
+			{
+				"mass": 1050624.019,
+				"node": "walls__brick",
+				"slot": "brick",
+				"stage": "walls"
+			},
+			{
+				"mass": 155844.124,
+				"node": "roof__aluminium",
+				"slot": "aluminium",
+				"stage": "roof"
+			},
+			{
+				"mass": 28094.643,
+				"node": "roof__roof_felt",
+				"slot": "roof_felt",
+				"stage": "roof"
+			},
+			{
+				"mass": 75520.001,
+				"node": "walls__glass_dark",
+				"slot": "glass_dark",
+				"stage": "walls"
+			},
+			{
+				"mass": 88839.304,
+				"node": "openings__glass",
+				"slot": "glass",
+				"stage": "openings"
+			},
+			{
+				"mass": 9500.293,
+				"node": "openings__aluminium",
+				"slot": "aluminium",
+				"stage": "openings"
+			},
+			{
+				"mass": 678.272,
+				"node": "walls__steel_painted",
+				"slot": "steel_painted",
+				"stage": "walls"
+			},
+			{
+				"mass": 705.6,
+				"node": "openings__plastic_blue",
+				"slot": "plastic_blue",
+				"stage": "openings"
+			},
+			{
+				"mass": 1318.8,
+				"node": "roof__steel_dark",
+				"slot": "steel_dark",
+				"stage": "roof"
+			},
+			{
+				"mass": 5831.984,
+				"node": "walls__aluminium",
+				"slot": "aluminium",
+				"stage": "walls"
+			},
+			{
+				"mass": 1795.201,
+				"node": "walls__plastic_blue",
+				"slot": "plastic_blue",
+				"stage": "walls"
+			},
+			{
+				"mass": 64767.999,
+				"node": "ground__asphalt",
+				"slot": "asphalt",
+				"stage": "ground"
+			},
+			{
+				"mass": 43.2,
+				"node": "ground__paint_white",
+				"slot": "paint_white",
+				"stage": "ground"
+			}
+		],
+		"sockets": {
+			"front_door": [
+				0.0,
+				0.0,
+				-11.0
+			]
+		},
+		"stages": [
+			"walls",
+			"roof",
+			"openings",
+			"ground"
+		],
+		"stretch": "",
+		"tags": [
+			"building",
+			"building_type",
+			"context",
+			"outdoor"
+		],
+		"tris": 804
+	},
+	"context.type.cinema": {
+		"aabb": [
+			[
+				-17.1,
+				-0.04,
+				-20.46
+			],
+			[
+				17.1,
+				15.0,
+				20.1
+			]
+		],
+		"category": "context",
+		"family": "context",
+		"file": "models/context/context.type.cinema.glb",
+		"kind": "",
+		"label": "Cinema",
+		"mass": 3129235.6,
+		"pieces": [
+			{
+				"mass": 2261952.0,
+				"node": "walls__aluminium",
+				"slot": "aluminium",
+				"stage": "walls"
+			},
+			{
+				"mass": 280711.263,
+				"node": "roof__aluminium",
+				"slot": "aluminium",
+				"stage": "roof"
+			},
+			{
+				"mass": 49324.92,
+				"node": "roof__roof_felt",
+				"slot": "roof_felt",
+				"stage": "roof"
+			},
+			{
+				"mass": 280800.0,
+				"node": "walls__glass_dark",
+				"slot": "glass_dark",
+				"stage": "walls"
+			},
+			{
+				"mass": 30396.349,
+				"node": "openings__glass",
+				"slot": "glass",
+				"stage": "openings"
+			},
+			{
+				"mass": 3710.406,
+				"node": "openings__aluminium",
+				"slot": "aluminium",
+				"stage": "openings"
+			},
+			{
+				"mass": 37800.0,
+				"node": "roof__plastic_black",
+				"slot": "plastic_black",
+				"stage": "roof"
+			},
+			{
+				"mass": 12526.063,
+				"node": "roof__light_emitter",
+				"slot": "light_emitter",
+				"stage": "roof"
+			},
+			{
+				"mass": 131880.048,
+				"node": "roof__hazard_red",
+				"slot": "hazard_red",
+				"stage": "roof"
+			},
+			{
+				"mass": 6451.221,
+				"node": "openings__screen",
+				"slot": "screen",
+				"stage": "openings"
+			},
+			{
+				"mass": 7559.909,
+				"node": "openings__plastic_red",
+				"slot": "plastic_red",
+				"stage": "openings"
+			},
+			{
+				"mass": 1072.496,
+				"node": "openings__paint_white",
+				"slot": "paint_white",
+				"stage": "openings"
+			},
+			{
+				"mass": 22381.956,
+				"node": "openings__steel_dark",
+				"slot": "steel_dark",
+				"stage": "openings"
+			},
+			{
+				"mass": 2668.996,
+				"node": "roof__steel_dark",
+				"slot": "steel_dark",
+				"stage": "roof"
+			}
+		],
+		"sockets": {
+			"front_door": [
+				0.0,
+				0.0,
+				-17.0
+			]
+		},
+		"stages": [
+			"walls",
+			"roof",
+			"openings"
+		],
+		"stretch": "",
+		"tags": [
+			"building",
+			"building_type",
+			"context",
+			"outdoor"
+		],
+		"tris": 684
+	},
+	"context.type.corner_shop": {
+		"aabb": [
+			[
+				-4.675,
+				-0.04,
+				-6.6
+			],
+			[
+				4.675,
+				9.624,
+				5.35
+			]
+		],
+		"category": "context",
+		"family": "context",
+		"file": "models/context/context.type.corner_shop.glb",
+		"kind": "",
+		"label": "Corner shop",
+		"mass": 146061.6,
+		"pieces": [
+			{
+				"mass": 106655.358,
+				"node": "walls__brick",
+				"slot": "brick",
+				"stage": "walls"
+			},
+			{
+				"mass": 27746.879,
+				"node": "roof__slate",
+				"slot": "slate",
+				"stage": "roof"
+			},
+			{
+				"mass": 1729.0,
+				"node": "roof__brick",
+				"slot": "brick",
+				"stage": "roof"
+			},
+			{
+				"mass": 19.508,
+				"node": "roof__clay_tile",
+				"slot": "clay_tile",
+				"stage": "roof"
+			},
+			{
+				"mass": 5058.037,
+				"node": "openings__glass",
+				"slot": "glass",
+				"stage": "openings"
+			},
+			{
+				"mass": 2600.645,
+				"node": "openings__plastic_green",
+				"slot": "plastic_green",
+				"stage": "openings"
+			},
+			{
+				"mass": 301.668,
+				"node": "openings__paint_white",
+				"slot": "paint_white",
+				"stage": "openings"
+			},
+			{
+				"mass": 523.074,
+				"node": "openings__paving",
+				"slot": "paving",
+				"stage": "openings"
+			},
+			{
+				"mass": 1335.287,
+				"node": "openings__steel_dark",
+				"slot": "steel_dark",
+				"stage": "openings"
+			},
+			{
+				"mass": 92.16,
+				"node": "roof__fabric_green",
+				"slot": "fabric_green",
+				"stage": "roof"
+			}
+		],
+		"sockets": {
+			"front_door": [
+				3.2,
+				0.0,
+				-5.0
+			]
+		},
+		"stages": [
+			"walls",
+			"roof",
+			"openings"
+		],
+		"stretch": "",
+		"tags": [
+			"building",
+			"building_type",
+			"context",
+			"outdoor"
+		],
+		"tris": 464
+	},
+	"context.type.council_offices": {
+		"aabb": [
+			[
+				-18.4,
+				-0.04,
+				-14.96
+			],
+			[
+				18.4,
+				20.6,
+				8.4
+			]
+		],
+		"category": "context",
+		"family": "context",
+		"file": "models/context/context.type.council_offices.glb",
+		"kind": "",
+		"label": "Council offices",
+		"mass": 1718378.7,
+		"pieces": [
+			{
+				"mass": 1356874.949,
+				"node": "walls__paving",
+				"slot": "paving",
+				"stage": "walls"
+			},
+			{
+				"mass": 149448.509,
+				"node": "roof__slate",
+				"slot": "slate",
+				"stage": "roof"
+			},
+			{
+				"mass": 81237.468,
+				"node": "roof__paving",
+				"slot": "paving",
+				"stage": "roof"
+			},
+			{
+				"mass": 1155.026,
+				"node": "roof__roof_felt",
+				"slot": "roof_felt",
+				"stage": "roof"
+			},
+			{
+				"mass": 5654.781,
+				"node": "openings__paint_white",
+				"slot": "paint_white",
+				"stage": "openings"
+			},
+			{
+				"mass": 415.801,
+				"node": "openings__hardwood",
+				"slot": "hardwood",
+				"stage": "openings"
+			},
+			{
+				"mass": 39825.199,
+				"node": "openings__glass",
+				"slot": "glass",
+				"stage": "openings"
+			},
+			{
+				"mass": 274.896,
+				"node": "openings__paving",
+				"slot": "paving",
+				"stage": "openings"
+			},
+			{
+				"mass": 6299.973,
+				"node": "openings__concrete",
+				"slot": "concrete",
+				"stage": "openings"
+			},
+			{
+				"mass": 4054.921,
+				"node": "roof__paint_white",
+				"slot": "paint_white",
+				"stage": "roof"
+			},
+			{
+				"mass": 72922.137,
+				"node": "roof__copper",
+				"slot": "copper",
+				"stage": "roof"
+			},
+			{
+				"mass": 163.16,
+				"node": "roof__steel_galvanised",
+				"slot": "steel_galvanised",
+				"stage": "roof"
+			},
+			{
+				"mass": 51.841,
+				"node": "roof__plastic_blue",
+				"slot": "plastic_blue",
+				"stage": "roof"
+			}
+		],
+		"sockets": {
+			"front_door": [
+				0.0,
+				0.0,
+				-11.0
+			]
+		},
+		"stages": [
+			"walls",
+			"roof",
+			"openings"
+		],
+		"stretch": "",
+		"tags": [
+			"building",
+			"building_type",
+			"context",
+			"outdoor"
+		],
+		"tris": 2824
+	},
+	"context.type.guest_house": {
+		"aabb": [
+			[
+				-6.4,
+				-0.04,
+				-7.1
+			],
+			[
+				6.4,
+				12.5,
+				5.9
+			]
+		],
+		"category": "context",
+		"family": "context",
+		"file": "models/context/context.type.guest_house.glb",
+		"kind": "",
+		"label": "Guest house",
+		"mass": 219659.3,
+		"pieces": [
+			{
+				"mass": 169084.807,
+				"node": "walls__render",
+				"slot": "render",
+				"stage": "walls"
+			},
+			{
+				"mass": 32198.96,
+				"node": "roof__slate",
+				"slot": "slate",
+				"stage": "roof"
+			},
+			{
+				"mass": 10590.074,
+				"node": "openings__glass",
+				"slot": "glass",
+				"stage": "openings"
+			},
+			{
+				"mass": 89.964,
+				"node": "openings__paint_white",
+				"slot": "paint_white",
+				"stage": "openings"
+			},
+			{
+				"mass": 273.24,
+				"node": "openings__plastic_red",
+				"slot": "plastic_red",
+				"stage": "openings"
+			},
+			{
+				"mass": 1106.208,
+				"node": "openings__paving",
+				"slot": "paving",
+				"stage": "openings"
+			},
+			{
+				"mass": 218.401,
+				"node": "openings__plastic_black",
+				"slot": "plastic_black",
+				"stage": "openings"
+			},
+			{
+				"mass": 4788.0,
+				"node": "roof__brick",
+				"slot": "brick",
+				"stage": "roof"
+			},
+			{
+				"mass": 39.016,
+				"node": "roof__clay_tile",
+				"slot": "clay_tile",
+				"stage": "roof"
+			},
+			{
+				"mass": 345.6,
+				"node": "roof__paint_white",
+				"slot": "paint_white",
+				"stage": "roof"
+			},
+			{
+				"mass": 77.13,
+				"node": "walls__paint_white",
+				"slot": "paint_white",
+				"stage": "walls"
+			},
+			{
+				"mass": 847.872,
+				"node": "walls__paving",
+				"slot": "paving",
+				"stage": "walls"
+			}
+		],
+		"sockets": {
+			"front_door": [
+				0.0,
+				0.0,
+				-5.5
+			]
+		},
+		"stages": [
+			"walls",
+			"roof",
+			"openings"
+		],
+		"stretch": "",
+		"tags": [
+			"building",
+			"building_type",
+			"context",
+			"outdoor"
+		],
+		"tris": 1240
+	},
+	"context.type.holiday_lodge": {
+		"aabb": [
+			[
+				-5.8,
+				-0.04,
+				-6.25
+			],
+			[
+				5.8,
+				4.756,
+				3.85
+			]
+		],
+		"category": "context",
+		"family": "context",
+		"file": "models/context/context.type.holiday_lodge.glb",
+		"kind": "",
+		"label": "Holiday lodge",
+		"mass": 23761.9,
+		"pieces": [
+			{
+				"mass": 14485.983,
+				"node": "walls__softwood",
+				"slot": "softwood",
+				"stage": "walls"
+			},
+			{
+				"mass": 6354.938,
+				"node": "roof__roof_felt",
+				"slot": "roof_felt",
+				"stage": "roof"
+			},
+			{
+				"mass": 2340.003,
+				"node": "openings__glass",
+				"slot": "glass",
+				"stage": "openings"
+			},
+			{
+				"mass": 76.806,
+				"node": "openings__paint_white",
+				"slot": "paint_white",
+				"stage": "openings"
+			},
+			{
+				"mass": 116.235,
+				"node": "openings__hardwood",
+				"slot": "hardwood",
+				"stage": "openings"
+			},
+			{
+				"mass": 23.384,
+				"node": "openings__softwood",
+				"slot": "softwood",
+				"stage": "openings"
+			},
+			{
+				"mass": 76.8,
+				"node": "walls__water",
+				"slot": "water",
+				"stage": "walls"
+			},
+			{
+				"mass": 287.753,
+				"node": "roof__steel_dark",
+				"slot": "steel_dark",
+				"stage": "roof"
+			}
+		],
+		"sockets": {
+			"front_door": [
+				1.2,
+				0.0,
+				-3.25
+			]
+		},
+		"stages": [
+			"walls",
+			"roof",
+			"openings"
+		],
+		"stretch": "",
+		"tags": [
+			"building",
+			"building_type",
+			"context",
+			"outdoor"
+		],
+		"tris": 488
+	},
+	"context.type.hotel": {
+		"aabb": [
+			[
+				-22.1,
+				-0.04,
+				-18.0
+			],
+			[
+				22.1,
+				24.3,
+				10.1
+			]
+		],
+		"category": "context",
+		"family": "context",
+		"file": "models/context/context.type.hotel.glb",
+		"kind": "",
+		"label": "Hotel",
+		"mass": 2790722.4,
+		"pieces": [
+			{
+				"mass": 750719.973,
+				"node": "walls__paving",
+				"slot": "paving",
+				"stage": "walls"
+			},
+			{
+				"mass": 102676.606,
+				"node": "roof__paving",
+				"slot": "paving",
+				"stage": "roof"
+			},
+			{
+				"mass": 62524.541,
+				"node": "roof__roof_felt",
+				"slot": "roof_felt",
+				"stage": "roof"
+			},
+			{
+				"mass": 1339200.0,
+				"node": "walls__render",
+				"slot": "render",
+				"stage": "walls"
+			},
+			{
+				"mass": 109987.204,
+				"node": "roof__render",
+				"slot": "render",
+				"stage": "roof"
+			},
+			{
+				"mass": 98610.085,
+				"node": "openings__glass",
+				"slot": "glass",
+				"stage": "openings"
+			},
+			{
+				"mass": 8786.91,
+				"node": "openings__aluminium",
+				"slot": "aluminium",
+				"stage": "openings"
+			},
+			{
+				"mass": 3684.184,
+				"node": "openings__brass",
+				"slot": "brass",
+				"stage": "openings"
+			},
+			{
+				"mass": 64883.035,
+				"node": "openings__paving",
+				"slot": "paving",
+				"stage": "openings"
+			},
+			{
+				"mass": 167738.976,
+				"node": "roof__steel_dark",
+				"slot": "steel_dark",
+				"stage": "roof"
+			},
+			{
+				"mass": 8710.858,
+				"node": "roof__brass",
+				"slot": "brass",
+				"stage": "roof"
+			},
+			{
+				"mass": 5759.998,
+				"node": "roof__light_emitter",
+				"slot": "light_emitter",
+				"stage": "roof"
+			},
+			{
+				"mass": 45359.988,
+				"node": "roof__aluminium",
+				"slot": "aluminium",
+				"stage": "roof"
+			},
+			{
+				"mass": 22080.0,
+				"node": "ground__paving",
+				"slot": "paving",
+				"stage": "ground"
+			}
+		],
+		"sockets": {
+			"front_door": [
+				0.0,
+				0.0,
+				-10.0
+			]
+		},
+		"stages": [
+			"walls",
+			"roof",
+			"openings",
+			"ground"
+		],
+		"stretch": "",
+		"tags": [
+			"building",
+			"building_type",
+			"context",
+			"outdoor"
+		],
+		"tris": 3756
+	},
+	"context.type.housing_row": {
+		"aabb": [
+			[
+				-16.375,
+				-0.04,
+				-5.5
+			],
+			[
+				16.375,
+				9.68,
+				4.85
+			]
+		],
+		"category": "context",
+		"family": "context",
+		"file": "models/context/context.type.housing_row.glb",
+		"kind": "",
+		"label": "Row of houses",
+		"mass": 400148.3,
+		"pieces": [
+			{
+				"mass": 311995.941,
+				"node": "walls__brick",
+				"slot": "brick",
+				"stage": "walls"
+			},
+			{
+				"mass": 57329.152,
+				"node": "roof__clay_tile",
+				"slot": "clay_tile",
+				"stage": "roof"
+			},
+			{
+				"mass": 435.564,
+				"node": "openings__paint_white",
+				"slot": "paint_white",
+				"stage": "openings"
+			},
+			{
+				"mass": 430.922,
+				"node": "openings__plastic_blue",
+				"slot": "plastic_blue",
+				"stage": "openings"
+			},
+			{
+				"mass": 11992.582,
+				"node": "openings__glass",
+				"slot": "glass",
+				"stage": "openings"
+			},
+			{
+				"mass": 324.576,
+				"node": "openings__paving",
+				"slot": "paving",
+				"stage": "openings"
+			},
+			{
+				"mass": 16159.496,
+				"node": "roof__brick",
+				"slot": "brick",
+				"stage": "roof"
+			},
+			{
+				"mass": 618.242,
+				"node": "walls__paving",
+				"slot": "paving",
+				"stage": "walls"
+			},
+			{
+				"mass": 430.922,
+				"node": "openings__plastic_red",
+				"slot": "plastic_red",
+				"stage": "openings"
+			},
+			{
+				"mass": 215.46,
+				"node": "openings__plastic_green",
+				"slot": "plastic_green",
+				"stage": "openings"
+			},
+			{
+				"mass": 215.46,
+				"node": "openings__plastic_black",
+				"slot": "plastic_black",
+				"stage": "openings"
+			}
+		],
+		"sockets": {
+			"front_door": [
+				-12.0,
+				0.0,
+				-4.5
+			]
+		},
+		"stages": [
+			"walls",
+			"roof",
+			"openings"
+		],
+		"stretch": "",
+		"tags": [
+			"building",
+			"building_type",
+			"context",
+			"outdoor"
+		],
+		"tris": 1008
+	},
+	"context.type.industrial_unit": {
+		"aabb": [
+			[
+				-13.0,
+				-0.04,
+				-21.0
+			],
+			[
+				13.0,
+				8.6356,
+				9.2
+			]
+		],
+		"category": "context",
+		"family": "context",
+		"file": "models/context/context.type.industrial_unit.glb",
+		"kind": "",
+		"label": "Industrial unit",
+		"mass": 2365325.7,
+		"pieces": [
+			{
+				"mass": 2115927.984,
+				"node": "walls__steel_painted",
+				"slot": "steel_painted",
+				"stage": "walls"
+			},
+			{
+				"mass": 171509.953,
+				"node": "roof__steel_galvanised",
+				"slot": "steel_galvanised",
+				"stage": "roof"
+			},
+			{
+				"mass": 12539.81,
+				"node": "openings__brick",
+				"slot": "brick",
+				"stage": "openings"
+			},
+			{
+				"mass": 19625.075,
+				"node": "openings__steel_galvanised",
+				"slot": "steel_galvanised",
+				"stage": "openings"
+			},
+			{
+				"mass": 1695.609,
+				"node": "openings__steel_dark",
+				"slot": "steel_dark",
+				"stage": "openings"
+			},
+			{
+				"mass": 303.452,
+				"node": "openings__paint_white",
+				"slot": "paint_white",
+				"stage": "openings"
+			},
+			{
+				"mass": 1436.394,
+				"node": "openings__plastic_blue",
+				"slot": "plastic_blue",
+				"stage": "openings"
+			},
+			{
+				"mass": 10552.489,
+				"node": "openings__glass",
+				"slot": "glass",
+				"stage": "openings"
+			},
+			{
+				"mass": 2967.304,
+				"node": "openings__hazard_red",
+				"slot": "hazard_red",
+				"stage": "openings"
+			},
+			{
+				"mass": 28703.999,
+				"node": "ground__asphalt",
+				"slot": "asphalt",
+				"stage": "ground"
+			},
+			{
+				"mass": 20.16,
+				"node": "ground__paint_white",
+				"slot": "paint_white",
+				"stage": "ground"
+			},
+			{
+				"mass": 43.444,
+				"node": "walls__plastic_yellow",
+				"slot": "plastic_yellow",
+				"stage": "walls"
+			}
+		],
+		"sockets": {
+			"front_door": [
+				0.6,
+				0.0,
+				-9.0
+			]
+		},
+		"stages": [
+			"walls",
+			"roof",
+			"openings",
+			"ground"
+		],
+		"stretch": "",
+		"tags": [
+			"building",
+			"building_type",
+			"context",
+			"outdoor"
+		],
+		"tris": 540
+	},
+	"context.type.law_courts": {
+		"aabb": [
+			[
+				-25.0,
+				-0.04,
+				-18.9
+			],
+			[
+				25.0,
+				24.8,
+				13.1
+			]
+		],
+		"category": "context",
+		"family": "context",
+		"file": "models/context/context.type.law_courts.glb",
+		"kind": "",
+		"label": "Law courts",
+		"mass": 4309090.4,
+		"pieces": [
+			{
+				"mass": 3211394.87,
+				"node": "walls__paving",
+				"slot": "paving",
+				"stage": "walls"
+			},
+			{
+				"mass": 507106.251,
+				"node": "roof__paving",
+				"slot": "paving",
+				"stage": "roof"
+			},
+			{
+				"mass": 53296.22,
+				"node": "roof__roof_felt",
+				"slot": "roof_felt",
+				"stage": "roof"
+			},
+			{
+				"mass": 5747.952,
+				"node": "openings__brass",
+				"slot": "brass",
+				"stage": "openings"
+			},
+			{
+				"mass": 1398.603,
+				"node": "openings__hardwood",
+				"slot": "hardwood",
+				"stage": "openings"
+			},
+			{
+				"mass": 48856.586,
+				"node": "openings__paving",
+				"slot": "paving",
+				"stage": "openings"
+			},
+			{
+				"mass": 49365.14,
+				"node": "openings__glass",
+				"slot": "glass",
+				"stage": "openings"
+			},
+			{
+				"mass": 31913.322,
+				"node": "openings__paint_white",
+				"slot": "paint_white",
+				"stage": "openings"
+			},
+			{
+				"mass": 14400.056,
+				"node": "openings__concrete",
+				"slot": "concrete",
+				"stage": "openings"
+			},
+			{
+				"mass": 374261.497,
+				"node": "roof__copper",
+				"slot": "copper",
+				"stage": "roof"
+			},
+			{
+				"mass": 2448.003,
+				"node": "roof__glass",
+				"slot": "glass",
+				"stage": "roof"
+			},
+			{
+				"mass": 8901.915,
+				"node": "openings__steel_dark",
+				"slot": "steel_dark",
+				"stage": "openings"
+			}
+		],
+		"sockets": {
+			"front_door": [
+				0.0,
+				0.0,
+				-13.0
+			]
+		},
+		"stages": [
+			"walls",
+			"roof",
+			"openings"
+		],
+		"stretch": "",
+		"tags": [
+			"building",
+			"building_type",
+			"context",
+			"outdoor"
+		],
+		"tris": 3944
+	},
+	"context.type.mansion_house": {
+		"aabb": [
+			[
+				-24.4,
+				-0.04,
+				-26.0
+			],
+			[
+				24.4,
+				16.3,
+				7.43
+			]
+		],
+		"category": "context",
+		"family": "context",
+		"file": "models/context/context.type.mansion_house.glb",
+		"kind": "",
+		"label": "Mansion house",
+		"mass": 1196046.6,
+		"pieces": [
+			{
+				"mass": 809491.179,
+				"node": "walls__brick",
+				"slot": "brick",
+				"stage": "walls"
+			},
+			{
+				"mass": 130628.499,
+				"node": "roof__slate",
+				"slot": "slate",
+				"stage": "roof"
+			},
+			{
+				"mass": 34617.277,
+				"node": "openings__glass",
+				"slot": "glass",
+				"stage": "openings"
+			},
+			{
+				"mass": 62632.107,
+				"node": "openings__paving",
+				"slot": "paving",
+				"stage": "openings"
+			},
+			{
+				"mass": 35796.006,
+				"node": "roof__brick",
+				"slot": "brick",
+				"stage": "roof"
+			},
+			{
+				"mass": 117.048,
+				"node": "roof__clay_tile",
+				"slot": "clay_tile",
+				"stage": "roof"
+			},
+			{
+				"mass": 75518.983,
+				"node": "walls__paving",
+				"slot": "paving",
+				"stage": "walls"
+			},
+			{
+				"mass": 14923.872,
+				"node": "roof__paving",
+				"slot": "paving",
+				"stage": "roof"
+			},
+			{
+				"mass": 340.201,
+				"node": "openings__hardwood",
+				"slot": "hardwood",
+				"stage": "openings"
+			},
+			{
+				"mass": 4435.201,
+				"node": "roof__paint_white",
+				"slot": "paint_white",
+				"stage": "roof"
+			},
+			{
+				"mass": 12211.949,
+				"node": "ground__sand",
+				"slot": "sand",
+				"stage": "ground"
+			},
+			{
+				"mass": 14888.015,
+				"node": "ground__paving",
+				"slot": "paving",
+				"stage": "ground"
+			},
+			{
+				"mass": 446.221,
+				"node": "ground__water",
+				"slot": "water",
+				"stage": "ground"
+			}
+		],
+		"sockets": {
+			"front_door": [
+				0.0,
+				0.0,
+				-7.0
+			]
+		},
+		"stages": [
+			"walls",
+			"roof",
+			"openings",
+			"ground"
+		],
+		"stretch": "",
+		"tags": [
+			"building",
+			"building_type",
+			"context",
+			"outdoor"
+		],
+		"tris": 3784
+	},
+	"context.type.prison": {
+		"aabb": [
+			[
+				-49.0,
+				-0.04,
+				-49.12
+			],
+			[
+				49.0,
+				16.0,
+				46.0
+			]
+		],
+		"category": "context",
+		"family": "context",
+		"file": "models/context/context.type.prison.glb",
+		"kind": "",
+		"label": "Prison",
+		"mass": 9297282.8,
+		"pieces": [
+			{
+				"mass": 1370250.02,
+				"node": "walls__concrete",
+				"slot": "concrete",
+				"stage": "walls"
+			},
+			{
+				"mass": 1800445.688,
+				"node": "roof__steel_galvanised",
+				"slot": "steel_galvanised",
+				"stage": "roof"
+			},
+			{
+				"mass": 3060880.096,
+				"node": "walls__brick",
+				"slot": "brick",
+				"stage": "walls"
+			},
+			{
+				"mass": 40791.464,
+				"node": "roof__brick",
+				"slot": "brick",
+				"stage": "roof"
+			},
+			{
+				"mass": 13486.122,
+				"node": "roof__roof_felt",
+				"slot": "roof_felt",
+				"stage": "roof"
+			},
+			{
+				"mass": 4031.983,
+				"node": "openings__plastic_blue",
+				"slot": "plastic_blue",
+				"stage": "openings"
+			},
+			{
+				"mass": 413.161,
+				"node": "openings__paint_white",
+				"slot": "paint_white",
+				"stage": "openings"
+			},
+			{
+				"mass": 8392.877,
+				"node": "openings__steel_dark",
+				"slot": "steel_dark",
+				"stage": "openings"
+			},
+			{
+				"mass": 17831.529,
+				"node": "openings__glass",
+				"slot": "glass",
+				"stage": "openings"
+			},
+			{
+				"mass": 671.997,
+				"node": "openings__plastic_black",
+				"slot": "plastic_black",
+				"stage": "openings"
+			},
+			{
+				"mass": 472834.914,
+				"node": "roof__slate",
+				"slot": "slate",
+				"stage": "roof"
+			},
+			{
+				"mass": 18359.904,
+				"node": "openings__glass_dark",
+				"slot": "glass_dark",
+				"stage": "openings"
+			},
+			{
+				"mass": 5471.43,
+				"node": "openings__paving",
+				"slot": "paving",
+				"stage": "openings"
+			},
+			{
+				"mass": 1727693.308,
+				"node": "walls__steel_painted",
+				"slot": "steel_painted",
+				"stage": "walls"
+			},
+			{
+				"mass": 12559.808,
+				"node": "openings__steel_galvanised",
+				"slot": "steel_galvanised",
+				"stage": "openings"
+			},
+			{
+				"mass": 583394.987,
+				"node": "ground__asphalt",
+				"slot": "asphalt",
+				"stage": "ground"
+			},
+			{
+				"mass": 20735.998,
+				"node": "ground__plastic_green",
+				"slot": "plastic_green",
+				"stage": "ground"
+			},
+			{
+				"mass": 100672.084,
+				"node": "walls__glass_dark",
+				"slot": "glass_dark",
+				"stage": "walls"
+			},
+			{
+				"mass": 38365.414,
+				"node": "walls__steel_galvanised",
+				"slot": "steel_galvanised",
+				"stage": "walls"
+			}
+		],
+		"sockets": {
+			"front_door": [
+				3.5,
+				0.0,
+				-49.0
+			]
+		},
+		"stages": [
+			"walls",
+			"roof",
+			"openings",
+			"ground"
+		],
+		"stretch": "",
+		"tags": [
+			"building",
+			"building_type",
+			"context",
+			"outdoor"
+		],
+		"tris": 8444
+	},
+	"context.type.pub": {
+		"aabb": [
+			[
+				-8.175,
+				-0.04,
+				-8.44
+			],
+			[
+				9.6,
+				10.7,
+				11.175
+			]
+		],
+		"category": "context",
+		"family": "context",
+		"file": "models/context/context.type.pub.glb",
+		"kind": "",
+		"label": "Pub",
+		"mass": 280129.7,
+		"pieces": [
+			{
+				"mass": 201162.698,
+				"node": "walls__render",
+				"slot": "render",
+				"stage": "walls"
+			},
+			{
+				"mass": 58278.603,
+				"node": "roof__slate",
+				"slot": "slate",
+				"stage": "roof"
+			},
+			{
+				"mass": 8360.0,
+				"node": "roof__brick",
+				"slot": "brick",
+				"stage": "roof"
+			},
+			{
+				"mass": 39.016,
+				"node": "roof__clay_tile",
+				"slot": "clay_tile",
+				"stage": "roof"
+			},
+			{
+				"mass": 182.868,
+				"node": "openings__paint_white",
+				"slot": "paint_white",
+				"stage": "openings"
+			},
+			{
+				"mass": 207.9,
+				"node": "openings__hardwood",
+				"slot": "hardwood",
+				"stage": "openings"
+			},
+			{
+				"mass": 5017.526,
+				"node": "openings__glass",
+				"slot": "glass",
+				"stage": "openings"
+			},
+			{
+				"mass": 760.104,
+				"node": "openings__paving",
+				"slot": "paving",
+				"stage": "openings"
+			},
+			{
+				"mass": 1771.205,
+				"node": "openings__plastic_black",
+				"slot": "plastic_black",
+				"stage": "openings"
+			},
+			{
+				"mass": 2427.603,
+				"node": "openings__brass",
+				"slot": "brass",
+				"stage": "openings"
+			},
+			{
+				"mass": 1335.287,
+				"node": "openings__steel_dark",
+				"slot": "steel_dark",
+				"stage": "openings"
+			},
+			{
+				"mass": 146.692,
+				"node": "walls__hardwood",
+				"slot": "hardwood",
+				"stage": "walls"
+			},
+			{
+				"mass": 137.28,
+				"node": "walls__plastic_green",
+				"slot": "plastic_green",
+				"stage": "walls"
+			},
+			{
+				"mass": 290.304,
+				"node": "walls__softwood",
+				"slot": "softwood",
+				"stage": "walls"
+			},
+			{
+				"mass": 12.6,
+				"node": "openings__foliage",
+				"slot": "foliage",
+				"stage": "openings"
+			}
+		],
+		"sockets": {
+			"front_door": [
+				0.0,
+				0.0,
+				-5.0
+			]
+		},
+		"stages": [
+			"walls",
+			"roof",
+			"openings"
+		],
+		"stretch": "",
+		"tags": [
+			"building",
+			"building_type",
+			"context",
+			"outdoor"
+		],
+		"tris": 952
+	},
+	"context.type.retail_park": {
+		"aabb": [
+			[
+				-50.0,
+				-0.04,
+				-47.0
+			],
+			[
+				50.0,
+				9.6,
+				23.1
+			]
+		],
+		"category": "context",
+		"family": "context",
+		"file": "models/context/context.type.retail_park.glb",
+		"kind": "",
+		"label": "Retail park",
+		"mass": 18924945.4,
+		"pieces": [
+			{
+				"mass": 14712937.536,
+				"node": "walls__steel_painted",
+				"slot": "steel_painted",
+				"stage": "walls"
+			},
+			{
+				"mass": 2406193.059,
+				"node": "roof__steel_painted",
+				"slot": "steel_painted",
+				"stage": "roof"
+			},
+			{
+				"mass": 831836.432,
+				"node": "roof__steel_galvanised",
+				"slot": "steel_galvanised",
+				"stage": "roof"
+			},
+			{
+				"mass": 35748.204,
+				"node": "openings__glass",
+				"slot": "glass",
+				"stage": "openings"
+			},
+			{
+				"mass": 5441.492,
+				"node": "openings__aluminium",
+				"slot": "aluminium",
+				"stage": "openings"
+			},
+			{
+				"mass": 15209.997,
+				"node": "openings__plastic_blue",
+				"slot": "plastic_blue",
+				"stage": "openings"
+			},
+			{
+				"mass": 8583.457,
+				"node": "openings__paint_white",
+				"slot": "paint_white",
+				"stage": "openings"
+			},
+			{
+				"mass": 8721.034,
+				"node": "openings__brick",
+				"slot": "brick",
+				"stage": "openings"
+			},
+			{
+				"mass": 67822.968,
+				"node": "openings__steel_galvanised",
+				"slot": "steel_galvanised",
+				"stage": "openings"
+			},
+			{
+				"mass": 5934.608,
+				"node": "openings__hazard_red",
+				"slot": "hazard_red",
+				"stage": "openings"
+			},
+			{
+				"mass": 41147.956,
+				"node": "walls__aluminium",
+				"slot": "aluminium",
+				"stage": "walls"
+			},
+			{
+				"mass": 10529.998,
+				"node": "openings__plastic_red",
+				"slot": "plastic_red",
+				"stage": "openings"
+			},
+			{
+				"mass": 10529.998,
+				"node": "openings__plastic_green",
+				"slot": "plastic_green",
+				"stage": "openings"
+			},
+			{
+				"mass": 14624.997,
+				"node": "openings__hivis_orange",
+				"slot": "hivis_orange",
+				"stage": "openings"
+			},
+			{
+				"mass": 3931.18,
+				"node": "walls__plastic_blue",
+				"slot": "plastic_blue",
+				"stage": "walls"
+			},
+			{
+				"mass": 3931.182,
+				"node": "walls__plastic_red",
+				"slot": "plastic_red",
+				"stage": "walls"
+			},
+			{
+				"mass": 3931.182,
+				"node": "walls__plastic_green",
+				"slot": "plastic_green",
+				"stage": "walls"
+			},
+			{
+				"mass": 3275.985,
+				"node": "walls__hivis_orange",
+				"slot": "hivis_orange",
+				"stage": "walls"
+			},
+			{
+				"mass": 364319.978,
+				"node": "ground__asphalt",
+				"slot": "asphalt",
+				"stage": "ground"
+			},
+			{
+				"mass": 88872.0,
+				"node": "ground__paving",
+				"slot": "paving",
+				"stage": "ground"
+			},
+			{
+				"mass": 587.52,
+				"node": "ground__paint_white",
+				"slot": "paint_white",
+				"stage": "ground"
+			},
+			{
+				"mass": 16834.473,
+				"node": "ground__steel_galvanised",
+				"slot": "steel_galvanised",
+				"stage": "ground"
+			},
+			{
+				"mass": 264000.172,
+				"node": "ground__glass",
+				"slot": "glass",
+				"stage": "ground"
+			}
+		],
+		"sockets": {
+			"front_door": [
+				-33.0,
+				0.0,
+				-7.0
+			]
+		},
+		"stages": [
+			"walls",
+			"roof",
+			"openings",
+			"ground"
+		],
+		"stretch": "",
+		"tags": [
+			"building",
+			"building_type",
+			"context",
+			"outdoor"
+		],
+		"tris": 2932
+	},
+	"context.type.retreat": {
+		"aabb": [
+			[
+				-25.25,
+				-0.04,
+				-14.5
+			],
+			[
+				25.25,
+				10.128,
+				15.4
+			]
+		],
+		"category": "context",
+		"family": "context",
+		"file": "models/context/context.type.retreat.glb",
+		"kind": "",
+		"label": "Retreat",
+		"mass": 371505.6,
+		"pieces": [
+			{
+				"mass": 45918.004,
+				"node": "walls__softwood",
+				"slot": "softwood",
+				"stage": "walls"
+			},
+			{
+				"mass": 123964.36,
+				"node": "roof__clay_tile",
+				"slot": "clay_tile",
+				"stage": "roof"
+			},
+			{
+				"mass": 18264.074,
+				"node": "openings__glass",
+				"slot": "glass",
+				"stage": "openings"
+			},
+			{
+				"mass": 129.832,
+				"node": "openings__glulam",
+				"slot": "glulam",
+				"stage": "openings"
+			},
+			{
+				"mass": 79.344,
+				"node": "openings__paint_white",
+				"slot": "paint_white",
+				"stage": "openings"
+			},
+			{
+				"mass": 138.6,
+				"node": "openings__hardwood",
+				"slot": "hardwood",
+				"stage": "openings"
+			},
+			{
+				"mass": 149461.4,
+				"node": "walls__render",
+				"slot": "render",
+				"stage": "walls"
+			},
+			{
+				"mass": 59.136,
+				"node": "roof__softwood",
+				"slot": "softwood",
+				"stage": "roof"
+			},
+			{
+				"mass": 165.0,
+				"node": "roof__roof_felt",
+				"slot": "roof_felt",
+				"stage": "roof"
+			},
+			{
+				"mass": 26252.016,
+				"node": "ground__paving",
+				"slot": "paving",
+				"stage": "ground"
+			},
+			{
+				"mass": 1193.881,
+				"node": "ground__water",
+				"slot": "water",
+				"stage": "ground"
+			},
+			{
+				"mass": 5880.0,
+				"node": "ground__softwood",
+				"slot": "softwood",
+				"stage": "ground"
+			}
+		],
+		"sockets": {
+			"front_door": [
+				5.6,
+				0.0,
+				-5.0
+			]
+		},
+		"stages": [
+			"walls",
+			"roof",
+			"openings",
+			"ground"
+		],
+		"stretch": "",
+		"tags": [
+			"building",
+			"building_type",
+			"context",
+			"outdoor"
+		],
+		"tris": 1140
+	},
+	"context.type.shopping_parade": {
+		"aabb": [
+			[
+				-22.5,
+				-0.04,
+				-22.0
+			],
+			[
+				22.5,
+				7.84,
+				6.1
+			]
+		],
+		"category": "context",
+		"family": "context",
+		"file": "models/context/context.type.shopping_parade.glb",
+		"kind": "",
+		"label": "Shopping parade",
+		"mass": 917232.2,
+		"pieces": [
+			{
+				"mass": 512179.186,
+				"node": "walls__brick",
+				"slot": "brick",
+				"stage": "walls"
+			},
+			{
+				"mass": 71736.046,
+				"node": "roof__concrete",
+				"slot": "concrete",
+				"stage": "roof"
+			},
+			{
+				"mass": 19480.981,
+				"node": "roof__roof_felt",
+				"slot": "roof_felt",
+				"stage": "roof"
+			},
+			{
+				"mass": 18099.108,
+				"node": "openings__glass",
+				"slot": "glass",
+				"stage": "openings"
+			},
+			{
+				"mass": 15533.586,
+				"node": "openings__steel_dark",
+				"slot": "steel_dark",
+				"stage": "openings"
+			},
+			{
+				"mass": 2236.254,
+				"node": "openings__aluminium",
+				"slot": "aluminium",
+				"stage": "openings"
+			},
+			{
+				"mass": 806.402,
+				"node": "openings__plastic_red",
+				"slot": "plastic_red",
+				"stage": "openings"
+			},
+			{
+				"mass": 1051.884,
+				"node": "openings__paint_white",
+				"slot": "paint_white",
+				"stage": "openings"
+			},
+			{
+				"mass": 3013.918,
+				"node": "walls__paving",
+				"slot": "paving",
+				"stage": "walls"
+			},
+			{
+				"mass": 806.402,
+				"node": "openings__plastic_blue",
+				"slot": "plastic_blue",
+				"stage": "openings"
+			},
+			{
+				"mass": 806.402,
+				"node": "openings__plastic_green",
+				"slot": "plastic_green",
+				"stage": "openings"
+			},
+			{
+				"mass": 806.402,
+				"node": "openings__plastic_yellow",
+				"slot": "plastic_yellow",
+				"stage": "openings"
+			},
+			{
+				"mass": 806.402,
+				"node": "openings__plastic_black",
+				"slot": "plastic_black",
+				"stage": "openings"
+			},
+			{
+				"mass": 672.002,
+				"node": "openings__hivis_orange",
+				"slot": "hivis_orange",
+				"stage": "openings"
+			},
+			{
+				"mass": 160830.868,
+				"node": "roof__steel_painted",
+				"slot": "steel_painted",
+				"stage": "roof"
+			},
+			{
+				"mass": 3829.575,
+				"node": "walls__steel_painted",
+				"slot": "steel_painted",
+				"stage": "walls"
+			},
+			{
+				"mass": 66239.999,
+				"node": "ground__asphalt",
+				"slot": "asphalt",
+				"stage": "ground"
+			},
+			{
+				"mass": 43.2,
+				"node": "ground__paint_white",
+				"slot": "paint_white",
+				"stage": "ground"
+			},
+			{
+				"mass": 38253.599,
+				"node": "ground__paving",
+				"slot": "paving",
+				"stage": "ground"
+			}
+		],
+		"sockets": {
+			"front_door": [
+				-13.95,
+				0.0,
+				-6.0
+			]
+		},
+		"stages": [
+			"walls",
+			"roof",
+			"openings",
+			"ground"
+		],
+		"stretch": "",
+		"tags": [
+			"building",
+			"building_type",
+			"context",
+			"outdoor"
+		],
+		"tris": 1324
+	},
+	"context.type.theatre": {
+		"aabb": [
+			[
+				-14.1,
+				-0.04,
+				-21.52
+			],
+			[
+				15.6,
+				24.84,
+				26.1
+			]
+		],
+		"category": "context",
+		"family": "context",
+		"file": "models/context/context.type.theatre.glb",
+		"kind": "",
+		"label": "Theatre",
+		"mass": 3512066.2,
+		"pieces": [
+			{
+				"mass": 2451456.0,
+				"node": "walls__brick",
+				"slot": "brick",
+				"stage": "walls"
+			},
+			{
+				"mass": 178702.809,
+				"node": "roof__slate",
+				"slot": "slate",
+				"stage": "roof"
+			},
+			{
+				"mass": 47916.439,
+				"node": "roof__brick",
+				"slot": "brick",
+				"stage": "roof"
+			},
+			{
+				"mass": 21846.5,
+				"node": "roof__roof_felt",
+				"slot": "roof_felt",
+				"stage": "roof"
+			},
+			{
+				"mass": 512962.543,
+				"node": "walls__paving",
+				"slot": "paving",
+				"stage": "walls"
+			},
+			{
+				"mass": 102865.159,
+				"node": "roof__paving",
+				"slot": "paving",
+				"stage": "roof"
+			},
+			{
+				"mass": 14442.98,
+				"node": "openings__brass",
+				"slot": "brass",
+				"stage": "openings"
+			},
+			{
+				"mass": 1940.405,
+				"node": "openings__hardwood",
+				"slot": "hardwood",
+				"stage": "openings"
+			},
+			{
+				"mass": 14604.099,
+				"node": "openings__glass",
+				"slot": "glass",
+				"stage": "openings"
+			},
+			{
+				"mass": 5556.515,
+				"node": "roof__glass",
+				"slot": "glass",
+				"stage": "roof"
+			},
+			{
+				"mass": 34775.84,
+				"node": "openings__paving",
+				"slot": "paving",
+				"stage": "openings"
+			},
+			{
+				"mass": 9613.838,
+				"node": "openings__paint_white",
+				"slot": "paint_white",
+				"stage": "openings"
+			},
+			{
+				"mass": 39168.004,
+				"node": "roof__plastic_black",
+				"slot": "plastic_black",
+				"stage": "roof"
+			},
+			{
+				"mass": 7020.469,
+				"node": "roof__light_emitter",
+				"slot": "light_emitter",
+				"stage": "roof"
+			},
+			{
+				"mass": 42390.027,
+				"node": "roof__hazard_red",
+				"slot": "hazard_red",
+				"stage": "roof"
+			},
+			{
+				"mass": 26804.536,
+				"node": "openings__steel_dark",
+				"slot": "steel_dark",
+				"stage": "openings"
+			}
+		],
+		"sockets": {
+			"front_door": [
+				0.0,
+				0.0,
+				-18.0
+			]
+		},
+		"stages": [
+			"walls",
+			"roof",
+			"openings"
+		],
+		"stretch": "",
+		"tags": [
+			"building",
+			"building_type",
+			"context",
+			"outdoor"
+		],
+		"tris": 1024
+	},
+	"context.type.train_station": {
+		"aabb": [
+			[
+				-35.004,
+				-0.04,
+				-11.0
+			],
+			[
+				35.004,
+				25.4,
+				37.004
+			]
+		],
+		"category": "context",
+		"family": "context",
+		"file": "models/context/context.type.train_station.glb",
+		"kind": "",
+		"label": "Train station",
+		"mass": 5917209.4,
+		"pieces": [
+			{
+				"mass": 990432.0,
+				"node": "walls__brick",
+				"slot": "brick",
+				"stage": "walls"
+			},
+			{
+				"mass": 154819.737,
+				"node": "roof__slate",
+				"slot": "slate",
+				"stage": "roof"
+			},
+			{
+				"mass": 3023.99,
+				"node": "openings__paint_white",
+				"slot": "paint_white",
+				"stage": "openings"
+			},
+			{
+				"mass": 161.28,
+				"node": "openings__plastic_black",
+				"slot": "plastic_black",
+				"stage": "openings"
+			},
+			{
+				"mass": 29466.158,
+				"node": "openings__glass",
+				"slot": "glass",
+				"stage": "openings"
+			},
+			{
+				"mass": 41087.99,
+				"node": "openings__paving",
+				"slot": "paving",
+				"stage": "openings"
+			},
+			{
+				"mass": 827320.904,
+				"node": "roof__glass",
+				"slot": "glass",
+				"stage": "roof"
+			},
+			{
+				"mass": 1612.804,
+				"node": "openings__plastic_blue",
+				"slot": "plastic_blue",
+				"stage": "openings"
+			},
+			{
+				"mass": 362831.576,
+				"node": "roof__steel_painted",
+				"slot": "steel_painted",
+				"stage": "roof"
+			},
+			{
+				"mass": 97344.557,
+				"node": "walls__cast_iron",
+				"slot": "cast_iron",
+				"stage": "walls"
+			},
+			{
+				"mass": 168000.003,
+				"node": "ground__soil",
+				"slot": "soil",
+				"stage": "ground"
+			},
+			{
+				"mass": 2827299.952,
+				"node": "ground__concrete",
+				"slot": "concrete",
+				"stage": "ground"
+			},
+			{
+				"mass": 3023.999,
+				"node": "ground__plastic_yellow",
+				"slot": "plastic_yellow",
+				"stage": "ground"
+			},
+			{
+				"mass": 56269.752,
+				"node": "ground__steel_dark",
+				"slot": "steel_dark",
+				"stage": "ground"
+			},
+			{
+				"mass": 73354.662,
+				"node": "ground__plastic_blue",
+				"slot": "plastic_blue",
+				"stage": "ground"
+			},
+			{
+				"mass": 281160.045,
+				"node": "ground__glass_dark",
+				"slot": "glass_dark",
+				"stage": "ground"
+			}
+		],
+		"sockets": {
+			"front_door": [
+				2.0,
+				0.0,
+				-7.0
+			]
+		},
+		"stages": [
+			"walls",
+			"roof",
+			"openings",
+			"ground"
+		],
+		"stretch": "",
+		"tags": [
+			"building",
+			"building_type",
+			"context",
+			"outdoor"
+		],
+		"tris": 4668
+	},
 	"context.warehouse": {
 		"aabb": [
 			[
@@ -37494,6 +40042,888 @@
 		],
 		"tris": 140
 	},
+	"home.lodge.deck_rail": {
+		"aabb": [
+			[
+				-1.5,
+				0.0,
+				-0.045
+			],
+			[
+				1.5,
+				1.1,
+				0.045
+			]
+		],
+		"category": "home",
+		"family": "fixture",
+		"file": "models/home/home.lodge.deck_rail.glb",
+		"kind": "",
+		"label": "Decking balustrade, 3 m",
+		"mass": 23.9,
+		"pieces": [
+			{
+				"mass": 23.919,
+				"node": "main__softwood",
+				"slot": "softwood",
+				"stage": "main"
+			}
+		],
+		"sockets": {},
+		"stages": [
+			"main"
+		],
+		"stretch": "",
+		"tags": [
+			"home",
+			"lodge",
+			"retreat"
+		],
+		"tris": 312
+	},
+	"home.lodge.decking": {
+		"aabb": [
+			[
+				-1.5,
+				0.0,
+				-1.5
+			],
+			[
+				1.5,
+				0.3,
+				1.5
+			]
+		],
+		"category": "home",
+		"family": "fixture",
+		"file": "models/home/home.lodge.decking.glb",
+		"kind": "",
+		"label": "Timber decking, 3 m",
+		"mass": 165.1,
+		"pieces": [
+			{
+				"mass": 153.09,
+				"node": "main__softwood",
+				"slot": "softwood",
+				"stage": "main"
+			},
+			{
+				"mass": 12.0,
+				"node": "main__concrete",
+				"slot": "concrete",
+				"stage": "main"
+			}
+		],
+		"sockets": {
+			"next": [
+				3.0,
+				0.0,
+				-0.0
+			]
+		},
+		"stages": [
+			"main"
+		],
+		"stretch": "",
+		"tags": [
+			"home",
+			"lodge",
+			"retreat"
+		],
+		"tris": 348
+	},
+	"home.lodge.fire_pit": {
+		"aabb": [
+			[
+				-0.6,
+				-0.004,
+				-0.5909
+			],
+			[
+				0.6,
+				0.37,
+				0.5909
+			]
+		],
+		"category": "home",
+		"family": "fixture",
+		"file": "models/home/home.lodge.fire_pit.glb",
+		"kind": "",
+		"label": "Fire pit",
+		"mass": 435.5,
+		"pieces": [
+			{
+				"mass": 322.401,
+				"node": "main__brick",
+				"slot": "brick",
+				"stage": "main"
+			},
+			{
+				"mass": 98.405,
+				"node": "main__soil",
+				"slot": "soil",
+				"stage": "main"
+			},
+			{
+				"mass": 7.974,
+				"node": "main__bark",
+				"slot": "bark",
+				"stage": "main"
+			},
+			{
+				"mass": 6.675,
+				"node": "main__glow",
+				"slot": "glow",
+				"stage": "main"
+			}
+		],
+		"sockets": {},
+		"stages": [
+			"main"
+		],
+		"stretch": "",
+		"tags": [
+			"home",
+			"lodge",
+			"retreat"
+		],
+		"tris": 328
+	},
+	"home.lodge.hot_tub": {
+		"aabb": [
+			[
+				-1.06,
+				0.0,
+				-1.55
+			],
+			[
+				1.06,
+				0.94,
+				1.06
+			]
+		],
+		"category": "home",
+		"family": "fixture",
+		"file": "models/home/home.lodge.hot_tub.glb",
+		"kind": "",
+		"label": "Hot tub",
+		"mass": 572.6,
+		"pieces": [
+			{
+				"mass": 364.327,
+				"node": "main__softwood",
+				"slot": "softwood",
+				"stage": "main"
+			},
+			{
+				"mass": 147.456,
+				"node": "main__plastic_white",
+				"slot": "plastic_white",
+				"stage": "main"
+			},
+			{
+				"mass": 59.168,
+				"node": "main__water",
+				"slot": "water",
+				"stage": "main"
+			},
+			{
+				"mass": 1.608,
+				"node": "main__steel_stainless",
+				"slot": "steel_stainless",
+				"stage": "main"
+			}
+		],
+		"sockets": {},
+		"stages": [
+			"main"
+		],
+		"stretch": "",
+		"tags": [
+			"home",
+			"lodge",
+			"retreat"
+		],
+		"tris": 372
+	},
+	"home.lodge.log_burner": {
+		"aabb": [
+			[
+				-0.45,
+				-0.004,
+				-0.45
+			],
+			[
+				0.55,
+				2.72,
+				0.45
+			]
+		],
+		"category": "home",
+		"family": "fixture",
+		"file": "models/home/home.lodge.log_burner.glb",
+		"kind": "",
+		"label": "Log burner with flue",
+		"mass": 763.2,
+		"pieces": [
+			{
+				"mass": 65.61,
+				"node": "main__slate",
+				"slot": "slate",
+				"stage": "main"
+			},
+			{
+				"mass": 687.266,
+				"node": "main__cast_iron",
+				"slot": "cast_iron",
+				"stage": "main"
+			},
+			{
+				"mass": 1.866,
+				"node": "main__glow",
+				"slot": "glow",
+				"stage": "main"
+			},
+			{
+				"mass": 8.485,
+				"node": "main__bark",
+				"slot": "bark",
+				"stage": "main"
+			}
+		],
+		"sockets": {},
+		"stages": [
+			"main"
+		],
+		"stretch": "",
+		"tags": [
+			"home",
+			"lodge",
+			"retreat"
+		],
+		"tris": 316
+	},
+	"home.lodge.massage_table": {
+		"aabb": [
+			[
+				-0.37,
+				-0.0017,
+				-1.23
+			],
+			[
+				0.37,
+				0.785,
+				0.95
+			]
+		],
+		"category": "home",
+		"family": "fixture",
+		"file": "models/home/home.lodge.massage_table.glb",
+		"kind": "",
+		"label": "Massage table",
+		"mass": 19.0,
+		"pieces": [
+			{
+				"mass": 15.074,
+				"node": "main__fabric_white",
+				"slot": "fabric_white",
+				"stage": "main"
+			},
+			{
+				"mass": 1.984,
+				"node": "main__hardwood",
+				"slot": "hardwood",
+				"stage": "main"
+			},
+			{
+				"mass": 1.982,
+				"node": "main__velvet_teal",
+				"slot": "velvet_teal",
+				"stage": "main"
+			}
+		],
+		"sockets": {},
+		"stages": [
+			"main"
+		],
+		"stretch": "",
+		"tags": [
+			"home",
+			"lodge",
+			"retreat"
+		],
+		"tris": 644
+	},
+	"home.lodge.sauna": {
+		"aabb": [
+			[
+				-1.15,
+				-0.004,
+				-1.06
+			],
+			[
+				1.15,
+				2.18,
+				1.05
+			]
+		],
+		"category": "home",
+		"family": "fixture",
+		"file": "models/home/home.lodge.sauna.glb",
+		"kind": "",
+		"label": "Sauna cabin",
+		"mass": 1050.5,
+		"pieces": [
+			{
+				"mass": 628.387,
+				"node": "main__softwood",
+				"slot": "softwood",
+				"stage": "main"
+			},
+			{
+				"mass": 304.408,
+				"node": "main__glulam",
+				"slot": "glulam",
+				"stage": "main"
+			},
+			{
+				"mass": 117.75,
+				"node": "main__glass",
+				"slot": "glass",
+				"stage": "main"
+			}
+		],
+		"sockets": {},
+		"stages": [
+			"main"
+		],
+		"stretch": "",
+		"tags": [
+			"home",
+			"lodge",
+			"retreat"
+		],
+		"tris": 216
+	},
+	"home.lodge.yoga_mats": {
+		"aabb": [
+			[
+				-1.66,
+				0.0,
+				-0.875
+			],
+			[
+				1.66,
+				0.128,
+				0.875
+			]
+		],
+		"category": "home",
+		"family": "fixture",
+		"file": "models/home/home.lodge.yoga_mats.glb",
+		"kind": "",
+		"label": "Yoga mats and bolsters",
+		"mass": 7.7,
+		"pieces": [
+			{
+				"mass": 1.299,
+				"node": "main__velvet_teal",
+				"slot": "velvet_teal",
+				"stage": "main"
+			},
+			{
+				"mass": 3.332,
+				"node": "main__fabric_grey",
+				"slot": "fabric_grey",
+				"stage": "main"
+			},
+			{
+				"mass": 1.039,
+				"node": "main__fabric_red",
+				"slot": "fabric_red",
+				"stage": "main"
+			},
+			{
+				"mass": 1.039,
+				"node": "main__fabric_blue",
+				"slot": "fabric_blue",
+				"stage": "main"
+			},
+			{
+				"mass": 1.039,
+				"node": "main__fabric_green",
+				"slot": "fabric_green",
+				"stage": "main"
+			}
+		],
+		"sockets": {},
+		"stages": [
+			"main"
+		],
+		"stretch": "",
+		"tags": [
+			"home",
+			"lodge",
+			"retreat"
+		],
+		"tris": 1504
+	},
+	"home.mansion.banquet_table": {
+		"aabb": [
+			[
+				-2.96,
+				0.0,
+				-1.11
+			],
+			[
+				2.96,
+				1.28,
+				1.11
+			]
+		],
+		"category": "home",
+		"family": "fixture",
+		"file": "models/home/home.mansion.banquet_table.glb",
+		"kind": "",
+		"label": "Dining table for fourteen",
+		"mass": 236.6,
+		"pieces": [
+			{
+				"mass": 197.677,
+				"node": "table__glulam",
+				"slot": "glulam",
+				"stage": "table"
+			},
+			{
+				"mass": 16.206,
+				"node": "table__steel_stainless",
+				"slot": "steel_stainless",
+				"stage": "table"
+			},
+			{
+				"mass": 0.24,
+				"node": "table__paint_white",
+				"slot": "paint_white",
+				"stage": "table"
+			},
+			{
+				"mass": 5.656,
+				"node": "chairs__glulam",
+				"slot": "glulam",
+				"stage": "chairs"
+			},
+			{
+				"mass": 16.87,
+				"node": "chairs__fabric_red",
+				"slot": "fabric_red",
+				"stage": "chairs"
+			}
+		],
+		"sockets": {},
+		"stages": [
+			"table",
+			"chairs"
+		],
+		"stretch": "",
+		"tags": [
+			"home",
+			"mansion"
+		],
+		"tris": 7676
+	},
+	"home.mansion.bust": {
+		"aabb": [
+			[
+				-0.25,
+				0.0,
+				-0.25
+			],
+			[
+				0.25,
+				1.77,
+				0.25
+			]
+		],
+		"category": "home",
+		"family": "fixture",
+		"file": "models/home/home.mansion.bust.glb",
+		"kind": "",
+		"label": "Bust on a plinth",
+		"mass": 346.8,
+		"pieces": [
+			{
+				"mass": 346.786,
+				"node": "main__marble",
+				"slot": "marble",
+				"stage": "main"
+			}
+		],
+		"sockets": {},
+		"stages": [
+			"main"
+		],
+		"stretch": "",
+		"tags": [
+			"home",
+			"mansion"
+		],
+		"tris": 260
+	},
+	"home.mansion.chesterfield": {
+		"aabb": [
+			[
+				-1.105,
+				0.0,
+				-0.45
+			],
+			[
+				1.105,
+				0.875,
+				0.475
+			]
+		],
+		"category": "home",
+		"family": "fixture",
+		"file": "models/home/home.mansion.chesterfield.glb",
+		"kind": "",
+		"label": "Chesterfield sofa",
+		"mass": 205.3,
+		"pieces": [
+			{
+				"mass": 203.899,
+				"node": "main__leather_black",
+				"slot": "leather_black",
+				"stage": "main"
+			},
+			{
+				"mass": 0.72,
+				"node": "main__brass",
+				"slot": "brass",
+				"stage": "main"
+			},
+			{
+				"mass": 0.636,
+				"node": "main__glulam",
+				"slot": "glulam",
+				"stage": "main"
+			}
+		],
+		"sockets": {},
+		"stages": [
+			"main"
+		],
+		"stretch": "",
+		"tags": [
+			"home",
+			"mansion"
+		],
+		"tris": 1588
+	},
+	"home.mansion.fountain": {
+		"aabb": [
+			[
+				-1.8,
+				0.0,
+				-1.8
+			],
+			[
+				1.8,
+				2.3,
+				1.8
+			]
+		],
+		"category": "home",
+		"family": "fixture",
+		"file": "models/home/home.mansion.fountain.glb",
+		"kind": "",
+		"label": "Garden fountain",
+		"mass": 6333.7,
+		"pieces": [
+			{
+				"mass": 4834.701,
+				"node": "main__paving",
+				"slot": "paving",
+				"stage": "main"
+			},
+			{
+				"mass": 507.087,
+				"node": "main__water",
+				"slot": "water",
+				"stage": "main"
+			},
+			{
+				"mass": 991.957,
+				"node": "main__marble",
+				"slot": "marble",
+				"stage": "main"
+			}
+		],
+		"sockets": {},
+		"stages": [
+			"main"
+		],
+		"stretch": "",
+		"tags": [
+			"home",
+			"mansion"
+		],
+		"tris": 1072
+	},
+	"home.mansion.four_poster": {
+		"aabb": [
+			[
+				-0.975,
+				0.0,
+				-1.075
+			],
+			[
+				0.975,
+				2.34,
+				1.09
+			]
+		],
+		"category": "home",
+		"family": "fixture",
+		"file": "models/home/home.mansion.four_poster.glb",
+		"kind": "",
+		"label": "Four-poster bed",
+		"mass": 534.3,
+		"pieces": [
+			{
+				"mass": 259.634,
+				"node": "main__glulam",
+				"slot": "glulam",
+				"stage": "main"
+			},
+			{
+				"mass": 115.869,
+				"node": "main__fabric_white",
+				"slot": "fabric_white",
+				"stage": "main"
+			},
+			{
+				"mass": 158.8,
+				"node": "main__fabric_red",
+				"slot": "fabric_red",
+				"stage": "main"
+			}
+		],
+		"sockets": {},
+		"stages": [
+			"main"
+		],
+		"stretch": "",
+		"tags": [
+			"home",
+			"mansion"
+		],
+		"tris": 1412
+	},
+	"home.mansion.grandfather_clock": {
+		"aabb": [
+			[
+				-0.28,
+				0.0,
+				-0.167
+			],
+			[
+				0.28,
+				2.3,
+				0.16
+			]
+		],
+		"category": "home",
+		"family": "fixture",
+		"file": "models/home/home.mansion.grandfather_clock.glb",
+		"kind": "",
+		"label": "Longcase clock",
+		"mass": 52.1,
+		"pieces": [
+			{
+				"mass": 44.65,
+				"node": "main__glulam",
+				"slot": "glulam",
+				"stage": "main"
+			},
+			{
+				"mass": 0.721,
+				"node": "main__paint_white",
+				"slot": "paint_white",
+				"stage": "main"
+			},
+			{
+				"mass": 0.015,
+				"node": "main__plastic_black",
+				"slot": "plastic_black",
+				"stage": "main"
+			},
+			{
+				"mass": 4.4,
+				"node": "main__glass",
+				"slot": "glass",
+				"stage": "main"
+			},
+			{
+				"mass": 2.347,
+				"node": "main__brass",
+				"slot": "brass",
+				"stage": "main"
+			}
+		],
+		"sockets": {},
+		"stages": [
+			"main"
+		],
+		"stretch": "",
+		"tags": [
+			"home",
+			"mansion"
+		],
+		"tris": 212
+	},
+	"home.mansion.library_wall": {
+		"aabb": [
+			[
+				-1.85,
+				0.0,
+				-0.9195
+			],
+			[
+				1.85,
+				3.32,
+				0.225
+			]
+		],
+		"category": "home",
+		"family": "fixture",
+		"file": "models/home/home.mansion.library_wall.glb",
+		"kind": "",
+		"label": "Library wall with ladder",
+		"mass": 952.9,
+		"pieces": [
+			{
+				"mass": 687.588,
+				"node": "main__glulam",
+				"slot": "glulam",
+				"stage": "main"
+			},
+			{
+				"mass": 37.147,
+				"node": "main__fabric_red",
+				"slot": "fabric_red",
+				"stage": "main"
+			},
+			{
+				"mass": 37.327,
+				"node": "main__fabric_green",
+				"slot": "fabric_green",
+				"stage": "main"
+			},
+			{
+				"mass": 130.065,
+				"node": "main__leather_black",
+				"slot": "leather_black",
+				"stage": "main"
+			},
+			{
+				"mass": 37.503,
+				"node": "main__fabric_blue",
+				"slot": "fabric_blue",
+				"stage": "main"
+			},
+			{
+				"mass": 5.424,
+				"node": "ladder__hardwood",
+				"slot": "hardwood",
+				"stage": "ladder"
+			},
+			{
+				"mass": 17.888,
+				"node": "ladder__brass",
+				"slot": "brass",
+				"stage": "ladder"
+			}
+		],
+		"sockets": {},
+		"stages": [
+			"main",
+			"ladder"
+		],
+		"stretch": "",
+		"tags": [
+			"home",
+			"mansion"
+		],
+		"tris": 4428
+	},
+	"home.mansion.marble_fireplace": {
+		"aabb": [
+			[
+				-1.15,
+				0.0,
+				-0.65
+			],
+			[
+				1.15,
+				3.5,
+				0.185
+			]
+		],
+		"category": "home",
+		"family": "fixture",
+		"file": "models/home/home.mansion.marble_fireplace.glb",
+		"kind": "",
+		"label": "Marble fireplace with mirror",
+		"mass": 2457.7,
+		"pieces": [
+			{
+				"mass": 913.275,
+				"node": "main__marble",
+				"slot": "marble",
+				"stage": "main"
+			},
+			{
+				"mass": 436.8,
+				"node": "main__plastic_black",
+				"slot": "plastic_black",
+				"stage": "main"
+			},
+			{
+				"mass": 378.0,
+				"node": "main__cast_iron",
+				"slot": "cast_iron",
+				"stage": "main"
+			},
+			{
+				"mass": 14.4,
+				"node": "main__glow",
+				"slot": "glow",
+				"stage": "main"
+			},
+			{
+				"mass": 280.0,
+				"node": "main__mirror",
+				"slot": "mirror",
+				"stage": "main"
+			},
+			{
+				"mass": 435.2,
+				"node": "main__brass",
+				"slot": "brass",
+				"stage": "main"
+			}
+		],
+		"sockets": {},
+		"stages": [
+			"main"
+		],
+		"stretch": "",
+		"tags": [
+			"home",
+			"mansion"
+		],
+		"tris": 156
+	},
 	"home.plant.large": {
 		"aabb": [
 			[
@@ -41561,6 +44991,1148 @@
 		],
 		"tris": 3132
 	},
+	"hospitality.function.banquet_chair": {
+		"aabb": [
+			[
+				-0.21,
+				0.0,
+				-0.21
+			],
+			[
+				0.21,
+				0.88,
+				0.21
+			]
+		],
+		"category": "hospitality",
+		"family": "fixture",
+		"file": "models/hospitality/hospitality.function.banquet_chair.glb",
+		"kind": "",
+		"label": "Banquet chair",
+		"mass": 8.7,
+		"pieces": [
+			{
+				"mass": 7.448,
+				"node": "main__brass",
+				"slot": "brass",
+				"stage": "main"
+			},
+			{
+				"mass": 1.205,
+				"node": "main__fabric_red",
+				"slot": "fabric_red",
+				"stage": "main"
+			}
+		],
+		"sockets": {},
+		"stages": [
+			"main"
+		],
+		"stretch": "",
+		"tags": [
+			"function_room",
+			"hospitality"
+		],
+		"tris": 488
+	},
+	"hospitality.function.banquet_round": {
+		"aabb": [
+			[
+				-1.51,
+				0.0,
+				-1.4968
+			],
+			[
+				1.51,
+				1.46,
+				1.4968
+			]
+		],
+		"category": "hospitality",
+		"family": "fixture",
+		"file": "models/hospitality/hospitality.function.banquet_round.glb",
+		"kind": "",
+		"label": "Banquet table for ten",
+		"mass": 412.6,
+		"pieces": [
+			{
+				"mass": 50.708,
+				"node": "table__plywood",
+				"slot": "plywood",
+				"stage": "table"
+			},
+			{
+				"mass": 241.927,
+				"node": "table__fabric_white",
+				"slot": "fabric_white",
+				"stage": "table"
+			},
+			{
+				"mass": 74.48,
+				"node": "chairs__brass",
+				"slot": "brass",
+				"stage": "chairs"
+			},
+			{
+				"mass": 12.05,
+				"node": "chairs__fabric_white",
+				"slot": "fabric_white",
+				"stage": "chairs"
+			},
+			{
+				"mass": 14.17,
+				"node": "setting__ceramic",
+				"slot": "ceramic",
+				"stage": "setting"
+			},
+			{
+				"mass": 18.656,
+				"node": "setting__glass",
+				"slot": "glass",
+				"stage": "setting"
+			},
+			{
+				"mass": 0.581,
+				"node": "setting__foliage",
+				"slot": "foliage",
+				"stage": "setting"
+			}
+		],
+		"sockets": {},
+		"stages": [
+			"table",
+			"chairs",
+			"setting"
+		],
+		"stretch": "",
+		"tags": [
+			"function_room",
+			"hospitality"
+		],
+		"tris": 6232
+	},
+	"hospitality.function.chair_stack": {
+		"aabb": [
+			[
+				-0.21,
+				-0.0009,
+				-0.294
+			],
+			[
+				0.21,
+				1.575,
+				0.215
+			]
+		],
+		"category": "hospitality",
+		"family": "fixture",
+		"file": "models/hospitality/hospitality.function.chair_stack.glb",
+		"kind": "",
+		"label": "Stack of banquet chairs",
+		"mass": 28.0,
+		"pieces": [
+			{
+				"mass": 12.696,
+				"node": "main__fabric_red",
+				"slot": "fabric_red",
+				"stage": "main"
+			},
+			{
+				"mass": 15.308,
+				"node": "main__brass",
+				"slot": "brass",
+				"stage": "main"
+			}
+		],
+		"sockets": {},
+		"stages": [
+			"main"
+		],
+		"stretch": "",
+		"tags": [
+			"function_room",
+			"hospitality"
+		],
+		"tris": 272
+	},
+	"hospitality.function.chandelier": {
+		"aabb": [
+			[
+				-0.55,
+				-1.525,
+				-0.55
+			],
+			[
+				0.55,
+				0.0,
+				0.55
+			]
+		],
+		"category": "hospitality",
+		"family": "fixture",
+		"file": "models/hospitality/hospitality.function.chandelier.glb",
+		"kind": "",
+		"label": "Chandelier",
+		"mass": 68.5,
+		"pieces": [
+			{
+				"mass": 67.277,
+				"node": "main__brass",
+				"slot": "brass",
+				"stage": "main"
+			},
+			{
+				"mass": 0.176,
+				"node": "main__paint_white",
+				"slot": "paint_white",
+				"stage": "main"
+			},
+			{
+				"mass": 0.264,
+				"node": "main__glow",
+				"slot": "glow",
+				"stage": "main"
+			},
+			{
+				"mass": 0.808,
+				"node": "main__glass",
+				"slot": "glass",
+				"stage": "main"
+			}
+		],
+		"sockets": {
+			"ceiling": [
+				0.0,
+				0.0,
+				-0.0
+			]
+		},
+		"stages": [
+			"main"
+		],
+		"stretch": "",
+		"tags": [
+			"function_room",
+			"hospitality"
+		],
+		"tris": 1256
+	},
+	"hospitality.function.dance_floor": {
+		"aabb": [
+			[
+				-2.05,
+				0.0,
+				-2.05
+			],
+			[
+				2.05,
+				0.03,
+				2.05
+			]
+		],
+		"category": "hospitality",
+		"family": "fixture",
+		"file": "models/hospitality/hospitality.function.dance_floor.glb",
+		"kind": "",
+		"label": "Dance floor, 4 m",
+		"mass": 410.6,
+		"pieces": [
+			{
+				"mass": 108.2,
+				"node": "main__glulam",
+				"slot": "glulam",
+				"stage": "main"
+			},
+			{
+				"mass": 164.656,
+				"node": "main__hardwood",
+				"slot": "hardwood",
+				"stage": "main"
+			},
+			{
+				"mass": 137.7,
+				"node": "main__brass",
+				"slot": "brass",
+				"stage": "main"
+			}
+		],
+		"sockets": {},
+		"stages": [
+			"main"
+		],
+		"stretch": "",
+		"tags": [
+			"function_room",
+			"hospitality"
+		],
+		"tris": 240
+	},
+	"hospitality.function.dj_booth": {
+		"aabb": [
+			[
+				-0.9,
+				0.0,
+				-0.363
+			],
+			[
+				0.9,
+				1.325,
+				0.35
+			]
+		],
+		"category": "hospitality",
+		"family": "fixture",
+		"file": "models/hospitality/hospitality.function.dj_booth.glb",
+		"kind": "",
+		"label": "DJ booth",
+		"mass": 416.3,
+		"pieces": [
+			{
+				"mass": 309.964,
+				"node": "main__plastic_black",
+				"slot": "plastic_black",
+				"stage": "main"
+			},
+			{
+				"mass": 19.584,
+				"node": "main__glow",
+				"slot": "glow",
+				"stage": "main"
+			},
+			{
+				"mass": 83.14,
+				"node": "main__steel_stainless",
+				"slot": "steel_stainless",
+				"stage": "main"
+			},
+			{
+				"mass": 3.6,
+				"node": "main__screen",
+				"slot": "screen",
+				"stage": "main"
+			}
+		],
+		"sockets": {},
+		"stages": [
+			"main"
+		],
+		"stretch": "",
+		"tags": [
+			"function_room",
+			"hospitality"
+		],
+		"tris": 320
+	},
+	"hospitality.function.lectern": {
+		"aabb": [
+			[
+				-0.3,
+				0.0,
+				-0.2186
+			],
+			[
+				0.3,
+				1.3828,
+				0.2186
+			]
+		],
+		"category": "hospitality",
+		"family": "fixture",
+		"file": "models/hospitality/hospitality.function.lectern.glb",
+		"kind": "",
+		"label": "Lectern",
+		"mass": 20.7,
+		"pieces": [
+			{
+				"mass": 20.631,
+				"node": "main__glulam",
+				"slot": "glulam",
+				"stage": "main"
+			},
+			{
+				"mass": 0.033,
+				"node": "main__plastic_black",
+				"slot": "plastic_black",
+				"stage": "main"
+			}
+		],
+		"sockets": {},
+		"stages": [
+			"main"
+		],
+		"stretch": "",
+		"tags": [
+			"function_room",
+			"hospitality"
+		],
+		"tris": 40
+	},
+	"hospitality.function.mobile_bar": {
+		"aabb": [
+			[
+				-0.92,
+				-0.004,
+				-0.39
+			],
+			[
+				0.92,
+				1.3786,
+				0.33
+			]
+		],
+		"category": "hospitality",
+		"family": "fixture",
+		"file": "models/hospitality/hospitality.function.mobile_bar.glb",
+		"kind": "",
+		"label": "Mobile bar",
+		"mass": 473.5,
+		"pieces": [
+			{
+				"mass": 170.754,
+				"node": "main__laminate_white",
+				"slot": "laminate_white",
+				"stage": "main"
+			},
+			{
+				"mass": 67.91,
+				"node": "main__plastic_black",
+				"slot": "plastic_black",
+				"stage": "main"
+			},
+			{
+				"mass": 5.052,
+				"node": "main__glass",
+				"slot": "glass",
+				"stage": "main"
+			},
+			{
+				"mass": 1.618,
+				"node": "main__plastic_green",
+				"slot": "plastic_green",
+				"stage": "main"
+			},
+			{
+				"mass": 3.368,
+				"node": "main__glass_dark",
+				"slot": "glass_dark",
+				"stage": "main"
+			},
+			{
+				"mass": 11.452,
+				"node": "main__brass",
+				"slot": "brass",
+				"stage": "main"
+			},
+			{
+				"mass": 213.3,
+				"node": "main__steel_stainless",
+				"slot": "steel_stainless",
+				"stage": "main"
+			}
+		],
+		"sockets": {},
+		"stages": [
+			"main"
+		],
+		"stretch": "",
+		"tags": [
+			"function_room",
+			"hospitality"
+		],
+		"tris": 516
+	},
+	"hospitality.function.pa_speaker": {
+		"aabb": [
+			[
+				-0.2644,
+				-0.0083,
+				-0.4449
+			],
+			[
+				0.5125,
+				2.145,
+				0.4449
+			]
+		],
+		"category": "hospitality",
+		"family": "fixture",
+		"file": "models/hospitality/hospitality.function.pa_speaker.glb",
+		"kind": "",
+		"label": "PA speaker on a stand",
+		"mass": 34.8,
+		"pieces": [
+			{
+				"mass": 32.873,
+				"node": "main__plastic_black",
+				"slot": "plastic_black",
+				"stage": "main"
+			},
+			{
+				"mass": 1.909,
+				"node": "main__plastic_grey",
+				"slot": "plastic_grey",
+				"stage": "main"
+			}
+		],
+		"sockets": {},
+		"stages": [
+			"main"
+		],
+		"stretch": "",
+		"tags": [
+			"function_room",
+			"hospitality"
+		],
+		"tris": 164
+	},
+	"hospitality.hotel.bed_king": {
+		"aabb": [
+			[
+				-1.55,
+				0.0,
+				-1.005
+			],
+			[
+				1.55,
+				1.3,
+				1.08
+			]
+		],
+		"category": "hospitality",
+		"family": "fixture",
+		"file": "models/hospitality/hospitality.hotel.bed_king.glb",
+		"kind": "",
+		"label": "Hotel king bed with bedsides",
+		"mass": 268.7,
+		"pieces": [
+			{
+				"mass": 44.491,
+				"node": "bed__glulam",
+				"slot": "glulam",
+				"stage": "bed"
+			},
+			{
+				"mass": 52.189,
+				"node": "bed__fabric_grey",
+				"slot": "fabric_grey",
+				"stage": "bed"
+			},
+			{
+				"mass": 135.983,
+				"node": "bed__fabric_white",
+				"slot": "fabric_white",
+				"stage": "bed"
+			},
+			{
+				"mass": 4.112,
+				"node": "bed__velvet_teal",
+				"slot": "velvet_teal",
+				"stage": "bed"
+			},
+			{
+				"mass": 17.354,
+				"node": "bedside__glulam",
+				"slot": "glulam",
+				"stage": "bedside"
+			},
+			{
+				"mass": 12.168,
+				"node": "bedside__ceramic",
+				"slot": "ceramic",
+				"stage": "bedside"
+			},
+			{
+				"mass": 1.866,
+				"node": "bedside__fabric_white",
+				"slot": "fabric_white",
+				"stage": "bedside"
+			},
+			{
+				"mass": 0.494,
+				"node": "bedside__glow",
+				"slot": "glow",
+				"stage": "bedside"
+			}
+		],
+		"sockets": {},
+		"stages": [
+			"bed",
+			"bedside"
+		],
+		"stretch": "",
+		"tags": [
+			"hospitality",
+			"hotel"
+		],
+		"tris": 1472
+	},
+	"hospitality.hotel.bed_twin": {
+		"aabb": [
+			[
+				-1.875,
+				0.0,
+				-1.005
+			],
+			[
+				1.875,
+				1.3,
+				1.08
+			]
+		],
+		"category": "hospitality",
+		"family": "fixture",
+		"file": "models/hospitality/hospitality.hotel.bed_twin.glb",
+		"kind": "",
+		"label": "Hotel twin beds with bedsides",
+		"mass": 290.2,
+		"pieces": [
+			{
+				"mass": 53.82,
+				"node": "bed__glulam",
+				"slot": "glulam",
+				"stage": "bed"
+			},
+			{
+				"mass": 57.568,
+				"node": "bed__fabric_grey",
+				"slot": "fabric_grey",
+				"stage": "bed"
+			},
+			{
+				"mass": 142.488,
+				"node": "bed__fabric_white",
+				"slot": "fabric_white",
+				"stage": "bed"
+			},
+			{
+				"mass": 4.434,
+				"node": "bed__velvet_teal",
+				"slot": "velvet_teal",
+				"stage": "bed"
+			},
+			{
+				"mass": 17.354,
+				"node": "bedside__glulam",
+				"slot": "glulam",
+				"stage": "bedside"
+			},
+			{
+				"mass": 12.168,
+				"node": "bedside__ceramic",
+				"slot": "ceramic",
+				"stage": "bedside"
+			},
+			{
+				"mass": 1.866,
+				"node": "bedside__fabric_white",
+				"slot": "fabric_white",
+				"stage": "bedside"
+			},
+			{
+				"mass": 0.494,
+				"node": "bedside__glow",
+				"slot": "glow",
+				"stage": "bedside"
+			}
+		],
+		"sockets": {},
+		"stages": [
+			"bed",
+			"bedside"
+		],
+		"stretch": "",
+		"tags": [
+			"hospitality",
+			"hotel"
+		],
+		"tris": 2048
+	},
+	"hospitality.hotel.desk": {
+		"aabb": [
+			[
+				-0.65,
+				0.0,
+				-0.66
+			],
+			[
+				0.65,
+				1.725,
+				0.255
+			]
+		],
+		"category": "hospitality",
+		"family": "fixture",
+		"file": "models/hospitality/hospitality.hotel.desk.glb",
+		"kind": "",
+		"label": "Hotel desk with mirror",
+		"mass": 154.1,
+		"pieces": [
+			{
+				"mass": 28.575,
+				"node": "main__glulam",
+				"slot": "glulam",
+				"stage": "main"
+			},
+			{
+				"mass": 44.625,
+				"node": "main__mirror",
+				"slot": "mirror",
+				"stage": "main"
+			},
+			{
+				"mass": 79.0,
+				"node": "main__steel_stainless",
+				"slot": "steel_stainless",
+				"stage": "main"
+			},
+			{
+				"mass": 0.404,
+				"node": "chair__glulam",
+				"slot": "glulam",
+				"stage": "chair"
+			},
+			{
+				"mass": 1.507,
+				"node": "chair__velvet_teal",
+				"slot": "velvet_teal",
+				"stage": "chair"
+			}
+		],
+		"sockets": {},
+		"stages": [
+			"main",
+			"chair"
+		],
+		"stretch": "",
+		"tags": [
+			"hospitality",
+			"hotel"
+		],
+		"tris": 560
+	},
+	"hospitality.hotel.housekeeping_trolley": {
+		"aabb": [
+			[
+				-0.89,
+				0.0024,
+				-0.25
+			],
+			[
+				0.89,
+				1.16,
+				0.25
+			]
+		],
+		"category": "hospitality",
+		"family": "fixture",
+		"file": "models/hospitality/hospitality.hotel.housekeeping_trolley.glb",
+		"kind": "",
+		"label": "Housekeeping trolley",
+		"mass": 530.2,
+		"pieces": [
+			{
+				"mass": 97.2,
+				"node": "main__plastic_grey",
+				"slot": "plastic_grey",
+				"stage": "main"
+			},
+			{
+				"mass": 19.476,
+				"node": "main__fabric_white",
+				"slot": "fabric_white",
+				"stage": "main"
+			},
+			{
+				"mass": 0.9,
+				"node": "main__fabric_blue",
+				"slot": "fabric_blue",
+				"stage": "main"
+			},
+			{
+				"mass": 410.8,
+				"node": "main__steel_stainless",
+				"slot": "steel_stainless",
+				"stage": "main"
+			},
+			{
+				"mass": 0.9,
+				"node": "main__fabric_grey",
+				"slot": "fabric_grey",
+				"stage": "main"
+			},
+			{
+				"mass": 0.968,
+				"node": "main__rubber",
+				"slot": "rubber",
+				"stage": "main"
+			}
+		],
+		"sockets": {},
+		"stages": [
+			"main"
+		],
+		"stretch": "",
+		"tags": [
+			"hospitality",
+			"hotel"
+		],
+		"tris": 312
+	},
+	"hospitality.hotel.ironing_station": {
+		"aabb": [
+			[
+				-0.6,
+				-0.0084,
+				-0.175
+			],
+			[
+				0.6,
+				1.04,
+				0.175
+			]
+		],
+		"category": "hospitality",
+		"family": "fixture",
+		"file": "models/hospitality/hospitality.hotel.ironing_station.glb",
+		"kind": "",
+		"label": "Ironing board",
+		"mass": 13.1,
+		"pieces": [
+			{
+				"mass": 1.512,
+				"node": "main__fabric_grey",
+				"slot": "fabric_grey",
+				"stage": "main"
+			},
+			{
+				"mass": 7.18,
+				"node": "main__steel_stainless",
+				"slot": "steel_stainless",
+				"stage": "main"
+			},
+			{
+				"mass": 4.374,
+				"node": "main__plastic_white",
+				"slot": "plastic_white",
+				"stage": "main"
+			}
+		],
+		"sockets": {},
+		"stages": [
+			"main"
+		],
+		"stretch": "",
+		"tags": [
+			"hospitality",
+			"hotel"
+		],
+		"tris": 240
+	},
+	"hospitality.hotel.luggage_cart": {
+		"aabb": [
+			[
+				-0.55,
+				0.0034,
+				-0.3
+			],
+			[
+				0.55,
+				1.7352,
+				0.3
+			]
+		],
+		"category": "hospitality",
+		"family": "fixture",
+		"file": "models/hospitality/hospitality.hotel.luggage_cart.glb",
+		"kind": "",
+		"label": "Luggage cart",
+		"mass": 92.6,
+		"pieces": [
+			{
+				"mass": 3.96,
+				"node": "main__fabric_red",
+				"slot": "fabric_red",
+				"stage": "main"
+			},
+			{
+				"mass": 41.318,
+				"node": "main__brass",
+				"slot": "brass",
+				"stage": "main"
+			},
+			{
+				"mass": 2.536,
+				"node": "main__rubber",
+				"slot": "rubber",
+				"stage": "main"
+			},
+			{
+				"mass": 41.116,
+				"node": "main__leather_black",
+				"slot": "leather_black",
+				"stage": "main"
+			},
+			{
+				"mass": 3.657,
+				"node": "main__fabric_blue",
+				"slot": "fabric_blue",
+				"stage": "main"
+			}
+		],
+		"sockets": {},
+		"stages": [
+			"main"
+		],
+		"stretch": "",
+		"tags": [
+			"hospitality",
+			"hotel"
+		],
+		"tris": 744
+	},
+	"hospitality.hotel.minibar_unit": {
+		"aabb": [
+			[
+				-0.3,
+				0.0,
+				-0.29
+			],
+			[
+				0.3,
+				1.05,
+				0.25
+			]
+		],
+		"category": "hospitality",
+		"family": "fixture",
+		"file": "models/hospitality/hospitality.hotel.minibar_unit.glb",
+		"kind": "",
+		"label": "Tea and minibar unit",
+		"mass": 38.8,
+		"pieces": [
+			{
+				"mass": 7.106,
+				"node": "main__glulam",
+				"slot": "glulam",
+				"stage": "main"
+			},
+			{
+				"mass": 29.78,
+				"node": "main__steel_stainless",
+				"slot": "steel_stainless",
+				"stage": "main"
+			},
+			{
+				"mass": 1.874,
+				"node": "main__ceramic",
+				"slot": "ceramic",
+				"stage": "main"
+			}
+		],
+		"sockets": {},
+		"stages": [
+			"main"
+		],
+		"stretch": "",
+		"tags": [
+			"hospitality",
+			"hotel"
+		],
+		"tris": 196
+	},
+	"hospitality.hotel.reception": {
+		"aabb": [
+			[
+				-1.82,
+				-0.004,
+				-0.44
+			],
+			[
+				1.82,
+				2.2,
+				1.24
+			]
+		],
+		"category": "hospitality",
+		"family": "fixture",
+		"file": "models/hospitality/hospitality.hotel.reception.glb",
+		"kind": "",
+		"label": "Hotel reception desk",
+		"mass": 888.8,
+		"pieces": [
+			{
+				"mass": 284.366,
+				"node": "main__glulam",
+				"slot": "glulam",
+				"stage": "main"
+			},
+			{
+				"mass": 322.358,
+				"node": "main__marble",
+				"slot": "marble",
+				"stage": "main"
+			},
+			{
+				"mass": 8.64,
+				"node": "main__plastic_black",
+				"slot": "plastic_black",
+				"stage": "main"
+			},
+			{
+				"mass": 16.2,
+				"node": "main__screen",
+				"slot": "screen",
+				"stage": "main"
+			},
+			{
+				"mass": 1.874,
+				"node": "main__brass",
+				"slot": "brass",
+				"stage": "main"
+			},
+			{
+				"mass": 154.56,
+				"node": "back__glulam",
+				"slot": "glulam",
+				"stage": "back"
+			},
+			{
+				"mass": 100.8,
+				"node": "back__hardwood",
+				"slot": "hardwood",
+				"stage": "back"
+			}
+		],
+		"sockets": {},
+		"stages": [
+			"main",
+			"back"
+		],
+		"stretch": "",
+		"tags": [
+			"hospitality",
+			"hotel"
+		],
+		"tris": 672
+	},
+	"hospitality.hotel.tv_console": {
+		"aabb": [
+			[
+				-0.7,
+				0.0,
+				-0.265
+			],
+			[
+				0.7,
+				1.515,
+				0.225
+			]
+		],
+		"category": "hospitality",
+		"family": "fixture",
+		"file": "models/hospitality/hospitality.hotel.tv_console.glb",
+		"kind": "",
+		"label": "Television console",
+		"mass": 85.0,
+		"pieces": [
+			{
+				"mass": 11.439,
+				"node": "main__glulam",
+				"slot": "glulam",
+				"stage": "main"
+			},
+			{
+				"mass": 0.124,
+				"node": "main__steel_stainless",
+				"slot": "steel_stainless",
+				"stage": "main"
+			},
+			{
+				"mass": 55.44,
+				"node": "main__screen",
+				"slot": "screen",
+				"stage": "main"
+			},
+			{
+				"mass": 18.0,
+				"node": "main__plastic_black",
+				"slot": "plastic_black",
+				"stage": "main"
+			}
+		],
+		"sockets": {},
+		"stages": [
+			"main"
+		],
+		"stretch": "",
+		"tags": [
+			"hospitality",
+			"hotel"
+		],
+		"tris": 160
+	},
+	"hospitality.hotel.wardrobe": {
+		"aabb": [
+			[
+				-0.5,
+				0.0,
+				-0.3
+			],
+			[
+				0.5,
+				2.0,
+				0.3
+			]
+		],
+		"category": "hospitality",
+		"family": "fixture",
+		"file": "models/hospitality/hospitality.hotel.wardrobe.glb",
+		"kind": "",
+		"label": "Open hotel wardrobe with safe",
+		"mass": 122.1,
+		"pieces": [
+			{
+				"mass": 89.857,
+				"node": "main__glulam",
+				"slot": "glulam",
+				"stage": "main"
+			},
+			{
+				"mass": 2.96,
+				"node": "main__steel_stainless",
+				"slot": "steel_stainless",
+				"stage": "main"
+			},
+			{
+				"mass": 3.36,
+				"node": "main__hardwood",
+				"slot": "hardwood",
+				"stage": "main"
+			},
+			{
+				"mass": 24.0,
+				"node": "main__plastic_grey",
+				"slot": "plastic_grey",
+				"stage": "main"
+			},
+			{
+				"mass": 1.89,
+				"node": "main__fabric_white",
+				"slot": "fabric_white",
+				"stage": "main"
+			}
+		],
+		"sockets": {},
+		"stages": [
+			"main"
+		],
+		"stretch": "",
+		"tags": [
+			"hospitality",
+			"hotel"
+		],
+		"tris": 184
+	},
 	"hospitality.kitchen.combi_oven": {
 		"aabb": [
 			[
@@ -42011,6 +46583,1755 @@
 		],
 		"tris": 80
 	},
+	"hospitality.pub.back_bar": {
+		"aabb": [
+			[
+				-1.2,
+				0.0,
+				-0.29
+			],
+			[
+				1.2,
+				2.32,
+				0.25
+			]
+		],
+		"category": "hospitality",
+		"family": "fixture",
+		"file": "models/hospitality/hospitality.pub.back_bar.glb",
+		"kind": "",
+		"label": "Back bar with mirror and optics, 2.4 m",
+		"mass": 358.6,
+		"pieces": [
+			{
+				"mass": 63.529,
+				"node": "carcass__glulam",
+				"slot": "glulam",
+				"stage": "carcass"
+			},
+			{
+				"mass": 0.248,
+				"node": "carcass__steel_stainless",
+				"slot": "steel_stainless",
+				"stage": "carcass"
+			},
+			{
+				"mass": 88.92,
+				"node": "carcass__mirror",
+				"slot": "mirror",
+				"stage": "carcass"
+			},
+			{
+				"mass": 88.52,
+				"node": "stock__glass",
+				"slot": "glass",
+				"stage": "stock"
+			},
+			{
+				"mass": 11.554,
+				"node": "stock__plastic_green",
+				"slot": "plastic_green",
+				"stage": "stock"
+			},
+			{
+				"mass": 24.056,
+				"node": "stock__glass_dark",
+				"slot": "glass_dark",
+				"stage": "stock"
+			},
+			{
+				"mass": 81.8,
+				"node": "stock__brass",
+				"slot": "brass",
+				"stage": "stock"
+			}
+		],
+		"sockets": {},
+		"stages": [
+			"carcass",
+			"stock"
+		],
+		"stretch": "",
+		"tags": [
+			"bar",
+			"hospitality",
+			"pub"
+		],
+		"tris": 3216
+	},
+	"hospitality.pub.back_bar_long": {
+		"aabb": [
+			[
+				-2.4,
+				0.0,
+				-0.29
+			],
+			[
+				2.4,
+				2.32,
+				0.25
+			]
+		],
+		"category": "hospitality",
+		"family": "fixture",
+		"file": "models/hospitality/hospitality.pub.back_bar_long.glb",
+		"kind": "",
+		"label": "Back bar, 4.8 m",
+		"mass": 702.8,
+		"pieces": [
+			{
+				"mass": 103.679,
+				"node": "carcass__glulam",
+				"slot": "glulam",
+				"stage": "carcass"
+			},
+			{
+				"mass": 0.496,
+				"node": "carcass__steel_stainless",
+				"slot": "steel_stainless",
+				"stage": "carcass"
+			},
+			{
+				"mass": 182.52,
+				"node": "carcass__mirror",
+				"slot": "mirror",
+				"stage": "carcass"
+			},
+			{
+				"mass": 175.441,
+				"node": "stock__glass",
+				"slot": "glass",
+				"stage": "stock"
+			},
+			{
+				"mass": 25.592,
+				"node": "stock__plastic_green",
+				"slot": "plastic_green",
+				"stage": "stock"
+			},
+			{
+				"mass": 51.48,
+				"node": "stock__glass_dark",
+				"slot": "glass_dark",
+				"stage": "stock"
+			},
+			{
+				"mass": 163.6,
+				"node": "stock__brass",
+				"slot": "brass",
+				"stage": "stock"
+			}
+		],
+		"sockets": {},
+		"stages": [
+			"carcass",
+			"stock"
+		],
+		"stretch": "",
+		"tags": [
+			"bar",
+			"hospitality",
+			"pub"
+		],
+		"tris": 6412
+	},
+	"hospitality.pub.bar_counter": {
+		"aabb": [
+			[
+				-1.22,
+				-0.004,
+				-0.44
+			],
+			[
+				1.22,
+				1.4881,
+				0.355
+			]
+		],
+		"category": "hospitality",
+		"family": "fixture",
+		"file": "models/hospitality/hospitality.pub.bar_counter.glb",
+		"kind": "",
+		"label": "Pub bar counter with hand pulls, 2.4 m",
+		"mass": 320.2,
+		"pieces": [
+			{
+				"mass": 245.48,
+				"node": "counter__hardwood",
+				"slot": "hardwood",
+				"stage": "counter"
+			},
+			{
+				"mass": 34.57,
+				"node": "counter__glulam",
+				"slot": "glulam",
+				"stage": "counter"
+			},
+			{
+				"mass": 5.76,
+				"node": "counter__plastic_black",
+				"slot": "plastic_black",
+				"stage": "counter"
+			},
+			{
+				"mass": 22.976,
+				"node": "counter__brass",
+				"slot": "brass",
+				"stage": "counter"
+			},
+			{
+				"mass": 2.208,
+				"node": "fittings__glulam",
+				"slot": "glulam",
+				"stage": "fittings"
+			},
+			{
+				"mass": 0.848,
+				"node": "fittings__hardwood",
+				"slot": "hardwood",
+				"stage": "fittings"
+			},
+			{
+				"mass": 0.212,
+				"node": "fittings__plastic_red",
+				"slot": "plastic_red",
+				"stage": "fittings"
+			},
+			{
+				"mass": 2.784,
+				"node": "fittings__ceramic",
+				"slot": "ceramic",
+				"stage": "fittings"
+			},
+			{
+				"mass": 0.212,
+				"node": "fittings__plastic_green",
+				"slot": "plastic_green",
+				"stage": "fittings"
+			},
+			{
+				"mass": 1.452,
+				"node": "fittings__plastic_black",
+				"slot": "plastic_black",
+				"stage": "fittings"
+			},
+			{
+				"mass": 0.212,
+				"node": "fittings__plastic_yellow",
+				"slot": "plastic_yellow",
+				"stage": "fittings"
+			},
+			{
+				"mass": 3.484,
+				"node": "fittings__rubber",
+				"slot": "rubber",
+				"stage": "fittings"
+			}
+		],
+		"sockets": {},
+		"stages": [
+			"counter",
+			"fittings"
+		],
+		"stretch": "",
+		"tags": [
+			"bar",
+			"hospitality",
+			"pub"
+		],
+		"tris": 748
+	},
+	"hospitality.pub.bar_counter_long": {
+		"aabb": [
+			[
+				-2.42,
+				-0.004,
+				-0.44
+			],
+			[
+				2.42,
+				1.4881,
+				0.355
+			]
+		],
+		"category": "hospitality",
+		"family": "fixture",
+		"file": "models/hospitality/hospitality.pub.bar_counter_long.glb",
+		"kind": "",
+		"label": "Pub bar counter, 4.8 m",
+		"mass": 640.5,
+		"pieces": [
+			{
+				"mass": 490.96,
+				"node": "counter__hardwood",
+				"slot": "hardwood",
+				"stage": "counter"
+			},
+			{
+				"mass": 68.573,
+				"node": "counter__glulam",
+				"slot": "glulam",
+				"stage": "counter"
+			},
+			{
+				"mass": 11.52,
+				"node": "counter__plastic_black",
+				"slot": "plastic_black",
+				"stage": "counter"
+			},
+			{
+				"mass": 46.628,
+				"node": "counter__brass",
+				"slot": "brass",
+				"stage": "counter"
+			},
+			{
+				"mass": 4.416,
+				"node": "fittings__glulam",
+				"slot": "glulam",
+				"stage": "fittings"
+			},
+			{
+				"mass": 1.696,
+				"node": "fittings__hardwood",
+				"slot": "hardwood",
+				"stage": "fittings"
+			},
+			{
+				"mass": 0.424,
+				"node": "fittings__plastic_red",
+				"slot": "plastic_red",
+				"stage": "fittings"
+			},
+			{
+				"mass": 5.568,
+				"node": "fittings__ceramic",
+				"slot": "ceramic",
+				"stage": "fittings"
+			},
+			{
+				"mass": 0.424,
+				"node": "fittings__plastic_green",
+				"slot": "plastic_green",
+				"stage": "fittings"
+			},
+			{
+				"mass": 2.904,
+				"node": "fittings__plastic_black",
+				"slot": "plastic_black",
+				"stage": "fittings"
+			},
+			{
+				"mass": 0.424,
+				"node": "fittings__plastic_yellow",
+				"slot": "plastic_yellow",
+				"stage": "fittings"
+			},
+			{
+				"mass": 6.968,
+				"node": "fittings__rubber",
+				"slot": "rubber",
+				"stage": "fittings"
+			}
+		],
+		"sockets": {},
+		"stages": [
+			"counter",
+			"fittings"
+		],
+		"stretch": "",
+		"tags": [
+			"bar",
+			"hospitality",
+			"pub"
+		],
+		"tris": 1412
+	},
+	"hospitality.pub.booth": {
+		"aabb": [
+			[
+				-0.65,
+				0.0,
+				-1.07
+			],
+			[
+				0.65,
+				1.2,
+				1.07
+			]
+		],
+		"category": "hospitality",
+		"family": "fixture",
+		"file": "models/hospitality/hospitality.pub.booth.glb",
+		"kind": "",
+		"label": "Booth with table",
+		"mass": 222.2,
+		"pieces": [
+			{
+				"mass": 118.404,
+				"node": "seats__glulam",
+				"slot": "glulam",
+				"stage": "seats"
+			},
+			{
+				"mass": 31.252,
+				"node": "seats__fabric_red",
+				"slot": "fabric_red",
+				"stage": "seats"
+			},
+			{
+				"mass": 15.456,
+				"node": "table__glulam",
+				"slot": "glulam",
+				"stage": "table"
+			},
+			{
+				"mass": 57.096,
+				"node": "table__cast_iron",
+				"slot": "cast_iron",
+				"stage": "table"
+			}
+		],
+		"sockets": {},
+		"stages": [
+			"seats",
+			"table"
+		],
+		"stretch": "",
+		"tags": [
+			"bar",
+			"hospitality",
+			"pub"
+		],
+		"tris": 904
+	},
+	"hospitality.pub.bottle_fridge": {
+		"aabb": [
+			[
+				-0.45,
+				0.0,
+				-0.285
+			],
+			[
+				0.45,
+				0.88,
+				0.25
+			]
+		],
+		"category": "hospitality",
+		"family": "fixture",
+		"file": "models/hospitality/hospitality.pub.bottle_fridge.glb",
+		"kind": "",
+		"label": "Bottle fridge",
+		"mass": 200.8,
+		"pieces": [
+			{
+				"mass": 142.56,
+				"node": "main__plastic_black",
+				"slot": "plastic_black",
+				"stage": "main"
+			},
+			{
+				"mass": 28.606,
+				"node": "main__glass",
+				"slot": "glass",
+				"stage": "main"
+			},
+			{
+				"mass": 3.792,
+				"node": "main__steel_stainless",
+				"slot": "steel_stainless",
+				"stage": "main"
+			},
+			{
+				"mass": 2.544,
+				"node": "main__plastic_green",
+				"slot": "plastic_green",
+				"stage": "main"
+			},
+			{
+				"mass": 5.296,
+				"node": "main__glass_dark",
+				"slot": "glass_dark",
+				"stage": "main"
+			},
+			{
+				"mass": 17.992,
+				"node": "main__brass",
+				"slot": "brass",
+				"stage": "main"
+			}
+		],
+		"sockets": {},
+		"stages": [
+			"main"
+		],
+		"stretch": "",
+		"tags": [
+			"bar",
+			"hospitality",
+			"pub"
+		],
+		"tris": 828
+	},
+	"hospitality.pub.cask": {
+		"aabb": [
+			[
+				-0.26,
+				0.0,
+				-0.33
+			],
+			[
+				0.26,
+				0.5561,
+				0.33
+			]
+		],
+		"category": "hospitality",
+		"family": "fixture",
+		"file": "models/hospitality/hospitality.pub.cask.glb",
+		"kind": "",
+		"label": "Cask on a stillage",
+		"mass": 85.8,
+		"pieces": [
+			{
+				"mass": 81.397,
+				"node": "main__hardwood",
+				"slot": "hardwood",
+				"stage": "main"
+			},
+			{
+				"mass": 4.386,
+				"node": "main__cast_iron",
+				"slot": "cast_iron",
+				"stage": "main"
+			}
+		],
+		"sockets": {},
+		"stages": [
+			"main"
+		],
+		"stretch": "",
+		"tags": [
+			"bar",
+			"hospitality",
+			"pub"
+		],
+		"tris": 488
+	},
+	"hospitality.pub.dartboard": {
+		"aabb": [
+			[
+				-0.89,
+				1.28,
+				-0.0665
+			],
+			[
+				0.89,
+				2.18,
+				0.03
+			]
+		],
+		"category": "hospitality",
+		"family": "fixture",
+		"file": "models/hospitality/hospitality.pub.dartboard.glb",
+		"kind": "",
+		"label": "Dartboard cabinet",
+		"mass": 48.5,
+		"pieces": [
+			{
+				"mass": 33.286,
+				"node": "main__glulam",
+				"slot": "glulam",
+				"stage": "main"
+			},
+			{
+				"mass": 7.547,
+				"node": "main__plastic_black",
+				"slot": "plastic_black",
+				"stage": "main"
+			},
+			{
+				"mass": 0.621,
+				"node": "main__plastic_red",
+				"slot": "plastic_red",
+				"stage": "main"
+			},
+			{
+				"mass": 6.998,
+				"node": "main__slate",
+				"slot": "slate",
+				"stage": "main"
+			}
+		],
+		"sockets": {},
+		"stages": [
+			"main"
+		],
+		"stretch": "",
+		"tags": [
+			"bar",
+			"hospitality",
+			"pub"
+		],
+		"tris": 372
+	},
+	"hospitality.pub.fireplace": {
+		"aabb": [
+			[
+				-1.0,
+				-0.011,
+				-0.65
+			],
+			[
+				1.0,
+				1.315,
+				0.225
+			]
+		],
+		"category": "hospitality",
+		"family": "fixture",
+		"file": "models/hospitality/hospitality.pub.fireplace.glb",
+		"kind": "",
+		"label": "Brick fireplace with fire",
+		"mass": 1470.0,
+		"pieces": [
+			{
+				"mass": 1154.25,
+				"node": "main__brick",
+				"slot": "brick",
+				"stage": "main"
+			},
+			{
+				"mass": 172.8,
+				"node": "main__plastic_black",
+				"slot": "plastic_black",
+				"stage": "main"
+			},
+			{
+				"mass": 19.32,
+				"node": "main__glulam",
+				"slot": "glulam",
+				"stage": "main"
+			},
+			{
+				"mass": 108.0,
+				"node": "main__slate",
+				"slot": "slate",
+				"stage": "main"
+			},
+			{
+				"mass": 7.663,
+				"node": "main__bark",
+				"slot": "bark",
+				"stage": "main"
+			},
+			{
+				"mass": 7.92,
+				"node": "main__glow",
+				"slot": "glow",
+				"stage": "main"
+			}
+		],
+		"sockets": {},
+		"stages": [
+			"main"
+		],
+		"stretch": "",
+		"tags": [
+			"bar",
+			"hospitality",
+			"pub"
+		],
+		"tris": 144
+	},
+	"hospitality.pub.fruit_machine": {
+		"aabb": [
+			[
+				-0.325,
+				0.0,
+				-0.335
+			],
+			[
+				0.325,
+				1.85,
+				0.3
+			]
+		],
+		"category": "hospitality",
+		"family": "fixture",
+		"file": "models/hospitality/hospitality.pub.fruit_machine.glb",
+		"kind": "",
+		"label": "Fruit machine",
+		"mass": 259.8,
+		"pieces": [
+			{
+				"mass": 244.53,
+				"node": "main__plastic_black",
+				"slot": "plastic_black",
+				"stage": "main"
+			},
+			{
+				"mass": 6.6,
+				"node": "main__screen",
+				"slot": "screen",
+				"stage": "main"
+			},
+			{
+				"mass": 1.32,
+				"node": "main__glow",
+				"slot": "glow",
+				"stage": "main"
+			},
+			{
+				"mass": 2.64,
+				"node": "main__plastic_red",
+				"slot": "plastic_red",
+				"stage": "main"
+			},
+			{
+				"mass": 4.74,
+				"node": "main__steel_stainless",
+				"slot": "steel_stainless",
+				"stage": "main"
+			}
+		],
+		"sockets": {},
+		"stages": [
+			"main"
+		],
+		"stretch": "",
+		"tags": [
+			"bar",
+			"hospitality",
+			"pub"
+		],
+		"tris": 76
+	},
+	"hospitality.pub.jukebox": {
+		"aabb": [
+			[
+				-0.4,
+				0.0,
+				-0.29
+			],
+			[
+				0.4,
+				1.4,
+				0.275
+			]
+		],
+		"category": "hospitality",
+		"family": "fixture",
+		"file": "models/hospitality/hospitality.pub.jukebox.glb",
+		"kind": "",
+		"label": "Jukebox",
+		"mass": 114.0,
+		"pieces": [
+			{
+				"mass": 79.579,
+				"node": "main__glulam",
+				"slot": "glulam",
+				"stage": "main"
+			},
+			{
+				"mass": 3.571,
+				"node": "main__glow",
+				"slot": "glow",
+				"stage": "main"
+			},
+			{
+				"mass": 28.458,
+				"node": "main__brass",
+				"slot": "brass",
+				"stage": "main"
+			},
+			{
+				"mass": 2.4,
+				"node": "main__plastic_red",
+				"slot": "plastic_red",
+				"stage": "main"
+			}
+		],
+		"sockets": {},
+		"stages": [
+			"main"
+		],
+		"stretch": "",
+		"tags": [
+			"bar",
+			"hospitality",
+			"pub"
+		],
+		"tris": 104
+	},
+	"hospitality.pub.keg": {
+		"aabb": [
+			[
+				-0.21,
+				0.0,
+				-0.2068
+			],
+			[
+				0.21,
+				0.62,
+				0.2068
+			]
+		],
+		"category": "hospitality",
+		"family": "fixture",
+		"file": "models/hospitality/hospitality.pub.keg.glb",
+		"kind": "",
+		"label": "Beer keg",
+		"mass": 185.6,
+		"pieces": [
+			{
+				"mass": 185.573,
+				"node": "main__aluminium",
+				"slot": "aluminium",
+				"stage": "main"
+			}
+		],
+		"sockets": {},
+		"stages": [
+			"main"
+		],
+		"stretch": "",
+		"tags": [
+			"bar",
+			"hospitality",
+			"pub"
+		],
+		"tris": 356
+	},
+	"hospitality.pub.picnic_bench": {
+		"aabb": [
+			[
+				-0.9,
+				-0.0197,
+				-0.905
+			],
+			[
+				0.9,
+				0.76,
+				0.905
+			]
+		],
+		"category": "hospitality",
+		"family": "fixture",
+		"file": "models/hospitality/hospitality.pub.picnic_bench.glb",
+		"kind": "",
+		"label": "Beer garden picnic bench",
+		"mass": 52.2,
+		"pieces": [
+			{
+				"mass": 52.206,
+				"node": "main__softwood",
+				"slot": "softwood",
+				"stage": "main"
+			}
+		],
+		"sockets": {},
+		"stages": [
+			"main"
+		],
+		"stretch": "",
+		"tags": [
+			"bar",
+			"hospitality",
+			"pub"
+		],
+		"tris": 204
+	},
+	"hospitality.pub.pool_table": {
+		"aabb": [
+			[
+				-0.6,
+				0.0,
+				-1.05
+			],
+			[
+				0.6,
+				0.908,
+				1.05
+			]
+		],
+		"category": "hospitality",
+		"family": "fixture",
+		"file": "models/hospitality/hospitality.pub.pool_table.glb",
+		"kind": "",
+		"label": "Pool table",
+		"mass": 195.8,
+		"pieces": [
+			{
+				"mass": 190.996,
+				"node": "main__glulam",
+				"slot": "glulam",
+				"stage": "main"
+			},
+			{
+				"mass": 2.736,
+				"node": "main__fabric_blue",
+				"slot": "fabric_blue",
+				"stage": "main"
+			},
+			{
+				"mass": 1.278,
+				"node": "main__plastic_black",
+				"slot": "plastic_black",
+				"stage": "main"
+			},
+			{
+				"mass": 0.255,
+				"node": "main__plastic_red",
+				"slot": "plastic_red",
+				"stage": "main"
+			},
+			{
+				"mass": 0.255,
+				"node": "main__plastic_yellow",
+				"slot": "plastic_yellow",
+				"stage": "main"
+			},
+			{
+				"mass": 0.305,
+				"node": "main__hardwood",
+				"slot": "hardwood",
+				"stage": "main"
+			}
+		],
+		"sockets": {},
+		"stages": [
+			"main"
+		],
+		"stretch": "",
+		"tags": [
+			"bar",
+			"hospitality",
+			"pub"
+		],
+		"tris": 1060
+	},
+	"hospitality.pub.sign": {
+		"aabb": [
+			[
+				-0.07,
+				0.0,
+				-0.07
+			],
+			[
+				1.25,
+				4.2,
+				0.07
+			]
+		],
+		"category": "hospitality",
+		"family": "fixture",
+		"file": "models/hospitality/hospitality.pub.sign.glb",
+		"kind": "",
+		"label": "Hanging pub sign",
+		"mass": 248.4,
+		"pieces": [
+			{
+				"mass": 45.554,
+				"node": "main__glulam",
+				"slot": "glulam",
+				"stage": "main"
+			},
+			{
+				"mass": 82.08,
+				"node": "main__plastic_green",
+				"slot": "plastic_green",
+				"stage": "main"
+			},
+			{
+				"mass": 25.2,
+				"node": "main__paint_white",
+				"slot": "paint_white",
+				"stage": "main"
+			},
+			{
+				"mass": 95.2,
+				"node": "main__brass",
+				"slot": "brass",
+				"stage": "main"
+			},
+			{
+				"mass": 0.342,
+				"node": "main__cast_iron",
+				"slot": "cast_iron",
+				"stage": "main"
+			}
+		],
+		"sockets": {},
+		"stages": [
+			"main"
+		],
+		"stretch": "",
+		"tags": [
+			"bar",
+			"hospitality",
+			"pub"
+		],
+		"tris": 104
+	},
+	"hospitality.pub.snooker_table": {
+		"aabb": [
+			[
+				-1.0,
+				0.0,
+				-1.9
+			],
+			[
+				1.0,
+				0.908,
+				1.9
+			]
+		],
+		"category": "hospitality",
+		"family": "fixture",
+		"file": "models/hospitality/hospitality.pub.snooker_table.glb",
+		"kind": "",
+		"label": "Snooker table, full size",
+		"mass": 543.6,
+		"pieces": [
+			{
+				"mass": 531.948,
+				"node": "main__glulam",
+				"slot": "glulam",
+				"stage": "main"
+			},
+			{
+				"mass": 9.331,
+				"node": "main__fabric_green",
+				"slot": "fabric_green",
+				"stage": "main"
+			},
+			{
+				"mass": 1.278,
+				"node": "main__plastic_black",
+				"slot": "plastic_black",
+				"stage": "main"
+			},
+			{
+				"mass": 0.255,
+				"node": "main__plastic_red",
+				"slot": "plastic_red",
+				"stage": "main"
+			},
+			{
+				"mass": 0.255,
+				"node": "main__plastic_yellow",
+				"slot": "plastic_yellow",
+				"stage": "main"
+			},
+			{
+				"mass": 0.549,
+				"node": "main__hardwood",
+				"slot": "hardwood",
+				"stage": "main"
+			}
+		],
+		"sockets": {},
+		"stages": [
+			"main"
+		],
+		"stretch": "",
+		"tags": [
+			"bar",
+			"hospitality",
+			"pub"
+		],
+		"tris": 1060
+	},
+	"hospitality.pub.stool": {
+		"aabb": [
+			[
+				-0.18,
+				-0.0028,
+				-0.18
+			],
+			[
+				0.18,
+				0.48,
+				0.18
+			]
+		],
+		"category": "hospitality",
+		"family": "fixture",
+		"file": "models/hospitality/hospitality.pub.stool.glb",
+		"kind": "",
+		"label": "Pub stool",
+		"mass": 2.1,
+		"pieces": [
+			{
+				"mass": 0.637,
+				"node": "main__fabric_red",
+				"slot": "fabric_red",
+				"stage": "main"
+			},
+			{
+				"mass": 1.471,
+				"node": "main__glulam",
+				"slot": "glulam",
+				"stage": "main"
+			}
+		],
+		"sockets": {},
+		"stages": [
+			"main"
+		],
+		"stretch": "",
+		"tags": [
+			"bar",
+			"hospitality",
+			"pub"
+		],
+		"tris": 312
+	},
+	"hospitality.pub.table": {
+		"aabb": [
+			[
+				-0.38,
+				0.0,
+				-0.38
+			],
+			[
+				0.38,
+				0.7525,
+				0.38
+			]
+		],
+		"category": "hospitality",
+		"family": "fixture",
+		"file": "models/hospitality/hospitality.pub.table.glb",
+		"kind": "",
+		"label": "Pub table, round",
+		"mass": 90.9,
+		"pieces": [
+			{
+				"mass": 7.221,
+				"node": "main__glulam",
+				"slot": "glulam",
+				"stage": "main"
+			},
+			{
+				"mass": 83.717,
+				"node": "main__cast_iron",
+				"slot": "cast_iron",
+				"stage": "main"
+			}
+		],
+		"sockets": {},
+		"stages": [
+			"main"
+		],
+		"stretch": "",
+		"tags": [
+			"bar",
+			"hospitality",
+			"pub"
+		],
+		"tris": 228
+	},
+	"hospitality.restaurant.banquette": {
+		"aabb": [
+			[
+				-1.2,
+				0.0,
+				-0.275
+			],
+			[
+				1.2,
+				1.05,
+				0.28
+			]
+		],
+		"category": "hospitality",
+		"family": "fixture",
+		"file": "models/hospitality/hospitality.restaurant.banquette.glb",
+		"kind": "",
+		"label": "Banquette seating",
+		"mass": 192.5,
+		"pieces": [
+			{
+				"mass": 104.328,
+				"node": "main__glulam",
+				"slot": "glulam",
+				"stage": "main"
+			},
+			{
+				"mass": 88.129,
+				"node": "main__leather_black",
+				"slot": "leather_black",
+				"stage": "main"
+			}
+		],
+		"sockets": {},
+		"stages": [
+			"main"
+		],
+		"stretch": "",
+		"tags": [
+			"hospitality",
+			"restaurant"
+		],
+		"tris": 964
+	},
+	"hospitality.restaurant.buffet": {
+		"aabb": [
+			[
+				-1.22,
+				0.0,
+				-0.465
+			],
+			[
+				1.22,
+				1.4488,
+				0.405
+			]
+		],
+		"category": "hospitality",
+		"family": "fixture",
+		"file": "models/hospitality/hospitality.restaurant.buffet.glb",
+		"kind": "",
+		"label": "Buffet counter with chafing dishes",
+		"mass": 1880.2,
+		"pieces": [
+			{
+				"mass": 227.204,
+				"node": "main__laminate_white",
+				"slot": "laminate_white",
+				"stage": "main"
+			},
+			{
+				"mass": 1631.406,
+				"node": "main__steel_stainless",
+				"slot": "steel_stainless",
+				"stage": "main"
+			},
+			{
+				"mass": 21.6,
+				"node": "main__glass",
+				"slot": "glass",
+				"stage": "main"
+			}
+		],
+		"sockets": {},
+		"stages": [
+			"main"
+		],
+		"stretch": "",
+		"tags": [
+			"hospitality",
+			"restaurant"
+		],
+		"tris": 444
+	},
+	"hospitality.restaurant.high_chair": {
+		"aabb": [
+			[
+				-0.2854,
+				-0.003,
+				-0.31
+			],
+			[
+				0.2854,
+				0.87,
+				0.2854
+			]
+		],
+		"category": "hospitality",
+		"family": "fixture",
+		"file": "models/hospitality/hospitality.restaurant.high_chair.glb",
+		"kind": "",
+		"label": "High chair",
+		"mass": 7.4,
+		"pieces": [
+			{
+				"mass": 6.258,
+				"node": "main__hardwood",
+				"slot": "hardwood",
+				"stage": "main"
+			},
+			{
+				"mass": 1.109,
+				"node": "main__paint_white",
+				"slot": "paint_white",
+				"stage": "main"
+			}
+		],
+		"sockets": {},
+		"stages": [
+			"main"
+		],
+		"stretch": "",
+		"tags": [
+			"hospitality",
+			"restaurant"
+		],
+		"tris": 116
+	},
+	"hospitality.restaurant.host_stand": {
+		"aabb": [
+			[
+				-0.33,
+				0.0,
+				-0.2477
+			],
+			[
+				0.33,
+				1.5077,
+				0.2477
+			]
+		],
+		"category": "hospitality",
+		"family": "fixture",
+		"file": "models/hospitality/hospitality.restaurant.host_stand.glb",
+		"kind": "",
+		"label": "Host stand",
+		"mass": 37.7,
+		"pieces": [
+			{
+				"mass": 31.878,
+				"node": "main__glulam",
+				"slot": "glulam",
+				"stage": "main"
+			},
+			{
+				"mass": 0.792,
+				"node": "main__paint_white",
+				"slot": "paint_white",
+				"stage": "main"
+			},
+			{
+				"mass": 4.992,
+				"node": "main__brass",
+				"slot": "brass",
+				"stage": "main"
+			}
+		],
+		"sockets": {},
+		"stages": [
+			"main"
+		],
+		"stretch": "",
+		"tags": [
+			"hospitality",
+			"restaurant"
+		],
+		"tris": 92
+	},
+	"hospitality.restaurant.laid_table_2": {
+		"aabb": [
+			[
+				-0.53,
+				0.0,
+				-0.89
+			],
+			[
+				0.53,
+				1.04,
+				0.89
+			]
+		],
+		"category": "hospitality",
+		"family": "fixture",
+		"file": "models/hospitality/hospitality.restaurant.laid_table_2.glb",
+		"kind": "",
+		"label": "Laid restaurant table for two",
+		"mass": 30.2,
+		"pieces": [
+			{
+				"mass": 2.676,
+				"node": "table__fabric_white",
+				"slot": "fabric_white",
+				"stage": "table"
+			},
+			{
+				"mass": 17.62,
+				"node": "table__hardwood",
+				"slot": "hardwood",
+				"stage": "table"
+			},
+			{
+				"mass": 0.808,
+				"node": "chairs__glulam",
+				"slot": "glulam",
+				"stage": "chairs"
+			},
+			{
+				"mass": 2.41,
+				"node": "chairs__fabric_red",
+				"slot": "fabric_red",
+				"stage": "chairs"
+			},
+			{
+				"mass": 2.834,
+				"node": "setting__ceramic",
+				"slot": "ceramic",
+				"stage": "setting"
+			},
+			{
+				"mass": 3.351,
+				"node": "setting__glass",
+				"slot": "glass",
+				"stage": "setting"
+			},
+			{
+				"mass": 0.483,
+				"node": "setting__plastic_red",
+				"slot": "plastic_red",
+				"stage": "setting"
+			}
+		],
+		"sockets": {},
+		"stages": [
+			"table",
+			"chairs",
+			"setting"
+		],
+		"stretch": "",
+		"tags": [
+			"hospitality",
+			"restaurant"
+		],
+		"tris": 1332
+	},
+	"hospitality.restaurant.laid_table_4": {
+		"aabb": [
+			[
+				-0.78,
+				0.0,
+				-0.89
+			],
+			[
+				0.78,
+				1.04,
+				0.89
+			]
+		],
+		"category": "hospitality",
+		"family": "fixture",
+		"file": "models/hospitality/hospitality.restaurant.laid_table_4.glb",
+		"kind": "",
+		"label": "Laid restaurant table for four",
+		"mass": 47.7,
+		"pieces": [
+			{
+				"mass": 3.636,
+				"node": "table__fabric_white",
+				"slot": "fabric_white",
+				"stage": "table"
+			},
+			{
+				"mass": 26.02,
+				"node": "table__hardwood",
+				"slot": "hardwood",
+				"stage": "table"
+			},
+			{
+				"mass": 1.616,
+				"node": "chairs__glulam",
+				"slot": "glulam",
+				"stage": "chairs"
+			},
+			{
+				"mass": 4.82,
+				"node": "chairs__fabric_red",
+				"slot": "fabric_red",
+				"stage": "chairs"
+			},
+			{
+				"mass": 5.668,
+				"node": "setting__ceramic",
+				"slot": "ceramic",
+				"stage": "setting"
+			},
+			{
+				"mass": 5.429,
+				"node": "setting__glass",
+				"slot": "glass",
+				"stage": "setting"
+			},
+			{
+				"mass": 0.483,
+				"node": "setting__plastic_red",
+				"slot": "plastic_red",
+				"stage": "setting"
+			}
+		],
+		"sockets": {},
+		"stages": [
+			"table",
+			"chairs",
+			"setting"
+		],
+		"stretch": "",
+		"tags": [
+			"hospitality",
+			"restaurant"
+		],
+		"tris": 2468
+	},
+	"hospitality.restaurant.laid_table_6": {
+		"aabb": [
+			[
+				-1.105,
+				0.0,
+				-0.89
+			],
+			[
+				1.105,
+				1.04,
+				0.89
+			]
+		],
+		"category": "hospitality",
+		"family": "fixture",
+		"file": "models/hospitality/hospitality.restaurant.laid_table_6.glb",
+		"kind": "",
+		"label": "Laid restaurant table for six",
+		"mass": 68.0,
+		"pieces": [
+			{
+				"mass": 4.884,
+				"node": "table__fabric_white",
+				"slot": "fabric_white",
+				"stage": "table"
+			},
+			{
+				"mass": 36.94,
+				"node": "table__hardwood",
+				"slot": "hardwood",
+				"stage": "table"
+			},
+			{
+				"mass": 2.424,
+				"node": "chairs__glulam",
+				"slot": "glulam",
+				"stage": "chairs"
+			},
+			{
+				"mass": 7.23,
+				"node": "chairs__fabric_red",
+				"slot": "fabric_red",
+				"stage": "chairs"
+			},
+			{
+				"mass": 8.502,
+				"node": "setting__ceramic",
+				"slot": "ceramic",
+				"stage": "setting"
+			},
+			{
+				"mass": 7.507,
+				"node": "setting__glass",
+				"slot": "glass",
+				"stage": "setting"
+			},
+			{
+				"mass": 0.483,
+				"node": "setting__plastic_red",
+				"slot": "plastic_red",
+				"stage": "setting"
+			}
+		],
+		"sockets": {},
+		"stages": [
+			"table",
+			"chairs",
+			"setting"
+		],
+		"stretch": "",
+		"tags": [
+			"hospitality",
+			"restaurant"
+		],
+		"tris": 3604
+	},
+	"hospitality.restaurant.laid_table_8": {
+		"aabb": [
+			[
+				-1.405,
+				0.0,
+				-0.89
+			],
+			[
+				1.405,
+				1.04,
+				0.89
+			]
+		],
+		"category": "hospitality",
+		"family": "fixture",
+		"file": "models/hospitality/hospitality.restaurant.laid_table_8.glb",
+		"kind": "",
+		"label": "Laid restaurant table for eight",
+		"mass": 87.3,
+		"pieces": [
+			{
+				"mass": 6.036,
+				"node": "table__fabric_white",
+				"slot": "fabric_white",
+				"stage": "table"
+			},
+			{
+				"mass": 47.02,
+				"node": "table__hardwood",
+				"slot": "hardwood",
+				"stage": "table"
+			},
+			{
+				"mass": 3.232,
+				"node": "chairs__glulam",
+				"slot": "glulam",
+				"stage": "chairs"
+			},
+			{
+				"mass": 9.64,
+				"node": "chairs__fabric_red",
+				"slot": "fabric_red",
+				"stage": "chairs"
+			},
+			{
+				"mass": 11.336,
+				"node": "setting__ceramic",
+				"slot": "ceramic",
+				"stage": "setting"
+			},
+			{
+				"mass": 9.585,
+				"node": "setting__glass",
+				"slot": "glass",
+				"stage": "setting"
+			},
+			{
+				"mass": 0.483,
+				"node": "setting__plastic_red",
+				"slot": "plastic_red",
+				"stage": "setting"
+			}
+		],
+		"sockets": {},
+		"stages": [
+			"table",
+			"chairs",
+			"setting"
+		],
+		"stretch": "",
+		"tags": [
+			"hospitality",
+			"restaurant"
+		],
+		"tris": 4740
+	},
+	"hospitality.restaurant.waiter_station": {
+		"aabb": [
+			[
+				-0.5,
+				0.0,
+				-0.29
+			],
+			[
+				0.5,
+				1.62,
+				0.25
+			]
+		],
+		"category": "hospitality",
+		"family": "fixture",
+		"file": "models/hospitality/hospitality.restaurant.waiter_station.glb",
+		"kind": "",
+		"label": "Waiter station",
+		"mass": 103.8,
+		"pieces": [
+			{
+				"mass": 58.223,
+				"node": "main__glulam",
+				"slot": "glulam",
+				"stage": "main"
+			},
+			{
+				"mass": 27.0,
+				"node": "main__steel_stainless",
+				"slot": "steel_stainless",
+				"stage": "main"
+			},
+			{
+				"mass": 15.65,
+				"node": "main__ceramic",
+				"slot": "ceramic",
+				"stage": "main"
+			},
+			{
+				"mass": 2.88,
+				"node": "main__screen",
+				"slot": "screen",
+				"stage": "main"
+			}
+		],
+		"sockets": {},
+		"stages": [
+			"main"
+		],
+		"stretch": "",
+		"tags": [
+			"hospitality",
+			"restaurant"
+		],
+		"tris": 292
+	},
+	"hospitality.restaurant.wine_rack": {
+		"aabb": [
+			[
+				-0.5,
+				0.0,
+				-0.16
+			],
+			[
+				0.5,
+				1.9,
+				0.16
+			]
+		],
+		"category": "hospitality",
+		"family": "fixture",
+		"file": "models/hospitality/hospitality.restaurant.wine_rack.glb",
+		"kind": "",
+		"label": "Wine rack",
+		"mass": 180.1,
+		"pieces": [
+			{
+				"mass": 45.4,
+				"node": "main__glulam",
+				"slot": "glulam",
+				"stage": "main"
+			},
+			{
+				"mass": 26.064,
+				"node": "main__plastic_green",
+				"slot": "plastic_green",
+				"stage": "main"
+			},
+			{
+				"mass": 108.608,
+				"node": "main__glass_dark",
+				"slot": "glass_dark",
+				"stage": "main"
+			}
+		],
+		"sockets": {},
+		"stages": [
+			"main"
+		],
+		"stretch": "",
+		"tags": [
+			"hospitality",
+			"restaurant"
+		],
+		"tris": 1488
+	},
 	"hospitality.room.cinema_seats": {
 		"aabb": [
 			[
@@ -42292,6 +48613,629 @@
 			"hospitality"
 		],
 		"tris": 140
+	},
+	"industrial.depot.charger": {
+		"aabb": [
+			[
+				-0.3,
+				0.0627,
+				-0.9194
+			],
+			[
+				0.9049,
+				1.45,
+				0.205
+			]
+		],
+		"category": "industrial",
+		"family": "fixture",
+		"file": "models/industrial/industrial.depot.charger.glb",
+		"kind": "",
+		"label": "Forklift charger",
+		"mass": 147.8,
+		"pieces": [
+			{
+				"mass": 129.6,
+				"node": "main__plastic_yellow",
+				"slot": "plastic_yellow",
+				"stage": "main"
+			},
+			{
+				"mass": 0.9,
+				"node": "main__screen",
+				"slot": "screen",
+				"stage": "main"
+			},
+			{
+				"mass": 1.562,
+				"node": "main__plastic_black",
+				"slot": "plastic_black",
+				"stage": "main"
+			},
+			{
+				"mass": 15.7,
+				"node": "main__steel_painted",
+				"slot": "steel_painted",
+				"stage": "main"
+			}
+		],
+		"sockets": {},
+		"stages": [
+			"main"
+		],
+		"stretch": "",
+		"tags": [
+			"industrial",
+			"loading_bay",
+			"warehouse"
+		],
+		"tris": 80
+	},
+	"industrial.depot.conveyor": {
+		"aabb": [
+			[
+				-0.375,
+				0.0,
+				-1.5
+			],
+			[
+				0.375,
+				1.105,
+				1.5
+			]
+		],
+		"category": "industrial",
+		"family": "fixture",
+		"file": "models/industrial/industrial.depot.conveyor.glb",
+		"kind": "",
+		"label": "Roller conveyor, 3 m",
+		"mass": 569.2,
+		"pieces": [
+			{
+				"mass": 337.548,
+				"node": "main__steel_galvanised",
+				"slot": "steel_galvanised",
+				"stage": "main"
+			},
+			{
+				"mass": 214.512,
+				"node": "main__steel_stainless",
+				"slot": "steel_stainless",
+				"stage": "main"
+			},
+			{
+				"mass": 10.8,
+				"node": "main__plywood",
+				"slot": "plywood",
+				"stage": "main"
+			},
+			{
+				"mass": 6.3,
+				"node": "main__softwood",
+				"slot": "softwood",
+				"stage": "main"
+			}
+		],
+		"sockets": {
+			"next": [
+				0.0,
+				0.0,
+				-3.0
+			]
+		},
+		"stages": [
+			"main"
+		],
+		"stretch": "",
+		"tags": [
+			"industrial",
+			"loading_bay",
+			"warehouse"
+		],
+		"tris": 768
+	},
+	"industrial.depot.dock_light": {
+		"aabb": [
+			[
+				-0.075,
+				-0.18,
+				-1.1
+			],
+			[
+				1.06,
+				0.125,
+				-0.0
+			]
+		],
+		"category": "industrial",
+		"family": "fixture",
+		"file": "models/industrial/industrial.depot.dock_light.glb",
+		"kind": "",
+		"label": "Dock light",
+		"mass": 13.6,
+		"pieces": [
+			{
+				"mass": 13.012,
+				"node": "main__plastic_yellow",
+				"slot": "plastic_yellow",
+				"stage": "main"
+			},
+			{
+				"mass": 0.583,
+				"node": "main__glow",
+				"slot": "glow",
+				"stage": "main"
+			}
+		],
+		"sockets": {
+			"wall": [
+				0.0,
+				0.0,
+				-0.0
+			]
+		},
+		"stages": [
+			"main"
+		],
+		"stretch": "",
+		"tags": [
+			"industrial",
+			"loading_bay",
+			"warehouse"
+		],
+		"tris": 140
+	},
+	"industrial.depot.dock_platform": {
+		"aabb": [
+			[
+				-3.004,
+				0.0,
+				-1.62
+			],
+			[
+				3.8,
+				1.204,
+				1.5
+			]
+		],
+		"category": "industrial",
+		"family": "fixture",
+		"file": "models/industrial/industrial.depot.dock_platform.glb",
+		"kind": "",
+		"label": "Loading platform with steps",
+		"mass": 27859.3,
+		"pieces": [
+			{
+				"mass": 27720.001,
+				"node": "main__concrete",
+				"slot": "concrete",
+				"stage": "main"
+			},
+			{
+				"mass": 103.68,
+				"node": "main__plastic_yellow",
+				"slot": "plastic_yellow",
+				"stage": "main"
+			},
+			{
+				"mass": 35.64,
+				"node": "main__rubber",
+				"slot": "rubber",
+				"stage": "main"
+			}
+		],
+		"sockets": {},
+		"stages": [
+			"main"
+		],
+		"stretch": "",
+		"tags": [
+			"industrial",
+			"loading_bay",
+			"warehouse"
+		],
+		"tris": 132
+	},
+	"industrial.depot.dock_shelter": {
+		"aabb": [
+			[
+				-1.7,
+				0.7,
+				-0.6325
+			],
+			[
+				1.7,
+				4.5,
+				-0.0
+			]
+		],
+		"category": "industrial",
+		"family": "fixture",
+		"file": "models/industrial/industrial.depot.dock_shelter.glb",
+		"kind": "",
+		"label": "Dock shelter",
+		"mass": 3001.8,
+		"pieces": [
+			{
+				"mass": 2764.8,
+				"node": "main__plastic_black",
+				"slot": "plastic_black",
+				"stage": "main"
+			},
+			{
+				"mass": 229.68,
+				"node": "main__rubber",
+				"slot": "rubber",
+				"stage": "main"
+			},
+			{
+				"mass": 7.28,
+				"node": "main__hivis_yellow",
+				"slot": "hivis_yellow",
+				"stage": "main"
+			}
+		],
+		"sockets": {
+			"wall": [
+				0.0,
+				0.0,
+				-0.0
+			]
+		},
+		"stages": [
+			"main"
+		],
+		"stretch": "",
+		"tags": [
+			"industrial",
+			"loading_bay",
+			"warehouse"
+		],
+		"tris": 132
+	},
+	"industrial.depot.dock_signal": {
+		"aabb": [
+			[
+				-0.1,
+				-0.21,
+				-0.165
+			],
+			[
+				0.1,
+				0.21,
+				-0.0
+			]
+		],
+		"category": "industrial",
+		"family": "fixture",
+		"file": "models/industrial/industrial.depot.dock_signal.glb",
+		"kind": "",
+		"label": "Dock traffic signal",
+		"mass": 5.2,
+		"pieces": [
+			{
+				"mass": 4.536,
+				"node": "main__plastic_black",
+				"slot": "plastic_black",
+				"stage": "main"
+			},
+			{
+				"mass": 0.353,
+				"node": "main__plastic_red",
+				"slot": "plastic_red",
+				"stage": "main"
+			},
+			{
+				"mass": 0.353,
+				"node": "main__plastic_green",
+				"slot": "plastic_green",
+				"stage": "main"
+			}
+		],
+		"sockets": {
+			"wall": [
+				0.0,
+				0.0,
+				-0.0
+			]
+		},
+		"stages": [
+			"main"
+		],
+		"stretch": "",
+		"tags": [
+			"industrial",
+			"loading_bay",
+			"warehouse"
+		],
+		"tris": 100
+	},
+	"industrial.depot.mezzanine": {
+		"aabb": [
+			[
+				-3.0173,
+				0.0,
+				-2.0
+			],
+			[
+				3.975,
+				4.12,
+				2.07
+			]
+		],
+		"category": "industrial",
+		"family": "fixture",
+		"file": "models/industrial/industrial.depot.mezzanine.glb",
+		"kind": "",
+		"label": "Mezzanine floor, 6 x 4 m",
+		"mass": 3156.1,
+		"pieces": [
+			{
+				"mass": 393.12,
+				"node": "frame__plastic_blue",
+				"slot": "plastic_blue",
+				"stage": "frame"
+			},
+			{
+				"mass": 1213.635,
+				"node": "frame__steel_galvanised",
+				"slot": "steel_galvanised",
+				"stage": "frame"
+			},
+			{
+				"mass": 575.999,
+				"node": "deck__plywood",
+				"slot": "plywood",
+				"stage": "deck"
+			},
+			{
+				"mass": 77.71,
+				"node": "deck__plastic_yellow",
+				"slot": "plastic_yellow",
+				"stage": "deck"
+			},
+			{
+				"mass": 826.605,
+				"node": "stair__steel_galvanised",
+				"slot": "steel_galvanised",
+				"stage": "stair"
+			},
+			{
+				"mass": 69.01,
+				"node": "stair__plastic_blue",
+				"slot": "plastic_blue",
+				"stage": "stair"
+			}
+		],
+		"sockets": {
+			"deck": [
+				0.0,
+				3.04,
+				-0.0
+			]
+		},
+		"stages": [
+			"frame",
+			"deck",
+			"stair"
+		],
+		"stretch": "",
+		"tags": [
+			"industrial",
+			"loading_bay",
+			"warehouse"
+		],
+		"tris": 964
+	},
+	"industrial.depot.packing_bench": {
+		"aabb": [
+			[
+				-0.9,
+				0.0,
+				-0.4
+			],
+			[
+				0.9,
+				1.8,
+				0.4
+			]
+		],
+		"category": "industrial",
+		"family": "fixture",
+		"file": "models/industrial/industrial.depot.packing_bench.glb",
+		"kind": "",
+		"label": "Packing bench",
+		"mass": 226.8,
+		"pieces": [
+			{
+				"mass": 57.96,
+				"node": "main__plywood",
+				"slot": "plywood",
+				"stage": "main"
+			},
+			{
+				"mass": 159.576,
+				"node": "main__steel_painted",
+				"slot": "steel_painted",
+				"stage": "main"
+			},
+			{
+				"mass": 9.294,
+				"node": "main__softwood",
+				"slot": "softwood",
+				"stage": "main"
+			}
+		],
+		"sockets": {},
+		"stages": [
+			"main"
+		],
+		"stretch": "",
+		"tags": [
+			"industrial",
+			"loading_bay",
+			"warehouse"
+		],
+		"tris": 212
+	},
+	"industrial.depot.roll_cage": {
+		"aabb": [
+			[
+				-0.408,
+				0.0029,
+				-0.358
+			],
+			[
+				0.408,
+				1.708,
+				0.358
+			]
+		],
+		"category": "industrial",
+		"family": "fixture",
+		"file": "models/industrial/industrial.depot.roll_cage.glb",
+		"kind": "",
+		"label": "Roll cage",
+		"mass": 352.2,
+		"pieces": [
+			{
+				"mass": 219.842,
+				"node": "main__steel_galvanised",
+				"slot": "steel_galvanised",
+				"stage": "main"
+			},
+			{
+				"mass": 1.864,
+				"node": "main__rubber",
+				"slot": "rubber",
+				"stage": "main"
+			},
+			{
+				"mass": 35.28,
+				"node": "main__plywood",
+				"slot": "plywood",
+				"stage": "main"
+			},
+			{
+				"mass": 24.696,
+				"node": "main__softwood",
+				"slot": "softwood",
+				"stage": "main"
+			},
+			{
+				"mass": 70.56,
+				"node": "main__plastic_white",
+				"slot": "plastic_white",
+				"stage": "main"
+			}
+		],
+		"sockets": {},
+		"stages": [
+			"main"
+		],
+		"stretch": "",
+		"tags": [
+			"industrial",
+			"loading_bay",
+			"warehouse"
+		],
+		"tris": 708
+	},
+	"industrial.depot.strip_curtain": {
+		"aabb": [
+			[
+				-1.51,
+				0.0,
+				-0.04
+			],
+			[
+				1.51,
+				3.5,
+				0.04
+			]
+		],
+		"category": "industrial",
+		"family": "fixture",
+		"file": "models/industrial/industrial.depot.strip_curtain.glb",
+		"kind": "",
+		"label": "Strip curtain",
+		"mass": 300.6,
+		"pieces": [
+			{
+				"mass": 188.4,
+				"node": "main__steel_galvanised",
+				"slot": "steel_galvanised",
+				"stage": "main"
+			},
+			{
+				"mass": 112.2,
+				"node": "main__glass",
+				"slot": "glass",
+				"stage": "main"
+			}
+		],
+		"sockets": {
+			"wall": [
+				0.0,
+				0.0,
+				-0.0
+			]
+		},
+		"stages": [
+			"main"
+		],
+		"stretch": "",
+		"tags": [
+			"industrial",
+			"loading_bay",
+			"warehouse"
+		],
+		"tris": 192
+	},
+	"industrial.depot.wheel_chock": {
+		"aabb": [
+			[
+				-0.1,
+				0.0,
+				-0.13
+			],
+			[
+				0.1,
+				0.2,
+				0.13
+			]
+		],
+		"category": "industrial",
+		"family": "fixture",
+		"file": "models/industrial/industrial.depot.wheel_chock.glb",
+		"kind": "",
+		"label": "Wheel chock",
+		"mass": 7.6,
+		"pieces": [
+			{
+				"mass": 7.26,
+				"node": "main__rubber",
+				"slot": "rubber",
+				"stage": "main"
+			},
+			{
+				"mass": 0.312,
+				"node": "main__hivis_yellow",
+				"slot": "hivis_yellow",
+				"stage": "main"
+			}
+		],
+		"sockets": {},
+		"stages": [
+			"main"
+		],
+		"stretch": "",
+		"tags": [
+			"industrial",
+			"loading_bay",
+			"warehouse"
+		],
+		"tris": 28
 	},
 	"industrial.handling.column_guard": {
 		"aabb": [
@@ -49709,6 +56653,1372 @@
 		],
 		"tris": 17500
 	},
+	"justice.court.bar_rail": {
+		"aabb": [
+			[
+				-1.25,
+				0.0,
+				-0.05
+			],
+			[
+				1.25,
+				0.86,
+				0.05
+			]
+		],
+		"category": "justice",
+		"family": "fixture",
+		"file": "models/justice/justice.court.bar_rail.glb",
+		"kind": "",
+		"label": "Court rail",
+		"mass": 18.5,
+		"pieces": [
+			{
+				"mass": 18.455,
+				"node": "main__glulam",
+				"slot": "glulam",
+				"stage": "main"
+			}
+		],
+		"sockets": {},
+		"stages": [
+			"main"
+		],
+		"stretch": "",
+		"tags": [
+			"court",
+			"justice"
+		],
+		"tris": 1068
+	},
+	"justice.court.clerk_desk": {
+		"aabb": [
+			[
+				-1.33,
+				0.0,
+				-0.38
+			],
+			[
+				1.33,
+				1.3,
+				0.91
+			]
+		],
+		"category": "justice",
+		"family": "fixture",
+		"file": "models/justice/justice.court.clerk_desk.glb",
+		"kind": "",
+		"label": "Clerk's desk",
+		"mass": 219.0,
+		"pieces": [
+			{
+				"mass": 156.498,
+				"node": "main__glulam",
+				"slot": "glulam",
+				"stage": "main"
+			},
+			{
+				"mass": 13.86,
+				"node": "main__hardwood",
+				"slot": "hardwood",
+				"stage": "main"
+			},
+			{
+				"mass": 8.1,
+				"node": "main__screen",
+				"slot": "screen",
+				"stage": "main"
+			},
+			{
+				"mass": 36.0,
+				"node": "main__plastic_black",
+				"slot": "plastic_black",
+				"stage": "main"
+			},
+			{
+				"mass": 2.104,
+				"node": "chairs__plastic_black",
+				"slot": "plastic_black",
+				"stage": "chairs"
+			},
+			{
+				"mass": 2.41,
+				"node": "chairs__fabric_blue",
+				"slot": "fabric_blue",
+				"stage": "chairs"
+			}
+		],
+		"sockets": {},
+		"stages": [
+			"main",
+			"chairs"
+		],
+		"stretch": "",
+		"tags": [
+			"court",
+			"justice"
+		],
+		"tris": 1072
+	},
+	"justice.court.counsel_table": {
+		"aabb": [
+			[
+				-1.2,
+				0.0,
+				-0.4
+			],
+			[
+				1.2,
+				1.05,
+				0.86
+			]
+		],
+		"category": "justice",
+		"family": "fixture",
+		"file": "models/justice/justice.court.counsel_table.glb",
+		"kind": "",
+		"label": "Counsel table",
+		"mass": 65.3,
+		"pieces": [
+			{
+				"mass": 48.764,
+				"node": "main__glulam",
+				"slot": "glulam",
+				"stage": "main"
+			},
+			{
+				"mass": 4.752,
+				"node": "main__paint_white",
+				"slot": "paint_white",
+				"stage": "main"
+			},
+			{
+				"mass": 3.96,
+				"node": "main__plastic_red",
+				"slot": "plastic_red",
+				"stage": "main"
+			},
+			{
+				"mass": 2.992,
+				"node": "main__screen",
+				"slot": "screen",
+				"stage": "main"
+			},
+			{
+				"mass": 1.212,
+				"node": "chairs__glulam",
+				"slot": "glulam",
+				"stage": "chairs"
+			},
+			{
+				"mass": 3.615,
+				"node": "chairs__fabric_blue",
+				"slot": "fabric_blue",
+				"stage": "chairs"
+			}
+		],
+		"sockets": {},
+		"stages": [
+			"main",
+			"chairs"
+		],
+		"stretch": "",
+		"tags": [
+			"court",
+			"justice"
+		],
+		"tris": 1596
+	},
+	"justice.court.dock": {
+		"aabb": [
+			[
+				-1.55,
+				0.0,
+				-0.79
+			],
+			[
+				1.55,
+				2.29,
+				0.8
+			]
+		],
+		"category": "justice",
+		"family": "fixture",
+		"file": "models/justice/justice.court.dock.glb",
+		"kind": "",
+		"label": "Secure dock",
+		"mass": 610.7,
+		"pieces": [
+			{
+				"mass": 173.63,
+				"node": "main__glulam",
+				"slot": "glulam",
+				"stage": "main"
+			},
+			{
+				"mass": 18.9,
+				"node": "main__hardwood",
+				"slot": "hardwood",
+				"stage": "main"
+			},
+			{
+				"mass": 330.0,
+				"node": "main__glass",
+				"slot": "glass",
+				"stage": "main"
+			},
+			{
+				"mass": 88.164,
+				"node": "main__steel_stainless",
+				"slot": "steel_stainless",
+				"stage": "main"
+			}
+		],
+		"sockets": {},
+		"stages": [
+			"main"
+		],
+		"stretch": "",
+		"tags": [
+			"court",
+			"justice"
+		],
+		"tris": 180
+	},
+	"justice.court.judges_bench": {
+		"aabb": [
+			[
+				-2.5,
+				0.0,
+				-0.7
+			],
+			[
+				2.5,
+				4.2,
+				1.55
+			]
+		],
+		"category": "justice",
+		"family": "fixture",
+		"file": "models/justice/justice.court.judges_bench.glb",
+		"kind": "",
+		"label": "Judges' bench on a dais",
+		"mass": 2879.4,
+		"pieces": [
+			{
+				"mass": 396.0,
+				"node": "dais__carpet",
+				"slot": "carpet",
+				"stage": "dais"
+			},
+			{
+				"mass": 362.992,
+				"node": "dais__glulam",
+				"slot": "glulam",
+				"stage": "dais"
+			},
+			{
+				"mass": 31.122,
+				"node": "dais__hardwood",
+				"slot": "hardwood",
+				"stage": "dais"
+			},
+			{
+				"mass": 41.222,
+				"node": "seats__leather_black",
+				"slot": "leather_black",
+				"stage": "seats"
+			},
+			{
+				"mass": 7.332,
+				"node": "seats__plastic_black",
+				"slot": "plastic_black",
+				"stage": "seats"
+			},
+			{
+				"mass": 6.183,
+				"node": "seats__fabric_red",
+				"slot": "fabric_red",
+				"stage": "seats"
+			},
+			{
+				"mass": 734.4,
+				"node": "crest__brass",
+				"slot": "brass",
+				"stage": "crest"
+			},
+			{
+				"mass": 40.182,
+				"node": "crest__glulam",
+				"slot": "glulam",
+				"stage": "crest"
+			},
+			{
+				"mass": 1259.999,
+				"node": "crest__hardwood",
+				"slot": "hardwood",
+				"stage": "crest"
+			}
+		],
+		"sockets": {},
+		"stages": [
+			"dais",
+			"seats",
+			"crest"
+		],
+		"stretch": "",
+		"tags": [
+			"court",
+			"justice"
+		],
+		"tris": 1460
+	},
+	"justice.court.judges_desk": {
+		"aabb": [
+			[
+				-1.0,
+				0.0,
+				-0.475
+			],
+			[
+				1.0,
+				1.4,
+				1.01
+			]
+		],
+		"category": "justice",
+		"family": "fixture",
+		"file": "models/justice/justice.court.judges_desk.glb",
+		"kind": "",
+		"label": "Judge's desk and chair",
+		"mass": 176.2,
+		"pieces": [
+			{
+				"mass": 105.634,
+				"node": "main__glulam",
+				"slot": "glulam",
+				"stage": "main"
+			},
+			{
+				"mass": 2.16,
+				"node": "main__leather_black",
+				"slot": "leather_black",
+				"stage": "main"
+			},
+			{
+				"mass": 4.08,
+				"node": "main__hardwood",
+				"slot": "hardwood",
+				"stage": "main"
+			},
+			{
+				"mass": 35.935,
+				"node": "main__brass",
+				"slot": "brass",
+				"stage": "main"
+			},
+			{
+				"mass": 2.16,
+				"node": "main__plastic_green",
+				"slot": "plastic_green",
+				"stage": "main"
+			},
+			{
+				"mass": 13.816,
+				"node": "chair__leather_black",
+				"slot": "leather_black",
+				"stage": "chair"
+			},
+			{
+				"mass": 12.443,
+				"node": "chair__plastic_black",
+				"slot": "plastic_black",
+				"stage": "chair"
+			}
+		],
+		"sockets": {},
+		"stages": [
+			"main",
+			"chair"
+		],
+		"stretch": "",
+		"tags": [
+			"court",
+			"justice"
+		],
+		"tris": 700
+	},
+	"justice.court.jury_box": {
+		"aabb": [
+			[
+				-2.25,
+				-0.004,
+				-0.68
+			],
+			[
+				2.25,
+				1.35,
+				1.554
+			]
+		],
+		"category": "justice",
+		"family": "fixture",
+		"file": "models/justice/justice.court.jury_box.glb",
+		"kind": "",
+		"label": "Jury box, twelve seats",
+		"mass": 846.2,
+		"pieces": [
+			{
+				"mass": 152.46,
+				"node": "main__carpet",
+				"slot": "carpet",
+				"stage": "main"
+			},
+			{
+				"mass": 101.772,
+				"node": "main__glulam",
+				"slot": "glulam",
+				"stage": "main"
+			},
+			{
+				"mass": 24.864,
+				"node": "main__hardwood",
+				"slot": "hardwood",
+				"stage": "main"
+			},
+			{
+				"mass": 70.272,
+				"node": "seats__fabric_green",
+				"slot": "fabric_green",
+				"stage": "seats"
+			},
+			{
+				"mass": 496.8,
+				"node": "seats__glulam",
+				"slot": "glulam",
+				"stage": "seats"
+			}
+		],
+		"sockets": {},
+		"stages": [
+			"main",
+			"seats"
+		],
+		"stretch": "",
+		"tags": [
+			"court",
+			"justice"
+		],
+		"tris": 4812
+	},
+	"justice.court.jury_table": {
+		"aabb": [
+			[
+				-2.61,
+				0.0,
+				-1.21
+			],
+			[
+				2.61,
+				1.005,
+				1.21
+			]
+		],
+		"category": "justice",
+		"family": "fixture",
+		"file": "models/justice/justice.court.jury_table.glb",
+		"kind": "",
+		"label": "Jury room table for twelve",
+		"mass": 294.8,
+		"pieces": [
+			{
+				"mass": 255.923,
+				"node": "table__glulam",
+				"slot": "glulam",
+				"stage": "table"
+			},
+			{
+				"mass": 11.756,
+				"node": "table__glass",
+				"slot": "glass",
+				"stage": "table"
+			},
+			{
+				"mass": 12.624,
+				"node": "chairs__plastic_black",
+				"slot": "plastic_black",
+				"stage": "chairs"
+			},
+			{
+				"mass": 14.46,
+				"node": "chairs__fabric_blue",
+				"slot": "fabric_blue",
+				"stage": "chairs"
+			}
+		],
+		"sockets": {},
+		"stages": [
+			"table",
+			"chairs"
+		],
+		"stretch": "",
+		"tags": [
+			"court",
+			"justice"
+		],
+		"tris": 6104
+	},
+	"justice.court.law_bookcase": {
+		"aabb": [
+			[
+				-0.6,
+				0.0,
+				-0.175
+			],
+			[
+				0.6,
+				2.3,
+				0.175
+			]
+		],
+		"category": "justice",
+		"family": "fixture",
+		"file": "models/justice/justice.court.law_bookcase.glb",
+		"kind": "",
+		"label": "Law bookcase",
+		"mass": 204.9,
+		"pieces": [
+			{
+				"mass": 140.905,
+				"node": "main__glulam",
+				"slot": "glulam",
+				"stage": "main"
+			},
+			{
+				"mass": 11.929,
+				"node": "main__fabric_red",
+				"slot": "fabric_red",
+				"stage": "main"
+			},
+			{
+				"mass": 11.963,
+				"node": "main__fabric_green",
+				"slot": "fabric_green",
+				"stage": "main"
+			},
+			{
+				"mass": 40.088,
+				"node": "main__leather_black",
+				"slot": "leather_black",
+				"stage": "main"
+			}
+		],
+		"sockets": {},
+		"stages": [
+			"main"
+		],
+		"stretch": "",
+		"tags": [
+			"court",
+			"justice"
+		],
+		"tris": 1284
+	},
+	"justice.court.public_bench": {
+		"aabb": [
+			[
+				-1.3,
+				0.0,
+				-0.22
+			],
+			[
+				1.3,
+				0.9512,
+				0.3
+			]
+		],
+		"category": "justice",
+		"family": "fixture",
+		"file": "models/justice/justice.court.public_bench.glb",
+		"kind": "",
+		"label": "Public gallery bench",
+		"mass": 100.3,
+		"pieces": [
+			{
+				"mass": 83.72,
+				"node": "main__hardwood",
+				"slot": "hardwood",
+				"stage": "main"
+			},
+			{
+				"mass": 16.539,
+				"node": "main__glulam",
+				"slot": "glulam",
+				"stage": "main"
+			}
+		],
+		"sockets": {},
+		"stages": [
+			"main"
+		],
+		"stretch": "",
+		"tags": [
+			"court",
+			"justice"
+		],
+		"tris": 84
+	},
+	"justice.court.witness_box": {
+		"aabb": [
+			[
+				-0.68,
+				-0.004,
+				-0.69
+			],
+			[
+				0.68,
+				1.5515,
+				0.65
+			]
+		],
+		"category": "justice",
+		"family": "fixture",
+		"file": "models/justice/justice.court.witness_box.glb",
+		"kind": "",
+		"label": "Witness box",
+		"mass": 95.8,
+		"pieces": [
+			{
+				"mass": 45.63,
+				"node": "main__carpet",
+				"slot": "carpet",
+				"stage": "main"
+			},
+			{
+				"mass": 41.547,
+				"node": "main__glulam",
+				"slot": "glulam",
+				"stage": "main"
+			},
+			{
+				"mass": 7.392,
+				"node": "main__hardwood",
+				"slot": "hardwood",
+				"stage": "main"
+			},
+			{
+				"mass": 0.03,
+				"node": "main__plastic_black",
+				"slot": "plastic_black",
+				"stage": "main"
+			},
+			{
+				"mass": 1.205,
+				"node": "main__fabric_blue",
+				"slot": "fabric_blue",
+				"stage": "main"
+			}
+		],
+		"sockets": {},
+		"stages": [
+			"main"
+		],
+		"stretch": "",
+		"tags": [
+			"court",
+			"justice"
+		],
+		"tris": 600
+	},
+	"justice.prison.bed": {
+		"aabb": [
+			[
+				-0.425,
+				0.0,
+				-1.005
+			],
+			[
+				0.425,
+				0.7,
+				1.005
+			]
+		],
+		"category": "justice",
+		"family": "fixture",
+		"file": "models/justice/justice.prison.bed.glb",
+		"kind": "",
+		"label": "Cell bed",
+		"mass": 578.3,
+		"pieces": [
+			{
+				"mass": 557.348,
+				"node": "main__steel_painted",
+				"slot": "steel_painted",
+				"stage": "main"
+			},
+			{
+				"mass": 16.582,
+				"node": "main__fabric_green",
+				"slot": "fabric_green",
+				"stage": "main"
+			},
+			{
+				"mass": 1.35,
+				"node": "main__fabric_white",
+				"slot": "fabric_white",
+				"stage": "main"
+			},
+			{
+				"mass": 3.01,
+				"node": "main__fabric_grey",
+				"slot": "fabric_grey",
+				"stage": "main"
+			}
+		],
+		"sockets": {},
+		"stages": [
+			"main"
+		],
+		"stretch": "",
+		"tags": [
+			"justice",
+			"prison"
+		],
+		"tris": 448
+	},
+	"justice.prison.bunk": {
+		"aabb": [
+			[
+				-0.425,
+				0.0,
+				-1.005
+			],
+			[
+				0.433,
+				1.8,
+				1.005
+			]
+		],
+		"category": "justice",
+		"family": "fixture",
+		"file": "models/justice/justice.prison.bunk.glb",
+		"kind": "",
+		"label": "Cell bunk bed",
+		"mass": 1198.8,
+		"pieces": [
+			{
+				"mass": 1156.913,
+				"node": "main__steel_painted",
+				"slot": "steel_painted",
+				"stage": "main"
+			},
+			{
+				"mass": 33.164,
+				"node": "main__fabric_green",
+				"slot": "fabric_green",
+				"stage": "main"
+			},
+			{
+				"mass": 2.7,
+				"node": "main__fabric_white",
+				"slot": "fabric_white",
+				"stage": "main"
+			},
+			{
+				"mass": 6.02,
+				"node": "main__fabric_grey",
+				"slot": "fabric_grey",
+				"stage": "main"
+			}
+		],
+		"sockets": {},
+		"stages": [
+			"main"
+		],
+		"stretch": "",
+		"tags": [
+			"justice",
+			"prison"
+		],
+		"tris": 932
+	},
+	"justice.prison.cell_door": {
+		"aabb": [
+			[
+				-0.5,
+				0.0,
+				-0.1
+			],
+			[
+				0.5,
+				2.1,
+				0.1
+			]
+		],
+		"category": "justice",
+		"family": "fixture",
+		"file": "models/justice/justice.prison.cell_door.glb",
+		"kind": "",
+		"label": "Cell door with hatch",
+		"mass": 923.4,
+		"pieces": [
+			{
+				"mass": 738.528,
+				"node": "frame__steel_painted",
+				"slot": "steel_painted",
+				"stage": "frame"
+			},
+			{
+				"mass": 120.96,
+				"node": "leaf__plastic_blue",
+				"slot": "plastic_blue",
+				"stage": "leaf"
+			},
+			{
+				"mass": 5.25,
+				"node": "leaf__glass_dark",
+				"slot": "glass_dark",
+				"stage": "leaf"
+			},
+			{
+				"mass": 58.689,
+				"node": "leaf__steel_stainless",
+				"slot": "steel_stainless",
+				"stage": "leaf"
+			}
+		],
+		"sockets": {
+			"wall": [
+				0.0,
+				0.0,
+				-0.0
+			]
+		},
+		"stages": [
+			"frame",
+			"leaf"
+		],
+		"stretch": "",
+		"tags": [
+			"justice",
+			"prison"
+		],
+		"tris": 180
+	},
+	"justice.prison.desk": {
+		"aabb": [
+			[
+				-0.45,
+				0.0,
+				-0.71
+			],
+			[
+				0.45,
+				1.6,
+				0.225
+			]
+		],
+		"category": "justice",
+		"family": "fixture",
+		"file": "models/justice/justice.prison.desk.glb",
+		"kind": "",
+		"label": "Cell desk, stool and television",
+		"mass": 203.2,
+		"pieces": [
+			{
+				"mass": 13.517,
+				"node": "main__laminate_grey",
+				"slot": "laminate_grey",
+				"stage": "main"
+			},
+			{
+				"mass": 146.487,
+				"node": "main__steel_painted",
+				"slot": "steel_painted",
+				"stage": "main"
+			},
+			{
+				"mass": 43.2,
+				"node": "main__plastic_grey",
+				"slot": "plastic_grey",
+				"stage": "main"
+			}
+		],
+		"sockets": {},
+		"stages": [
+			"main"
+		],
+		"stretch": "",
+		"tags": [
+			"justice",
+			"prison"
+		],
+		"tris": 140
+	},
+	"justice.prison.fence": {
+		"aabb": [
+			[
+				-1.55,
+				0.0,
+				-0.526
+			],
+			[
+				1.55,
+				5.9458,
+				0.05
+			]
+		],
+		"category": "justice",
+		"family": "fixture",
+		"file": "models/justice/justice.prison.fence.glb",
+		"kind": "",
+		"label": "Secure fence with razor coil, 3 m",
+		"mass": 896.4,
+		"pieces": [
+			{
+				"mass": 896.439,
+				"node": "main__steel_galvanised",
+				"slot": "steel_galvanised",
+				"stage": "main"
+			}
+		],
+		"sockets": {
+			"next": [
+				3.0,
+				0.0,
+				-0.0
+			]
+		},
+		"stages": [
+			"main"
+		],
+		"stretch": "",
+		"tags": [
+			"justice",
+			"prison"
+		],
+		"tris": 940
+	},
+	"justice.prison.officer_podium": {
+		"aabb": [
+			[
+				-0.8,
+				-0.004,
+				-0.7
+			],
+			[
+				0.8,
+				1.4,
+				0.7
+			]
+		],
+		"category": "justice",
+		"family": "fixture",
+		"file": "models/justice/justice.prison.officer_podium.glb",
+		"kind": "",
+		"label": "Officers' podium",
+		"mass": 332.8,
+		"pieces": [
+			{
+				"mass": 161.28,
+				"node": "main__plastic_grey",
+				"slot": "plastic_grey",
+				"stage": "main"
+			},
+			{
+				"mass": 162.018,
+				"node": "main__laminate_grey",
+				"slot": "laminate_grey",
+				"stage": "main"
+			},
+			{
+				"mass": 6.72,
+				"node": "main__screen",
+				"slot": "screen",
+				"stage": "main"
+			},
+			{
+				"mass": 1.544,
+				"node": "main__plastic_black",
+				"slot": "plastic_black",
+				"stage": "main"
+			},
+			{
+				"mass": 1.205,
+				"node": "main__fabric_blue",
+				"slot": "fabric_blue",
+				"stage": "main"
+			}
+		],
+		"sockets": {},
+		"stages": [
+			"main"
+		],
+		"stretch": "",
+		"tags": [
+			"justice",
+			"prison"
+		],
+		"tris": 560
+	},
+	"justice.prison.sally_gate": {
+		"aabb": [
+			[
+				-2.725,
+				0.0,
+				-0.125
+			],
+			[
+				2.725,
+				5.4,
+				0.125
+			]
+		],
+		"category": "justice",
+		"family": "fixture",
+		"file": "models/justice/justice.prison.sally_gate.glb",
+		"kind": "",
+		"label": "Vehicle lock gate",
+		"mass": 9904.4,
+		"pieces": [
+			{
+				"mass": 8507.439,
+				"node": "frame__steel_painted",
+				"slot": "steel_painted",
+				"stage": "frame"
+			},
+			{
+				"mass": 1396.92,
+				"node": "leaf__plastic_blue",
+				"slot": "plastic_blue",
+				"stage": "leaf"
+			}
+		],
+		"sockets": {
+			"leaf": [
+				0.0,
+				0.0,
+				-0.0
+			]
+		},
+		"stages": [
+			"frame",
+			"leaf"
+		],
+		"stretch": "",
+		"tags": [
+			"justice",
+			"prison"
+		],
+		"tris": 132
+	},
+	"justice.prison.turnstile": {
+		"aabb": [
+			[
+				-0.75,
+				0.0,
+				-0.65
+			],
+			[
+				0.75,
+				2.3,
+				0.65
+			]
+		],
+		"category": "justice",
+		"family": "fixture",
+		"file": "models/justice/justice.prison.turnstile.glb",
+		"kind": "",
+		"label": "Full height turnstile",
+		"mass": 6226.2,
+		"pieces": [
+			{
+				"mass": 6069.799,
+				"node": "frame__steel_galvanised",
+				"slot": "steel_galvanised",
+				"stage": "frame"
+			},
+			{
+				"mass": 156.353,
+				"node": "rotor__steel_galvanised",
+				"slot": "steel_galvanised",
+				"stage": "rotor"
+			}
+		],
+		"sockets": {
+			"rotor": [
+				0.0,
+				0.0,
+				-0.0
+			]
+		},
+		"stages": [
+			"frame",
+			"rotor"
+		],
+		"stretch": "",
+		"tags": [
+			"justice",
+			"prison"
+		],
+		"tris": 732
+	},
+	"justice.prison.visit_table": {
+		"aabb": [
+			[
+				-1.0157,
+				0.0,
+				-1.02
+			],
+			[
+				1.0157,
+				0.74,
+				1.02
+			]
+		],
+		"category": "justice",
+		"family": "fixture",
+		"file": "models/justice/justice.prison.visit_table.glb",
+		"kind": "",
+		"label": "Visits table with fixed seats",
+		"mass": 190.3,
+		"pieces": [
+			{
+				"mass": 17.521,
+				"node": "main__laminate_grey",
+				"slot": "laminate_grey",
+				"stage": "main"
+			},
+			{
+				"mass": 155.953,
+				"node": "main__steel_painted",
+				"slot": "steel_painted",
+				"stage": "main"
+			},
+			{
+				"mass": 4.213,
+				"node": "main__plastic_red",
+				"slot": "plastic_red",
+				"stage": "main"
+			},
+			{
+				"mass": 12.639,
+				"node": "main__plastic_blue",
+				"slot": "plastic_blue",
+				"stage": "main"
+			}
+		],
+		"sockets": {},
+		"stages": [
+			"main"
+		],
+		"stretch": "",
+		"tags": [
+			"justice",
+			"prison"
+		],
+		"tris": 540
+	},
+	"justice.prison.wall": {
+		"aabb": [
+			[
+				-2.0,
+				0.0,
+				-0.45
+			],
+			[
+				2.0,
+				5.75,
+				0.45
+			]
+		],
+		"category": "justice",
+		"family": "fixture",
+		"file": "models/justice/justice.prison.wall.glb",
+		"kind": "",
+		"label": "Perimeter wall, 4 m",
+		"mass": 24919.5,
+		"pieces": [
+			{
+				"mass": 24919.471,
+				"node": "main__concrete",
+				"slot": "concrete",
+				"stage": "main"
+			}
+		],
+		"sockets": {
+			"next": [
+				4.0,
+				0.0,
+				-0.0
+			]
+		},
+		"stages": [
+			"main"
+		],
+		"stretch": "",
+		"tags": [
+			"justice",
+			"prison"
+		],
+		"tris": 72
+	},
+	"justice.prison.watch_tower": {
+		"aabb": [
+			[
+				-2.2,
+				-0.004,
+				-2.2
+			],
+			[
+				2.2,
+				11.45,
+				2.2
+			]
+		],
+		"category": "justice",
+		"family": "fixture",
+		"file": "models/justice/justice.prison.watch_tower.glb",
+		"kind": "",
+		"label": "Watch tower",
+		"mass": 59128.9,
+		"pieces": [
+			{
+				"mass": 56537.99,
+				"node": "main__concrete",
+				"slot": "concrete",
+				"stage": "main"
+			},
+			{
+				"mass": 1680.0,
+				"node": "main__glass",
+				"slot": "glass",
+				"stage": "main"
+			},
+			{
+				"mass": 768.672,
+				"node": "main__steel_painted",
+				"slot": "steel_painted",
+				"stage": "main"
+			},
+			{
+				"mass": 108.0,
+				"node": "main__plastic_blue",
+				"slot": "plastic_blue",
+				"stage": "main"
+			},
+			{
+				"mass": 34.28,
+				"node": "main__plastic_black",
+				"slot": "plastic_black",
+				"stage": "main"
+			}
+		],
+		"sockets": {},
+		"stages": [
+			"main"
+		],
+		"stretch": "",
+		"tags": [
+			"justice",
+			"prison"
+		],
+		"tris": 192
+	},
+	"justice.prison.wc_basin": {
+		"aabb": [
+			[
+				-0.225,
+				0.0,
+				-0.345
+			],
+			[
+				0.225,
+				0.99,
+				0.375
+			]
+		],
+		"category": "justice",
+		"family": "fixture",
+		"file": "models/justice/justice.prison.wc_basin.glb",
+		"kind": "",
+		"label": "Cell WC and basin unit",
+		"mass": 312.6,
+		"pieces": [
+			{
+				"mass": 312.585,
+				"node": "main__steel_stainless",
+				"slot": "steel_stainless",
+				"stage": "main"
+			}
+		],
+		"sockets": {},
+		"stages": [
+			"main"
+		],
+		"stretch": "",
+		"tags": [
+			"justice",
+			"prison"
+		],
+		"tris": 260
+	},
+	"justice.prison.window": {
+		"aabb": [
+			[
+				-0.5,
+				0.0,
+				-0.15
+			],
+			[
+				0.5,
+				0.9,
+				0.15
+			]
+		],
+		"category": "justice",
+		"family": "fixture",
+		"file": "models/justice/justice.prison.window.glb",
+		"kind": "",
+		"label": "Barred cell window",
+		"mass": 285.0,
+		"pieces": [
+			{
+				"mass": 208.8,
+				"node": "main__concrete",
+				"slot": "concrete",
+				"stage": "main"
+			},
+			{
+				"mass": 46.62,
+				"node": "main__glass",
+				"slot": "glass",
+				"stage": "main"
+			},
+			{
+				"mass": 29.618,
+				"node": "main__steel_painted",
+				"slot": "steel_painted",
+				"stage": "main"
+			}
+		],
+		"sockets": {
+			"wall": [
+				0.0,
+				0.0,
+				-0.0
+			]
+		},
+		"stages": [
+			"main"
+		],
+		"stretch": "",
+		"tags": [
+			"justice",
+			"prison"
+		],
+		"tris": 204
+	},
 	"landscape.bed.flowers": {
 		"aabb": [
 			[
@@ -51996,6 +60306,249 @@
 			"torque_shed"
 		],
 		"tris": 3024
+	},
+	"office.council.dais": {
+		"aabb": [
+			[
+				-2.0,
+				0.0,
+				-0.7
+			],
+			[
+				2.0,
+				2.4,
+				1.3
+			]
+		],
+		"category": "office",
+		"family": "fixture",
+		"file": "models/office/office.council.dais.glb",
+		"kind": "",
+		"label": "Chair's dais",
+		"mass": 803.1,
+		"pieces": [
+			{
+				"mass": 288.0,
+				"node": "main__carpet",
+				"slot": "carpet",
+				"stage": "main"
+			},
+			{
+				"mass": 283.807,
+				"node": "main__glulam",
+				"slot": "glulam",
+				"stage": "main"
+			},
+			{
+				"mass": 20.16,
+				"node": "main__hardwood",
+				"slot": "hardwood",
+				"stage": "main"
+			},
+			{
+				"mass": 18.052,
+				"node": "main__fabric_red",
+				"slot": "fabric_red",
+				"stage": "main"
+			},
+			{
+				"mass": 193.058,
+				"node": "main__brass",
+				"slot": "brass",
+				"stage": "main"
+			}
+		],
+		"sockets": {},
+		"stages": [
+			"main"
+		],
+		"stretch": "",
+		"tags": [
+			"council",
+			"office"
+		],
+		"tris": 1348
+	},
+	"office.council.gallery_seats": {
+		"aabb": [
+			[
+				-2.25,
+				0.0,
+				-0.16
+			],
+			[
+				2.25,
+				1.4937,
+				2.25
+			]
+		],
+		"category": "office",
+		"family": "fixture",
+		"file": "models/office/office.council.gallery_seats.glb",
+		"kind": "",
+		"label": "Public gallery seating",
+		"mass": 809.3,
+		"pieces": [
+			{
+				"mass": 117.528,
+				"node": "main__fabric_blue",
+				"slot": "fabric_blue",
+				"stage": "main"
+			},
+			{
+				"mass": 408.24,
+				"node": "main__plastic_black",
+				"slot": "plastic_black",
+				"stage": "main"
+			},
+			{
+				"mass": 10.152,
+				"node": "main__glulam",
+				"slot": "glulam",
+				"stage": "main"
+			},
+			{
+				"mass": 273.375,
+				"node": "main__carpet",
+				"slot": "carpet",
+				"stage": "main"
+			}
+		],
+		"sockets": {},
+		"stages": [
+			"main"
+		],
+		"stretch": "",
+		"tags": [
+			"council",
+			"office"
+		],
+		"tris": 14448
+	},
+	"office.council.horseshoe": {
+		"aabb": [
+			[
+				-4.6519,
+				0.0,
+				-4.6305
+			],
+			[
+				4.6519,
+				1.0033,
+				1.3681
+			]
+		],
+		"category": "office",
+		"family": "fixture",
+		"file": "models/office/office.council.horseshoe.glb",
+		"kind": "",
+		"label": "Council chamber horseshoe desk",
+		"mass": 324.3,
+		"pieces": [
+			{
+				"mass": 266.567,
+				"node": "desk__glulam",
+				"slot": "glulam",
+				"stage": "desk"
+			},
+			{
+				"mass": 4.848,
+				"node": "seats__glulam",
+				"slot": "glulam",
+				"stage": "seats"
+			},
+			{
+				"mass": 48.193,
+				"node": "seats__leather_black",
+				"slot": "leather_black",
+				"stage": "seats"
+			},
+			{
+				"mass": 4.656,
+				"node": "seats__plastic_black",
+				"slot": "plastic_black",
+				"stage": "seats"
+			}
+		],
+		"sockets": {},
+		"stages": [
+			"desk",
+			"seats"
+		],
+		"stretch": "",
+		"tags": [
+			"council",
+			"office"
+		],
+		"tris": 6552
+	},
+	"office.council.vote_display": {
+		"aabb": [
+			[
+				-1.2,
+				-0.7,
+				-0.137
+			],
+			[
+				1.2,
+				0.7,
+				-0.0
+			]
+		],
+		"category": "office",
+		"family": "fixture",
+		"file": "models/office/office.council.vote_display.glb",
+		"kind": "",
+		"label": "Voting display",
+		"mass": 163.6,
+		"pieces": [
+			{
+				"mass": 96.768,
+				"node": "main__plastic_black",
+				"slot": "plastic_black",
+				"stage": "main"
+			},
+			{
+				"mass": 59.8,
+				"node": "main__screen",
+				"slot": "screen",
+				"stage": "main"
+			},
+			{
+				"mass": 3.24,
+				"node": "main__plastic_green",
+				"slot": "plastic_green",
+				"stage": "main"
+			},
+			{
+				"mass": 2.34,
+				"node": "main__plastic_red",
+				"slot": "plastic_red",
+				"stage": "main"
+			},
+			{
+				"mass": 1.44,
+				"node": "main__plastic_yellow",
+				"slot": "plastic_yellow",
+				"stage": "main"
+			}
+		],
+		"sockets": {
+			"wall": [
+				0.0,
+				0.0,
+				-0.0
+			]
+		},
+		"stages": [
+			"main"
+		],
+		"stretch": "",
+		"tags": [
+			"council",
+			"office"
+		],
+		"tris": 60
 	},
 	"office.desk.bench_4": {
 		"aabb": [
@@ -82125,6 +90678,593 @@
 		],
 		"tris": 244
 	},
+	"retail.store.awning": {
+		"aabb": [
+			[
+				-2.0,
+				-0.9145,
+				-1.5
+			],
+			[
+				2.0,
+				0.0,
+				0.0038
+			]
+		],
+		"category": "retail",
+		"family": "fixture",
+		"file": "models/retail/retail.store.awning.glb",
+		"kind": "",
+		"label": "Shop awning",
+		"mass": 38.1,
+		"pieces": [
+			{
+				"mass": 24.12,
+				"node": "main__fabric_green",
+				"slot": "fabric_green",
+				"stage": "main"
+			},
+			{
+				"mass": 14.024,
+				"node": "main__steel_stainless",
+				"slot": "steel_stainless",
+				"stage": "main"
+			}
+		],
+		"sockets": {
+			"wall": [
+				0.0,
+				0.0,
+				-0.0
+			]
+		},
+		"stages": [
+			"main"
+		],
+		"stretch": "",
+		"tags": [
+			"retail",
+			"shop"
+		],
+		"tris": 60
+	},
+	"retail.store.bulk_rack": {
+		"aabb": [
+			[
+				-1.445,
+				0.0,
+				-0.535
+			],
+			[
+				1.445,
+				5.0,
+				0.535
+			]
+		],
+		"category": "retail",
+		"family": "fixture",
+		"file": "models/retail/retail.store.bulk_rack.glb",
+		"kind": "",
+		"label": "Retail warehouse racking",
+		"mass": 2884.6,
+		"pieces": [
+			{
+				"mass": 151.2,
+				"node": "frame__plastic_blue",
+				"slot": "plastic_blue",
+				"stage": "frame"
+			},
+			{
+				"mass": 100.8,
+				"node": "frame__hivis_orange",
+				"slot": "hivis_orange",
+				"stage": "frame"
+			},
+			{
+				"mass": 845.67,
+				"node": "stock__softwood",
+				"slot": "softwood",
+				"stage": "stock"
+			},
+			{
+				"mass": 595.65,
+				"node": "stock__plywood",
+				"slot": "plywood",
+				"stage": "stock"
+			},
+			{
+				"mass": 1191.3,
+				"node": "stock__plastic_white",
+				"slot": "plastic_white",
+				"stage": "stock"
+			}
+		],
+		"sockets": {},
+		"stages": [
+			"frame",
+			"stock"
+		],
+		"stretch": "",
+		"tags": [
+			"retail",
+			"shop"
+		],
+		"tris": 264
+	},
+	"retail.store.chiller": {
+		"aabb": [
+			[
+				-0.954,
+				0.0,
+				-0.325
+			],
+			[
+				0.954,
+				2.004,
+				0.48
+			]
+		],
+		"category": "retail",
+		"family": "fixture",
+		"file": "models/retail/retail.store.chiller.glb",
+		"kind": "",
+		"label": "Open chiller cabinet",
+		"mass": 2768.0,
+		"pieces": [
+			{
+				"mass": 380.016,
+				"node": "main__paint_white",
+				"slot": "paint_white",
+				"stage": "main"
+			},
+			{
+				"mass": 1620.0,
+				"node": "main__plastic_black",
+				"slot": "plastic_black",
+				"stage": "main"
+			},
+			{
+				"mass": 78.408,
+				"node": "main__plastic_white",
+				"slot": "plastic_white",
+				"stage": "main"
+			},
+			{
+				"mass": 87.12,
+				"node": "main__plastic_red",
+				"slot": "plastic_red",
+				"stage": "main"
+			},
+			{
+				"mass": 433.68,
+				"node": "main__plastic_blue",
+				"slot": "plastic_blue",
+				"stage": "main"
+			},
+			{
+				"mass": 87.12,
+				"node": "main__plastic_green",
+				"slot": "plastic_green",
+				"stage": "main"
+			},
+			{
+				"mass": 78.408,
+				"node": "main__plastic_yellow",
+				"slot": "plastic_yellow",
+				"stage": "main"
+			},
+			{
+				"mass": 3.24,
+				"node": "main__glow",
+				"slot": "glow",
+				"stage": "main"
+			}
+		],
+		"sockets": {},
+		"stages": [
+			"main"
+		],
+		"stretch": "",
+		"tags": [
+			"retail",
+			"shop"
+		],
+		"tris": 672
+	},
+	"retail.store.counter": {
+		"aabb": [
+			[
+				-1.02,
+				-0.004,
+				-0.39
+			],
+			[
+				1.02,
+				2.2,
+				1.225
+			]
+		],
+		"category": "retail",
+		"family": "fixture",
+		"file": "models/retail/retail.store.counter.glb",
+		"kind": "",
+		"label": "Shop counter with gantry",
+		"mass": 1140.9,
+		"pieces": [
+			{
+				"mass": 162.489,
+				"node": "main__laminate_white",
+				"slot": "laminate_white",
+				"stage": "main"
+			},
+			{
+				"mass": 41.126,
+				"node": "main__laminate_grey",
+				"slot": "laminate_grey",
+				"stage": "main"
+			},
+			{
+				"mass": 62.4,
+				"node": "main__plastic_black",
+				"slot": "plastic_black",
+				"stage": "main"
+			},
+			{
+				"mass": 2.64,
+				"node": "main__screen",
+				"slot": "screen",
+				"stage": "main"
+			},
+			{
+				"mass": 54.0,
+				"node": "main__plastic_yellow",
+				"slot": "plastic_yellow",
+				"stage": "main"
+			},
+			{
+				"mass": 251.232,
+				"node": "gantry__plastic_grey",
+				"slot": "plastic_grey",
+				"stage": "gantry"
+			},
+			{
+				"mass": 567.0,
+				"node": "gantry__laminate_white",
+				"slot": "laminate_white",
+				"stage": "gantry"
+			}
+		],
+		"sockets": {},
+		"stages": [
+			"main",
+			"gantry"
+		],
+		"stretch": "",
+		"tags": [
+			"retail",
+			"shop"
+		],
+		"tris": 144
+	},
+	"retail.store.freezer": {
+		"aabb": [
+			[
+				-0.91,
+				0.0,
+				-0.435
+			],
+			[
+				0.91,
+				0.875,
+				0.435
+			]
+		],
+		"category": "retail",
+		"family": "fixture",
+		"file": "models/retail/retail.store.freezer.glb",
+		"kind": "",
+		"label": "Chest freezer",
+		"mass": 371.3,
+		"pieces": [
+			{
+				"mass": 234.09,
+				"node": "main__paint_white",
+				"slot": "paint_white",
+				"stage": "main"
+			},
+			{
+				"mass": 42.24,
+				"node": "main__glass",
+				"slot": "glass",
+				"stage": "main"
+			},
+			{
+				"mass": 95.004,
+				"node": "main__plastic_blue",
+				"slot": "plastic_blue",
+				"stage": "main"
+			}
+		],
+		"sockets": {},
+		"stages": [
+			"main"
+		],
+		"stretch": "",
+		"tags": [
+			"retail",
+			"shop"
+		],
+		"tris": 48
+	},
+	"retail.store.lottery_stand": {
+		"aabb": [
+			[
+				-0.3,
+				0.0,
+				-0.2454
+			],
+			[
+				0.3,
+				1.75,
+				0.2454
+			]
+		],
+		"category": "retail",
+		"family": "fixture",
+		"file": "models/retail/retail.store.lottery_stand.glb",
+		"kind": "",
+		"label": "Lottery stand",
+		"mass": 96.5,
+		"pieces": [
+			{
+				"mass": 82.08,
+				"node": "main__plastic_blue",
+				"slot": "plastic_blue",
+				"stage": "main"
+			},
+			{
+				"mass": 14.4,
+				"node": "main__plastic_yellow",
+				"slot": "plastic_yellow",
+				"stage": "main"
+			}
+		],
+		"sockets": {},
+		"stages": [
+			"main"
+		],
+		"stretch": "",
+		"tags": [
+			"retail",
+			"shop"
+		],
+		"tris": 36
+	},
+	"retail.store.newspaper_stand": {
+		"aabb": [
+			[
+				-0.6,
+				0.0,
+				-0.2655
+			],
+			[
+				0.6,
+				1.4,
+				0.25
+			]
+		],
+		"category": "retail",
+		"family": "fixture",
+		"file": "models/retail/retail.store.newspaper_stand.glb",
+		"kind": "",
+		"label": "Newspaper stand",
+		"mass": 448.7,
+		"pieces": [
+			{
+				"mass": 426.255,
+				"node": "main__steel_painted",
+				"slot": "steel_painted",
+				"stage": "main"
+			},
+			{
+				"mass": 7.488,
+				"node": "main__paint_white",
+				"slot": "paint_white",
+				"stage": "main"
+			},
+			{
+				"mass": 7.488,
+				"node": "main__plastic_red",
+				"slot": "plastic_red",
+				"stage": "main"
+			},
+			{
+				"mass": 7.488,
+				"node": "main__plastic_blue",
+				"slot": "plastic_blue",
+				"stage": "main"
+			}
+		],
+		"sockets": {},
+		"stages": [
+			"main"
+		],
+		"stretch": "",
+		"tags": [
+			"retail",
+			"shop"
+		],
+		"tris": 208
+	},
+	"retail.store.post_office": {
+		"aabb": [
+			[
+				-0.92,
+				-0.004,
+				-0.47
+			],
+			[
+				0.92,
+				2.42,
+				0.33
+			]
+		],
+		"category": "retail",
+		"family": "fixture",
+		"file": "models/retail/retail.store.post_office.glb",
+		"kind": "",
+		"label": "Post office counter",
+		"mass": 723.9,
+		"pieces": [
+			{
+				"mass": 361.758,
+				"node": "main__plastic_red",
+				"slot": "plastic_red",
+				"stage": "main"
+			},
+			{
+				"mass": 37.094,
+				"node": "main__laminate_grey",
+				"slot": "laminate_grey",
+				"stage": "main"
+			},
+			{
+				"mass": 4.32,
+				"node": "main__plastic_black",
+				"slot": "plastic_black",
+				"stage": "main"
+			},
+			{
+				"mass": 148.5,
+				"node": "main__glass",
+				"slot": "glass",
+				"stage": "main"
+			},
+			{
+				"mass": 172.22,
+				"node": "main__steel_stainless",
+				"slot": "steel_stainless",
+				"stage": "main"
+			}
+		],
+		"sockets": {},
+		"stages": [
+			"main"
+		],
+		"stretch": "",
+		"tags": [
+			"retail",
+			"shop"
+		],
+		"tris": 120
+	},
+	"retail.store.timber_rack": {
+		"aabb": [
+			[
+				-1.9,
+				0.0,
+				-0.6
+			],
+			[
+				1.9,
+				3.0,
+				0.6
+			]
+		],
+		"category": "retail",
+		"family": "fixture",
+		"file": "models/retail/retail.store.timber_rack.glb",
+		"kind": "",
+		"label": "Timber rack",
+		"mass": 410.3,
+		"pieces": [
+			{
+				"mass": 203.301,
+				"node": "frame__plastic_blue",
+				"slot": "plastic_blue",
+				"stage": "frame"
+			},
+			{
+				"mass": 58.743,
+				"node": "stock__softwood",
+				"slot": "softwood",
+				"stage": "stock"
+			},
+			{
+				"mass": 83.916,
+				"node": "stock__plywood",
+				"slot": "plywood",
+				"stage": "stock"
+			},
+			{
+				"mass": 64.335,
+				"node": "stock__glulam",
+				"slot": "glulam",
+				"stage": "stock"
+			}
+		],
+		"sockets": {},
+		"stages": [
+			"frame",
+			"stock"
+		],
+		"stretch": "",
+		"tags": [
+			"retail",
+			"shop"
+		],
+		"tris": 396
+	},
+	"retail.store.trolley_bay": {
+		"aabb": [
+			[
+				-1.4,
+				0.0,
+				-2.5
+			],
+			[
+				1.4,
+				2.6,
+				2.5
+			]
+		],
+		"category": "retail",
+		"family": "fixture",
+		"file": "models/retail/retail.store.trolley_bay.glb",
+		"kind": "",
+		"label": "Trolley bay",
+		"mass": 8604.2,
+		"pieces": [
+			{
+				"mass": 552.062,
+				"node": "main__steel_galvanised",
+				"slot": "steel_galvanised",
+				"stage": "main"
+			},
+			{
+				"mass": 8049.996,
+				"node": "main__glass",
+				"slot": "glass",
+				"stage": "main"
+			},
+			{
+				"mass": 2.106,
+				"node": "main__plastic_red",
+				"slot": "plastic_red",
+				"stage": "main"
+			}
+		],
+		"sockets": {},
+		"stages": [
+			"main"
+		],
+		"stretch": "",
+		"tags": [
+			"retail",
+			"shop"
+		],
+		"tris": 1160
+	},
 	"retail.yard.trolley_shelter": {
 		"aabb": [
 			[
@@ -99860,6 +109000,991 @@
 		],
 		"tris": 188
 	},
+	"station.bus.bus_shelter": {
+		"aabb": [
+			[
+				-2.1,
+				0.0,
+				-1.21
+			],
+			[
+				2.1,
+				2.8,
+				0.8
+			]
+		],
+		"category": "station",
+		"family": "fixture",
+		"file": "models/station/station.bus.bus_shelter.glb",
+		"kind": "",
+		"label": "Bus shelter",
+		"mass": 3056.4,
+		"pieces": [
+			{
+				"mass": 408.2,
+				"node": "main__steel_painted",
+				"slot": "steel_painted",
+				"stage": "main"
+			},
+			{
+				"mass": 620.0,
+				"node": "main__glass",
+				"slot": "glass",
+				"stage": "main"
+			},
+			{
+				"mass": 1814.401,
+				"node": "main__aluminium",
+				"slot": "aluminium",
+				"stage": "main"
+			},
+			{
+				"mass": 162.0,
+				"node": "main__plastic_red",
+				"slot": "plastic_red",
+				"stage": "main"
+			},
+			{
+				"mass": 51.84,
+				"node": "main__paint_white",
+				"slot": "paint_white",
+				"stage": "main"
+			}
+		],
+		"sockets": {},
+		"stages": [
+			"main"
+		],
+		"stretch": "",
+		"tags": [
+			"station",
+			"station"
+		],
+		"tris": 108
+	},
+	"station.bus.bus_stand": {
+		"aabb": [
+			[
+				-0.175,
+				0.0,
+				-0.08
+			],
+			[
+				0.52,
+				3.0,
+				0.04
+			]
+		],
+		"category": "station",
+		"family": "fixture",
+		"file": "models/station/station.bus.bus_stand.glb",
+		"kind": "",
+		"label": "Bus stand flag",
+		"mass": 127.0,
+		"pieces": [
+			{
+				"mass": 106.575,
+				"node": "main__steel_galvanised",
+				"slot": "steel_galvanised",
+				"stage": "main"
+			},
+			{
+				"mass": 12.0,
+				"node": "main__plastic_red",
+				"slot": "plastic_red",
+				"stage": "main"
+			},
+			{
+				"mass": 8.46,
+				"node": "main__paint_white",
+				"slot": "paint_white",
+				"stage": "main"
+			}
+		],
+		"sockets": {},
+		"stages": [
+			"main"
+		],
+		"stretch": "",
+		"tags": [
+			"station",
+			"station"
+		],
+		"tris": 64
+	},
+	"station.bus.drive_through_bay": {
+		"aabb": [
+			[
+				0.0,
+				0.0,
+				-6.0
+			],
+			[
+				4.0,
+				1.05,
+				6.0
+			]
+		],
+		"category": "station",
+		"family": "fixture",
+		"file": "models/station/station.bus.drive_through_bay.glb",
+		"kind": "",
+		"label": "Bus bay island",
+		"mass": 16600.6,
+		"pieces": [
+			{
+				"mass": 16560.001,
+				"node": "main__paving",
+				"slot": "paving",
+				"stage": "main"
+			},
+			{
+				"mass": 40.628,
+				"node": "main__plastic_yellow",
+				"slot": "plastic_yellow",
+				"stage": "main"
+			}
+		],
+		"sockets": {
+			"next": [
+				4.0,
+				0.0,
+				-0.0
+			]
+		},
+		"stages": [
+			"main"
+		],
+		"stretch": "",
+		"tags": [
+			"station",
+			"station"
+		],
+		"tris": 84
+	},
+	"station.bus.queue_rail": {
+		"aabb": [
+			[
+				-1.225,
+				0.0,
+				-0.025
+			],
+			[
+				1.225,
+				1.072,
+				0.025
+			]
+		],
+		"category": "station",
+		"family": "fixture",
+		"file": "models/station/station.bus.queue_rail.glb",
+		"kind": "",
+		"label": "Queue rail",
+		"mass": 95.9,
+		"pieces": [
+			{
+				"mass": 95.902,
+				"node": "main__steel_stainless",
+				"slot": "steel_stainless",
+				"stage": "main"
+			}
+		],
+		"sockets": {},
+		"stages": [
+			"main"
+		],
+		"stretch": "",
+		"tags": [
+			"station",
+			"station"
+		],
+		"tris": 140
+	},
+	"station.bus.stand_display": {
+		"aabb": [
+			[
+				-0.5,
+				0.0,
+				-0.084
+			],
+			[
+				0.5,
+				3.1,
+				0.07
+			]
+		],
+		"category": "station",
+		"family": "fixture",
+		"file": "models/station/station.bus.stand_display.glb",
+		"kind": "",
+		"label": "Bus stand display",
+		"mass": 168.8,
+		"pieces": [
+			{
+				"mass": 144.32,
+				"node": "main__steel_painted",
+				"slot": "steel_painted",
+				"stage": "main"
+			},
+			{
+				"mass": 16.8,
+				"node": "main__plastic_black",
+				"slot": "plastic_black",
+				"stage": "main"
+			},
+			{
+				"mass": 7.2,
+				"node": "main__screen",
+				"slot": "screen",
+				"stage": "main"
+			},
+			{
+				"mass": 0.48,
+				"node": "main__hivis_orange",
+				"slot": "hivis_orange",
+				"stage": "main"
+			}
+		],
+		"sockets": {},
+		"stages": [
+			"main"
+		],
+		"stretch": "",
+		"tags": [
+			"station",
+			"station"
+		],
+		"tris": 88
+	},
+	"station.rail.atm": {
+		"aabb": [
+			[
+				-0.3,
+				0.0,
+				-0.3992
+			],
+			[
+				0.3,
+				1.6,
+				0.3
+			]
+		],
+		"category": "station",
+		"family": "fixture",
+		"file": "models/station/station.rail.atm.glb",
+		"kind": "",
+		"label": "Cash machine",
+		"mass": 287.6,
+		"pieces": [
+			{
+				"mass": 276.48,
+				"node": "main__plastic_blue",
+				"slot": "plastic_blue",
+				"stage": "main"
+			},
+			{
+				"mass": 4.32,
+				"node": "main__screen",
+				"slot": "screen",
+				"stage": "main"
+			},
+			{
+				"mass": 6.636,
+				"node": "main__steel_stainless",
+				"slot": "steel_stainless",
+				"stage": "main"
+			},
+			{
+				"mass": 0.173,
+				"node": "main__plastic_black",
+				"slot": "plastic_black",
+				"stage": "main"
+			}
+		],
+		"sockets": {},
+		"stages": [
+			"main"
+		],
+		"stretch": "",
+		"tags": [
+			"station",
+			"station"
+		],
+		"tris": 48
+	},
+	"station.rail.bench": {
+		"aabb": [
+			[
+				-1.22,
+				0.0,
+				-0.25
+			],
+			[
+				1.22,
+				0.8778,
+				0.2718
+			]
+		],
+		"category": "station",
+		"family": "fixture",
+		"file": "models/station/station.rail.bench.glb",
+		"kind": "",
+		"label": "Platform bench",
+		"mass": 747.5,
+		"pieces": [
+			{
+				"mass": 545.044,
+				"node": "main__steel_stainless",
+				"slot": "steel_stainless",
+				"stage": "main"
+			},
+			{
+				"mass": 202.468,
+				"node": "main__steel_painted",
+				"slot": "steel_painted",
+				"stage": "main"
+			}
+		],
+		"sockets": {},
+		"stages": [
+			"main"
+		],
+		"stretch": "",
+		"tags": [
+			"station",
+			"station"
+		],
+		"tris": 1588
+	},
+	"station.rail.buffer_stop": {
+		"aabb": [
+			[
+				-1.2,
+				0.0,
+				-0.325
+			],
+			[
+				1.2,
+				1.38,
+				1.4421
+			]
+		],
+		"category": "station",
+		"family": "fixture",
+		"file": "models/station/station.rail.buffer_stop.glb",
+		"kind": "",
+		"label": "Buffer stop",
+		"mass": 281.3,
+		"pieces": [
+			{
+				"mass": 122.867,
+				"node": "main__plastic_red",
+				"slot": "plastic_red",
+				"stage": "main"
+			},
+			{
+				"mass": 72.0,
+				"node": "main__plastic_black",
+				"slot": "plastic_black",
+				"stage": "main"
+			},
+			{
+				"mass": 86.4,
+				"node": "main__paint_white",
+				"slot": "paint_white",
+				"stage": "main"
+			}
+		],
+		"sockets": {},
+		"stages": [
+			"main"
+		],
+		"stretch": "",
+		"tags": [
+			"station",
+			"station"
+		],
+		"tris": 184
+	},
+	"station.rail.canopy_bay": {
+		"aabb": [
+			[
+				-3.004,
+				0.0,
+				-3.16
+			],
+			[
+				3.004,
+				4.81,
+				3.16
+			]
+		],
+		"category": "station",
+		"family": "fixture",
+		"file": "models/station/station.rail.canopy_bay.glb",
+		"kind": "",
+		"label": "Platform canopy bay, 6 m",
+		"mass": 8753.9,
+		"pieces": [
+			{
+				"mass": 2264.453,
+				"node": "frame__steel_painted",
+				"slot": "steel_painted",
+				"stage": "frame"
+			},
+			{
+				"mass": 3719.996,
+				"node": "roof__glass",
+				"slot": "glass",
+				"stage": "roof"
+			},
+			{
+				"mass": 2769.483,
+				"node": "roof__steel_painted",
+				"slot": "steel_painted",
+				"stage": "roof"
+			}
+		],
+		"sockets": {
+			"next": [
+				6.0,
+				0.0,
+				-0.0
+			]
+		},
+		"stages": [
+			"frame",
+			"roof"
+		],
+		"stretch": "",
+		"tags": [
+			"station",
+			"station"
+		],
+		"tris": 180
+	},
+	"station.rail.clock": {
+		"aabb": [
+			[
+				-0.4,
+				-1.3,
+				-0.112
+			],
+			[
+				0.4,
+				0.0,
+				0.112
+			]
+		],
+		"category": "station",
+		"family": "fixture",
+		"file": "models/station/station.rail.clock.glb",
+		"kind": "",
+		"label": "Station clock",
+		"mass": 129.3,
+		"pieces": [
+			{
+				"mass": 4.079,
+				"node": "main__steel_painted",
+				"slot": "steel_painted",
+				"stage": "main"
+			},
+			{
+				"mass": 119.44,
+				"node": "main__plastic_black",
+				"slot": "plastic_black",
+				"stage": "main"
+			},
+			{
+				"mass": 5.796,
+				"node": "main__paint_white",
+				"slot": "paint_white",
+				"stage": "main"
+			}
+		],
+		"sockets": {
+			"ceiling": [
+				0.0,
+				0.0,
+				-0.0
+			]
+		},
+		"stages": [
+			"main"
+		],
+		"stretch": "",
+		"tags": [
+			"station",
+			"station"
+		],
+		"tris": 344
+	},
+	"station.rail.departure_board": {
+		"aabb": [
+			[
+				-1.1,
+				2.225,
+				-0.091
+			],
+			[
+				1.1,
+				3.6,
+				0.091
+			]
+		],
+		"category": "station",
+		"family": "fixture",
+		"file": "models/station/station.rail.departure_board.glb",
+		"kind": "",
+		"label": "Departure board",
+		"mass": 132.2,
+		"pieces": [
+			{
+				"mass": 10.606,
+				"node": "main__steel_painted",
+				"slot": "steel_painted",
+				"stage": "main"
+			},
+			{
+				"mass": 63.36,
+				"node": "main__plastic_black",
+				"slot": "plastic_black",
+				"stage": "main"
+			},
+			{
+				"mass": 54.6,
+				"node": "main__screen",
+				"slot": "screen",
+				"stage": "main"
+			},
+			{
+				"mass": 3.648,
+				"node": "main__hivis_orange",
+				"slot": "hivis_orange",
+				"stage": "main"
+			}
+		],
+		"sockets": {
+			"ceiling": [
+				0.0,
+				3.6,
+				-0.0
+			]
+		},
+		"stages": [
+			"main"
+		],
+		"stretch": "",
+		"tags": [
+			"station",
+			"station"
+		],
+		"tris": 172
+	},
+	"station.rail.help_point": {
+		"aabb": [
+			[
+				-0.2,
+				0.0,
+				-0.115
+			],
+			[
+				0.2,
+				1.7,
+				0.1
+			]
+		],
+		"category": "station",
+		"family": "fixture",
+		"file": "models/station/station.rail.help_point.glb",
+		"kind": "",
+		"label": "Help point",
+		"mass": 49.6,
+		"pieces": [
+			{
+				"mass": 48.96,
+				"node": "main__plastic_blue",
+				"slot": "plastic_blue",
+				"stage": "main"
+			},
+			{
+				"mass": 0.176,
+				"node": "main__plastic_green",
+				"slot": "plastic_green",
+				"stage": "main"
+			},
+			{
+				"mass": 0.176,
+				"node": "main__plastic_red",
+				"slot": "plastic_red",
+				"stage": "main"
+			},
+			{
+				"mass": 0.24,
+				"node": "main__plastic_black",
+				"slot": "plastic_black",
+				"stage": "main"
+			}
+		],
+		"sockets": {},
+		"stages": [
+			"main"
+		],
+		"stretch": "",
+		"tags": [
+			"station",
+			"station"
+		],
+		"tris": 96
+	},
+	"station.rail.info_desk": {
+		"aabb": [
+			[
+				-1.442,
+				0.0,
+				-1.4201
+			],
+			[
+				1.442,
+				2.9,
+				-0.0
+			]
+		],
+		"category": "station",
+		"family": "fixture",
+		"file": "models/station/station.rail.info_desk.glb",
+		"kind": "",
+		"label": "Information desk",
+		"mass": 413.3,
+		"pieces": [
+			{
+				"mass": 260.183,
+				"node": "main__laminate_white",
+				"slot": "laminate_white",
+				"stage": "main"
+			},
+			{
+				"mass": 124.011,
+				"node": "main__plastic_blue",
+				"slot": "plastic_blue",
+				"stage": "main"
+			},
+			{
+				"mass": 28.154,
+				"node": "main__steel_stainless",
+				"slot": "steel_stainless",
+				"stage": "main"
+			},
+			{
+				"mass": 0.972,
+				"node": "main__paint_white",
+				"slot": "paint_white",
+				"stage": "main"
+			}
+		],
+		"sockets": {},
+		"stages": [
+			"main"
+		],
+		"stretch": "",
+		"tags": [
+			"station",
+			"station"
+		],
+		"tris": 268
+	},
+	"station.rail.kiosk": {
+		"aabb": [
+			[
+				-1.6,
+				0.0,
+				-1.25
+			],
+			[
+				1.6,
+				2.725,
+				1.2
+			]
+		],
+		"category": "station",
+		"family": "fixture",
+		"file": "models/station/station.rail.kiosk.glb",
+		"kind": "",
+		"label": "Coffee kiosk",
+		"mass": 5350.7,
+		"pieces": [
+			{
+				"mass": 1022.4,
+				"node": "main__plastic_green",
+				"slot": "plastic_green",
+				"stage": "main"
+			},
+			{
+				"mass": 4266.0,
+				"node": "main__steel_stainless",
+				"slot": "steel_stainless",
+				"stage": "main"
+			},
+			{
+				"mass": 45.0,
+				"node": "main__glass",
+				"slot": "glass",
+				"stage": "main"
+			},
+			{
+				"mass": 17.28,
+				"node": "main__glow",
+				"slot": "glow",
+				"stage": "main"
+			}
+		],
+		"sockets": {},
+		"stages": [
+			"main"
+		],
+		"stretch": "",
+		"tags": [
+			"station",
+			"station"
+		],
+		"tris": 120
+	},
+	"station.rail.shelter": {
+		"aabb": [
+			[
+				-2.05,
+				0.0,
+				-0.9
+			],
+			[
+				2.05,
+				2.56,
+				0.9
+			]
+		],
+		"category": "station",
+		"family": "fixture",
+		"file": "models/station/station.rail.shelter.glb",
+		"kind": "",
+		"label": "Platform waiting shelter",
+		"mass": 2461.9,
+		"pieces": [
+			{
+				"mass": 634.201,
+				"node": "main__steel_painted",
+				"slot": "steel_painted",
+				"stage": "main"
+			},
+			{
+				"mass": 598.5,
+				"node": "main__glass",
+				"slot": "glass",
+				"stage": "main"
+			},
+			{
+				"mass": 1195.559,
+				"node": "main__aluminium",
+				"slot": "aluminium",
+				"stage": "main"
+			},
+			{
+				"mass": 33.6,
+				"node": "main__hardwood",
+				"slot": "hardwood",
+				"stage": "main"
+			}
+		],
+		"sockets": {},
+		"stages": [
+			"main"
+		],
+		"stretch": "",
+		"tags": [
+			"station",
+			"station"
+		],
+		"tris": 144
+	},
+	"station.rail.ticket_machine": {
+		"aabb": [
+			[
+				-0.379,
+				0.0,
+				-0.28
+			],
+			[
+				0.379,
+				1.85,
+				0.25
+			]
+		],
+		"category": "station",
+		"family": "fixture",
+		"file": "models/station/station.rail.ticket_machine.glb",
+		"kind": "",
+		"label": "Ticket machine",
+		"mass": 265.5,
+		"pieces": [
+			{
+				"mass": 249.75,
+				"node": "main__plastic_grey",
+				"slot": "plastic_grey",
+				"stage": "main"
+			},
+			{
+				"mass": 6.48,
+				"node": "main__screen",
+				"slot": "screen",
+				"stage": "main"
+			},
+			{
+				"mass": 4.5,
+				"node": "main__plastic_red",
+				"slot": "plastic_red",
+				"stage": "main"
+			},
+			{
+				"mass": 4.8,
+				"node": "main__plastic_black",
+				"slot": "plastic_black",
+				"stage": "main"
+			}
+		],
+		"sockets": {},
+		"stages": [
+			"main"
+		],
+		"stretch": "",
+		"tags": [
+			"station",
+			"station"
+		],
+		"tris": 60
+	},
+	"station.rail.ticket_office": {
+		"aabb": [
+			[
+				-1.52,
+				-0.004,
+				-0.425
+			],
+			[
+				1.52,
+				2.5,
+				0.33
+			]
+		],
+		"category": "station",
+		"family": "fixture",
+		"file": "models/station/station.rail.ticket_office.glb",
+		"kind": "",
+		"label": "Ticket office counter",
+		"mass": 831.7,
+		"pieces": [
+			{
+				"mass": 257.21,
+				"node": "main__laminate_grey",
+				"slot": "laminate_grey",
+				"stage": "main"
+			},
+			{
+				"mass": 61.286,
+				"node": "main__laminate_white",
+				"slot": "laminate_white",
+				"stage": "main"
+			},
+			{
+				"mass": 7.2,
+				"node": "main__plastic_black",
+				"slot": "plastic_black",
+				"stage": "main"
+			},
+			{
+				"mass": 270.0,
+				"node": "main__glass",
+				"slot": "glass",
+				"stage": "main"
+			},
+			{
+				"mass": 57.828,
+				"node": "main__steel_stainless",
+				"slot": "steel_stainless",
+				"stage": "main"
+			},
+			{
+				"mass": 16.2,
+				"node": "main__screen",
+				"slot": "screen",
+				"stage": "main"
+			},
+			{
+				"mass": 162.0,
+				"node": "main__plastic_blue",
+				"slot": "plastic_blue",
+				"stage": "main"
+			}
+		],
+		"sockets": {},
+		"stages": [
+			"main"
+		],
+		"stretch": "",
+		"tags": [
+			"station",
+			"station"
+		],
+		"tris": 180
+	},
+	"station.rail.totem": {
+		"aabb": [
+			[
+				-0.45,
+				0.0,
+				-0.105
+			],
+			[
+				0.45,
+				3.6,
+				0.105
+			]
+		],
+		"category": "station",
+		"family": "fixture",
+		"file": "models/station/station.rail.totem.glb",
+		"kind": "",
+		"label": "Station totem sign",
+		"mass": 400.0,
+		"pieces": [
+			{
+				"mass": 155.52,
+				"node": "main__plastic_blue",
+				"slot": "plastic_blue",
+				"stage": "main"
+			},
+			{
+				"mass": 123.48,
+				"node": "main__plastic_red",
+				"slot": "plastic_red",
+				"stage": "main"
+			},
+			{
+				"mass": 120.96,
+				"node": "main__paint_white",
+				"slot": "paint_white",
+				"stage": "main"
+			}
+		],
+		"sockets": {},
+		"stages": [
+			"main"
+		],
+		"stretch": "",
+		"tags": [
+			"station",
+			"station"
+		],
+		"tris": 36
+	},
 	"street.bollard.cast": {
 		"aabb": [
 			[
@@ -116340,6 +126465,1528 @@
 			"vehicle"
 		],
 		"tris": 648
+	},
+	"venue.backstage.costume_rail": {
+		"aabb": [
+			[
+				-0.765,
+				0.0,
+				-0.29
+			],
+			[
+				0.765,
+				1.715,
+				0.29
+			]
+		],
+		"category": "venue",
+		"family": "fixture",
+		"file": "models/venue/venue.backstage.costume_rail.glb",
+		"kind": "",
+		"label": "Costume rail",
+		"mass": 61.3,
+		"pieces": [
+			{
+				"mass": 26.323,
+				"node": "main__steel_stainless",
+				"slot": "steel_stainless",
+				"stage": "main"
+			},
+			{
+				"mass": 0.596,
+				"node": "main__rubber",
+				"slot": "rubber",
+				"stage": "main"
+			},
+			{
+				"mass": 6.652,
+				"node": "main__fabric_red",
+				"slot": "fabric_red",
+				"stage": "main"
+			},
+			{
+				"mass": 6.048,
+				"node": "main__fabric_blue",
+				"slot": "fabric_blue",
+				"stage": "main"
+			},
+			{
+				"mass": 5.444,
+				"node": "main__fabric_white",
+				"slot": "fabric_white",
+				"stage": "main"
+			},
+			{
+				"mass": 4.158,
+				"node": "main__velvet_teal",
+				"slot": "velvet_teal",
+				"stage": "main"
+			},
+			{
+				"mass": 3.024,
+				"node": "main__fabric_green",
+				"slot": "fabric_green",
+				"stage": "main"
+			},
+			{
+				"mass": 9.072,
+				"node": "main__leather_black",
+				"slot": "leather_black",
+				"stage": "main"
+			}
+		],
+		"sockets": {},
+		"stages": [
+			"main"
+		],
+		"stretch": "",
+		"tags": [
+			"dressing_room",
+			"theatre",
+			"venue"
+		],
+		"tris": 320
+	},
+	"venue.backstage.dressing_table": {
+		"aabb": [
+			[
+				-0.6,
+				0.0,
+				-0.61
+			],
+			[
+				0.6,
+				1.76,
+				0.25
+			]
+		],
+		"category": "venue",
+		"family": "fixture",
+		"file": "models/venue/venue.backstage.dressing_table.glb",
+		"kind": "",
+		"label": "Dressing table with mirror lights",
+		"mass": 116.7,
+		"pieces": [
+			{
+				"mass": 37.24,
+				"node": "main__laminate_white",
+				"slot": "laminate_white",
+				"stage": "main"
+			},
+			{
+				"mass": 60.0,
+				"node": "main__mirror",
+				"slot": "mirror",
+				"stage": "main"
+			},
+			{
+				"mass": 6.912,
+				"node": "main__paint_white",
+				"slot": "paint_white",
+				"stage": "main"
+			},
+			{
+				"mass": 1.596,
+				"node": "main__glow",
+				"slot": "glow",
+				"stage": "main"
+			},
+			{
+				"mass": 6.922,
+				"node": "chair__steel_stainless",
+				"slot": "steel_stainless",
+				"stage": "chair"
+			},
+			{
+				"mass": 4.016,
+				"node": "chair__leather_black",
+				"slot": "leather_black",
+				"stage": "chair"
+			}
+		],
+		"sockets": {},
+		"stages": [
+			"main",
+			"chair"
+		],
+		"stretch": "",
+		"tags": [
+			"dressing_room",
+			"theatre",
+			"venue"
+		],
+		"tris": 1040
+	},
+	"venue.cinema.cinema_screen": {
+		"aabb": [
+			[
+				-7.12,
+				0.0,
+				-0.17
+			],
+			[
+				7.12,
+				6.7,
+				0.8
+			]
+		],
+		"category": "venue",
+		"family": "fixture",
+		"file": "models/venue/venue.cinema.cinema_screen.glb",
+		"kind": "",
+		"label": "Cinema screen with speakers, 12 m",
+		"mass": 3876.8,
+		"pieces": [
+			{
+				"mass": 2426.397,
+				"node": "main__plastic_black",
+				"slot": "plastic_black",
+				"stage": "main"
+			},
+			{
+				"mass": 1123.2,
+				"node": "main__paint_white",
+				"slot": "paint_white",
+				"stage": "main"
+			},
+			{
+				"mass": 327.184,
+				"node": "main__fabric_red",
+				"slot": "fabric_red",
+				"stage": "main"
+			}
+		],
+		"sockets": {},
+		"stages": [
+			"main"
+		],
+		"stretch": "",
+		"tags": [
+			"cinema",
+			"theatre",
+			"venue"
+		],
+		"tris": 344
+	},
+	"venue.cinema.projector": {
+		"aabb": [
+			[
+				-0.37,
+				0.0,
+				-0.89
+			],
+			[
+				0.35,
+				2.15,
+				0.6
+			]
+		],
+		"category": "venue",
+		"family": "fixture",
+		"file": "models/venue/venue.cinema.projector.glb",
+		"kind": "",
+		"label": "Cinema projector",
+		"mass": 470.8,
+		"pieces": [
+			{
+				"mass": 190.08,
+				"node": "main__plastic_grey",
+				"slot": "plastic_grey",
+				"stage": "main"
+			},
+			{
+				"mass": 237.505,
+				"node": "main__plastic_black",
+				"slot": "plastic_black",
+				"stage": "main"
+			},
+			{
+				"mass": 1.519,
+				"node": "main__glass",
+				"slot": "glass",
+				"stage": "main"
+			},
+			{
+				"mass": 39.676,
+				"node": "main__aluminium",
+				"slot": "aluminium",
+				"stage": "main"
+			},
+			{
+				"mass": 2.0,
+				"node": "main__screen",
+				"slot": "screen",
+				"stage": "main"
+			}
+		],
+		"sockets": {},
+		"stages": [
+			"main"
+		],
+		"stretch": "",
+		"tags": [
+			"projection",
+			"theatre",
+			"venue"
+		],
+		"tris": 176
+	},
+	"venue.cinema.surround_speaker": {
+		"aabb": [
+			[
+				-0.2,
+				2.6,
+				-0.25
+			],
+			[
+				0.2,
+				2.92,
+				0.25
+			]
+		],
+		"category": "venue",
+		"family": "fixture",
+		"file": "models/venue/venue.cinema.surround_speaker.glb",
+		"kind": "",
+		"label": "Surround speaker",
+		"mass": 18.7,
+		"pieces": [
+			{
+				"mass": 18.72,
+				"node": "main__plastic_black",
+				"slot": "plastic_black",
+				"stage": "main"
+			}
+		],
+		"sockets": {},
+		"stages": [
+			"main"
+		],
+		"stretch": "",
+		"tags": [
+			"cinema",
+			"theatre",
+			"venue"
+		],
+		"tris": 12
+	},
+	"venue.foyer.box_office": {
+		"aabb": [
+			[
+				-1.25,
+				-0.004,
+				-0.4
+			],
+			[
+				1.25,
+				2.47,
+				0.33
+			]
+		],
+		"category": "venue",
+		"family": "fixture",
+		"file": "models/venue/venue.foyer.box_office.glb",
+		"kind": "",
+		"label": "Box office counter",
+		"mass": 639.3,
+		"pieces": [
+			{
+				"mass": 211.417,
+				"node": "main__glulam",
+				"slot": "glulam",
+				"stage": "main"
+			},
+			{
+				"mass": 189.734,
+				"node": "main__marble",
+				"slot": "marble",
+				"stage": "main"
+			},
+			{
+				"mass": 5.76,
+				"node": "main__plastic_black",
+				"slot": "plastic_black",
+				"stage": "main"
+			},
+			{
+				"mass": 198.0,
+				"node": "main__glass",
+				"slot": "glass",
+				"stage": "main"
+			},
+			{
+				"mass": 26.698,
+				"node": "main__brass",
+				"slot": "brass",
+				"stage": "main"
+			},
+			{
+				"mass": 7.68,
+				"node": "main__glow",
+				"slot": "glow",
+				"stage": "main"
+			}
+		],
+		"sockets": {},
+		"stages": [
+			"main"
+		],
+		"stretch": "",
+		"tags": [
+			"foyer",
+			"theatre",
+			"venue"
+		],
+		"tris": 232
+	},
+	"venue.foyer.concession": {
+		"aabb": [
+			[
+				-1.52,
+				-0.004,
+				-0.44
+			],
+			[
+				1.52,
+				2.7,
+				0.38
+			]
+		],
+		"category": "venue",
+		"family": "fixture",
+		"file": "models/venue/venue.foyer.concession.glb",
+		"kind": "",
+		"label": "Concession stand with popcorn",
+		"mass": 1927.9,
+		"pieces": [
+			{
+				"mass": 539.205,
+				"node": "main__plastic_red",
+				"slot": "plastic_red",
+				"stage": "main"
+			},
+			{
+				"mass": 890.714,
+				"node": "main__steel_stainless",
+				"slot": "steel_stainless",
+				"stage": "main"
+			},
+			{
+				"mass": 136.8,
+				"node": "main__plastic_black",
+				"slot": "plastic_black",
+				"stage": "main"
+			},
+			{
+				"mass": 94.0,
+				"node": "main__glass",
+				"slot": "glass",
+				"stage": "main"
+			},
+			{
+				"mass": 86.784,
+				"node": "main__plastic_yellow",
+				"slot": "plastic_yellow",
+				"stage": "main"
+			},
+			{
+				"mass": 0.384,
+				"node": "main__plastic_green",
+				"slot": "plastic_green",
+				"stage": "main"
+			},
+			{
+				"mass": 180.0,
+				"node": "main__glow",
+				"slot": "glow",
+				"stage": "main"
+			}
+		],
+		"sockets": {},
+		"stages": [
+			"main"
+		],
+		"stretch": "",
+		"tags": [
+			"foyer",
+			"theatre",
+			"venue"
+		],
+		"tris": 312
+	},
+	"venue.foyer.poster_case": {
+		"aabb": [
+			[
+				-0.4,
+				1.0,
+				-0.035
+			],
+			[
+				0.4,
+				2.15,
+				0.035
+			]
+		],
+		"category": "venue",
+		"family": "fixture",
+		"file": "models/venue/venue.foyer.poster_case.glb",
+		"kind": "",
+		"label": "Poster case",
+		"mass": 142.4,
+		"pieces": [
+			{
+				"mass": 110.076,
+				"node": "main__brass",
+				"slot": "brass",
+				"stage": "main"
+			},
+			{
+				"mass": 17.64,
+				"node": "main__plastic_blue",
+				"slot": "plastic_blue",
+				"stage": "main"
+			},
+			{
+				"mass": 14.7,
+				"node": "main__glass",
+				"slot": "glass",
+				"stage": "main"
+			}
+		],
+		"sockets": {},
+		"stages": [
+			"main"
+		],
+		"stretch": "",
+		"tags": [
+			"foyer",
+			"theatre",
+			"venue"
+		],
+		"tris": 72
+	},
+	"venue.foyer.rope_barrier": {
+		"aabb": [
+			[
+				-1.0576,
+				0.0,
+				-0.16
+			],
+			[
+				1.0576,
+				1.01,
+				0.16
+			]
+		],
+		"category": "venue",
+		"family": "fixture",
+		"file": "models/venue/venue.foyer.rope_barrier.glb",
+		"kind": "",
+		"label": "Rope barrier",
+		"mass": 66.5,
+		"pieces": [
+			{
+				"mass": 66.29,
+				"node": "main__brass",
+				"slot": "brass",
+				"stage": "main"
+			},
+			{
+				"mass": 0.203,
+				"node": "main__fabric_red",
+				"slot": "fabric_red",
+				"stage": "main"
+			}
+		],
+		"sockets": {},
+		"stages": [
+			"main"
+		],
+		"stretch": "",
+		"tags": [
+			"foyer",
+			"theatre",
+			"venue"
+		],
+		"tris": 508
+	},
+	"venue.foyer.ticket_kiosk": {
+		"aabb": [
+			[
+				-0.275,
+				0.0,
+				-0.2667
+			],
+			[
+				0.275,
+				1.3992,
+				0.2
+			]
+		],
+		"category": "venue",
+		"family": "fixture",
+		"file": "models/venue/venue.foyer.ticket_kiosk.glb",
+		"kind": "",
+		"label": "Ticket kiosk",
+		"mass": 108.9,
+		"pieces": [
+			{
+				"mass": 102.96,
+				"node": "main__plastic_grey",
+				"slot": "plastic_grey",
+				"stage": "main"
+			},
+			{
+				"mass": 5.12,
+				"node": "main__screen",
+				"slot": "screen",
+				"stage": "main"
+			},
+			{
+				"mass": 0.845,
+				"node": "main__plastic_black",
+				"slot": "plastic_black",
+				"stage": "main"
+			}
+		],
+		"sockets": {},
+		"stages": [
+			"main"
+		],
+		"stretch": "",
+		"tags": [
+			"foyer",
+			"theatre",
+			"venue"
+		],
+		"tris": 48
+	},
+	"venue.seat.balcony_front": {
+		"aabb": [
+			[
+				-1.5104,
+				0.0,
+				-0.17
+			],
+			[
+				1.5104,
+				1.02,
+				0.16
+			]
+		],
+		"category": "venue",
+		"family": "fixture",
+		"file": "models/venue/venue.seat.balcony_front.glb",
+		"kind": "",
+		"label": "Balcony front, 3 m",
+		"mass": 965.8,
+		"pieces": [
+			{
+				"mass": 129.6,
+				"node": "main__paint_white",
+				"slot": "paint_white",
+				"stage": "main"
+			},
+			{
+				"mass": 836.178,
+				"node": "main__brass",
+				"slot": "brass",
+				"stage": "main"
+			}
+		],
+		"sockets": {},
+		"stages": [
+			"main"
+		],
+		"stretch": "",
+		"tags": [
+			"auditorium",
+			"theatre",
+			"venue"
+		],
+		"tris": 192
+	},
+	"venue.seat.block_12x8": {
+		"aabb": [
+			[
+				-3.35,
+				0.0,
+				-0.16
+			],
+			[
+				3.35,
+				3.0937,
+				6.75
+			]
+		],
+		"category": "venue",
+		"family": "fixture",
+		"file": "models/venue/venue.seat.block_12x8.glb",
+		"kind": "",
+		"label": "Raked seating, eight rows of twelve",
+		"mass": 6635.0,
+		"pieces": [
+			{
+				"mass": 464.736,
+				"node": "main__fabric_red",
+				"slot": "fabric_red",
+				"stage": "main"
+			},
+			{
+				"mass": 1572.48,
+				"node": "main__plastic_black",
+				"slot": "plastic_black",
+				"stage": "main"
+			},
+			{
+				"mass": 39.104,
+				"node": "main__glulam",
+				"slot": "glulam",
+				"stage": "main"
+			},
+			{
+				"mass": 4558.679,
+				"node": "main__carpet",
+				"slot": "carpet",
+				"stage": "main"
+			}
+		],
+		"sockets": {},
+		"stages": [
+			"main"
+		],
+		"stretch": "",
+		"tags": [
+			"cinema",
+			"theatre",
+			"venue"
+		],
+		"tris": 41620
+	},
+	"venue.seat.block_8x5": {
+		"aabb": [
+			[
+				-2.25,
+				0.0,
+				-0.16
+			],
+			[
+				2.25,
+				2.1937,
+				4.05
+			]
+		],
+		"category": "venue",
+		"family": "fixture",
+		"file": "models/venue/venue.seat.block_8x5.glb",
+		"kind": "",
+		"label": "Raked seating, five rows of eight",
+		"mass": 1984.5,
+		"pieces": [
+			{
+				"mass": 193.64,
+				"node": "main__fabric_red",
+				"slot": "fabric_red",
+				"stage": "main"
+			},
+			{
+				"mass": 680.4,
+				"node": "main__plastic_black",
+				"slot": "plastic_black",
+				"stage": "main"
+			},
+			{
+				"mass": 16.92,
+				"node": "main__glulam",
+				"slot": "glulam",
+				"stage": "main"
+			},
+			{
+				"mass": 1093.5,
+				"node": "main__carpet",
+				"slot": "carpet",
+				"stage": "main"
+			}
+		],
+		"sockets": {},
+		"stages": [
+			"main"
+		],
+		"stretch": "",
+		"tags": [
+			"cinema",
+			"theatre",
+			"venue"
+		],
+		"tris": 17688
+	},
+	"venue.seat.cinema_block_10x6": {
+		"aabb": [
+			[
+				-2.8,
+				0.0,
+				-0.16
+			],
+			[
+				2.8,
+				2.4937,
+				4.95
+			]
+		],
+		"category": "venue",
+		"family": "fixture",
+		"file": "models/venue/venue.seat.cinema_block_10x6.glb",
+		"kind": "",
+		"label": "Cinema seating, six rows of ten",
+		"mass": 3427.1,
+		"pieces": [
+			{
+				"mass": 363.12,
+				"node": "main__velvet_teal",
+				"slot": "velvet_teal",
+				"stage": "main"
+			},
+			{
+				"mass": 997.92,
+				"node": "main__plastic_black",
+				"slot": "plastic_black",
+				"stage": "main"
+			},
+			{
+				"mass": 24.816,
+				"node": "main__glulam",
+				"slot": "glulam",
+				"stage": "main"
+			},
+			{
+				"mass": 2041.2,
+				"node": "main__carpet",
+				"slot": "carpet",
+				"stage": "main"
+			}
+		],
+		"sockets": {},
+		"stages": [
+			"main"
+		],
+		"stretch": "",
+		"tags": [
+			"cinema",
+			"venue"
+		],
+		"tris": 26220
+	},
+	"venue.seat.cinema_row_8": {
+		"aabb": [
+			[
+				-2.235,
+				0.0,
+				-0.16
+			],
+			[
+				2.235,
+				0.9937,
+				0.3022
+			]
+		],
+		"category": "venue",
+		"family": "fixture",
+		"file": "models/venue/venue.seat.cinema_row_8.glb",
+		"kind": "",
+		"label": "Cinema seats, row of eight",
+		"mass": 187.9,
+		"pieces": [
+			{
+				"mass": 48.416,
+				"node": "main__velvet_teal",
+				"slot": "velvet_teal",
+				"stage": "main"
+			},
+			{
+				"mass": 136.08,
+				"node": "main__plastic_black",
+				"slot": "plastic_black",
+				"stage": "main"
+			},
+			{
+				"mass": 3.384,
+				"node": "main__glulam",
+				"slot": "glulam",
+				"stage": "main"
+			}
+		],
+		"sockets": {},
+		"stages": [
+			"main"
+		],
+		"stretch": "",
+		"tags": [
+			"cinema",
+			"venue"
+		],
+		"tris": 3528
+	},
+	"venue.seat.row_12": {
+		"aabb": [
+			[
+				-3.335,
+				0.0,
+				-0.16
+			],
+			[
+				3.335,
+				0.9937,
+				0.3022
+			]
+		],
+		"category": "venue",
+		"family": "fixture",
+		"file": "models/venue/venue.seat.row_12.glb",
+		"kind": "",
+		"label": "Theatre seats, row of 12",
+		"mass": 259.5,
+		"pieces": [
+			{
+				"mass": 58.092,
+				"node": "main__fabric_red",
+				"slot": "fabric_red",
+				"stage": "main"
+			},
+			{
+				"mass": 196.56,
+				"node": "main__plastic_black",
+				"slot": "plastic_black",
+				"stage": "main"
+			},
+			{
+				"mass": 4.888,
+				"node": "main__glulam",
+				"slot": "glulam",
+				"stage": "main"
+			}
+		],
+		"sockets": {},
+		"stages": [
+			"main"
+		],
+		"stretch": "",
+		"tags": [
+			"cinema",
+			"theatre",
+			"venue"
+		],
+		"tris": 5192
+	},
+	"venue.seat.row_4": {
+		"aabb": [
+			[
+				-1.135,
+				0.0,
+				-0.16
+			],
+			[
+				1.135,
+				0.9937,
+				0.3022
+			]
+		],
+		"category": "venue",
+		"family": "fixture",
+		"file": "models/venue/venue.seat.row_4.glb",
+		"kind": "",
+		"label": "Theatre seats, row of 4",
+		"mass": 96.8,
+		"pieces": [
+			{
+				"mass": 19.364,
+				"node": "main__fabric_red",
+				"slot": "fabric_red",
+				"stage": "main"
+			},
+			{
+				"mass": 75.6,
+				"node": "main__plastic_black",
+				"slot": "plastic_black",
+				"stage": "main"
+			},
+			{
+				"mass": 1.88,
+				"node": "main__glulam",
+				"slot": "glulam",
+				"stage": "main"
+			}
+		],
+		"sockets": {},
+		"stages": [
+			"main"
+		],
+		"stretch": "",
+		"tags": [
+			"cinema",
+			"theatre",
+			"venue"
+		],
+		"tris": 1864
+	},
+	"venue.seat.row_6": {
+		"aabb": [
+			[
+				-1.685,
+				0.0,
+				-0.16
+			],
+			[
+				1.685,
+				0.9937,
+				0.3022
+			]
+		],
+		"category": "venue",
+		"family": "fixture",
+		"file": "models/venue/venue.seat.row_6.glb",
+		"kind": "",
+		"label": "Theatre seats, row of 6",
+		"mass": 137.5,
+		"pieces": [
+			{
+				"mass": 29.046,
+				"node": "main__fabric_red",
+				"slot": "fabric_red",
+				"stage": "main"
+			},
+			{
+				"mass": 105.84,
+				"node": "main__plastic_black",
+				"slot": "plastic_black",
+				"stage": "main"
+			},
+			{
+				"mass": 2.632,
+				"node": "main__glulam",
+				"slot": "glulam",
+				"stage": "main"
+			}
+		],
+		"sockets": {},
+		"stages": [
+			"main"
+		],
+		"stretch": "",
+		"tags": [
+			"cinema",
+			"theatre",
+			"venue"
+		],
+		"tris": 2696
+	},
+	"venue.seat.row_8": {
+		"aabb": [
+			[
+				-2.235,
+				0.0,
+				-0.16
+			],
+			[
+				2.235,
+				0.9937,
+				0.3022
+			]
+		],
+		"category": "venue",
+		"family": "fixture",
+		"file": "models/venue/venue.seat.row_8.glb",
+		"kind": "",
+		"label": "Theatre seats, row of 8",
+		"mass": 178.2,
+		"pieces": [
+			{
+				"mass": 38.728,
+				"node": "main__fabric_red",
+				"slot": "fabric_red",
+				"stage": "main"
+			},
+			{
+				"mass": 136.08,
+				"node": "main__plastic_black",
+				"slot": "plastic_black",
+				"stage": "main"
+			},
+			{
+				"mass": 3.384,
+				"node": "main__glulam",
+				"slot": "glulam",
+				"stage": "main"
+			}
+		],
+		"sockets": {},
+		"stages": [
+			"main"
+		],
+		"stretch": "",
+		"tags": [
+			"cinema",
+			"theatre",
+			"venue"
+		],
+		"tris": 3528
+	},
+	"venue.stage.backdrop_flat": {
+		"aabb": [
+			[
+				-1.2,
+				0.0,
+				-0.021
+			],
+			[
+				1.2,
+				4.8,
+				1.35
+			]
+		],
+		"category": "venue",
+		"family": "fixture",
+		"file": "models/venue/venue.stage.backdrop_flat.glb",
+		"kind": "",
+		"label": "Scenery flat with braces",
+		"mass": 376.8,
+		"pieces": [
+			{
+				"mass": 207.36,
+				"node": "main__plywood",
+				"slot": "plywood",
+				"stage": "main"
+			},
+			{
+				"mass": 8.191,
+				"node": "main__fabric_blue",
+				"slot": "fabric_blue",
+				"stage": "main"
+			},
+			{
+				"mass": 5.702,
+				"node": "main__softwood",
+				"slot": "softwood",
+				"stage": "main"
+			},
+			{
+				"mass": 155.52,
+				"node": "main__cast_iron",
+				"slot": "cast_iron",
+				"stage": "main"
+			}
+		],
+		"sockets": {},
+		"stages": [
+			"main"
+		],
+		"stretch": "",
+		"tags": [
+			"stage",
+			"theatre",
+			"venue"
+		],
+		"tris": 72
+	},
+	"venue.stage.flight_case": {
+		"aabb": [
+			[
+				-0.604,
+				0.0124,
+				-0.32
+			],
+			[
+				0.604,
+				0.824,
+				0.31
+			]
+		],
+		"category": "venue",
+		"family": "fixture",
+		"file": "models/venue/venue.stage.flight_case.glb",
+		"kind": "",
+		"label": "Flight case",
+		"mass": 370.7,
+		"pieces": [
+			{
+				"mass": 181.44,
+				"node": "main__plastic_black",
+				"slot": "plastic_black",
+				"stage": "main"
+			},
+			{
+				"mass": 184.81,
+				"node": "main__aluminium",
+				"slot": "aluminium",
+				"stage": "main"
+			},
+			{
+				"mass": 3.034,
+				"node": "main__steel_stainless",
+				"slot": "steel_stainless",
+				"stage": "main"
+			},
+			{
+				"mass": 1.412,
+				"node": "main__plastic_blue",
+				"slot": "plastic_blue",
+				"stage": "main"
+			}
+		],
+		"sockets": {},
+		"stages": [
+			"main"
+		],
+		"stretch": "",
+		"tags": [
+			"stage",
+			"theatre",
+			"venue"
+		],
+		"tris": 228
+	},
+	"venue.stage.follow_spot": {
+		"aabb": [
+			[
+				-0.4908,
+				-0.0094,
+				-0.6329
+			],
+			[
+				0.4908,
+				1.78,
+				0.4174
+			]
+		],
+		"category": "venue",
+		"family": "fixture",
+		"file": "models/venue/venue.stage.follow_spot.glb",
+		"kind": "",
+		"label": "Follow spot",
+		"mass": 103.6,
+		"pieces": [
+			{
+				"mass": 101.756,
+				"node": "main__plastic_black",
+				"slot": "plastic_black",
+				"stage": "main"
+			},
+			{
+				"mass": 1.848,
+				"node": "main__glow",
+				"slot": "glow",
+				"stage": "main"
+			}
+		],
+		"sockets": {},
+		"stages": [
+			"main"
+		],
+		"stretch": "",
+		"tags": [
+			"stage",
+			"theatre",
+			"venue"
+		],
+		"tris": 204
+	},
+	"venue.stage.grand_piano": {
+		"aabb": [
+			[
+				-0.75,
+				0.0,
+				-0.725
+			],
+			[
+				0.75,
+				1.7609,
+				2.15
+			]
+		],
+		"category": "venue",
+		"family": "fixture",
+		"file": "models/venue/venue.stage.grand_piano.glb",
+		"kind": "",
+		"label": "Grand piano",
+		"mass": 522.5,
+		"pieces": [
+			{
+				"mass": 504.755,
+				"node": "main__plastic_black",
+				"slot": "plastic_black",
+				"stage": "main"
+			},
+			{
+				"mass": 4.032,
+				"node": "main__paint_white",
+				"slot": "paint_white",
+				"stage": "main"
+			},
+			{
+				"mass": 3.825,
+				"node": "main__brass",
+				"slot": "brass",
+				"stage": "main"
+			},
+			{
+				"mass": 6.368,
+				"node": "stool__leather_black",
+				"slot": "leather_black",
+				"stage": "stool"
+			},
+			{
+				"mass": 3.532,
+				"node": "stool__plastic_black",
+				"slot": "plastic_black",
+				"stage": "stool"
+			}
+		],
+		"sockets": {},
+		"stages": [
+			"main",
+			"stool"
+		],
+		"stretch": "",
+		"tags": [
+			"stage",
+			"theatre",
+			"venue"
+		],
+		"tris": 736
+	},
+	"venue.stage.lighting_truss": {
+		"aabb": [
+			[
+				-4.0059,
+				-0.4361,
+				-0.266
+			],
+			[
+				4.0114,
+				0.285,
+				0.175
+			]
+		],
+		"category": "venue",
+		"family": "fixture",
+		"file": "models/venue/venue.stage.lighting_truss.glb",
+		"kind": "",
+		"label": "Lighting truss with lanterns, 8 m",
+		"mass": 250.7,
+		"pieces": [
+			{
+				"mass": 136.232,
+				"node": "main__aluminium",
+				"slot": "aluminium",
+				"stage": "main"
+			},
+			{
+				"mass": 108.688,
+				"node": "lanterns__plastic_black",
+				"slot": "plastic_black",
+				"stage": "lanterns"
+			},
+			{
+				"mass": 2.88,
+				"node": "lanterns__glow",
+				"slot": "glow",
+				"stage": "lanterns"
+			},
+			{
+				"mass": 1.44,
+				"node": "lanterns__plastic_red",
+				"slot": "plastic_red",
+				"stage": "lanterns"
+			},
+			{
+				"mass": 1.44,
+				"node": "lanterns__plastic_blue",
+				"slot": "plastic_blue",
+				"stage": "lanterns"
+			}
+		],
+		"sockets": {
+			"hang_left": [
+				-3.5,
+				0.26,
+				-0.0
+			],
+			"hang_right": [
+				3.5,
+				0.26,
+				-0.0
+			]
+		},
+		"stages": [
+			"main",
+			"lanterns"
+		],
+		"stretch": "",
+		"tags": [
+			"stage",
+			"theatre",
+			"venue"
+		],
+		"tris": 1652
+	},
+	"venue.stage.mixing_desk": {
+		"aabb": [
+			[
+				-0.9,
+				0.0,
+				-0.4
+			],
+			[
+				0.9,
+				1.25,
+				0.4
+			]
+		],
+		"category": "venue",
+		"family": "fixture",
+		"file": "models/venue/venue.stage.mixing_desk.glb",
+		"kind": "",
+		"label": "Sound and lighting desk",
+		"mass": 196.2,
+		"pieces": [
+			{
+				"mass": 78.826,
+				"node": "main__plastic_black",
+				"slot": "plastic_black",
+				"stage": "main"
+			},
+			{
+				"mass": 108.0,
+				"node": "main__plastic_grey",
+				"slot": "plastic_grey",
+				"stage": "main"
+			},
+			{
+				"mass": 0.336,
+				"node": "main__paint_white",
+				"slot": "paint_white",
+				"stage": "main"
+			},
+			{
+				"mass": 9.0,
+				"node": "main__screen",
+				"slot": "screen",
+				"stage": "main"
+			}
+		],
+		"sockets": {},
+		"stages": [
+			"main"
+		],
+		"stretch": "",
+		"tags": [
+			"stage",
+			"theatre",
+			"venue"
+		],
+		"tris": 396
+	},
+	"venue.stage.proscenium": {
+		"aabb": [
+			[
+				-7.2,
+				-0.004,
+				-0.36
+			],
+			[
+				7.2,
+				8.5,
+				0.36
+			]
+		],
+		"category": "venue",
+		"family": "fixture",
+		"file": "models/venue/venue.stage.proscenium.glb",
+		"kind": "",
+		"label": "Proscenium arch with curtains",
+		"mass": 32174.4,
+		"pieces": [
+			{
+				"mass": 2073.6,
+				"node": "main__paint_white",
+				"slot": "paint_white",
+				"stage": "main"
+			},
+			{
+				"mass": 28938.525,
+				"node": "main__brass",
+				"slot": "brass",
+				"stage": "main"
+			},
+			{
+				"mass": 1162.296,
+				"node": "curtain__fabric_red",
+				"slot": "fabric_red",
+				"stage": "curtain"
+			}
+		],
+		"sockets": {},
+		"stages": [
+			"main",
+			"curtain"
+		],
+		"stretch": "",
+		"tags": [
+			"stage",
+			"theatre",
+			"venue"
+		],
+		"tris": 1360
+	},
+	"venue.stage.stage_deck": {
+		"aabb": [
+			[
+				-1.0,
+				0.0,
+				-0.505
+			],
+			[
+				1.0,
+				1.0,
+				0.5
+			]
+		],
+		"category": "venue",
+		"family": "fixture",
+		"file": "models/venue/venue.stage.stage_deck.glb",
+		"kind": "",
+		"label": "Stage deck, 2 x 1 m",
+		"mass": 172.6,
+		"pieces": [
+			{
+				"mass": 96.0,
+				"node": "main__plastic_black",
+				"slot": "plastic_black",
+				"stage": "main"
+			},
+			{
+				"mass": 74.304,
+				"node": "main__aluminium",
+				"slot": "aluminium",
+				"stage": "main"
+			},
+			{
+				"mass": 2.256,
+				"node": "main__fabric_grey",
+				"slot": "fabric_grey",
+				"stage": "main"
+			}
+		],
+		"sockets": {},
+		"stages": [
+			"main"
+		],
+		"stretch": "",
+		"tags": [
+			"stage",
+			"theatre",
+			"venue"
+		],
+		"tris": 120
 	},
 	"water.ferry.barrier": {
 		"aabb": [

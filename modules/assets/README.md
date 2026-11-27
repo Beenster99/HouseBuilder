@@ -104,6 +104,32 @@ Site equipment and stored materials (`siteyard.py`): `plant.cabin.*`, `plant.acc
 `plant.temporary.table_form*`, `plant.small.generator*`, `plant.traffic.*`, `plant.fence.heras*`,
 `plant.fence.concrete_barrier*`, `plant.store.*`, `plant.skip.*`.
 
+## Contract building types and their rooms
+
+Whole-building models (`landmarks.py`): `context.type.<building type id>` for the contract
+building types (corner_shop, holiday_lodge, housing_row, guest_house, pub, industrial_unit,
+retreat, bus_station, shopping_parade, apartment_building, council_offices, cinema, hotel,
+business_centre, theatre, law_courts, mansion_house, retail_park, train_station, prison).
+Massing models, 500 to 8,500 triangles, facing game -z, socket `front_door`. Look one up with
+`AssetLibrary.make("context.type." + type_id)`.
+
+Room contents (`venues.py`), by room type:
+
+| Room types | Asset ids |
+| --- | --- |
+| bar | `hospitality.pub.*` |
+| restaurant, function_room | `hospitality.restaurant.*`, `hospitality.function.*` |
+| hotel_bedroom | `hospitality.hotel.*` |
+| auditorium, stage, projection_room | `venue.seat.*`, `venue.stage.*`, `venue.cinema.*` |
+| foyer, dressing_room | `venue.foyer.*`, `venue.backstage.*` |
+| courtroom, judges_chambers, jury_room | `justice.court.*` |
+| prison_cell, visits_hall, gatehouse | `justice.prison.*` |
+| platform, concourse, ticket_hall, bus_bay | `station.rail.*`, `station.bus.*` |
+| shop_unit, retail_warehouse | `retail.store.*` |
+| workshop, warehouse, loading_bay | `industrial.depot.*` |
+| council_chamber | `office.council.*` |
+| lodge, retreat and mansion rooms | `home.lodge.*`, `home.mansion.*` |
+
 ## Drawing placed parts in a view
 
 Every view should draw a placed part with the library model, not a box of its size:
