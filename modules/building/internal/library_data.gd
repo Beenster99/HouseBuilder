@@ -374,4 +374,5 @@ const KIND_SERVICES := {
 	"reception_desk": {"power": 300, "data": true}, "consumer_unit": {}, "water_main": {"cold": true},
 	"boiler": {"gas": true, "cold": true, "hot": true, "heat": 24000, "heating": true, "power": 150},
 	"soil_stack": {"drain": true},
+	"radiator": {"heating": true, "heat": 800}, "light_point": {"power": 10}, "socket_double": {"power": 0},
 }

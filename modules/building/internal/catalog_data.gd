@@ -12,7 +12,7 @@ extends RefCounted
 const DATA := {
 	"currency": "GBP",
 	"rates_note": "Approximate UK installed rates, 2025 to 2026, to tune in playtesting.",
-	"families": ["foundation", "column", "beam", "brace", "truss", "slab", "roof", "wall", "opening", "fixture", "circulation"],
+	"families": ["foundation", "column", "beam", "brace", "truss", "slab", "roof", "wall", "opening", "fixture", "circulation", "service"],
 	"connection_kinds": ["pinned", "fixed", "bearing"],
 
 	# Characteristic values, rounded: density kg/m3, strength MPa (bending for timber,
@@ -25,6 +25,8 @@ const DATA := {
 		"masonry": {"label": "Masonry (brick and block)", "density": 1900.0, "strength": 7.3, "e": 5.0, "colour": "b0614a"},
 		"glass": {"label": "Glazing", "density": 2500.0, "strength": 0.0, "e": 70.0, "colour": "9fd3e6"},
 		"ceramic": {"label": "Sanitaryware", "density": 2300.0, "strength": 0.0, "e": 0.0, "colour": "f5f5f5"},
+		"copper": {"label": "Copper", "density": 8960.0, "strength": 0.0, "e": 117.0, "colour": "c87533"},
+		"pvc": {"label": "PVC", "density": 1400.0, "strength": 0.0, "e": 3.0, "colour": "8c8c8c"},
 	},
 
 	# Section sizes. Rectangles give w (width) and d (depth or thickness), m; area and
@@ -159,6 +161,26 @@ const DATA := {
 		"roof_pitched": {"label": "Pitched roof", "family": "roof", "shape": "area", "structural": true, "pitch": 35.0,
 			"materials": ["timber"], "sections": {},
 			"rates": {"timber": ["m2", 165.0]}},
+		"roof_hip": {"label": "Hipped roof", "family": "roof", "shape": "area", "structural": true, "pitch": 35.0,
+			"materials": ["timber"], "sections": {},
+			"rates": {"timber": ["m2", 165.0]}},
+		"roof_mono": {"label": "Mono-pitch roof", "family": "roof", "shape": "area", "structural": true, "pitch": 35.0,
+			"materials": ["timber"], "sections": {},
+			"rates": {"timber": ["m2", 165.0]}},
+		# Services (M&E routing): runs in plan like walls, a and b level-relative. Not
+		# structural; priced by the metre.
+		"cable_power": {"label": "Power cable", "family": "service", "shape": "line", "structural": false,
+			"materials": ["copper"], "sections": {}, "rates": {"copper": ["m", 14.0]}},
+		"cable_lighting": {"label": "Lighting cable", "family": "service", "shape": "line", "structural": false,
+			"materials": ["copper"], "sections": {}, "rates": {"copper": ["m", 12.0]}},
+		"pipe_cold": {"label": "Cold water pipe", "family": "service", "shape": "line", "structural": false,
+			"materials": ["copper"], "sections": {}, "rates": {"copper": ["m", 30.0]}},
+		"pipe_hot": {"label": "Hot water pipe", "family": "service", "shape": "line", "structural": false,
+			"materials": ["copper"], "sections": {}, "rates": {"copper": ["m", 34.0]}},
+		"pipe_heating": {"label": "Heating pipe", "family": "service", "shape": "line", "structural": false,
+			"materials": ["copper"], "sections": {}, "rates": {"copper": ["m", 32.0]}},
+		"pipe_waste": {"label": "Waste pipe", "family": "service", "shape": "line", "structural": false,
+			"materials": ["pvc"], "sections": {}, "rates": {"pvc": ["m", 40.0]}},
 		# Walls
 		"wall_loadbearing": {"label": "Load-bearing wall", "family": "wall", "shape": "line", "structural": true,
 			"materials": ["masonry", "concrete", "timber"],
