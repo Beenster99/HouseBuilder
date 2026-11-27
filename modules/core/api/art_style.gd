@@ -62,7 +62,11 @@ static func realistic() -> bool:
 ## empty); `family` the catalog family. Glass and openings come back transparent.
 ## A registered (asset library) material wins over the built-in ones for its name.
 static func material(material_name: String, family: String) -> BaseMaterial3D:
-	var s := style()
+	return material_in(style(), material_name, family)
+
+
+## The same for a given look (the splash warms both looks' shaders).
+static func material_in(s: int, material_name: String, family: String) -> BaseMaterial3D:
 	var key := "%d|%s|%s" % [s, material_name, family]
 	if _cache.has(key):
 		return _cache[key]
@@ -88,11 +92,15 @@ static func material(material_name: String, family: String) -> BaseMaterial3D:
 
 
 static func ground() -> StandardMaterial3D:
-	var key := "%d|ground" % style()
+	return ground_in(style())
+
+
+static func ground_in(s: int) -> StandardMaterial3D:
+	var key := "%d|ground" % s
 	if _cache.has(key):
 		return _cache[key]
 	var m: StandardMaterial3D
-	if style() == REALISTIC:
+	if s == REALISTIC:
 		m = _real("ground")
 	else:
 		m = StandardMaterial3D.new()
@@ -147,15 +155,12 @@ static func apply_to_camera(cam: Camera3D) -> void:
 		return
 	if quad:
 		return
-	if _outline == null:
-		_outline = ShaderMaterial.new()
-		_outline.shader = load(OUTLINE_SHADER)
 	quad = MeshInstance3D.new()
 	quad.name = OUTLINE_NODE
 	var mesh := QuadMesh.new()
 	mesh.size = Vector2(2.0, 2.0)
 	quad.mesh = mesh
-	quad.material_override = _outline
+	quad.material_override = outline_material()
 	quad.extra_cull_margin = 16384.0
 	quad.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	quad.gi_mode = GeometryInstance3D.GI_MODE_DISABLED
@@ -213,5 +218,30 @@ static func _texture(name: String, normal: bool) -> NoiseTexture2D:
 
 
 ## Forget cached materials (after the look changes, views rebuild from fresh ones).
+## Every material both looks can show, and the edge-line pass: what the splash screen draws
+## once so their shaders are compiled before play.
+static func warm_materials() -> Array[Material]:
+	var out: Array[Material] = []
+	var seen := {}
+	for s in [MODEL, REALISTIC]:
+		var names: Array = REAL.keys() + _registered.keys() + [""]
+		for n: String in names:
+			for fam: String in FAMILY_MATERIAL.keys():
+				var m := material_in(s, n, fam)
+				if not seen.has(m):
+					seen[m] = true
+					out.append(m)
+		out.append(ground_in(s))
+	out.append(outline_material())
+	return out
+
+
+static func outline_material() -> ShaderMaterial:
+	if _outline == null:
+		_outline = ShaderMaterial.new()
+		_outline.shader = load(OUTLINE_SHADER)
+	return _outline
+
+
 static func clear_cache() -> void:
 	_cache.clear()

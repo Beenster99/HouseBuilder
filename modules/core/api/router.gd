@@ -54,6 +54,11 @@ func scene_path(id: String) -> String:
 	return _scenes.get(id, "")
 
 
+## Every registered scene: id -> path (the splash preloads them all).
+func scene_paths() -> Dictionary:
+	return _scenes.duplicate()
+
+
 func goto(id: String, scene_args: Dictionary = {}) -> Error:
 	if not _scenes.has(id):
 		push_error("Router: no scene registered as '%s'" % id)

@@ -1,14 +1,18 @@
 extends Control
 ## Play Online, from the title screen: host your latest game (or a new one) for the crew,
 ## or join someone else's by address. Hosting stays on this screen until the router has
-## answered, so the host can copy the address to send the crew, then enters the yard.
-## Laid out like the main menu. Router.args may carry {"note": reason} when a session the
+## answered, so the host can copy the address to send the crew, then enters the game.
+## Laid out like the main menu. Router.args may carry {"mode": "host" or "join"} (the main
+## menu's Online > Host / Join: only that half shows) and {"note": reason} when a session the
 ## player had joined ended and sent them back here.
 
 var net: MultiplayerBus
 var _name: LineEdit
 var _address: LineEdit
 var _host: Button
+var _host_head: Label
+var _join_head: Label
+var _title: Label
 var _join: Button
 var _note: Label
 var _setup: VBoxContainer  # name, Host, address, Join: while not in a session
@@ -34,9 +38,9 @@ func _ready() -> void:
 	box.add_theme_constant_override("separation", 14)
 	center.add_child(box)
 
-	var title := BsxTheme.title("PLAY ONLINE", 44)
-	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	box.add_child(title)
+	_title = BsxTheme.title("PLAY ONLINE", 44)
+	_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	box.add_child(_title)
 
 	_setup = VBoxContainer.new()
 	_setup.add_theme_constant_override("separation", 14)
@@ -44,12 +48,14 @@ func _ready() -> void:
 	_setup.add_child(BsxTheme.muted("Your name"))
 	_name = _field("Your name", str(Settings.get_value("multiplayer", "player_name")), "PlayerName")
 	_setup.add_child(_name)
-	_setup.add_child(BsxTheme.muted("Host a game for your crew"))
+	_host_head = BsxTheme.muted("Host a game for your crew")
+	_setup.add_child(_host_head)
 	_host = BsxTheme.button(_host_label(), _on_host)
 	_host.name = "Host"
 	_host.custom_minimum_size.y = 52
 	_setup.add_child(_host)
-	_setup.add_child(BsxTheme.muted("Join a crew: the host's address"))
+	_join_head = BsxTheme.muted("Join a crew: the host's address")
+	_setup.add_child(_join_head)
 	_address = _field("e.g. 81.2.69.160", str(Settings.get_value("multiplayer", "last_address")), "Address")
 	_address.text_submitted.connect(func(_t: String) -> void: _on_join())
 	_setup.add_child(_address)
@@ -69,7 +75,7 @@ func _ready() -> void:
 	var copy := BsxTheme.button("Copy address", func() -> void: DisplayServer.clipboard_set(_best_address()))
 	copy.name = "CopyAddress"
 	_live.add_child(copy)
-	var enter := BsxTheme.button("Enter the yard", _go_play)
+	var enter := BsxTheme.button("Enter the game", _go_play)
 	enter.name = "EnterYard"
 	enter.custom_minimum_size.y = 52
 	_live.add_child(enter)
@@ -113,6 +119,14 @@ func _field(placeholder: String, value: String, node_name: String) -> LineEdit:
 func _show() -> void:
 	var hosting := net.is_online() and net.is_host()
 	_setup.visible = not hosting
+	# From the main menu's Online > Host or Join: only that half of the screen.
+	var mode := str(Router.args.get("mode", ""))
+	for n: Control in [_host, _host_head]:
+		n.visible = mode != "join"
+	for n: Control in [_address, _join, _join_head]:
+		n.visible = mode != "host"
+	if _title:
+		_title.text = {"host": "HOST A GAME", "join": "JOIN A GAME"}.get(mode, "PLAY ONLINE")
 	_live.visible = hosting
 	if hosting:
 		_reach.text = _hosting_note(net.router_info())

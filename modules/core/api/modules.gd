@@ -5,12 +5,16 @@ extends Node
 ## buses: `Modules.bus("trades") as TradesBus`.
 
 signal modules_ready
+## The splash screen finished loading and warming up (or there was no splash: tests, tools).
+## Dev launches (--host / --join) wait for it so they land after the splash, not under it.
+signal booted
 
 const ROOT := "res://modules"
 ## Core is the autoloads themselves, so it has no bus and is always loaded.
 const BUILT_IN: PackedStringArray = ["core"]
 
 var ready_done := false
+var boot_done := false
 var _manifests: Dictionary = {}
 var _loaded: PackedStringArray = []
 var _skipped: Dictionary = {}
@@ -38,6 +42,22 @@ func load_all() -> void:
 		_loaded.append(id)
 	ready_done = true
 	modules_ready.emit()
+	# Without the boot scene (tests, -s scripts) nothing waits on a splash.
+	if not _boot_scene_running():
+		finish_boot.call_deferred()
+
+
+## Called by the splash when it is done; safe to call more than once.
+func finish_boot() -> void:
+	if boot_done:
+		return
+	boot_done = true
+	booted.emit()
+
+
+func _boot_scene_running() -> bool:
+	var scene := get_tree().current_scene
+	return scene != null and scene.scene_file_path == ProjectSettings.get_setting("application/run/main_scene", "")
 
 
 func unload_all() -> void:

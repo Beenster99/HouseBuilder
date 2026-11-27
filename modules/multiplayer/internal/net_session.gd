@@ -165,6 +165,31 @@ func server_time() -> float:
 	return _now() + _clock_offset
 
 
+var _stats := {"sent_bytes_per_s": 0.0, "recv_bytes_per_s": 0.0}
+var _stats_at := 0.0
+var _stats_sent := 0.0
+var _stats_recv := 0.0
+
+
+## Traffic and motion numbers for the performance overlay. Byte rates are averaged over the
+## time since the last call (at least a quarter second).
+func net_stats() -> Dictionary:
+	var peer := _mp.multiplayer_peer as ENetMultiplayerPeer
+	if peer != null and peer.host != null:
+		_stats_sent += peer.host.pop_statistic(ENetConnection.HOST_TOTAL_SENT_DATA)
+		_stats_recv += peer.host.pop_statistic(ENetConnection.HOST_TOTAL_RECEIVED_DATA)
+	var now := Time.get_ticks_msec() / 1000.0
+	if now - _stats_at >= 0.25:
+		var dt := now - _stats_at if _stats_at > 0.0 else 1.0
+		_stats.sent_bytes_per_s = _stats_sent / dt
+		_stats.recv_bytes_per_s = _stats_recv / dt
+		_stats_sent = 0.0
+		_stats_recv = 0.0
+		_stats_at = now
+	return {"sent_bytes_per_s": _stats.sent_bytes_per_s, "recv_bytes_per_s": _stats.recv_bytes_per_s,
+			"movers": _movers._nodes.size(), "view_delay": NetMovers.DELAY}
+
+
 ## Best recent round trip to the host in seconds (0 for the host).
 func round_trip() -> float:
 	if _clock_samples.is_empty():

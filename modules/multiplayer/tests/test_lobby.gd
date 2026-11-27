@@ -7,10 +7,10 @@ extends ModuleTest
 
 func run_tests() -> void:
 	var online := Flags.is_on(MultiplayerBus.ONLINE_FLAG)
-	var listed := Menu.entries().any(func(e: Dictionary) -> bool: return e.id == MultiplayerBus.PLAY_SCENE)
-	var entry: Array = Menu.entries().filter(func(e: Dictionary) -> bool: return e.id == MultiplayerBus.PLAY_SCENE)
-	check(entry.is_empty() or entry[0].label == "Play Online", "the title screen button says Play Online")
-	check(listed == online, "Play Online on the title screen follows the online flag")
+	var entries: Array = Menu.entries().filter(func(e: Dictionary) -> bool: return e.group == MultiplayerBus.ONLINE_GROUP)
+	var labels: Array = entries.map(func(e: Dictionary) -> String: return "%s:%s" % [e.label, e.args.get("mode", "")])
+	check(not online or labels == ["Host:host", "Join:join"], "the main menu's Online has Host and Join: %s" % str(labels))
+	check(entries.is_empty() != online, "Online on the main menu follows the online flag")
 	check(Router.has_scene(MultiplayerBus.PLAY_SCENE) == online, "Play Online scene registered")
 	if not online:
 		return

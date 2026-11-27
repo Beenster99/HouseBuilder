@@ -3,8 +3,12 @@ extends Control
 ## New game and saved games, over the main menu: a name for a new yard and Begin, then the
 ## saved games newest first, each with Load and Delete (Delete asks once more). Begin and
 ## Load go to the game's start scene (Menu.start()). Laid out like Void Salvage's menu.
+## `mode` (set before adding it) shows one job: "new" (a name and Begin), "load" (saved
+## games with Load) or "delete" (saved games with Delete); "" shows everything.
 
 signal closed
+
+var mode := ""
 
 var name_field: LineEdit
 var list_box: VBoxContainer
@@ -21,18 +25,21 @@ func _ready() -> void:
 	box.add_theme_constant_override("separation", 12)
 	center.add_child(box)
 
-	var title := BsxTheme.title("GAMES", 40)
+	var title := BsxTheme.title({"new": "NEW GAME", "load": "LOAD GAME", "delete": "DELETE GAMES"}.get(mode, "GAMES"), 40)
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	box.add_child(title)
 	box.add_child(_spacer(8))
-	box.add_child(_field_label("New game"))
+	var new_head := _field_label("New game")
+	new_head.visible = mode == "" or mode == "new"
+	box.add_child(new_head)
 	var row := HBoxContainer.new()
+	row.visible = new_head.visible
 	row.add_theme_constant_override("separation", 10)
 	box.add_child(row)
 	name_field = LineEdit.new()
 	name_field.name = "GameName"
-	name_field.placeholder_text = "Name your yard"
-	name_field.text = "Yard %d" % (Saves.games().size() + 1)
+	name_field.placeholder_text = "Name your firm"
+	name_field.text = "Firm %d" % (Saves.games().size() + 1)
 	name_field.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	name_field.custom_minimum_size.y = 42
 	name_field.text_submitted.connect(func(_t: String) -> void: begin())
@@ -43,8 +50,11 @@ func _ready() -> void:
 	row.add_child(go)
 
 	box.add_child(_spacer(8))
-	box.add_child(_field_label("Saved games"))
+	var saved_head := _field_label("Saved games")
+	saved_head.visible = mode != "new"
+	box.add_child(saved_head)
 	var scroll := ScrollContainer.new()
+	scroll.visible = mode != "new"
 	scroll.custom_minimum_size = Vector2(0, 300)
 	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	box.add_child(scroll)
@@ -59,8 +69,9 @@ func _ready() -> void:
 	var back := BsxTheme.button("Back", close)
 	back.name = "Back"
 	box.add_child(back)
-	name_field.grab_focus.call_deferred()
-	name_field.select_all.call_deferred()
+	if row.visible:
+		name_field.grab_focus.call_deferred()
+		name_field.select_all.call_deferred()
 
 
 ## Rebuilds the saved games list.
@@ -89,11 +100,13 @@ func fill() -> void:
 		load_button.name = "Load"
 		load_button.custom_minimum_size.x = 96
 		load_button.disabled = not _can_start()
+		load_button.visible = mode != "delete"
 		row.add_child(load_button)
 		var del := BsxTheme.button("Delete", func() -> void: pass)
 		del.name = "Delete"
 		del.custom_minimum_size.x = 96
 		del.pressed.connect(func() -> void: _ask_delete(del, g.slot))
+		del.visible = mode != "load"
 		row.add_child(del)
 		list_box.add_child(row)
 

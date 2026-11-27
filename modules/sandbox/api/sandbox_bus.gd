@@ -36,7 +36,11 @@ func register_module() -> void:
 	net.register_event(CLEAR, _apply_clear)
 	net.register_snapshot_provider("sandbox", self)
 	net.session_ended.connect(func(_reason: String) -> void: _reset())
-	_dev_launch.call_deferred(OS.get_cmdline_user_args())
+	# After the splash, so the game opens over it rather than under it.
+	if Modules.boot_done:
+		_dev_launch.call_deferred(OS.get_cmdline_user_args())
+	else:
+		Modules.booted.connect(func() -> void: _dev_launch(OS.get_cmdline_user_args()), CONNECT_ONE_SHOT)
 
 
 func unregister_module() -> void:

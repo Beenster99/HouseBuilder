@@ -30,8 +30,10 @@ func run_tests() -> void:
 	await frames(2)
 	var start := menu.find_child("Start", true, false) as Button
 	var first: Node = menu.entry_box.get_child(0)
-	check(start != null and start.text == "New Game" and not start.disabled
-			and (first == start or first.name == "Continue"), "Continue or New Game leads the menu")
+	check(start != null and start.text == "New" and not start.disabled
+			and (first == start or first.name == "Continue"), "Continue or New leads Single player")
+	for n in ["SinglePlayer", "Online", "Settings", "ExitGame", "LoadGame", "DeleteGame"]:
+		check(menu.find_child(n, true, false) is Button, "the main menu has %s" % n)
 	check(menu.find_child("_dup", true, false) == null, "an entry for the start scene isn't listed twice")
 	Menu.clear_start(UiBus.SETTINGS)
 	if not before.is_empty():
@@ -40,6 +42,26 @@ func run_tests() -> void:
 	Menu.unregister_entry("_rivet")
 	Menu.unregister_entry("_weld")
 	Menu.unregister_entry("_job")
+	check(menu.find_child("Graphics", true, false) == null, "Graphics waits in Settings")
+	menu.open_section("online")
+	await frames(1)
+	if Flags.is_on("multiplayer.online"):
+		var texts: Array = menu.entry_box.get_children().filter(func(c: Node) -> bool: return c is Button).map(func(b: Button) -> String: return b.text)
+		check(texts == ["Host", "Join"], "Online lists Host and Join: %s" % str(texts))
+	check(menu.find_child("Start", true, false) == null, "and not Single player's choices")
+	menu.open_section("settings")
+	await frames(1)
+	for n in ["Gameplay", "Sound"]:
+		check(menu.find_child(n, true, false) is Button, "Settings has %s" % n)
+	(menu.find_child("Sound", true, false) as Button).pressed.emit()
+	await frames(2)
+	var over := menu.find_child("SettingsOverlay", true, false)
+	check(over != null and over.find_child("MasterVolume", true, false) != null and not menu._center.visible,
+			"Sound opens the sound settings over the menu")
+	if over:
+		(over.find_child("Back", true, false) as Button).pressed.emit()
+		await frames(1)
+	check(menu._center.visible, "and Back returns to the menu")
 	var gfx := menu.find_child("Graphics", true, false) as Button
 	check(gfx != null, "main menu has a Graphics button")
 	if gfx != null:
@@ -149,11 +171,18 @@ func _test_games() -> void:
 	check(menu.find_child("LoadGame", true, false) != null, "the menu has Load Game")
 	(menu.find_child("Start", true, false) as Button).pressed.emit()
 	await frames(2)
-	var panel := menu.find_child("GamesPanel", true, false) as GamesPanel
-	check(panel != null and not menu._center.visible, "New Game opens the games panel")
-	if panel != null:
-		check(panel.name_field.text != "" and panel.find_child("Begin", true, false) != null,
+	var fresh := menu.find_child("GamesPanel", true, false) as GamesPanel
+	check(fresh != null and not menu._center.visible and fresh.mode == "new", "New opens the games panel for a new game")
+	if fresh != null:
+		check(fresh.name_field.text != "" and fresh.find_child("Begin", true, false) != null and fresh.name_field.is_visible_in_tree(),
 				"the panel offers a name and Begin")
+		(fresh.find_child("Back", true, false) as Button).pressed.emit()
+		await frames(2)
+	(menu.find_child("DeleteGame", true, false) as Button).pressed.emit()
+	await frames(2)
+	var panel := menu.find_child("GamesPanel", true, false) as GamesPanel
+	check(panel != null and panel.mode == "delete" and not panel.name_field.is_visible_in_tree(), "Delete opens the saved games to delete")
+	if panel != null:
 		var row := panel.list_box.find_child("Game_" + slot.validate_node_name(), false, false)
 		check(row != null, "the panel lists the saved game")
 		if row != null:

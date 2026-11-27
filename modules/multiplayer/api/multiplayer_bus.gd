@@ -65,6 +65,11 @@ const PING_LIFE := 10.0
 const PINGS_EACH := 5
 ## The title screen's Play Online screen (host or join), there while online play is on.
 const PLAY_SCENE := "multiplayer.play_together"
+## The main menu's Online section: Host and Join, both opening the lobby set up for that.
+const ONLINE_GROUP := "Online"
+const HOST_ENTRY := "multiplayer.host"
+const JOIN_ENTRY := "multiplayer.join"
+const NAME_SECTION := "multiplayer.name"
 const CREW_SCREEN := preload("res://modules/multiplayer/internal/crew/crew_screen.gd")
 
 var _crew: Node
@@ -105,7 +110,9 @@ func register_module() -> void:
 		HudSlots.register_holo_channel(CREW_CHANNEL, "Crew", _crew_screen, 45)
 	if Flags.is_on(ONLINE_FLAG):
 		Router.register_scene(PLAY_SCENE, "res://modules/multiplayer/internal/lobby/play_together.tscn")
-		Menu.register_entry(PLAY_SCENE, "Play Online", PLAY_SCENE, 5)
+		Menu.register_entry(HOST_ENTRY, "Host", PLAY_SCENE, 5, {"mode": "host"}, ONLINE_GROUP)
+		Menu.register_entry(JOIN_ENTRY, "Join", PLAY_SCENE, 6, {"mode": "join"}, ONLINE_GROUP)
+	Menu.register_settings_section(Menu.GAMEPLAY, NAME_SECTION, "Your name", _name_field, 5)
 	_router = preload("res://modules/multiplayer/internal/net_router.gd").new()
 	_router.name = "Router"
 	_router.changed.connect(router_changed.emit)
@@ -117,9 +124,23 @@ func register_module() -> void:
 	session_ended.connect(_on_session_ended)
 
 
+## Settings > Gameplay: the name the crew sees over your cursor.
+func _name_field() -> Control:
+	var field := LineEdit.new()
+	field.name = "PlayerName"
+	field.text = str(Settings.get_value("multiplayer", "player_name"))
+	field.custom_minimum_size = Vector2(320, 40)
+	field.text_changed.connect(func(t: String) -> void:
+		if t.strip_edges() != "":
+			Settings.set_value("multiplayer", "player_name", t.strip_edges()))
+	return field
+
+
 func unregister_module() -> void:
 	HudSlots.unregister_holo_channel(CREW_CHANNEL)
-	Menu.unregister_entry(PLAY_SCENE)
+	Menu.unregister_settings_section(Menu.GAMEPLAY, NAME_SECTION)
+	Menu.unregister_entry(HOST_ENTRY)
+	Menu.unregister_entry(JOIN_ENTRY)
 	if _session:
 		_session.leave()
 
@@ -179,6 +200,12 @@ func peers() -> Dictionary:
 ## Seconds on the host's clock; timestamps compared across players use this.
 func server_time() -> float:
 	return _session.server_time()
+
+
+## {sent_bytes_per_s, recv_bytes_per_s, movers, view_delay}: ENet traffic since the last
+## call, movers registered here, and how far behind (s) other players' motion is shown.
+func net_stats() -> Dictionary:
+	return _session.net_stats()
 
 
 func round_trip() -> float:
