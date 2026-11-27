@@ -44,7 +44,7 @@ def fixed_window(w, h, slot="aluminium", round_=False, louvre=False):
 				for i in range(int((h - 0.1) / 0.1)):
 					kit.box((w - 0.1, 0.11, 0.006), (0, 0, 0.1 + i * 0.1), slot, "blade", rot=(35, 0, 0))
 			else:
-				kit.box((w - 0.1, 0.028, h - 0.1), (0, 0, h / 2), "glass", "pane")
+				kit.box((w - 0.07, 0.028, h - 0.07), (0, 0, h / 2), "glass", "pane")
 	kit.socket("wall", (0, 0, 0))
 
 
@@ -74,7 +74,7 @@ def sliding_door(w, h, panels=2, bifold=False, slot="aluminium"):
 		with kit.stage("leaf"):
 			kit.frame(pw, h - 0.09, 0.05 if not bifold else 0.07, 0.045, at=(x, y, 0.02), slot=slot, name="panel_frame")
 		with kit.stage("glazing"):
-			kit.box((pw - 0.1, 0.028, h - 0.2), (x, y, h / 2), "glass", "pane")
+			kit.box((pw - 0.07, 0.028, h - 0.2), (x, y, h / 2), "glass", "pane")
 		with kit.stage("ironmongery"):
 			kit.box((0.025, 0.03, 0.25), (x + (pw / 2 - 0.03) * (1 if i % 2 == 0 else -1), y + 0.035, 1.05), "steel_stainless", "handle")
 	kit.socket("wall", (0, 0, 0))
@@ -87,7 +87,7 @@ def auto_entrance(w=2.0, h=2.3, revolving=False):
 			kit.cyl(r + 0.05, 0.25, (0, 0, h + 0.125), "aluminium", "canopy", segs=28)
 			kit.cyl(r + 0.05, 0.02, (0, 0, 0.01), "rubber", "mat", segs=28)
 			for s in (-1, 1):
-				kit.sweep([((r) * math.cos(math.radians(a)) , (r * math.sin(math.radians(a))) * 1, h / 2) for a in range(-50 if s > 0 else 130, 51 if s > 0 else 231, 10)], kit.rect(0.02, h), "glass", "drum_wall")
+				kit.sweep([((r) * math.cos(math.radians(a)) , (r * math.sin(math.radians(a))) * 1, h / 2 + 0.015) for a in range(-50 if s > 0 else 130, 51 if s > 0 else 231, 10)], kit.rect(0.02, h - 0.03), "glass", "drum_wall")
 		with kit.stage("leaf"):
 			kit.cyl(0.05, h, (0, 0, h / 2), "aluminium", "shaft", segs=12)
 			for i in range(4):
@@ -213,8 +213,8 @@ def curtain_wall(h=3.6):
 		for z in (0.03, 1.0, h - 0.03):
 			kit.box((1.5, 0.15, 0.06), (0, -0.05, z), "aluminium", "transom")
 	with kit.stage("glazing"):
-		kit.box((1.44, 0.03, h - 1.06), (0, 0.01, 1.03 + (h - 1.06) / 2), "glass", "vision")
-		kit.box((1.44, 0.03, 0.94), (0, 0.01, 0.53), "aluminium", "spandrel")
+		kit.box((1.44, 0.03, h - 1.06), (0, 0.016, 1.03 + (h - 1.06) / 2), "glass", "vision")
+		kit.box((1.44, 0.03, 0.94), (0, 0.016, 0.53), "aluminium", "spandrel")
 
 
 def shopfront(w=4.0, h=3.0):

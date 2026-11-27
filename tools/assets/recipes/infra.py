@@ -325,7 +325,7 @@ def rail(what="track"):
 		else:
 			with kit.hollow(0.06):
 				kit.rounded_box((2.7, l, 2.7), (0, 0, 2.45), "paint_white" if what != "loco" else "hazard_red", "body", radius=0.25)
-			kit.box((2.72, l - (2.0 if what != "loco" else 16.0), 0.8), (0, 0 if what != "loco" else l / 2 - 2.0, 2.9), "glass", "windows")
+			kit.box((2.72, l - (2.0 if what != "loco" else 15.97), 0.8), (0, 0 if what != "loco" else l / 2 - 2.0, 2.9), "glass", "windows")
 			kit.box((2.72, l - 1.0, 0.25), (0, 0, 1.6), "plastic_blue" if what != "loco" else "plastic_yellow", "stripe")
 			if what != "tram":
 				for y in (-l / 4, l / 4):

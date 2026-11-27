@@ -36,6 +36,8 @@ def place(src, at=(0, 0, 0), turn=0.0, stage=None) -> dict:
 			src_bm = bmesh.new()
 			src_bm.from_mesh(ob.data)
 			src_bm.transform(m @ ob.matrix_world)
+			src_bm.faces.index_update()
+			_settle_glass(src_bm, {i for i, slot in enumerate(names) if slot.startswith("glass")})
 			for i, slot in enumerate(names):
 				bm = src_bm.copy()
 				bmesh.ops.delete(bm, geom=[f for f in bm.faces if f.material_index != i], context="FACES")
@@ -58,6 +60,56 @@ def place(src, at=(0, 0, 0), turn=0.0, stage=None) -> dict:
 		if data:
 			bpy.data.meshes.remove(data)
 	return out
+
+
+def _settle_glass(bm, glass: set) -> None:
+	"""Imported glazing often lies in the plane of the wall or frame around it and flickers.
+	Each glass face that shares a plane with another surface is stood off by the smallest
+	step that leaves it clear (faces whose material index is in `glass`)."""
+	if not glass:
+		return
+	bmesh.ops.split_edges(bm, edges=list({e for f in bm.faces if f.material_index in glass for e in f.edges}))
+	bm.normal_update()
+	def entry(f, shift=0.0):
+		n = f.normal
+		cs = [v.co + n * shift for v in f.verts]
+		lo = [min(c[k] for c in cs) for k in range(3)]
+		hi = [max(c[k] for c in cs) for k in range(3)]
+		return (n.copy(), n.dot(cs[0]), lo, hi)
+	buckets = {}
+	def key(n):
+		return (round(n.x * 4), round(n.y * 4), round(n.z * 4))
+	others = {}
+	for f in bm.faces:
+		if f.calc_area() < 1e-6:
+			continue
+		others.setdefault(key(f.normal), []).append([f.index, f.material_index in glass, entry(f)])
+	def clash(f, shift):
+		n, d, lo, hi = entry(f, shift)
+		k0 = key(n)
+		for dx in (-1, 0, 1):
+			for dy in (-1, 0, 1):
+				for dz in (-1, 0, 1):
+					for index, is_glass, (n2, d2, lo2, hi2) in others.get((k0[0] + dx, k0[1] + dy, k0[2] + dz), ()):
+						if index == f.index or (is_glass and index > f.index and shift == 0.0):
+							continue
+						if n.dot(n2) < 0.9995 or abs(d - d2) > 0.0035:
+							continue
+						if all(lo[k] < hi2[k] - 0.0005 and lo2[k] < hi[k] - 0.0005 for k in range(3) if abs(n[k]) < 0.9):
+							return True
+		return False
+	bm.faces.ensure_lookup_table()
+	for f in bm.faces:
+		if f.material_index not in glass or f.calc_area() < 1e-6 or not clash(f, 0.0):
+			continue
+		for shift in (0.006, -0.006, 0.011, -0.011, 0.016, 0.023, 0.031):
+			if not clash(f, shift):
+				for v in f.verts:
+					v.co += f.normal * shift
+				for item in others[key(f.normal)]:
+					if item[0] == f.index:
+						item[2] = entry(f)
+				break
 
 
 def model(src=""):

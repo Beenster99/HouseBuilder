@@ -535,7 +535,7 @@ def debris(what="rubble", size=0.3, slot="concrete", seed=1, n=1):
 		for i in range(14):
 			a = rng.random() * 6.283
 			r = rng.random() * 0.7
-			kit.prism([(0, 0), (0.1 + rng.random() * 0.15, 0.02), (0.05, 0.1 + rng.random() * 0.15)], 0.004, (r * math.cos(a), r * math.sin(a), 0.003), "glass", "shard", axis="z", rot=(0, 0, rng.random() * 360))
+			kit.prism([(0, 0), (0.1 + rng.random() * 0.15, 0.02), (0.05, 0.1 + rng.random() * 0.15)], 0.004, (r * math.cos(a), r * math.sin(a), 0.003 + i * 0.003), "glass", "shard", axis="z", rot=(0, 0, rng.random() * 360))
 	elif what == "roof_tiles":
 		for i in range(16):
 			kit.box((0.26, 0.16, 0.015), ((rng.random() - 0.5) * 1.4, (rng.random() - 0.5) * 1.4, 0.01 + i * 0.006), "clay_tile", "tile", rot=((rng.random() - 0.5) * 20, 0, rng.random() * 360))

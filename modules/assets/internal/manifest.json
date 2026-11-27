@@ -1689,7 +1689,7 @@
 		"file": "models/airport/airport.airside.pushback_tractor.glb",
 		"kind": "",
 		"label": "Pushback tractor",
-		"mass": 5729.6,
+		"mass": 5685.2,
 		"pieces": [
 			{
 				"mass": 2546.931,
@@ -1698,7 +1698,7 @@
 				"stage": "main"
 			},
 			{
-				"mass": 382.5,
+				"mass": 338.13,
 				"node": "main__glass",
 				"slot": "glass",
 				"stage": "main"
@@ -3377,10 +3377,10 @@
 		"file": "models/airport/airport.move.glass_balustrade.glb",
 		"kind": "",
 		"label": "Glass balustrade, per metre",
-		"mass": 101.9,
+		"mass": 100.3,
 		"pieces": [
 			{
-				"mass": 52.5,
+				"mass": 50.925,
 				"node": "main__glass",
 				"slot": "glass",
 				"stage": "main"
@@ -4128,7 +4128,7 @@
 		"file": "models/airport/airport.security.body_scanner.glb",
 		"kind": "",
 		"label": "Body scanner",
-		"mass": 1264.2,
+		"mass": 1260.9,
 		"pieces": [
 			{
 				"mass": 970.893,
@@ -4137,7 +4137,7 @@
 				"stage": "main"
 			},
 			{
-				"mass": 172.38,
+				"mass": 169.096,
 				"node": "main__glass",
 				"slot": "glass",
 				"stage": "main"
@@ -4512,7 +4512,7 @@
 		"file": "models/airport/airport.security.passport_booth.glb",
 		"kind": "",
 		"label": "Passport control booth",
-		"mass": 337.4,
+		"mass": 336.0,
 		"pieces": [
 			{
 				"mass": 173.46,
@@ -4521,7 +4521,7 @@
 				"stage": "main"
 			},
 			{
-				"mass": 149.64,
+				"mass": 148.248,
 				"node": "main__glass",
 				"slot": "glass",
 				"stage": "main"
@@ -9056,7 +9056,7 @@
 		"aabb": [
 			[
 				-0.52,
-				0.0,
+				-0.006,
 				-0.44
 			],
 			[
@@ -9106,7 +9106,7 @@
 		"aabb": [
 			[
 				-0.52,
-				0.0,
+				-0.006,
 				-0.44
 			],
 			[
@@ -25543,7 +25543,7 @@
 			],
 			[
 				0.7399,
-				0.005,
+				0.044,
 				0.789
 			]
 		],
@@ -44003,13 +44003,13 @@
 		"aabb": [
 			[
 				-1.3,
-				-0.7313,
+				-0.7342,
 				-0.0
 			],
 			[
 				1.3,
 				0.7313,
-				0.0914
+				0.0972
 			]
 		],
 		"category": "industrial",
@@ -45159,12 +45159,12 @@
 			[
 				-0.305,
 				-0.43,
-				0.001
+				-0.0025
 			],
 			[
 				0.305,
 				0.43,
-				0.014
+				0.0215
 			]
 		],
 		"category": "industrial",
@@ -45340,7 +45340,7 @@
 			],
 			[
 				0.75,
-				1.145,
+				1.15,
 				0.45
 			]
 		],
@@ -45407,7 +45407,7 @@
 			],
 			[
 				0.4,
-				1.165,
+				1.171,
 				0.471
 			]
 		],
@@ -45637,7 +45637,7 @@
 			],
 			[
 				0.925,
-				1.165,
+				1.171,
 				0.706
 			]
 		],
@@ -47059,12 +47059,12 @@
 			[
 				-0.03,
 				-0.03,
-				-0.008
+				-0.014
 			],
 			[
 				0.03,
 				0.0545,
-				0.01
+				0.026
 			]
 		],
 		"category": "industrial",
@@ -47338,14 +47338,14 @@
 	"industrial.workshop.trinket_lava": {
 		"aabb": [
 			[
-				-0.0638,
+				-0.0659,
 				0.0,
-				-0.0638
+				-0.0659
 			],
 			[
-				0.0638,
+				0.0659,
 				0.42,
-				0.0638
+				0.0659
 			]
 		],
 		"category": "industrial",
@@ -47393,13 +47393,13 @@
 	"industrial.workshop.trinket_neon": {
 		"aabb": [
 			[
-				-0.45,
-				-0.18,
-				-0.0
+				-0.456,
+				-0.186,
+				-0.006
 			],
 			[
-				0.45,
-				0.18,
+				0.456,
+				0.186,
 				0.046
 			]
 		],
@@ -47529,13 +47529,13 @@
 		"aabb": [
 			[
 				-1.33,
-				-0.75,
+				-0.753,
 				-0.0
 			],
 			[
 				1.33,
 				0.75,
-				0.0914
+				0.0972
 			]
 		],
 		"category": "industrial",
@@ -47614,13 +47614,13 @@
 		"aabb": [
 			[
 				-1.415,
-				-0.795,
+				-0.798,
 				-0.0
 			],
 			[
 				1.415,
 				0.795,
-				0.0914
+				0.0972
 			]
 		],
 		"category": "industrial",
@@ -47699,13 +47699,13 @@
 		"aabb": [
 			[
 				-1.505,
-				-0.845,
+				-0.848,
 				-0.0
 			],
 			[
 				1.505,
 				0.845,
-				0.1014
+				0.1072
 			]
 		],
 		"category": "industrial",
@@ -47880,7 +47880,7 @@
 			],
 			[
 				0.72,
-				1.232,
+				1.238,
 				0.512
 			]
 		],
@@ -54200,7 +54200,7 @@
 			[
 				-0.75,
 				0.0,
-				-0.025
+				-0.031
 			],
 			[
 				0.75,
@@ -54252,7 +54252,7 @@
 			[
 				-0.75,
 				0.0,
-				-0.025
+				-0.031
 			],
 			[
 				0.75,
@@ -54304,7 +54304,7 @@
 			[
 				-0.75,
 				0.0,
-				-0.025
+				-0.031
 			],
 			[
 				0.75,
@@ -54558,7 +54558,7 @@
 		"file": "models/opening/opening.door.bifold_2400.glb",
 		"kind": "",
 		"label": "Bifold doors, 2.4 m",
-		"mass": 411.3,
+		"mass": 423.3,
 		"pieces": [
 			{
 				"mass": 83.866,
@@ -54573,7 +54573,7 @@
 				"stage": "leaf"
 			},
 			{
-				"mass": 263.34,
+				"mass": 275.31,
 				"node": "glazing__glass",
 				"slot": "glass",
 				"stage": "glazing"
@@ -54623,7 +54623,7 @@
 		"file": "models/opening/opening.door.bifold_3600.glb",
 		"kind": "",
 		"label": "Bifold doors, 3.6 m",
-		"mass": 600.7,
+		"mass": 616.7,
 		"pieces": [
 			{
 				"mass": 102.298,
@@ -54638,7 +54638,7 @@
 				"stage": "leaf"
 			},
 			{
-				"mass": 409.64,
+				"mass": 425.6,
 				"node": "glazing__glass",
 				"slot": "glass",
 				"stage": "glazing"
@@ -54688,7 +54688,7 @@
 		"file": "models/opening/opening.door.bifold_4800.glb",
 		"kind": "",
 		"label": "Bifold doors, 4.8 m",
-		"mass": 790.1,
+		"mass": 810.1,
 		"pieces": [
 			{
 				"mass": 120.73,
@@ -54703,7 +54703,7 @@
 				"stage": "leaf"
 			},
 			{
-				"mass": 555.94,
+				"mass": 575.89,
 				"node": "glazing__glass",
 				"slot": "glass",
 				"stage": "glazing"
@@ -56183,7 +56183,7 @@
 		"file": "models/opening/opening.door.revolving.glb",
 		"kind": "",
 		"label": "Revolving door",
-		"mass": 4214.5,
+		"mass": 4208.2,
 		"pieces": [
 			{
 				"mass": 3285.661,
@@ -56198,7 +56198,7 @@
 				"stage": "frame"
 			},
 			{
-				"mass": 479.452,
+				"mass": 473.198,
 				"node": "frame__glass",
 				"slot": "glass",
 				"stage": "frame"
@@ -56254,7 +56254,7 @@
 		"file": "models/opening/opening.door.revolving_large.glb",
 		"kind": "",
 		"label": "Revolving door, large",
-		"mass": 8759.2,
+		"mass": 8749.8,
 		"pieces": [
 			{
 				"mass": 7196.911,
@@ -56269,7 +56269,7 @@
 				"stage": "frame"
 			},
 			{
-				"mass": 781.714,
+				"mass": 772.332,
 				"node": "frame__glass",
 				"slot": "glass",
 				"stage": "frame"
@@ -56690,7 +56690,7 @@
 		"file": "models/opening/opening.door.sliding_1800.glb",
 		"kind": "",
 		"label": "Sliding patio door, 1.8 m",
-		"mass": 434.6,
+		"mass": 442.6,
 		"pieces": [
 			{
 				"mass": 167.962,
@@ -56705,7 +56705,7 @@
 				"stage": "leaf"
 			},
 			{
-				"mass": 196.84,
+				"mass": 204.82,
 				"node": "glazing__glass",
 				"slot": "glass",
 				"stage": "glazing"
@@ -56755,7 +56755,7 @@
 		"file": "models/opening/opening.door.sliding_2400.glb",
 		"kind": "",
 		"label": "Sliding patio door, 2.4 m",
-		"mass": 542.4,
+		"mass": 550.4,
 		"pieces": [
 			{
 				"mass": 188.698,
@@ -56770,7 +56770,7 @@
 				"stage": "leaf"
 			},
 			{
-				"mass": 276.64,
+				"mass": 284.62,
 				"node": "glazing__glass",
 				"slot": "glass",
 				"stage": "glazing"
@@ -56820,7 +56820,7 @@
 		"file": "models/opening/opening.door.sliding_3000.glb",
 		"kind": "",
 		"label": "Sliding patio door, 3.0 m",
-		"mass": 661.6,
+		"mass": 673.6,
 		"pieces": [
 			{
 				"mass": 209.434,
@@ -56835,7 +56835,7 @@
 				"stage": "leaf"
 			},
 			{
-				"mass": 343.14,
+				"mass": 355.11,
 				"node": "glazing__glass",
 				"slot": "glass",
 				"stage": "glazing"
@@ -56885,7 +56885,7 @@
 		"file": "models/opening/opening.door.sliding_4000.glb",
 		"kind": "",
 		"label": "Sliding patio door, 4.0 m",
-		"mass": 852.7,
+		"mass": 868.7,
 		"pieces": [
 			{
 				"mass": 243.994,
@@ -56900,7 +56900,7 @@
 				"stage": "leaf"
 			},
 			{
-				"mass": 462.84,
+				"mass": 478.8,
 				"node": "glazing__glass",
 				"slot": "glass",
 				"stage": "glazing"
@@ -58926,7 +58926,7 @@
 		"file": "models/opening/opening.window.fixed_1500x1500.glb",
 		"kind": "",
 		"label": "Fixed glazing, 1500 by 1500",
-		"mass": 215.5,
+		"mass": 221.4,
 		"pieces": [
 			{
 				"mass": 78.3,
@@ -58935,7 +58935,7 @@
 				"stage": "frame"
 			},
 			{
-				"mass": 137.2,
+				"mass": 143.143,
 				"node": "glazing__glass",
 				"slot": "glass",
 				"stage": "glazing"
@@ -58977,7 +58977,7 @@
 		"file": "models/opening/opening.window.fixed_1500x600.glb",
 		"kind": "",
 		"label": "Fixed glazing, 1500 by 600",
-		"mass": 103.0,
+		"mass": 107.1,
 		"pieces": [
 			{
 				"mass": 54.0,
@@ -58986,7 +58986,7 @@
 				"stage": "frame"
 			},
 			{
-				"mass": 49.0,
+				"mass": 53.053,
 				"node": "glazing__glass",
 				"slot": "glass",
 				"stage": "glazing"
@@ -59028,7 +59028,7 @@
 		"file": "models/opening/opening.window.fixed_3000x1500.glb",
 		"kind": "",
 		"label": "Fixed glazing, 3000 by 1500",
-		"mass": 421.9,
+		"mass": 431.0,
 		"pieces": [
 			{
 				"mass": 137.7,
@@ -59037,7 +59037,7 @@
 				"stage": "frame"
 			},
 			{
-				"mass": 284.2,
+				"mass": 293.293,
 				"node": "glazing__glass",
 				"slot": "glass",
 				"stage": "glazing"
@@ -59079,7 +59079,7 @@
 		"file": "models/opening/opening.window.fixed_3000x2700.glb",
 		"kind": "",
 		"label": "Fixed glazing, 3000 by 2700",
-		"mass": 714.1,
+		"mass": 725.7,
 		"pieces": [
 			{
 				"mass": 186.3,
@@ -59088,7 +59088,7 @@
 				"stage": "frame"
 			},
 			{
-				"mass": 527.8,
+				"mass": 539.413,
 				"node": "glazing__glass",
 				"slot": "glass",
 				"stage": "glazing"
@@ -59130,7 +59130,7 @@
 		"file": "models/opening/opening.window.fixed_6000x2700.glb",
 		"kind": "",
 		"label": "Fixed glazing, 6000 by 2700",
-		"mass": 1411.3,
+		"mass": 1429.2,
 		"pieces": [
 			{
 				"mass": 337.5,
@@ -59139,7 +59139,7 @@
 				"stage": "frame"
 			},
 			{
-				"mass": 1073.8,
+				"mass": 1091.713,
 				"node": "glazing__glass",
 				"slot": "glass",
 				"stage": "glazing"
@@ -80239,7 +80239,7 @@
 			[
 				-1.37,
 				0.007,
-				-10.0
+				-10.015
 			],
 			[
 				1.37,
@@ -80252,7 +80252,7 @@
 		"file": "models/rail/rail.train.loco.glb",
 		"kind": "",
 		"label": "Locomotive",
-		"mass": 118657.1,
+		"mass": 118820.3,
 		"pieces": [
 			{
 				"mass": 67936.623,
@@ -80261,7 +80261,7 @@
 				"stage": "main"
 			},
 			{
-				"mass": 21760.005,
+				"mass": 21923.209,
 				"node": "main__glass",
 				"slot": "glass",
 				"stage": "main"
@@ -115507,7 +115507,7 @@
 				-3.8052
 			],
 			[
-				1.148,
+				1.159,
 				2.72,
 				2.57
 			]
@@ -115623,7 +115623,7 @@
 				-4.6052
 			],
 			[
-				1.148,
+				1.159,
 				2.72,
 				3.37
 			]

@@ -27,7 +27,7 @@ const KNOWN := {
 	"design.on_site.addenbrookes-car-park": [0, "design"],
 	"design.on_site.ancoats-infill": [0, "design"],
 	"walk.house": [0, "walk"],
-	"assets.gallery": [4, "assets"],
+	"assets.gallery": [0, "assets"],
 	"sandbox.site": [0, "sandbox"],
 }
 

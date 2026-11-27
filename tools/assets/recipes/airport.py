@@ -94,7 +94,7 @@ def body_scanner(arch=False):
 		kit.cyl(0.9, 0.12, (0, 0, 0.06), "plastic_grey", "floor", segs=32)
 		kit.cyl(0.9, 0.2, (0, 0, 2.3), "plastic_grey", "head", segs=32)
 		for s in (-1, 1):
-			kit.sweep([(0.86 * math.cos(math.radians(a + (0 if s > 0 else 180))), 0.86 * math.sin(math.radians(a + (0 if s > 0 else 180))), 1.2) for a in range(-55, 56, 11)], kit.rect(0.01, 2.1), "glass", "panel", up=(0, 0, 1))
+			kit.sweep([(0.86 * math.cos(math.radians(a + (0 if s > 0 else 180))), 0.86 * math.sin(math.radians(a + (0 if s > 0 else 180))), 1.2) for a in range(-55, 56, 11)], kit.rect(0.01, 2.06), "glass", "panel", up=(0, 0, 1))
 			kit.box((0.12, 0.2, 2.1), (s * 0.84, 0, 1.2), "plastic_white", "mast")
 
 
@@ -111,7 +111,7 @@ def passport_booth(egate=False):
 	with kit.hollow(0.1):
 		kit.box((1.4, 1.5, 1.1), (0, 0, 0.55), "laminate_grey", "base")
 		kit.box((1.4, 1.5, 0.08), (0, 0, 2.3), "laminate_grey", "roof")
-	for x, y, w, d in ((0, 0.74, 1.4, 0.012), (-0.69, 0, 0.012, 1.5), (0, -0.74, 1.4, 0.012)):
+	for x, y, w, d in ((0, 0.74, 1.4, 0.012), (-0.68, 0, 0.012, 1.46), (0, -0.74, 1.4, 0.012)):
 		kit.box((w, d, 1.16), (x, y, 1.68), "glass", "glazing")
 	kit.box((0.4, 0.3, 0.03), (0.72, 0.3, 1.1), "worktop", "counter")
 	monitor((0, 0.2, 1.1), 0.45, 180)
@@ -324,7 +324,7 @@ def seat_row_charging(n=4):
 
 
 def glass_balustrade(l=1.0):
-	kit.box((l, 0.02, 1.05), (0, 0, 0.55), "glass", "pane")
+	kit.box((l - 0.03, 0.02, 1.05), (0, 0, 0.55), "glass", "pane")
 	kit.box((l, 0.06, 0.08), (0, 0, 0.04), "steel_stainless", "shoe")
 	kit.rod((-l / 2, 0, 1.1), (l / 2, 0, 1.1), 0.022, "steel_stainless", "handrail")
 
@@ -419,7 +419,7 @@ def tug(tow=False):
 			kit.box((w - 0.08, 0.02, 0.6), (0, 0.31, 1.35), "glass", "screen")
 		else:
 			kit.box((1.0, 1.2, 0.5), (-0.5, l / 2 - 1.0, 1.1), "paint_white", "cab")
-			kit.box((1.02, 1.0, 0.3), (-0.5, l / 2 - 1.0, 1.2), "glass", "screen")
+			kit.box((1.02, 1.02, 0.26), (-0.5, l / 2 - 1.0, 1.2), "glass", "screen")
 	r = 0.3 if not tow else 0.5
 	for s in (-1, 1):
 		for y in (-l / 2 + r + 0.2, l / 2 - r - 0.2):
