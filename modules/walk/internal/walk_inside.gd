@@ -70,6 +70,14 @@ var flying := false
 var spot: Dictionary = {}
 ## The part the edit rows (E) show, "" for the parts list.
 var edit_id := ""
+## "build" (the designer's walk-inside) or "charges" (demolition: aim and click to place
+## charges on the structure from inside; no building edits).
+var mode := "build"
+## The delay a new charge gets, s (the wheel steps it).
+var charge_delay := 0.0
+var _charge_marks: Node3D
+## Families a charge goes on (demolition refuses foundations).
+const CHARGE_FAMILIES := ["column", "wall", "slab", "beam", "circulation", "roof"]
 ## In Edit: the kind picked in the CHANGE TO list (previewed, not yet changed to).
 var edit_pick := ""
 var _edit_filter := ""
@@ -140,6 +148,8 @@ func setup(walk_bus: Node, building: BuildingModel, building_sync: BuildingSync,
 	if design and design.has_signal("palette_changed"):
 		design.connect("palette_changed", _on_palette_changed)
 	spawn(start)
+	if mode == "charges":
+		_start_charges()
 	if DisplayServer.get_name() != "headless":
 		Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 	_join_crew()
@@ -659,6 +669,147 @@ func r_turning() -> bool:
 	return not _r_hold.is_empty() and bool(_r_hold.dragged)
 
 
+# Demolition: charges placed from inside.
+
+func _demolition() -> Node:
+	return Modules.bus("demolition")
+
+
+## The demolition bus's constant `name`, or `fallback`.
+func _demo_const(name_: String, fallback: float) -> float:
+	var d := _demolition()
+	if d == null or d.get_script() == null:
+		return fallback
+	return float((d.get_script() as Script).get_script_constant_map().get(name_, fallback))
+
+
+## Click in charges mode: a charge on the part you aim at at charge_delay (the same delay
+## again takes it off). False if you aim at nothing it can go on.
+func charge_aimed() -> bool:
+	var id := aimed_part()
+	var d := _demolition()
+	if id == "" or d == null:
+		return false
+	if not model.catalog.family_of(str(model.parts[id].kind)) in CHARGE_FAMILIES:
+		_status("Charges go on columns, walls, beams and floors")
+		return false
+	# Where you aim on it, when demolition takes a point (finer breakage round it).
+	var a := aim()
+	if d.get_method_argument_count("request_charge") >= 3 and not a.is_empty():
+		d.call("request_charge", id, charge_delay, a.point)
+	else:
+		d.call("request_charge", id, charge_delay)
+	return true
+
+
+## The wheel in charges mode: the delay a step later or sooner.
+func step_delay(steps: int) -> void:
+	var step := _demo_const("DELAY_STEP", 0.25)
+	charge_delay = clampf(snappedf(charge_delay + step * steps, step), 0.0, _demo_const("MAX_DELAY", 10.0))
+
+
+func _charges() -> Dictionary:
+	var d := _demolition()
+	return d.get("charges") if d and "charges" in d else {}
+
+
+func _charge_text() -> String:
+	var charges := _charges()
+	var count := "%d/%d charges" % [charges.size(), int(_demo_const("MAX_CHARGES", 40))]
+	var id := aimed_part()
+	var head := "Placing charges"
+	var how := "[b]Click[/b] a column, wall, beam or floor to charge it   [b]Wheel[/b] delay %.2f s   [b]Q[/b] fly   [b]Esc[/b] back   (%s)" % [charge_delay, count]
+	if id != "" and model.parts.has(id):
+		var label := str(model.catalog.kind(str(model.parts[id].kind)).get("label", "part"))
+		if charges.has(id):
+			head = "%s: charge at %.2f s" % [label, float(charges[id])]
+			how = "[b]Click[/b] %s   [b]Wheel[/b] delay %.2f s   (%s)" % [
+					"take the charge off" if is_equal_approx(float(charges[id]), charge_delay) else "move it to %.2f s" % charge_delay,
+					charge_delay, count]
+		elif model.catalog.family_of(str(model.parts[id].kind)) in CHARGE_FAMILIES:
+			head = label
+			how = "[b]Click[/b] charge it at %.2f s   [b]Wheel[/b] delay   (%s)" % [charge_delay, count]
+	return "%s\n%s" % [head, how]
+
+
+## The charges on the parts: the part tinted red, and the charge (a red dot with its delay)
+## showing through walls so you see them all.
+func _refresh_charges() -> void:
+	if world == null:
+		return
+	if _charge_marks == null:
+		_charge_marks = Node3D.new()
+		_charge_marks.name = "Charges"
+		world.add_child(_charge_marks)
+	for c in _charge_marks.get_children():
+		c.queue_free()
+	var m := StandardMaterial3D.new()
+	m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	m.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	m.albedo_color = Color(0.95, 0.15, 0.1, 0.22)
+	m.cull_mode = BaseMaterial3D.CULL_DISABLED
+	var charges := _charges()
+	for id: String in charges:
+		if not model.parts.has(id):
+			continue
+		var box := model.aabb_of(id)
+		if box.size == Vector3.ZERO:
+			continue
+		var mi := MeshInstance3D.new()
+		mi.name = "Charge_" + id
+		var bm := BoxMesh.new()
+		bm.size = box.size + Vector3.ONE * 0.06
+		mi.mesh = bm
+		mi.material_override = m
+		mi.position = box.get_center()
+		mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		_charge_marks.add_child(mi)
+		var tag := Label3D.new()
+		tag.text = "%.2f s" % float(charges[id])
+		tag.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+		tag.no_depth_test = true
+		tag.font_size = 40
+		tag.pixel_size = 0.004
+		tag.modulate = Color(1, 0.25, 0.15)
+		tag.outline_size = 10
+		var pt: Vector3 = box.get_center()
+		var d := _demolition()
+		if d and d.has_method("charge_point"):
+			var got: Variant = d.call("charge_point", id)
+			if got is Vector3:
+				pt = got
+		# The charge itself, where it was set, and its delay over it.
+		var dot := MeshInstance3D.new()
+		var sm := SphereMesh.new()
+		sm.radius = 0.12
+		sm.height = 0.24
+		dot.mesh = sm
+		var dm := m.duplicate() as StandardMaterial3D
+		dm.albedo_color = Color(1.0, 0.1, 0.05, 1.0)
+		dm.no_depth_test = true  # the charge itself shows through walls
+		dot.material_override = dm
+		dot.position = pt - mi.position
+		mi.add_child(dot)
+		tag.position = pt - mi.position + Vector3(0, 0.35, 0)
+		mi.add_child(tag)
+
+
+func _start_charges() -> void:
+	var d := _demolition()
+	if d == null:
+		return
+	if d.has_signal("charges_changed"):
+		d.connect("charges_changed", _refresh_charges)
+	if d.has_signal("fired"):
+		d.connect("fired", _on_fired)
+	_refresh_charges()
+
+
+## The charges fired: back out to watch.
+func _on_fired(_at: float) -> void:
+	bus.call("close")
+
+
 ## The free turn step: 15°, or 1° with Alt.
 static func _fine_step(alt: bool) -> float:
 	return 1.0 if alt else FREE_TURN
@@ -750,6 +901,9 @@ func toggle_fly() -> void:
 
 ## A left click: put down what you hold, or pick up the part you aim at.
 func click() -> void:
+	if mode == "charges":
+		charge_aimed()
+		return
 	if not holding.is_empty():
 		put_down()
 		return
@@ -784,6 +938,10 @@ func _input(event: InputEvent) -> void:
 				_drop_holding()
 			MOUSE_BUTTON_WHEEL_UP, MOUSE_BUTTON_WHEEL_DOWN:
 				var up := (event as InputEventMouseButton).button_index == MOUSE_BUTTON_WHEEL_UP
+				if mode == "charges":
+					step_delay(1 if up else -1)
+					get_viewport().set_input_as_handled()
+					return
 				# Holding a part, or Shift on one you aim at: the wheel turns it.
 				if (not holding.is_empty() and not bool(holding.opening)) or (event as InputEventMouseButton).shift_pressed:
 					turn(_fine_step((event as InputEventMouseButton).alt_pressed) * (1.0 if up else -1.0))
@@ -794,6 +952,10 @@ func _input(event: InputEvent) -> void:
 		var k := event as InputEventKey
 		var vp := get_viewport()
 		var handled := true
+		if mode == "charges" and (k.physical_keycode in [KEY_TAB, KEY_R, KEY_X, KEY_DELETE, KEY_F, KEY_E, KEY_Z, KEY_Y]
+				or (k.ctrl_pressed and k.physical_keycode in [KEY_C, KEY_V])):
+			vp.set_input_as_handled()  # no building edits while placing charges
+			return
 		match k.physical_keycode:
 			KEY_TAB:
 				toggle_palette()
@@ -915,6 +1077,8 @@ func _process(delta: float) -> void:
 
 
 func _aim_text() -> String:
+	if mode == "charges":
+		return _charge_text()
 	if r_turning():
 		var r := float(holding.rot) if str(_r_hold.id) == "" else float(model.parts.get(str(_r_hold.id), {}).get("rot", 0.0))
 		return "Turning  %.1f°\n[b]Move the mouse[/b] to turn   [b]Alt[/b] free (no 5° snap)   let go of [b]R[/b] to set it" % r

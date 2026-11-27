@@ -119,7 +119,10 @@ func _pressed_in() -> Node:
 ## spawn: {at: Vector3 (feet), yaw} to start somewhere given.
 ## sync: the edits' way to the host (default: the building bus's, for its shared model).
 ## Returns the view (or the one already open).
-func open(model: BuildingModel = null, parent: Node = null, spawn: Dictionary = {}, sync: BuildingSync = null) -> Node:
+## options: {"mode": "charges"} for demolition: aim and click to place charges
+## (DemolitionBus.request_charge), the wheel sets their delay, no building edits.
+func open(model: BuildingModel = null, parent: Node = null, spawn: Dictionary = {}, sync: BuildingSync = null,
+		options: Dictionary = {}) -> Node:
 	if view and is_instance_valid(view):
 		return view
 	if model == null:
@@ -136,6 +139,7 @@ func open(model: BuildingModel = null, parent: Node = null, spawn: Dictionary = 
 	if vp and vp != get_tree().root:
 		_lend_camera(vp)
 		parent = get_tree().current_scene if get_tree().current_scene else self
+	v.set("mode", str(options.get("mode", "build")))
 	parent.add_child(v)
 	v.call("setup", self, model, sync if sync else _sync_for(model), spawn)
 	view = v
