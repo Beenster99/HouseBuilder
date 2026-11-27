@@ -14,7 +14,7 @@ const COST_W := 340
 ## Body text size, px.
 const FONT := 11
 ## The small 3D view's height, and the section's, px.
-const MINI_H := 230
+const MINI_H := 110
 const SECTION_H := 280
 const ModelChannel := preload("res://modules/design/internal/hall/hall_channels.gd").ModelChannel
 
@@ -198,6 +198,43 @@ func _button(text: String, press: Callable, tip := "") -> Button:
 	b.focus_mode = FOCUS_NONE
 	b.pressed.connect(press)
 	return b
+
+
+## Where the panels' sizes are kept between sessions.
+const LAYOUT_PATH := "user://design/layout.cfg"
+
+
+## Cards stacked with a grip between each: drag it to make one taller and the next shorter.
+## The sizes are remembered (LAYOUT_PATH), per dock `id`.
+func splitter(id: String) -> VSplitContainer:
+	var sp := VSplitContainer.new()
+	sp.name = "Split_" + id
+	sp.size_flags_vertical = SIZE_EXPAND_FILL
+	sp.add_theme_constant_override("separation", 8)
+	sp.dragger_visibility = SplitContainer.DRAGGER_VISIBLE
+	sp.tooltip_text = ""
+	sp.set_meta("layout_id", id)
+	sp.drag_ended.connect(func() -> void: _save_split(sp))
+	return sp
+
+
+func _load_split(sp: VSplitContainer) -> void:
+	var cfg := ConfigFile.new()
+	if cfg.load(LAYOUT_PATH) != OK:
+		return
+	var v: Variant = cfg.get_value("splits", str(sp.get_meta("layout_id")), null)
+	if v is Array or v is PackedInt32Array:
+		var offs := PackedInt32Array(v)
+		if offs.size() == sp.split_offsets.size() or sp.split_offsets.is_empty():
+			sp.split_offsets = offs
+
+
+func _save_split(sp: VSplitContainer) -> void:
+	var cfg := ConfigFile.new()
+	cfg.load(LAYOUT_PATH)
+	cfg.set_value("splits", str(sp.get_meta("layout_id")), Array(sp.split_offsets))
+	DirAccess.make_dir_recursive_absolute(LAYOUT_PATH.get_base_dir())
+	cfg.save(LAYOUT_PATH)
 
 
 ## A framed card: a title bar (click it to fold the card) over its body, so each block of
@@ -822,17 +859,20 @@ func _build_tools() -> void:
 	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	scroll.size_flags_vertical = SIZE_EXPAND_FILL
 	scroll.size_flags_stretch_ratio = 1.1
-	dock.add_child(card("Tools", scroll, "tools", "Pick a tool: 1 Select · 2 Room · 3 Wall … (keys); its options show under the buttons"))
+	var split := splitter("left")
+	dock.add_child(split)
+	split.add_child(card("Tools", scroll, "tools", "Pick a tool: 1 Select · 2 Room · 3 Wall … (keys); its options show under the buttons"))
 	palette = preload("res://modules/design/internal/room/design_palette.gd").new()
 	palette.name = "Palette"
 	palette.set("room", room)
-	dock.add_child(card("Add to the design", palette, "add", "Pick a room type or an object, then draw it on the plan"))
+	split.add_child(card("Add to the design", palette, "add", "Pick a room type or an object, then draw it on the plan"))
 	browser = preload("res://modules/design/internal/room/design_browser.gd").new()
 	browser.name = "Browser"
 	browser.set("room", room)
 	browser.size_flags_vertical = SIZE_EXPAND_FILL
-	dock.add_child(card("In this design", browser, "browser", "Everything in the design: click to select · right-click a part for Edit / Delete"))
+	split.add_child(card("In this design", browser, "browser", "Everything in the design: click to select · right-click a part for Edit / Delete"))
 	left_dock = p
+	_load_split(split)
 	var col := VBoxContainer.new()
 	col.size_flags_horizontal = SIZE_EXPAND_FILL
 	scroll.add_child(col)
@@ -1006,12 +1046,17 @@ func _build_cost() -> void:
 	m.tooltip_text = "The whole building, every level: drag to turn, wheel to zoom, middle-click to ping"
 	mini_3d = m
 	_mini_box.add_child(m)
-	dock.add_child(card("3D view", _mini_box, "mini", "The whole building, every level, whatever the middle shows"))
+	_mini_box.size_flags_vertical = SIZE_EXPAND_FILL
+	var split := splitter("right")
+	dock.add_child(split)
+	split.add_child(card("3D view", _mini_box, "mini", "The whole building, every level, whatever the middle shows"))
 	# Under it the dock scrolls as one: the summary, the View's panel, the live windows, the cost.
 	var scroll := ScrollContainer.new()
 	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	scroll.size_flags_vertical = SIZE_EXPAND_FILL
-	dock.add_child(scroll)
+	scroll.size_flags_stretch_ratio = 2.2
+	split.add_child(scroll)
+	_load_split(split)
 	var col := VBoxContainer.new()
 	col.size_flags_horizontal = SIZE_EXPAND_FILL
 	col.add_theme_constant_override("separation", 6)

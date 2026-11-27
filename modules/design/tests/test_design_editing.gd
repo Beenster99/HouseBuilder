@@ -164,6 +164,18 @@ func run_tests() -> void:
 	s.set_tool("select")
 	s.hover(Vector3(61.2, 0, 64.0))
 	check(s.guides.is_empty(), "no guides when just pointing")
+	# The docks' cards stretch up and down (a grip between them), and keep their sizes.
+	var lsplit := hud2.find_child("Split_left", true, false) as VSplitContainer
+	check(lsplit != null and lsplit.get_child_count() == 3, "the left dock's cards sit in a splitter")
+	if lsplit:
+		var want := PackedInt32Array([40, -30])
+		lsplit.split_offsets = want
+		hud2.call("_save_split", lsplit)
+		lsplit.split_offsets = PackedInt32Array([0, 0])
+		hud2.call("_load_split", lsplit)
+		check(lsplit.split_offsets == want, "and the sizes are remembered: %s" % str(lsplit.split_offsets))
+		lsplit.split_offsets = PackedInt32Array([0, 0])
+		hud2.call("_save_split", lsplit)
 	# Shift+drag on empty floor draws a box that selects all inside it.
 	var whole := (room.get("hud") as Node).get("mini") as DesignMiniWorld
 	var bb := whole.bounds()
