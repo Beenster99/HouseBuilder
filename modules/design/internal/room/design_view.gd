@@ -460,6 +460,19 @@ func _part(id: String) -> void:
 				var d := float(sec.get("d", 0.3))
 				# Beams hang below their line (their top is at a and b).
 				_linear(a - Vector3(0, d / 2.0, 0), b - Vector3(0, d / 2.0, 0), w, d, colour)
+		"area" when fam == "roof" and RoofShape.form_of(kind) != "":
+			# A pitched roof (gable, hip, mono-pitch): its slopes, ends and underside.
+			var y0 := floor_y + float(e.get("y", 0.0))
+			var verts := PackedVector3Array()
+			var norms := PackedVector3Array()
+			for f: Array in RoofShape.faces(e.outline, float(e.get("pitch", spec.get("pitch", 35.0))), RoofShape.form_of(kind)):
+				var pts: Array = f[0]
+				var lift := func(q: Vector3) -> Vector3: return q + Vector3(0, y0, 0)
+				if pts.size() == 3:
+					_tri(verts, norms, lift.call(pts[0]), lift.call(pts[1]), lift.call(pts[2]), f[1])
+				else:
+					_quad(verts, norms, [lift.call(pts[0]), lift.call(pts[1]), lift.call(pts[2]), lift.call(pts[3])] as Array[Vector3], f[1])
+			_add(colour, verts, norms)
 		"area":
 			var t := maxf(float(sec.get("d", 0.2)), 0.05)
 			var y := floor_y + float(e.get("y", 0.0))

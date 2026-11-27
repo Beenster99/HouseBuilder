@@ -35,7 +35,7 @@ const TOOLS: Array[Dictionary] = [
 	{"id": "slab", "label": "Floor slab", "key": KEY_7, "hint": "Drag a rectangle for a floor slab on this level"},
 	{"id": "column", "label": "Column", "key": KEY_8, "hint": "Click to place a column"},
 	{"id": "beam", "label": "Beam", "key": KEY_9, "hint": "Click both ends; beams sit at the ceiling of this level"},
-	{"id": "roof", "label": "Roof", "key": KEY_0, "hint": "Drag a rectangle for a flat roof over this level"},
+	{"id": "roof", "label": "Roof", "key": KEY_0, "hint": "Drag a rectangle for a roof over this level: flat, gable, hip or mono-pitch"},
 	{"id": "raft", "label": "Raft", "key": KEY_NONE, "hint": "Drag a rectangle for a raft foundation (ground level)"},
 	{"id": "footing", "label": "Strip footing", "key": KEY_NONE, "hint": "Click both ends of a strip footing under a wall"},
 	{"id": "pad", "label": "Pad footing", "key": KEY_NONE, "hint": "Click to place a pad footing under a column"},
@@ -70,6 +70,11 @@ var grid := 0.25
 ## Snapping to the grid (G) and lining up with the alignment guides (Shift+G); Alt held skips
 ## both for a moment.
 var snap_grid := true
+## The Roof tool's form and pitch (degrees) for pitched forms.
+var roof_form := "flat"
+var roof_pitch := 35.0
+const ROOF_KINDS := {"flat": "roof_flat", "gable": "roof_pitched", "hip": "roof_hip", "mono": "roof_mono"}
+const ROOF_LABELS := {"flat": "Flat", "gable": "Gable (pitched)", "hip": "Hipped", "mono": "Mono-pitch"}
 var snap_guides := true
 ## Tool options: room type, door and window kinds, fixture kind and turn, wall material.
 var room_type := "bedroom"
@@ -219,6 +224,15 @@ func set_grid(g: float) -> void:
 func add_level() -> void:
 	sync.edit(C.add_level(model.level_height(model.level_count() - 1), "Level %d" % model.level_count()))
 	set_level.call_deferred(model.level_count() - 1)
+
+
+## The roof forms the catalog has kinds for.
+func roof_forms() -> PackedStringArray:
+	var out := PackedStringArray()
+	for f: String in ROOF_KINDS:
+		if catalog.has_kind(str(ROOF_KINDS[f])):
+			out.append(f)
+	return out
 
 
 ## The step points snap to: the grid, or 0 with grid snapping off (or Alt held).
@@ -584,7 +598,13 @@ func _finish_two_point(end: Vector3) -> void:
 			"room":
 				_place_room(outline)
 			"roof":
-				sync.edit(C.place_part("roof_flat", level, {"outline": outline, "y": model.level_height(level)}, "timber"))
+				var kind := str(ROOF_KINDS.get(roof_form, "roof_flat"))
+				if not catalog.has_kind(kind):
+					kind = "roof_flat"
+				var geo := {"outline": outline, "y": model.level_height(level)}
+				if kind != "roof_flat":
+					geo["pitch"] = roof_pitch
+				sync.edit(C.place_part(kind, level, geo, "timber"))
 			"raft":
 				sync.edit(C.place_part("raft", 0, {"outline": outline, "y": 0.0}))
 			_:

@@ -982,6 +982,26 @@ func _refresh_tools() -> void:
 				_furnish_box()
 		"wall":
 			_wall_material()
+		"roof":
+			_option("Roof", _session.roof_forms(), _session.roof_form, func(v: String) -> void:
+				_session.roof_form = v
+				_refresh_tools(), func(v: String) -> String: return str(DesignSession.ROOF_LABELS.get(v, v)))
+			if _session.roof_form != "flat":
+				var pitch := SpinBox.new()
+				pitch.min_value = 5
+				pitch.max_value = 70
+				pitch.step = 2.5
+				pitch.suffix = "°"
+				pitch.value = _session.roof_pitch
+				pitch.value_changed.connect(func(v: float) -> void: _session.roof_pitch = v)
+				var row := HBoxContainer.new()
+				var l := Label.new()
+				l.text = "Pitch"
+				l.custom_minimum_size.x = 70
+				row.add_child(l)
+				pitch.size_flags_horizontal = SIZE_EXPAND_FILL
+				row.add_child(pitch)
+				_options.add_child(row)
 		"door":
 			_option("Door", cat.kinds_in("opening").duplicate(), _session.door_kind, func(v: String) -> void: _session.door_kind = v,
 					func(v: String) -> String: return str(cat.kind(v).get("label", v)), "door")
