@@ -457,6 +457,9 @@ func _part(id: String) -> void:
 				_wall(id, a, b, colour)
 			elif kind == "stair":
 				_stair(id, a, b, colour)
+			elif fam == "service":
+				# Cable and pipe runs: thin tubes centred on their line.
+				_tube(a, b, tube_dia(kind) / 2.0, colour)
 			else:
 				var w := float(sec.get("w", 0.2))
 				var d := float(sec.get("d", 0.3))
@@ -469,7 +472,7 @@ func _part(id: String) -> void:
 			var y0 := floor_y + float(e.get("y", 0.0))
 			var verts := PackedVector3Array()
 			var norms := PackedVector3Array()
-			for f: Array in RoofShape.faces(e.outline, float(e.get("pitch", spec.get("pitch", 35.0))), RoofShape.form_of(kind)):
+			for f: Array in RoofShape.faces(e.outline, float(e.get("pitch", spec.get("pitch", 35.0))), RoofShape.form_of(kind), RoofShape.EAVE):
 				var pts: Array = f[0]
 				var lift := func(q: Vector3) -> Vector3: return q + Vector3(0, y0, 0)
 				if pts.size() == 3:
@@ -756,6 +759,46 @@ func _linear(a: Vector3, b: Vector3, w: float, h: float, c: Variant) -> void:
 	if absf(d.y) > 0.001:
 		basis = basis * Basis(Vector3.BACK, atan2(d.y, plan.length()))
 	_box((a + b) / 2.0, Vector3(d.length(), h, w), basis, c)
+
+
+## How thick a service run of `kind` is drawn, m: cables thin, pipes by bore, waste widest.
+static func tube_dia(kind: String) -> float:
+	if kind.begins_with("cable"):
+		return 0.03
+	if kind == "pipe_waste":
+		return 0.1
+	return 0.05
+
+
+const TUBE_SIDES := 8
+
+
+## A round tube of radius r from a to b (centre line), TUBE_SIDES sided with smooth sides.
+func _tube(a: Vector3, b: Vector3, r: float, c: Variant) -> void:
+	var d := b - a
+	if d.length() < 0.01:
+		return
+	var ax := d.normalized()
+	var side := ax.cross(Vector3.UP)
+	if side.length() < 0.01:
+		side = ax.cross(Vector3.RIGHT)
+	side = side.normalized()
+	var up := side.cross(ax).normalized()
+	var verts := PackedVector3Array()
+	var norms := PackedVector3Array()
+	for i in TUBE_SIDES:
+		var t0 := TAU * i / TUBE_SIDES
+		var t1 := TAU * (i + 1) / TUBE_SIDES
+		var n0 := side * cos(t0) + up * sin(t0)
+		var n1 := side * cos(t1) + up * sin(t1)
+		var q: Array[Vector3] = [a + n0 * r, b + n0 * r, b + n1 * r, a + n1 * r]
+		var qn: Array[Vector3] = [n0, n0, n1, n1]
+		# Wound to face outward (Godot's front faces are clockwise).
+		var flip := (q[1] - q[0]).cross(q[2] - q[0]).dot(n0 + n1) > 0.0
+		for k: int in ([0, 2, 1, 0, 3, 2] if flip else [0, 1, 2, 0, 2, 3]):
+			verts.append(q[k])
+			norms.append(qn[k])
+	_add(c, verts, norms)
 
 
 ## A flat face over a polygon at height y, facing up.

@@ -16,28 +16,42 @@ func run_tests() -> void:
 		var pts: Array = []
 		var y: float = top.call(faces)
 		for f: Array in faces:
+			if (f[1] as Vector3).y < 0.1:
+				continue  # the slopes' ridge, not the gable ends' apexes
 			for p: Vector3 in f[0]:
 				if is_equal_approx(p.y, y) and not pts.any(func(q: Vector3) -> bool: return q.is_equal_approx(p)):
 					pts.append(p)
 		return pts
-	var gable := RoofShape.faces(o, 45.0, "gable")
-	check(gable.size() == 5 and is_equal_approx(top.call(gable), 2.0), "a gable: 2 slopes, 2 ends, underside, ridge 2 m up at 45° over 4 m: %.2f" % top.call(gable))
+	var gable := RoofShape.faces(o, 45.0, "gable", RoofShape.EAVE)
+	check(gable.size() == 7 and is_equal_approx(top.call(gable), 2.0), "a gable: 2 slopes, 2 ends, 2 soffits, ceiling, ridge 2 m up at 45° over 4 m: %.2f" % top.call(gable))
 	var rg: Array = ridge.call(gable)
-	check(rg.size() == 2 and is_equal_approx(absf((rg[0] as Vector3).x - (rg[1] as Vector3).x), 8.0) and is_equal_approx((rg[0] as Vector3).z, 2.0),
+	check(rg.size() == 2 and is_equal_approx(absf((rg[0] as Vector3).x - (rg[1] as Vector3).x), 8.0 + 2.0 * RoofShape.EAVE) and is_equal_approx((rg[0] as Vector3).z, 2.0),
 			"its ridge runs the long way, down the middle: %s" % str(rg))
-	var hip := RoofShape.faces(o, 45.0, "hip")
+	var hip := RoofShape.faces(o, 45.0, "hip", RoofShape.EAVE)
 	var rh: Array = ridge.call(hip)
 	check(rh.size() == 2 and is_equal_approx(absf((rh[0] as Vector3).x - (rh[1] as Vector3).x), 4.0), "a hip's ends slope in, so its ridge is shorter: %s" % str(rh))
-	var square := RoofShape.faces([[0, 0], [4, 0], [4, 4], [0, 4]], 45.0, "hip")
+	var square := RoofShape.faces([[0, 0], [4, 0], [4, 4], [0, 4]], 45.0, "hip", RoofShape.EAVE)
 	check((ridge.call(square) as Array).size() == 1, "on a square a hip roof comes to a point")
-	var mono := RoofShape.faces(o, 30.0, "mono")
-	check(is_equal_approx(top.call(mono), 4.0 * tan(deg_to_rad(30.0))), "a mono-pitch rises across the short way: %.2f" % top.call(mono))
-	check(is_equal_approx(RoofShape.rise(o, 45.0, "gable"), 2.0) and is_equal_approx(RoofShape.rise(o, 30.0, "mono"), top.call(mono)), "rise() agrees")
+	var mono := RoofShape.faces(o, 30.0, "mono", RoofShape.EAVE)
+	check(is_equal_approx(top.call(mono), (4.0 + RoofShape.EAVE) * tan(deg_to_rad(30.0))), "a mono-pitch rises across the short way: %.2f" % top.call(mono))
+	check(is_equal_approx(RoofShape.rise(o, 45.0, "gable"), 2.0) and is_equal_approx(RoofShape.rise(o, 30.0, "mono"), 4.0 * tan(deg_to_rad(30.0))), "rise() agrees (at the wall line)")
+	# Eaves: the slopes overhang the walls on every side, carrying on down at the pitch.
+	for form: String in RoofShape.FORMS:
+		var lo := Vector3(INF, INF, INF)
+		var hi := -lo
+		for f: Array in RoofShape.faces(o, 45.0, form, RoofShape.EAVE):
+			for p: Vector3 in f[0]:
+				lo = lo.min(p)
+				hi = hi.max(p)
+		var e := RoofShape.EAVE
+		check(lo.is_equal_approx(Vector3(-e, -e, -e)) and is_equal_approx(hi.x, 8.0 + e) and is_equal_approx(hi.z, 4.0 + e),
+				"a %s roof overhangs the walls by %.2f m all round, eaves below the wall tops: %s .. %s" % [form, e, lo, hi])
+	check(RoofShape.faces(o, 45.0, "gable").size() == 5, "by default no eave and no soffits (stops at the walls)")
 	var ups := gable.filter(func(f: Array) -> bool: return (f[1] as Vector3).y > 0.1).size()
 	check(ups == 2, "both gable slopes face up and out")
-	var turned := RoofShape.faces([[0, 0], [3, 0], [3, 7], [0, 7]], 45.0, "gable")
+	var turned := RoofShape.faces([[0, 0], [3, 0], [3, 7], [0, 7]], 45.0, "gable", RoofShape.EAVE)
 	var rt: Array = ridge.call(turned)
-	check(rt.size() == 2 and is_equal_approx(absf((rt[0] as Vector3).z - (rt[1] as Vector3).z), 7.0), "the ridge follows the longer side whichever way it lies")
+	check(rt.size() == 2 and is_equal_approx(absf((rt[0] as Vector3).z - (rt[1] as Vector3).z), 7.0 + 2.0 * RoofShape.EAVE), "the ridge follows the longer side whichever way it lies")
 
 	# The Roof tool: a gable at the pitch set.
 	var building := Modules.bus("building") as BuildingBus

@@ -69,7 +69,16 @@ static func frame(outline: Array) -> Dictionary:
 	return {"o": u * s0 + v * r0, "u": u, "v": v, "l": s1 - s0, "w": r1 - r0}
 
 
-static func faces(outline: Array, pitch: float, form: String) -> Array:
+## How far a pitched roof's slopes run out past the walls (eaves and verges), m: pass it to
+## faces() for a roof that overhangs (the default 0 stops at the walls).
+const EAVE := 0.35
+
+
+## The roof's faces. The slopes run out past the outline by `eave` on every side (continuing
+## down at the pitch, so the eaves sit a little below the wall tops); the gable ends and the
+## mono-pitch's tall side stand on the outline, over the walls; the flat ceiling closes the
+## box at the base, and each slope's underside shows under its overhang.
+static func faces(outline: Array, pitch: float, form: String, eave: float = 0.0) -> Array:
 	var f := frame(outline)
 	if f.is_empty():
 		return []
@@ -78,47 +87,56 @@ static func faces(outline: Array, pitch: float, form: String) -> Array:
 	var o: Vector2 = f.o
 	var u: Vector2 = f.u
 	var v: Vector2 = f.v
+	var e := maxf(eave, 0.0)
 	var tn := tan(deg_to_rad(clampf(pitch, 0.0, 79.0)))
+	var dn := -e * tn  # the eaves' height
 	# (s along the ridge, r across, height) -> building coordinates.
 	var at := func(s: float, r: float, y: float) -> Vector3:
 		var p := o + u * s + v * r
 		return Vector3(p.x, y, p.y)
-	var out: Array = []
+	var slopes: Array = []
+	var walls: Array = []
 	match form:
 		"mono":
 			var h := w * tn
-			out.append([at.call(0.0, 0.0, 0.0), at.call(l, 0.0, 0.0), at.call(l, w, h), at.call(0.0, w, h)])
-			out.append([at.call(0.0, w, 0.0), at.call(l, w, 0.0), at.call(l, w, h), at.call(0.0, w, h)])
-			out.append([at.call(0.0, 0.0, 0.0), at.call(0.0, w, 0.0), at.call(0.0, w, h)])
-			out.append([at.call(l, 0.0, 0.0), at.call(l, w, 0.0), at.call(l, w, h)])
+			slopes.append([at.call(-e, -e, dn), at.call(l + e, -e, dn), at.call(l + e, w + e, h - dn), at.call(-e, w + e, h - dn)])
+			walls.append([at.call(0.0, w, 0.0), at.call(l, w, 0.0), at.call(l, w, h), at.call(0.0, w, h)])
+			walls.append([at.call(0.0, 0.0, 0.0), at.call(0.0, w, 0.0), at.call(0.0, w, h)])
+			walls.append([at.call(l, 0.0, 0.0), at.call(l, w, 0.0), at.call(l, w, h)])
 		"hip":
 			var h := w * 0.5 * tn
-			var e := minf(w * 0.5, l * 0.5)
-			out.append([at.call(0.0, 0.0, 0.0), at.call(l, 0.0, 0.0), at.call(l - e, w * 0.5, h), at.call(e, w * 0.5, h)])
-			out.append([at.call(0.0, w, 0.0), at.call(l, w, 0.0), at.call(l - e, w * 0.5, h), at.call(e, w * 0.5, h)])
-			out.append([at.call(0.0, 0.0, 0.0), at.call(0.0, w, 0.0), at.call(e, w * 0.5, h)])
-			out.append([at.call(l, 0.0, 0.0), at.call(l, w, 0.0), at.call(l - e, w * 0.5, h)])
+			var lo := -e
+			var hl := l + e
+			var hw := w + e
+			var k := minf((w + 2.0 * e) * 0.5, (l + 2.0 * e) * 0.5)
+			var m := w * 0.5
+			slopes.append([at.call(lo, lo, dn), at.call(hl, lo, dn), at.call(hl - k, m, h), at.call(lo + k, m, h)])
+			slopes.append([at.call(lo, hw, dn), at.call(hl, hw, dn), at.call(hl - k, m, h), at.call(lo + k, m, h)])
+			slopes.append([at.call(lo, lo, dn), at.call(lo, hw, dn), at.call(lo + k, m, h)])
+			slopes.append([at.call(hl, lo, dn), at.call(hl, hw, dn), at.call(hl - k, m, h)])
 		_:
 			var h := w * 0.5 * tn
-			out.append([at.call(0.0, 0.0, 0.0), at.call(l, 0.0, 0.0), at.call(l, w * 0.5, h), at.call(0.0, w * 0.5, h)])
-			out.append([at.call(0.0, w, 0.0), at.call(l, w, 0.0), at.call(l, w * 0.5, h), at.call(0.0, w * 0.5, h)])
-			out.append([at.call(0.0, 0.0, 0.0), at.call(0.0, w, 0.0), at.call(0.0, w * 0.5, h)])
-			out.append([at.call(l, 0.0, 0.0), at.call(l, w, 0.0), at.call(l, w * 0.5, h)])
-	out.append([at.call(0.0, 0.0, 0.0), at.call(l, 0.0, 0.0), at.call(l, w, 0.0), at.call(0.0, w, 0.0)])
+			var m := w * 0.5
+			slopes.append([at.call(-e, -e, dn), at.call(l + e, -e, dn), at.call(l + e, m, h), at.call(-e, m, h)])
+			slopes.append([at.call(-e, w + e, dn), at.call(l + e, w + e, dn), at.call(l + e, m, h), at.call(-e, m, h)])
+			walls.append([at.call(0.0, 0.0, 0.0), at.call(0.0, w, 0.0), at.call(0.0, m, h)])
+			walls.append([at.call(l, 0.0, 0.0), at.call(l, w, 0.0), at.call(l, m, h)])
 	# Outward normals, from the middle of the roof.
 	var mid: Vector3 = at.call(l * 0.5, w * 0.5, 0.0) + Vector3(0, 0.01, 0)
-	var faces_out: Array = []
-	for i in out.size():
-		var p: Array = out[i]
+	var outward := func(p: Array) -> Vector3:
 		var n := ((p[1] as Vector3) - (p[0] as Vector3)).cross((p[2] as Vector3) - (p[0] as Vector3)).normalized()
-		if i == out.size() - 1:
-			n = Vector3.DOWN
-		else:
-			var c := Vector3.ZERO
-			for q: Vector3 in p:
-				c += q
-			c /= p.size()
-			if n.dot(c - mid) < 0.0:
-				n = -n
-		faces_out.append([p, n])
-	return faces_out
+		var c := Vector3.ZERO
+		for q: Vector3 in p:
+			c += q
+		c /= p.size()
+		return -n if n.dot(c - mid) < 0.0 else n
+	var out: Array = []
+	for p: Array in slopes:
+		out.append([p, outward.call(p)])
+	for p: Array in walls:
+		out.append([p, outward.call(p)])
+	if e > 0.0:
+		for p: Array in slopes:
+			out.append([p, -(outward.call(p) as Vector3)])
+	out.append([[at.call(0.0, 0.0, 0.0), at.call(l, 0.0, 0.0), at.call(l, w, 0.0), at.call(0.0, w, 0.0)], Vector3.DOWN])
+	return out
