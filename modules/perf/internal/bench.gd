@@ -25,6 +25,8 @@ var net: MultiplayerBus
 var building: BuildingBus
 var rows: Array[Dictionary] = []
 var _clients: Array[int] = []
+## Whether the extra players run on cores of their own (else they share the host's).
+var clients_pinned := false
 var _edits := 0
 
 
@@ -89,7 +91,12 @@ func _scenario_design(size_name: String) -> void:
 
 func _scenario_demolition(size_name: String) -> void:
 	building.sync.load_design(ScaleBuildings.data(size_name))
-	await get_tree().process_frame
+	# As a crew would: the design was open a while, so its live checks have finished.
+	await get_tree().create_timer(1.0).timeout
+	var structure := Modules.bus("structure")
+	var t0 := Time.get_ticks_msec()
+	while structure and structure.has_method("is_checking") and structure.call("is_checking") and Time.get_ticks_msec() - t0 < 15000:
+		await get_tree().create_timer(0.1).timeout
 	var demo := Modules.bus("demolition") as DemolitionBus
 	demo.start_from_model(building.model)
 	var t := 0.0
@@ -164,6 +171,7 @@ func _finish(players: int) -> void:
 		"cpu": OS.get_processor_name(),
 		"renderer": str(ProjectSettings.get_setting("rendering/renderer/rendering_method", "")),
 		"players": players,
+		"extra_players_on_own_cores": clients_pinned,
 		"target_fps": PerfBudget.TARGET_FPS,
 		"rows": rows,
 		"passed": failed == 0,
@@ -175,7 +183,8 @@ func _finish(players: int) -> void:
 	if f:
 		f.store_string(JSON.stringify(report, "  "))
 		f.close()
-	_log("%s on %s, %d players" % [report.gpu, report.cpu, players])
+	_log("%s on %s, %d players%s" % [report.gpu, report.cpu, players,
+			"" if players == 1 or clients_pinned else " (the extra players share this PC's CPU; --solo for the host alone)"])
 	_log("%d of %d scenarios meet %d fps. Report: %s" % [rows.size() - failed, rows.size(), PerfBudget.TARGET_FPS,
 			ProjectSettings.globalize_path(path)])
 	if net.is_online():
@@ -184,13 +193,31 @@ func _finish(players: int) -> void:
 	get_tree().quit(0 if failed == 0 else 1)
 
 
+## The host on the first half of the cores, the extra players on the rest (Linux).
+func _pin_self(cores: int) -> void:
+	OS.execute("taskset", ["-p", "-c", "0-%d" % (cores / 2 - 1), str(OS.get_process_id())])
+
+
 func _spawn_clients(n: int) -> void:
 	var exe := OS.get_executable_path()
 	var project := ProjectSettings.globalize_path("res://")
+	var args := ["--headless", "--path", project, "--", "--perf-client=%d" % PORT]
+	# Real players each have their own PC; here the extra players share the host's CPU and
+	# steal its time (20 hitches a collapse on a 4-core PC, none with them on other cores).
+	# On Linux they go on the last cores; elsewhere --solo gives the host's own numbers.
+	var cores := OS.get_processor_count()
+	var pin := OS.get_name() == "Linux" and cores >= 4 and OS.execute("sh", ["-c", "command -v taskset"]) == 0
 	for i in n:
-		var pid := OS.create_process(exe, ["--headless", "--path", project, "--", "--perf-client=%d" % PORT])
+		var pid := -1
+		if pin:
+			pid = OS.create_process("taskset", ["-c", "%d-%d" % [cores / 2, cores - 1], exe] + args)
+		else:
+			pid = OS.create_process(exe, args)
 		if pid > 0:
 			_clients.append(pid)
+	clients_pinned = pin
+	if pin:
+		_pin_self(cores)
 
 
 static func _row_text(r: Dictionary) -> String:
@@ -211,7 +238,8 @@ func _log(line: String) -> void:
 
 # --- Client -----------------------------------------------------------------------------
 
-## A headless player: joins the bench host on this PC, edits like a busy crew member,
+## A headless player: joins the bench host on this PC, edits like a busy crew member (not
+## during a demolition, where players can't edit),
 ## reports each matched sync check, and quits when the session ends. With "diverge"
 ## (--perf-client=<port>,diverge, for the desync test) it changes its own copy of the
 ## building behind the session's back after the first matched check once a design loads.
@@ -236,8 +264,12 @@ func _run_client(port: int, diverge := false) -> void:
 			await get_tree().create_timer(0.1).timeout
 		# Design metadata that no later edit overwrites (a stray part would be, by id).
 		building.model.apply(BuildingCommands.set_design_meta({"perf_diverged": true}))
+	var demo := Modules.bus("demolition") as DemolitionBus
 	while true:
 		await get_tree().create_timer(CLIENT_EDIT_EVERY).timeout
+		# Nobody can edit the building from the demolition site, so neither do these players.
+		if demo and demo.is_active():
+			continue
 		_edits += 1
 		# A desk somewhere on the ground floor, then away again: edits without growing forever.
 		var at := [1.0 + float(me % 7), 0.0, 1.0 + float(_edits % 5)]
