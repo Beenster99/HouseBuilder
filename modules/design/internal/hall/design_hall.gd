@@ -31,7 +31,7 @@ const WALLS := {
 	"right": {"at": Vector3(12, 3.0, 0), "turn": -PI / 2.0, "size": Vector2(17, 5.0),
 			"layout": [["channel:contracts.board", 0.4], ["cost", 0.3], ["panel:services.feasibility", 0.3]]},
 	"back": {"at": Vector3(0, 3.0, 9), "turn": PI, "size": Vector2(23, 4.0),
-			"layout": [["side", 0.25], ["bom", 0.25], ["panel:structure.live", 0.25], ["channel:sites.board", 0.25]]},
+			"layout": [["side", 0.2], ["bom", 0.2], ["panel:structure.live", 0.2], ["channel:sites.board", 0.4]]},
 	"front": {"at": Vector3(0, 3.0, -9), "turn": 0.0, "size": Vector2(23, 4.0),
 			"layout": [["3d", 0.34], ["bom", 0.33], ["plan", 0.33]]},
 }

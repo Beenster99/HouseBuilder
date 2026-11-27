@@ -64,8 +64,10 @@ static func make(id: String, hall: Node, font: int) -> Control:
 		if not ch.is_empty() and (ch.make as Callable).is_valid():
 			var page: Variant = (ch.make as Callable).call(hall.get("model"))
 			if page is Control:
-				# Laid out for a big page: drawn at its own size, scaled to the screen's text.
-				var scaled: Container = ScaledBox.new(float(font) / PANEL_FONT)
+				# Laid out for a big page: drawn scaled to the screen's text, or smaller where
+				# the page is wider than the panel, so it always fits across.
+				var scaled := FitBox.new()
+				scaled.base = float(font) / PANEL_FONT
 				var c := page as Control
 				c.theme = _scaled_theme(int(PANEL_FONT))
 				scaled.add_child(c)
@@ -302,3 +304,29 @@ class CostChannel extends PanelContainer:
 		_age = 0.0
 		_rev = book.revision
 		_text.text = DesignCosts.bbcode(book.summary(), 40, font * 2)
+
+
+## Shows its one child scaled by `base`, or less if the child's own width wouldn't fit at that
+## scale; clicks still land. A page asks for no more room than the panel has.
+class FitBox extends Container:
+	var base := 1.0
+	var factor := 1.0
+
+	func _init() -> void:
+		clip_contents = true
+
+	func _get_minimum_size() -> Vector2:
+		return Vector2.ZERO
+
+	func _notification(what: int) -> void:
+		if what == NOTIFICATION_SORT_CHILDREN:
+			for c in get_children():
+				if c is Control:
+					var ctl := c as Control
+					var want := ctl.get_combined_minimum_size()
+					factor = base
+					if want.x > 1.0:
+						factor = minf(base, size.x / want.x)
+					factor = maxf(factor, 0.25)
+					fit_child_in_rect(ctl, Rect2(Vector2.ZERO, size / factor))
+					ctl.scale = Vector2(factor, factor)
