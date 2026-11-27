@@ -8,16 +8,28 @@ extends Node
 ## Other modules add buttons to the room's top bar (the timelapse's "Build it"):
 ##   var design := Modules.bus("design") as DesignBus
 ##   design.register_action("timelapse.build", "Build it", func(model: BuildingModel) -> void: ..., 50)
+## and views over the building that each player can switch to (the engineer's stresses):
+##   design.register_overlay("structure.stress", "Engineer", func(model) -> Dictionary: return {"p3": Color.RED}, make_panel)
+##   design.refresh_overlay("structure.stress")   # after a new report
 ##
 ## Features (Flags): "design" (the module), "design.room" (the room scene, which is where
 ## Start on the main menu goes).
 
 signal actions_changed
+## An overlay was added or removed.
+signal overlays_changed
+## An overlay's colours or panel changed (refresh_overlay); rooms showing it redraw.
+signal overlay_changed(id: String)
 
 const ROOM_SCENE := "design.room"
 const ROOM_FLAG := "design.room"
 const START_PRIORITY := 20
 const SETTINGS := "design"
+
+## Views other modules lay over the building (the engineer's stresses, the services runs):
+## id -> {label, tints: Callable(model) -> {entry id: Color}, panel: Callable() -> Control, order}.
+## Each player picks the view they look through on the room's top bar; Architect is none.
+var overlays: Dictionary = {}
 
 ## Buttons other modules put on the room's top bar: id -> {label, press: Callable(model), order}.
 var actions: Dictionary = {}
@@ -56,5 +68,33 @@ func action_list() -> Array[Dictionary]:
 		var a: Dictionary = actions[id].duplicate()
 		a["id"] = id
 		out.append(a)
+	out.sort_custom(func(x: Dictionary, y: Dictionary) -> bool: return int(x.order) < int(y.order))
+	return out
+
+
+## Adds a view to the room's View picker. tints(model) colours entries ({id: Color}); panel(),
+## if given, makes a Control shown in the right-hand column while the view is on.
+func register_overlay(id: String, label: String, tints: Callable, panel: Callable = Callable(), order: int = 50) -> void:
+	overlays[id] = {"label": label, "tints": tints, "panel": panel, "order": order}
+	overlays_changed.emit()
+
+
+func unregister_overlay(id: String) -> void:
+	if overlays.erase(id):
+		overlays_changed.emit()
+
+
+## Call when an overlay's colours or panel should be redrawn (a new stress report).
+func refresh_overlay(id: String) -> void:
+	overlay_changed.emit(id)
+
+
+## Overlays, lowest order first: [{id, label, tints, panel, order}].
+func overlay_list() -> Array[Dictionary]:
+	var out: Array[Dictionary] = []
+	for id: String in overlays:
+		var o: Dictionary = overlays[id].duplicate()
+		o["id"] = id
+		out.append(o)
 	out.sort_custom(func(x: Dictionary, y: Dictionary) -> bool: return int(x.order) < int(y.order))
 	return out

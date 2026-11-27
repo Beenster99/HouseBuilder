@@ -19,6 +19,8 @@ var _cost: RichTextLabel
 var _status: Label
 var _options: VBoxContainer
 var _actions: HBoxContainer
+var _views: OptionButton
+var _overlay_slot: VBoxContainer
 var _save_popup: PopupPanel
 var _save_name: LineEdit
 var _load_popup: PopupPanel
@@ -50,7 +52,12 @@ func _ready() -> void:
 	_net.session_ended.connect(func(_r: String) -> void: refresh_bar())
 	var design := Modules.bus("design") as DesignBus
 	design.actions_changed.connect(_build_actions)
+	design.overlays_changed.connect(_build_views)
+	design.overlay_changed.connect(func(id: String) -> void:
+		if id == str(room.get("overlay")):
+			show_overlay_panel(id))
 	_build_actions()
+	_build_views()
 	_refresh_tools()
 	refresh_bar()
 
@@ -133,6 +140,11 @@ func _build_top() -> void:
 	row.add_child(_button("Save", open_save, "Save this design to your library (Ctrl+S)"))
 	row.add_child(_button("Load", open_load, "Load a design for everyone (Ctrl+O)"))
 	row.add_child(_button("New", _session.new_design, "Start a new, empty design for everyone"))
+	_views = OptionButton.new()
+	_views.focus_mode = FOCUS_NONE
+	_views.tooltip_text = "The view you look through: Architect, or another discipline's overlay"
+	_views.item_selected.connect(func(i: int) -> void: room.call("set_overlay", str(_views.get_item_metadata(i))))
+	row.add_child(_views)
 	_actions = HBoxContainer.new()
 	row.add_child(_actions)
 	row.add_child(_button("Menu", Menu.open_pause, "Pause menu (Esc)"))
@@ -145,6 +157,35 @@ func _build_actions() -> void:
 	for a: Dictionary in design.action_list():
 		var press: Callable = a.press
 		_actions.add_child(_button(str(a.label), func() -> void: press.call(_model)))
+
+
+func _build_views() -> void:
+	_views.clear()
+	_views.add_item("View: Architect")
+	_views.set_item_metadata(0, "")
+	var design := Modules.bus("design") as DesignBus
+	for o: Dictionary in design.overlay_list():
+		_views.add_item("View: %s" % o.label)
+		_views.set_item_metadata(_views.item_count - 1, o.id)
+	var cur := str(room.get("overlay"))
+	for i in _views.item_count:
+		if str(_views.get_item_metadata(i)) == cur:
+			_views.select(i)
+	_views.visible = _views.item_count > 1
+
+
+## Puts the overlay's panel (if it has one) above the cost panel; "" takes it away.
+func show_overlay_panel(id: String) -> void:
+	for c in _overlay_slot.get_children():
+		c.queue_free()
+	var design := Modules.bus("design") as DesignBus
+	var o: Dictionary = design.overlays.get(id, {})
+	var make: Callable = o.get("panel", Callable())
+	_overlay_slot.visible = make.is_valid()
+	if make.is_valid():
+		var panel: Variant = make.call()
+		if panel is Control:
+			_overlay_slot.add_child(panel)
 
 
 func refresh_bar() -> void:
@@ -287,11 +328,17 @@ func _build_cost() -> void:
 	p.offset_top = 64
 	p.offset_bottom = -44
 	add_child(p)
+	var col := VBoxContainer.new()
+	p.add_child(col)
+	_overlay_slot = VBoxContainer.new()
+	_overlay_slot.visible = false
+	_overlay_slot.size_flags_vertical = SIZE_EXPAND_FILL
+	col.add_child(_overlay_slot)
 	_cost = RichTextLabel.new()
 	_cost.bbcode_enabled = true
 	_cost.scroll_active = true
 	_cost.size_flags_vertical = SIZE_EXPAND_FILL
-	p.add_child(_cost)
+	col.add_child(_cost)
 
 
 func _refresh_cost() -> void:

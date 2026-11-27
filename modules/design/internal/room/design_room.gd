@@ -34,6 +34,8 @@ var _ghost_mats: Dictionary = {}
 var _tint_dirty := true
 var _left_down := false
 var _sun: DirectionalLight3D
+## The view this player looks through: "" (Architect) or a DesignBus overlay id.
+var overlay := ""
 
 
 func _ready() -> void:
@@ -71,6 +73,12 @@ func _ready() -> void:
 	session.presence.locks_changed.connect(func() -> void: _tint_dirty = true)
 	building.model.changed.connect(func(_op: Dictionary) -> void: _tint_dirty = true)
 	building.model.loaded.connect(func() -> void: _tint_dirty = true)
+	design.overlay_changed.connect(func(id: String) -> void:
+		if id == overlay:
+			_tint_dirty = true)
+	design.overlays_changed.connect(func() -> void:
+		if overlay != "" and not design.overlays.has(overlay):
+			set_overlay(""))
 	_on_level(0)
 	session.set_tool("room")
 
@@ -211,6 +219,10 @@ func _pointer_over_hud() -> bool:
 ## Selection and lock colours: mine in yellow, other players' in their colour.
 func _update_tints() -> void:
 	var want := {}
+	if overlay != "" and design.overlays.has(overlay):
+		var got: Variant = (design.overlays[overlay].tints as Callable).call(building.model)
+		if got is Dictionary:
+			want.merge(got, true)
 	var p := session.presence
 	for peer: int in p.selections:
 		var colour := MINE if peer == net.local_peer_id() else net.player_colour(peer)
@@ -460,6 +472,12 @@ func _key(k: InputEventKey) -> bool:
 			session.set_tool(str(t.id))
 			return true
 	return false
+
+
+func set_overlay(id: String) -> void:
+	overlay = id
+	_tint_dirty = true
+	hud.call("show_overlay_panel", id)
 
 
 func toggle_plan() -> void:

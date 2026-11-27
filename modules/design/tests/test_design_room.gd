@@ -52,6 +52,17 @@ func run_tests() -> void:
 	for c: RichTextLabel in cost:
 		cost_text += c.get_parsed_text()
 	check(cost_text.contains("COST") and cost_text.contains("£") and cost_text.contains("Walls"), "the live cost panel shows the walls' cost")
+	var engineer_panel := Label.new()
+	engineer_panel.text = "Engineer report"
+	design.register_overlay("test.eng", "Engineer", func(_m: BuildingModel) -> Dictionary: return {door: Color.RED},
+			func() -> Control: return engineer_panel)
+	await frames(1)
+	room.call("set_overlay", "test.eng")
+	await frames(2)
+	check(view.call("tints").has(door) and engineer_panel.is_inside_tree(), "an overlay colours parts and shows its panel")
+	room.call("set_overlay", "")
+	design.unregister_overlay("test.eng")
+	await frames(2)
 	room.call("toggle_plan")
 	check(bool((room.get("camera") as Camera3D).get("plan")), "Tab switches to the 2D plan")
 	room.call("toggle_plan")
