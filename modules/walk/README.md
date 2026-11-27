@@ -18,7 +18,10 @@ walk.open(model, get_tree().current_scene)     # spawn: {at, yaw}; sync: default
 walk.closed.connect(...)                        # Esc closes it
 ```
 
-While open it holds `HudSlots.claim_pointer("walk.inside")`.
+While open it holds `HudSlots.claim_pointer("walk.inside")`. When opened from a node inside a
+SubViewport (the designer drawn in the hall; the button finds the viewport it was pressed in),
+a stand-in camera is made current in that viewport, so the designer steps aside (HUD and
+input) and takes over again when the walk closes and frees it. Esc only closes the walk.
 
 ## Controls (BSX's)
 

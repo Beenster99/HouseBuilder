@@ -30,6 +30,7 @@ signal walkers_changed
 
 const FLAG := "walk.inside"
 const ACTION := "walk.inside"
+const LABEL := "Walk inside"
 const POINTER := "walk.inside"
 const EVENT := "walk.state"
 const SECTION := "walk"
@@ -47,6 +48,7 @@ var _net: MultiplayerBus
 ## peer id -> {body: Node3D, aim: Node3D}: where other players' walks land.
 var _proxies: Dictionary = {}
 var _design: Node = null
+var _lent: Camera3D = null
 
 
 func register_module() -> void:
@@ -93,12 +95,25 @@ func hook_design(design: Node) -> void:
 	if design == null or not design.has_method("register_action") or not Flags.is_on(FLAG):
 		return
 	_design = design
-	design.call("register_action", ACTION, "Walk inside", func(model: BuildingModel) -> void:
-		open(model, get_tree().current_scene), 45)
+	design.call("register_action", ACTION, LABEL, func(model: BuildingModel) -> void:
+		open(model, _pressed_in()), 45)
 
 
-## Opens walk-inside over `parent` (the current scene): the building in a world of its own,
-## drawn over the whole screen. spawn: {at: Vector3 (feet), yaw} to start somewhere given.
+## The viewport the designer's button was pressed in (the designer can be drawn inside a
+## SubViewport in the hall), else the current scene.
+func _pressed_in() -> Node:
+	for vp: Node in get_tree().root.find_children("*", "SubViewport", true, false):
+		var c := (vp as SubViewport).gui_get_hovered_control()
+		if c is Button and (c as Button).text == LABEL:
+			return vp
+	return get_tree().current_scene
+
+
+## Opens walk-inside from `parent` (the current scene, or a node in the designer's own
+## viewport): the building in a world of its own, drawn over the whole screen. When `parent`
+## is inside a SubViewport (the designer drawn in the hall), a stand-in camera is made current
+## there, so that view steps aside (HUD and input) until the walk closes and frees it.
+## spawn: {at: Vector3 (feet), yaw} to start somewhere given.
 ## sync: the edits' way to the host (default: the building bus's, for its shared model).
 ## Returns the view (or the one already open).
 func open(model: BuildingModel = null, parent: Node = null, spawn: Dictionary = {}, sync: BuildingSync = null) -> Node:
@@ -112,6 +127,12 @@ func open(model: BuildingModel = null, parent: Node = null, spawn: Dictionary = 
 	if parent == null:
 		parent = get_tree().current_scene if get_tree().current_scene else self
 	var v: Node = (load(VIEW_SCRIPT) as GDScript).new()
+	var vp := parent.get_viewport() if parent.is_inside_tree() else null
+	if parent is Viewport:
+		vp = parent as Viewport
+	if vp and vp != get_tree().root:
+		_lend_camera(vp)
+		parent = get_tree().current_scene if get_tree().current_scene else self
 	parent.add_child(v)
 	v.call("setup", self, model, sync if sync else _sync_for(model), spawn)
 	view = v
@@ -130,10 +151,30 @@ func close() -> void:
 		v.queue_free()
 		if v.is_inside_tree():
 			v.get_parent().remove_child(v)
+	if _lent and is_instance_valid(_lent):
+		_lent.queue_free()
+		if _lent.is_inside_tree():
+			_lent.get_parent().remove_child(_lent)
+	_lent = null
 	HudSlots.release_pointer(POINTER)
 	if DisplayServer.get_name() != "headless":
 		Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 	closed.emit()
+
+
+## A camera made current in the view walk-inside was opened from, so that view stands down.
+func _lend_camera(vp: Viewport) -> void:
+	var cam := Camera3D.new()
+	cam.name = "WalkInsideLent"
+	cam.position = Vector3(0, -1000, 0)
+	vp.add_child(cam)
+	cam.make_current()
+	_lent = cam
+
+
+## The camera lent to the designer's view while walking (null when none).
+func lent_camera() -> Camera3D:
+	return _lent
 
 
 func is_open() -> bool:

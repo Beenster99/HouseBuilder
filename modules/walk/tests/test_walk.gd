@@ -203,6 +203,26 @@ func run_tests() -> void:
 	await frames(3)
 	check(not walk.is_open() and not HudSlots.pointer_claimed(), "Esc goes back to the designer and gives the pointer back: %s %s" % [walk.is_open(), HudSlots._pointer])
 	check(not walk.walkers.has(walk.local_peer()), "and you're off the walkers")
+
+	# Opened from a designer drawn in a SubViewport (the hall): that view's camera is lent
+	# away while walking, so it stands down, and comes back when the walk closes.
+	var box := SubViewportContainer.new()
+	add_child(box)
+	var dvp := SubViewport.new()
+	dvp.own_world_3d = true
+	box.add_child(dvp)
+	var dcam := Camera3D.new()
+	dvp.add_child(dcam)
+	dcam.make_current()
+	await frames(1)
+	walk.open(model, dvp)
+	await frames(2)
+	check(walk.is_open() and dvp.get_camera_3d() != dcam and dvp.get_camera_3d() == walk.lent_camera(), "the designer's view lends its camera")
+	check(walk.view.get_parent() != dvp, "the walk itself is drawn full screen, not in the designer's view")
+	walk.close()
+	await frames(2)
+	check(dvp.get_camera_3d() == dcam, "and gets it back when the walk closes")
+	box.queue_free()
 	walk.unregister_module()
 	design.queue_free()
 
