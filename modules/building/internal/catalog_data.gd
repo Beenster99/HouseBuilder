@@ -346,6 +346,37 @@ const DATA := {
 		"gate_lounge": {"label": "Gate lounge", "category": "transport", "live_load": 4.0, "min_area": 120.0, "area_per_person": 1.2, "capacity": "seats", "fit_out": 900.0, "colour": "c5cae9"},
 		"baggage_hall": {"label": "Baggage hall", "category": "transport", "live_load": 7.5, "min_area": 300.0, "area_per_person": 0.0, "capacity": "", "fit_out": 1500.0, "colour": "9fa8da"},
 		"retail_unit": {"label": "Retail unit", "category": "transport", "live_load": 4.0, "min_area": 20.0, "area_per_person": 2.0, "capacity": "", "fit_out": 800.0, "colour": "f48fb1"},
+		# Retail
+		"shop_unit": {"label": "Shop floor", "category": "retail", "live_load": 4.0, "min_area": 25.0, "area_per_person": 2.0, "capacity": "", "fit_out": 700.0, "colour": "f48fb1"},
+		"retail_warehouse": {"label": "Retail warehouse", "category": "retail", "live_load": 7.5, "min_area": 400.0, "area_per_person": 0.0, "capacity": "", "fit_out": 450.0, "colour": "f06292"},
+		# Hospitality
+		"bar": {"label": "Bar", "category": "hospitality", "live_load": 4.0, "min_area": 30.0, "area_per_person": 1.0, "capacity": "seats", "fit_out": 900.0, "colour": "ffab91"},
+		"restaurant": {"label": "Restaurant", "category": "hospitality", "live_load": 4.0, "min_area": 40.0, "area_per_person": 1.4, "capacity": "seats", "fit_out": 900.0, "colour": "ffccbc"},
+		"hotel_bedroom": {"label": "Hotel bedroom", "category": "hospitality", "live_load": 2.0, "min_area": 16.0, "area_per_person": 0.0, "capacity": "sleeps", "fit_out": 1300.0, "colour": "b3cde0"},
+		"function_room": {"label": "Function room", "category": "hospitality", "live_load": 5.0, "min_area": 60.0, "area_per_person": 1.0, "capacity": "seats", "fit_out": 700.0, "colour": "ffe0b2"},
+		# Leisure and the arts
+		"auditorium": {"label": "Auditorium", "category": "leisure", "live_load": 5.0, "min_area": 120.0, "area_per_person": 1.0, "capacity": "seats", "fit_out": 1500.0, "colour": "b39ddb"},
+		"stage": {"label": "Stage", "category": "leisure", "live_load": 7.5, "min_area": 60.0, "area_per_person": 0.0, "capacity": "", "fit_out": 1200.0, "colour": "9575cd"},
+		"foyer": {"label": "Foyer", "category": "leisure", "live_load": 5.0, "min_area": 40.0, "area_per_person": 1.0, "capacity": "", "fit_out": 750.0, "colour": "d1c4e9"},
+		"dressing_room": {"label": "Dressing room", "category": "leisure", "live_load": 2.5, "min_area": 10.0, "area_per_person": 0.0, "capacity": "", "fit_out": 600.0, "colour": "e1bee7"},
+		"projection_room": {"label": "Projection room", "category": "leisure", "live_load": 3.0, "min_area": 10.0, "area_per_person": 0.0, "capacity": "", "fit_out": 1500.0, "colour": "c5cae9"},
+		# Justice
+		"courtroom": {"label": "Courtroom", "category": "justice", "live_load": 4.0, "min_area": 80.0, "area_per_person": 1.5, "capacity": "seats", "fit_out": 1600.0, "colour": "a1887f"},
+		"judges_chambers": {"label": "Judge's chambers", "category": "justice", "live_load": 2.5, "min_area": 18.0, "area_per_person": 0.0, "capacity": "", "fit_out": 900.0, "colour": "bcaaa4"},
+		"jury_room": {"label": "Jury room", "category": "justice", "live_load": 2.5, "min_area": 25.0, "area_per_person": 2.0, "capacity": "seats", "fit_out": 700.0, "colour": "d7ccc8"},
+		"prison_cell": {"label": "Prison cell", "category": "justice", "live_load": 2.0, "min_area": 8.0, "area_per_person": 0.0, "capacity": "", "fit_out": 2200.0, "colour": "ef9a9a"},
+		"visits_hall": {"label": "Visits hall", "category": "justice", "live_load": 4.0, "min_area": 80.0, "area_per_person": 1.5, "capacity": "seats", "fit_out": 800.0, "colour": "f8bbd0"},
+		"gatehouse": {"label": "Gatehouse", "category": "justice", "live_load": 4.0, "min_area": 30.0, "area_per_person": 0.0, "capacity": "", "fit_out": 2000.0, "colour": "e57373"},
+		# Industrial
+		"workshop": {"label": "Workshop", "category": "industrial", "live_load": 7.5, "min_area": 50.0, "area_per_person": 0.0, "capacity": "", "fit_out": 450.0, "colour": "b0bec5"},
+		"warehouse": {"label": "Warehouse", "category": "industrial", "live_load": 10.0, "min_area": 200.0, "area_per_person": 0.0, "capacity": "", "fit_out": 150.0, "colour": "90a4ae"},
+		"loading_bay": {"label": "Loading bay", "category": "industrial", "live_load": 10.0, "min_area": 40.0, "area_per_person": 0.0, "capacity": "", "fit_out": 150.0, "colour": "78909c"},
+		# Stations
+		"platform": {"label": "Platform", "category": "transport", "live_load": 5.0, "min_area": 150.0, "area_per_person": 1.0, "capacity": "", "fit_out": 400.0, "colour": "9fa8da"},
+		"concourse": {"label": "Concourse", "category": "transport", "live_load": 5.0, "min_area": 200.0, "area_per_person": 1.2, "capacity": "", "fit_out": 900.0, "colour": "c5cae9"},
+		"ticket_hall": {"label": "Ticket hall", "category": "transport", "live_load": 5.0, "min_area": 60.0, "area_per_person": 1.5, "capacity": "counters", "fit_out": 900.0, "colour": "b39ddb"},
+		"bus_bay": {"label": "Bus bay", "category": "transport", "live_load": 7.5, "min_area": 60.0, "area_per_person": 0.0, "capacity": "", "fit_out": 150.0, "colour": "bdbdbd"},
+		"council_chamber": {"label": "Council chamber", "category": "office", "live_load": 4.0, "min_area": 80.0, "area_per_person": 1.5, "capacity": "seats", "fit_out": 1200.0, "colour": "81d4fa"},
 		# Services and circulation (any building)
 		"corridor": {"label": "Corridor", "category": "services", "live_load": 3.0, "min_area": 2.0, "area_per_person": 0.0, "capacity": "", "fit_out": 250.0, "colour": "eeeeee"},
 		"stair_core": {"label": "Stair", "category": "services", "live_load": 4.0, "min_area": 6.0, "area_per_person": 0.0, "capacity": "", "fit_out": 1500.0, "colour": "a1887f"},
