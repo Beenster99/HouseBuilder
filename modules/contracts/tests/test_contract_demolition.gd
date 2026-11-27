@@ -29,8 +29,14 @@ func _brief() -> void:
 	check((o.plot as PackedVector2Array).size() == 4 and (o.neighbours as Array).size() == 2 and o.neighbours[0] is AABB, "the plot and two neighbours to protect")
 	var doc := ContractBriefing.text(b)
 	check(doc.contains("What to bring down") and doc.contains("No more than") and doc.contains("neighbouring buildings"), "the briefing explains the job")
-	var own := ContractDemolition.generate(6, 4, {"id": "t1", "title": "Riverside surgery", "model": ContractDemolition.old_building(10, 8, 2, "Riverside surgery")})
-	check(str(own.record_id) == "t1" and str(own.summary).contains("one of your own"), "the firm's own old building can be the job")
+	var head := {"id": "t1", "title": "Riverside surgery", "client": "The health trust", "type": "gp_surgery"}
+	var own := ContractDemolition.generate(6, 4, head)
+	check(str(own.record_id) == "t1" and str(own.summary).contains("one of your own") and str(own.client) == "The health trust",
+			"the firm's own old building can be the job, for the client who had it built")
+	var real := head.duplicate()
+	real["model"] = ContractDemolition.old_building(12, 9, 2, "Riverside surgery")
+	var swapped := ContractDemolition.generate(6, 4, real)
+	check(str(swapped.id) == str(own.id) and BuildingModel.from_data(swapped.target).level_count() == 2, "and the real building stands in for it once the host has it")
 
 
 func _judging() -> void:

@@ -33,8 +33,8 @@ static func is_demolition(brief: Dictionary) -> bool:
 
 
 ## A demolition brief for a firm of `tier`. record (optional): a building the firm put up
-## (the town module's record: {id, title, model (BuildingModel data), site?}) to bring down
-## for redevelopment.
+## (a town record header: {id, title, client, type, site_id}, and model: BuildingModel data
+## when known; the host swaps in the real model on accept) to bring down for redevelopment.
 static func generate(seed: int, tier: int, record: Dictionary = {}) -> Dictionary:
 	var rng := RandomNumberGenerator.new()
 	rng.seed = hash([seed, "demolish"])
@@ -43,22 +43,27 @@ static func generate(seed: int, tier: int, record: Dictionary = {}) -> Dictionar
 	var type := ""
 	var label := ""
 	var client := ""
-	if record.get("model") is Dictionary:
-		target = (record.model as Dictionary).duplicate(true)
-		label = str(record.get("title", target.get("name", "building")))
-		client = "The town council"
-	else:
+	var own := not record.is_empty()
+	if own:
+		label = str(record.get("title", "building"))
+		client = str(record.get("client", "")) if str(record.get("client", "")) != "" else "The town council"
+		type = str(record.get("type", ""))
+	if not ContractGenerator.TYPES.has(type):
 		var pool: Array = Array(ContractGenerator.types_open(tier)).filter(func(t: String) -> bool:
 			return not str(ContractGenerator.TYPES[t].category) in SKIP_CATEGORIES)
 		type = str(pool[rng.randi_range(0, pool.size() - 1)])
-		var spec: Dictionary = ContractGenerator.TYPES[type]
+	var spec: Dictionary = ContractGenerator.TYPES[type]
+	if not own:
 		label = str(spec.label).to_lower()
 		var clients: Array = ContractGenerator.TYPES_SCRIPT.CLIENTS.get(str(spec.category), ["A developer"])
 		client = str(clients[rng.randi_range(0, clients.size() - 1)])
+	if record.get("model") is Dictionary:
+		target = lock_all(record.model)
+	else:
 		var storeys := rng.randi_range(int(spec.storeys[0]), int(spec.storeys[1]))
 		var w := snappedf(rng.randf_range(8.0, 10.0 + tier * 4.0), 1.0)
 		var d := snappedf(rng.randf_range(6.0, 8.0 + tier * 3.0), 1.0)
-		target = old_building(w, d, storeys, "The old " + label)
+		target = old_building(w, d, storeys, label if own else "The old " + label)
 	var model := BuildingModel.new()
 	model.load_data(target)
 	var box := _box(model)
@@ -79,11 +84,11 @@ static func generate(seed: int, tier: int, record: Dictionary = {}) -> Dictionar
 	var budget := snappedf(volume * CREW_PER_M3 + charges * CHARGE_COST * 1.1, 500.0)
 	var fee := snappedf(budget * 1.3 + 4000.0 * tier, 1000.0)
 	var xp := snappedi(roundi(float(ContractTiers.info(tier).award) * 0.8), 10)
-	var title := "Demolish " + (label if record.has("model") else "the old " + label)
+	var title := "Demolish " + (label if own else "the old " + label)
 	var summary := "%s want%s %s brought down and the plot cleared: everything down, the debris kept on the plot%s, in no more than %d charges." % [
-			client, "" if client.ends_with("family") else "s", label if record.has("model") else "the old " + label,
+			client, "" if client.ends_with("family") else "s", label if own else "the old " + label,
 			", with the neighbours untouched" if not neighbours.is_empty() else "", charges]
-	if record.has("model"):
+	if own:
 		summary += " It is one of your own: it has served its time and the site is wanted for something new."
 	var reqs: Array = [
 		{"id": "collapse", "kind": "demolition_collapse", "value": 0.95},
@@ -102,7 +107,7 @@ static func generate(seed: int, tier: int, record: Dictionary = {}) -> Dictionar
 		"title": title.left(1).to_upper() + title.substr(1), "type": type, "client": client, "summary": summary, "seed": seed,
 		"budget": budget, "fee": fee, "deadline_days": 20 + tier * 5, "tier": tier, "xp": xp,
 		"requirements": reqs, "goals": goals, "target": target, "neighbours": neighbours, "volume": snappedf(volume, 1.0),
-		"site": {"id": str((record.get("site", {}) as Dictionary).get("id", "")) if record.get("site") is Dictionary else "",
+		"site": {"id": "",
 				"name": "the old building's plot", "plot": plot, "rating": 1, "soil": "", "area": (hi.x - lo.x) * (hi.y - lo.y),
 				"w": hi.x - lo.x, "d": hi.y - lo.y, "factors": []},
 	}
@@ -140,10 +145,17 @@ static func old_building(w: float, d: float, storeys: int, building_name: String
 			m.apply(C.place_part("column", lv, {"at": [c[0], 0.0, c[1]]}, "concrete"))
 		m.apply(C.place_part("slab", lv, {"outline": C.rect(x0, z0, w, d)}, "concrete"))
 	m.apply(C.place_part("roof_flat", storeys - 1, {"outline": C.rect(x0, z0, w, d), "y": STOREY_M}, "concrete"))
-	var data := m.to_data()
-	for e: Dictionary in data.get("parts", []):
-		e["locked"] = true
-	return data
+	return lock_all(m.to_data())
+
+
+## BuildingModel data with every part and room locked (kept as it is).
+static func lock_all(data: Dictionary) -> Dictionary:
+	var out := data.duplicate(true)
+	for t: String in ["parts", "rooms"]:
+		for e: Variant in out.get(t, []):
+			if e is Dictionary:
+				e["locked"] = true
+	return out
 
 
 ## The old building as BuildingModel data (for BuildingSync.load_design).

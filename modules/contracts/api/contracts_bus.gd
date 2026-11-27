@@ -393,6 +393,16 @@ func _validate_accept(_sender: int, p: Dictionary) -> Variant:
 		return "that contract is no longer on the board"
 	if int(b.get("tier", 1)) > career.tier() and not bool(b.get("patron", false)):
 		return "needs a tier %d firm" % int(b.tier)
+	# Bringing down one of the firm's own: the host holds the real building (town, by name).
+	var town := Modules.bus("town")
+	if str(b.get("record_id", "")) != "" and town != null and town.has_method("model_of"):
+		var m: Variant = town.call("model_of", str(b.record_id))
+		var rec: Variant = town.call("record", str(b.record_id)) if town.has_method("record") else {}
+		if m is BuildingModel and rec is Dictionary and not (rec as Dictionary).is_empty():
+			var full := (rec as Dictionary).duplicate()
+			full["model"] = (m as BuildingModel).to_data()
+			var again := ContractDemolition.generate(int(b.seed), int(b.tier), full)
+			b = ContractClients.apply(again, career.clients) if Flags.is_on(ContractClients.FLAG) else again
 	return {"brief": b}
 
 
@@ -491,8 +501,9 @@ func _apply_handover(p: Dictionary) -> void:
 	s["brief"] = active.duplicate(true)
 	# Bringing down one of the firm's own buildings: the town takes it off its map (by name).
 	var town := Modules.bus("town")
-	if str(active.get("record_id", "")) != "" and bool(s.get("passed", false)) and town != null and town.has_method("demolished"):
-		town.call("demolished", str(active.record_id))
+	if str(active.get("record_id", "")) != "" and bool(s.get("passed", false)) and town != null and town.has_method("mark_demolished") \
+			and (net == null or net.is_host()):
+		town.call("mark_demolished", str(active.record_id))
 	demolition_result = {}
 	var before := career.tier()
 	s["unlocked"] = Array(career.record(s))
@@ -571,7 +582,7 @@ func _own_building(seed: int) -> Dictionary:
 	var town := Modules.bus("town")
 	if town == null or not town.has_method("records"):
 		return {}
-	var recs: Array = (town.call("records") as Array).filter(func(r: Variant) -> bool: return r is Dictionary and (r as Dictionary).get("model") is Dictionary)
+	var recs: Array = (town.call("records") as Array).filter(func(r: Variant) -> bool: return r is Dictionary and not bool((r as Dictionary).get("demolished", false)))
 	if recs.is_empty() or absi(hash([seed, "own"])) % 10 >= 4:
 		return {}
 	return recs[absi(seed) % recs.size()]
