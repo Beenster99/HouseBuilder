@@ -29,6 +29,10 @@ func run_tests() -> void:
 	var b := Modules.bus("building") as BuildingBus
 	check(walk != null, "the walk module is loaded")
 	var model := b.model
+	# Clicks take straight away in most of this test; another module's preview (kits) is put
+	# back at the end, and the preview-then-TAKE flow is checked with a stand-in below.
+	var kept_preview: Callable = walk._preview
+	walk.set_preview_maker(Callable())
 	_house(b)
 	check(model.parts_of_family("wall").size() == 5 and model.rooms.size() == 2, "a two-room house with an upstairs")
 
@@ -306,6 +310,7 @@ func run_tests() -> void:
 	await frames(2)
 	check(dvp.get_camera_3d() == dcam, "and gets it back when the walk closes")
 	box.queue_free()
+	walk.set_preview_maker(kept_preview)
 	walk.unregister_module()
 	design.queue_free()
 
