@@ -91,7 +91,7 @@ func to_main_menu() -> void:
 func quit() -> void:
 	if Saves.current_slot != "":
 		Saves.save(Saves.current_slot)
-	get_tree().quit()
+	Modules.quit_game()
 
 
 func _unhandled_input(event: InputEvent) -> void:

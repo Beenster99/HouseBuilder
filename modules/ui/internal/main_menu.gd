@@ -83,7 +83,7 @@ func _ready() -> void:
 		main.add_child(b)
 		_sections[id] = b
 	main.add_child(_spacer(8))
-	var exit := BsxTheme.button("Exit game", func() -> void: get_tree().quit())
+	var exit := BsxTheme.button("Exit game", func() -> void: Modules.quit_game())
 	exit.name = "ExitGame"
 	exit.custom_minimum_size.y = 52
 	main.add_child(exit)

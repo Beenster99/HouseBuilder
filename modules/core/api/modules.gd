@@ -47,6 +47,29 @@ func load_all() -> void:
 		finish_boot.call_deferred()
 
 
+## Leaves the game cleanly: every module unregisters first (waiting for its background
+## work, like the structure and services live checks), then the engine quits. Exit game
+## buttons call this; closing the window does the same.
+func quit_game(exit_code: int = 0) -> void:
+	_shutdown()
+	get_tree().quit(exit_code)
+
+
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_WM_CLOSE_REQUEST:
+		_shutdown()
+
+
+var _shut_down := false
+
+
+func _shutdown() -> void:
+	if _shut_down:
+		return
+	_shut_down = true
+	unload_all()
+
+
 ## Called by the splash when it is done; safe to call more than once.
 func finish_boot() -> void:
 	if boot_done:
