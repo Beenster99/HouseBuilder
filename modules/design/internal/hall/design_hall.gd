@@ -441,7 +441,7 @@ func _process(delta: float) -> void:
 				float(Input.is_physical_key_pressed(KEY_K)) - float(Input.is_physical_key_pressed(KEY_I)))
 		if spin != 0.0 or grow != 0.0 or pan != Vector2.ZERO:
 			holo.call("nudge", spin * TURN_RATE * delta, pow(ZOOM_RATE, grow * delta), pan * PAN_RATE * delta)
-	_hint.visible = mode == "room"
+	_hint.visible = mode == "room" and not HudSlots.pointer_claimed()
 	_cross.visible = mode == "room"
 	if mode == "room":
 		var wall := aimed_wall()
