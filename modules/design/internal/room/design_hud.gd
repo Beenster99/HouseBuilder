@@ -308,6 +308,7 @@ func _refresh_tools() -> void:
 				hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 				hint.modulate = BsxTheme.MUTED
 				_options.add_child(hint)
+				_furnish_box()
 		"wall":
 			_wall_material()
 		"door":
@@ -324,6 +325,19 @@ func _refresh_tools() -> void:
 		"fixture":
 			_option("Furniture", cat.kinds_in("fixture"), _session.fixture_kind, func(v: String) -> void: _session.fixture_kind = v,
 					func(v: String) -> String: return str(cat.kind(v).get("label", v)))
+
+
+func _furnish_box() -> void:
+	var l := Label.new()
+	l.text = "Furnish the selected rooms"
+	_options.add_child(l)
+	_options.add_child(_button("Usual layout", func() -> void: _session.furnish_selection(), "Furniture this kind of room usually has"))
+	var text := LineEdit.new()
+	text.placeholder_text = "or describe: 2 single beds, a desk"
+	var go := func() -> void: _session.furnish_selection(text.text)
+	text.text_submitted.connect(func(_t: String) -> void: go.call())
+	_options.add_child(text)
+	_options.add_child(_button("Furnish from description", go))
 
 
 func _notes_list() -> void:

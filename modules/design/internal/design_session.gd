@@ -463,6 +463,33 @@ func retag_selection() -> void:
 			sync.edit(C.retag(id, room_type))
 
 
+## Furnishes the selected rooms: the room type's usual layout, or what `text` describes
+## ("2 single beds and a desk"). One undo takes it all back.
+func furnish_selection(text: String = "") -> void:
+	var ops: Array = []
+	var placed := 0
+	var wanted := 0
+	var rooms := 0
+	for id in presence.my_selection():
+		if not model.rooms.has(id) or not presence.may_edit(id):
+			continue
+		rooms += 1
+		var items := DesignFitout.parse(text, catalog) if text.strip_edges() != "" else DesignFitout.preset(model, id)
+		var r := DesignFitout.furnish(model, id, items)
+		ops.append_array(r.ops)
+		placed += int(r.placed)
+		wanted += int(r.wanted)
+	if rooms == 0:
+		status.emit("Select a room first, then Furnish", true)
+		return
+	if wanted == 0:
+		status.emit("Nothing to put in: try \"2 single beds and a desk\"" if text != "" else "No usual layout for that room", true)
+		return
+	if not ops.is_empty():
+		sync.edit(C.batch(ops))
+	status.emit("Furnished: %d of %d pieces%s" % [placed, wanted, "" if placed == wanted else " (no room for the rest)"], placed < wanted)
+
+
 func undo() -> void:
 	cancel()
 	sync.undo()

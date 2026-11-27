@@ -126,6 +126,26 @@ func run_tests() -> void:
 	s.release(Vector3(2, 3, 2))
 	check(model.rooms_on(1).size() == 1, "a room upstairs")
 
+	# Fit-out: a room's usual layout, or furniture from a description.
+	var parsed := DesignFitout.parse("2 single beds, a desk and three chairs", model.catalog)
+	check(parsed == [["bed_single", 2], ["desk_office", 1], ["hall_chair", 3]], "a description reads: %s" % str(parsed))
+	var living: String = model.rooms.keys()[0]
+	var fixtures_before := model.parts_of_family("fixture").size()
+	s.set_level(0)
+	s.set_tool("select")
+	s.press(Vector3(1, 0, 1))
+	s.release(Vector3(1, 0, 1))
+	check(s.presence.my_selection() == PackedStringArray([living]), "the living room selected")
+	s.furnish_selection()
+	var added := model.parts_of_family("fixture").size() - fixtures_before
+	check(added == 2, "its usual layout adds two sofas: %d" % added)
+	check(BuildingQuantities.fixtures_in(model, living).size() >= 2, "inside the room")
+	sync.undo()
+	check(model.parts_of_family("fixture").size() == fixtures_before, "one undo takes the furniture out")
+	s.furnish_selection("3 single beds")
+	check(model.parts_of_family("fixture").size() == fixtures_before + 3, "a description furnishes it")
+	sync.undo()
+
 	# Team notes and the tape measure.
 	var asked: Array = []
 	s.note_requested.connect(func(at: Vector3, target: String) -> void: asked.append([at, target]))
