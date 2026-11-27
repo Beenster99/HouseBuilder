@@ -236,3 +236,79 @@ static func next_kind(model: BuildingModel, id: String) -> Dictionary:
 		return {}
 	var i := same.find(str(e.kind))
 	return C.retag(id, same[(i + 1) % same.size()])
+
+
+## Every kind a part could be changed to: the same family and shape (a fitting to any other
+## fitting, a door to another door or a window), in catalog order.
+static func kinds_like(model: BuildingModel, id: String) -> PackedStringArray:
+	var e: Dictionary = model.parts.get(id, {})
+	var out: PackedStringArray = []
+	if e.is_empty():
+		return out
+	var fam := model.catalog.family_of(str(e.kind))
+	var shape := model.catalog.shape_of(str(e.kind))
+	for k in model.catalog.kinds_in(fam):
+		if model.catalog.shape_of(k) == shape:
+			out.append(k)
+	return out
+
+
+## A part changed to another kind (keeping where it is and how it's turned). {} if not one of
+## kinds_like.
+static func change_kind(model: BuildingModel, id: String, kind: String) -> Dictionary:
+	if not kind in kinds_like(model, id) or str(model.parts[id].kind) == kind:
+		return {}
+	return C.retag(id, kind)
+
+
+## A fitting's size (w, h, d): its own if resized, else its kind's.
+static func size_of(model: BuildingModel, kind: String, e: Dictionary = {}) -> Vector3:
+	var spec := model.catalog.kind(kind)
+	return Vector3(float(e.get("w", spec.get("w", 0.5))), float(e.get("height", spec.get("h", 0.8))),
+			float(e.get("d", spec.get("d", 0.5))))
+
+
+## The sizes Edit can change on a part: [{field, label, value}] (m). A fitting's width, depth
+## and height; a door's or window's width, height and sill; a wall's length and height; a
+## stair's width.
+static func dims(model: BuildingModel, id: String) -> Array:
+	var e: Dictionary = model.parts.get(id, {})
+	if e.is_empty():
+		return []
+	var spec := model.catalog.kind(str(e.kind))
+	var fam := model.catalog.family_of(str(e.kind))
+	var shape := model.catalog.shape_of(str(e.kind))
+	var out: Array = []
+	if fam == "fixture" and shape == "point":
+		var s := size_of(model, str(e.kind), e)
+		out = [{"field": "w", "label": "Width", "value": s.x}, {"field": "d", "label": "Depth", "value": s.z},
+				{"field": "height", "label": "Height", "value": s.y}]
+	elif shape == "opening":
+		out = [{"field": "w", "label": "Width", "value": float(e.get("w", spec.get("w", 1.0)))},
+				{"field": "h", "label": "Height", "value": float(e.get("h", spec.get("h", 2.0)))},
+				{"field": "sill", "label": "Sill", "value": float(e.get("sill", spec.get("sill", 0.0)))}]
+	elif fam == "wall":
+		var a := Vector3(float(e.a[0]), float(e.a[1]), float(e.a[2]))
+		var b := Vector3(float(e.b[0]), float(e.b[1]), float(e.b[2]))
+		out = [{"field": "length", "label": "Length", "value": a.distance_to(b)},
+				{"field": "height", "label": "Height", "value": model.part_height(id)}]
+	elif str(e.kind) == "stair":
+		out = [{"field": "w", "label": "Width", "value": model.stair_width(id)}]
+	for d: Dictionary in out:
+		d.value = snappedf(float(d.value), 0.001)
+	return out
+
+
+## A part with one of its dims set to `value` m: one undo step. A wall's length moves its b
+## end along the wall. {} if the value can't be.
+static func resize(model: BuildingModel, id: String, field: String, value: float) -> Dictionary:
+	var e: Dictionary = model.parts.get(id, {})
+	if e.is_empty() or value < (0.0 if field == "sill" else 0.05) or value > 200.0:
+		return {}
+	if field == "length":
+		var a := Vector3(float(e.a[0]), float(e.a[1]), float(e.a[2]))
+		var b := Vector3(float(e.b[0]), float(e.b[1]), float(e.b[2]))
+		var dir := (b - a).normalized()
+		var nb := a + dir * value
+		return C.set_fields(id, {"b": [nb.x, b.y, nb.z]})
+	return C.set_fields(id, {field: value})

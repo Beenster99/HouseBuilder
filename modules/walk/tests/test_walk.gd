@@ -214,10 +214,40 @@ func run_tests() -> void:
 	await _physics(2)
 	check(v.edit_aimed() and v.is_palette_open() and v.edit_id == back, "E opens the wall's rows")
 	var kind0 := str(model.parts[back].kind)
-	(v._palette.find_child("EditKind", true, false) as Button).pressed.emit()
+	check(v._palette.find_child("Dim_length", true, false) != null and v._palette.find_child("Dim_height", true, false) != null,
+			"with its length and height to change")
+	var wh0 := model.part_height(back)
+	(v._palette.find_child("Dim_height", true, false).find_child("Up", true, false) as Button).pressed.emit()
 	await frames(1)
-	check(str(model.parts[back].kind) != kind0, "its kind steps on: %s -> %s" % [kind0, model.parts[back].kind])
+	check(model.part_height(back) > wh0, "+ makes it taller: %.2f -> %.2f" % [wh0, model.part_height(back)])
+	(v._palette.find_child("Dim_height", true, false).find_child("Value", true, false) as SpinBox).value = 3.1
+	await frames(1)
+	check(is_equal_approx(model.part_height(back), 3.1), "a typed height sets it: %.2f" % model.part_height(back))
 	b.sync.undo()
+	b.sync.undo()
+	await frames(1)
+	check(is_equal_approx(model.part_height(back), wh0), "undo puts it back")
+	var kb: Button = null
+	for c: Node in v._palette.find_child("KindScroll", true, false).find_children("Kind_*", "Button", true, false):
+		if not (c as Button).disabled:
+			kb = c
+			break
+	check(kb != null and v._palette.find_child("KindFilter", true, false) != null, "a list of kinds to change it to, with a filter")
+	kb.pressed.emit()
+	await frames(1)
+	check(v.edit_pick != "" and v._palette.find_child("ChangeKind", true, false) != null, "picking one shows it, with CHANGE TO")
+	var pick := v.edit_pick
+	(v._palette.find_child("ChangeKind", true, false) as Button).pressed.emit()
+	await frames(1)
+	check(str(model.parts[back].kind) == pick and pick != kind0, "the wall is now a %s" % pick)
+	b.sync.undo()
+	await frames(1)
+	var flt := v._palette.find_child("KindFilter", true, false) as LineEdit
+	flt.text = "zzzz no such"
+	flt.text_changed.emit(flt.text)
+	await frames(1)
+	check(v._kind_list.get_child_count() == 0 or v._kind_list.get_children().all(func(n: Node) -> bool: return n.is_queued_for_deletion()),
+			"the filter narrows the list")
 	v.toggle_palette()
 	await _physics(2)
 
@@ -227,6 +257,21 @@ func run_tests() -> void:
 	await frames(2)
 	check(model.openings_in(back).size() == openings + 1 and bld.doors.size() == 3, "a door in the back wall, and its leaf")
 	b.sync.undo()
+	await frames(1)
+
+	# E on the sofa: its width, depth and height.
+	v.body.position = Vector3(float(model.parts[sofa].at[0]), 0.95, float(model.parts[sofa].at[2]) + 2.0)
+	_face(v, Vector3(float(model.parts[sofa].at[0]), 0.3, float(model.parts[sofa].at[2])))
+	await _physics(2)
+	check(v.edit_aimed() and v.edit_id == sofa and v._palette.find_child("Dim_w", true, false) != null
+			and v._palette.find_child("Dim_d", true, false) != null, "E on the sofa: width, depth and height")
+	(v._palette.find_child("Dim_w", true, false).find_child("Value", true, false) as SpinBox).value = 2.4
+	await frames(2)
+	check(is_equal_approx(float(model.parts[sofa].get("w", 0.0)), 2.4) and bld.node_of(sofa) != null,
+			"typed 2.4 m, the sofa is 2.4 m wide: %s" % model.parts[sofa])
+	check(v.help_text().begins_with("EDITING"), "the help bar says how: %s" % v.help_text())
+	b.sync.undo()
+	v.toggle_palette()
 	await frames(1)
 
 	# X removes the sofa.

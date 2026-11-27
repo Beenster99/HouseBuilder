@@ -14,6 +14,7 @@ extends Node3D
 ## World space is the model's: metres, level n's floor at model.level_elevation(n).
 
 const AssetLibrary := preload("res://modules/assets/api/asset_library.gd")
+const WalkEdits := preload("res://modules/walk/internal/walk_edits.gd")
 
 ## The physics layer walk-inside uses (its own world, so any bit would do; BSX's).
 const LAYER := 1 << 19
@@ -331,7 +332,7 @@ func _voids_on(level: int) -> Array:
 
 ## A fitting: the asset library's model (a plain box until it has one), solid to walk into.
 func _fixture(id: String, e: Dictionary, spec: Dictionary, at: Vector3, rec: Dictionary) -> void:
-	var size := Vector3(float(spec.get("w", 0.5)), float(spec.get("h", 0.8)), float(spec.get("d", 0.5)))
+	var size := WalkEdits.size_of(model, str(e.kind), e)
 	var node := AssetLibrary.make_kind(str(e.kind), {"size": size, "family": "fixture"})
 	node.name = "Part_" + id
 	node.position = at

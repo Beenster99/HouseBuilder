@@ -70,6 +70,13 @@ var flying := false
 var spot: Dictionary = {}
 ## The part the edit rows (E) show, "" for the parts list.
 var edit_id := ""
+## In Edit: the kind picked in the CHANGE TO list (previewed, not yet changed to).
+var edit_pick := ""
+var _edit_filter := ""
+var _kind_list: VBoxContainer
+var _edit_preview: VBoxContainer
+## Kinds shown in the CHANGE TO list at once; type to narrow a longer one.
+const KIND_LIST_MAX := 150
 ## The crew walking about in here too: peer id -> {figure, dot, ray}.
 var crew: Dictionary = {}
 var _ghost: Node3D
@@ -551,6 +558,8 @@ func edit_aimed() -> bool:
 	if id == "":
 		return false
 	edit_id = id
+	edit_pick = ""
+	_edit_filter = ""
 	if not is_palette_open():
 		toggle_palette()
 		edit_id = id
@@ -724,7 +733,7 @@ func _process(delta: float) -> void:
 
 func _aim_text() -> String:
 	if is_palette_open() and edit_id != "":
-		return "Editing %s\n[b]Click[/b] a row to step through its choices   [b]Esc[/b] close" % str(model.catalog.kind(str(model.parts.get(edit_id, {}).get("kind", ""))).get("label", "part"))
+		return "Editing %s\n[b]-[/b] [b]+[/b] or type a size and [b]Enter[/b]   pick from [b]Change to[/b] to swap it   [b]Ctrl+Z[/b] undo   [b]Esc[/b] close" % str(model.catalog.kind(str(model.parts.get(edit_id, {}).get("kind", ""))).get("label", "part"))
 	if is_palette_open():
 		return "Parts menu\n[b]Type[/b] to filter   [b]Click[/b] a group to open it, an item to see it, [b]Take[/b] to hold it   [b]Tab[/b] or [b]Esc[/b] close"
 	if not holding.is_empty():
@@ -809,9 +818,9 @@ func _update_spot() -> void:
 	spot = {"at": at, "ok": true, "why": "Fits"}
 	if holding.has("module"):
 		return
-	var spec := model.catalog.kind(str(holding.type))
-	var hw := float(spec.get("w", 0.5)) * 0.5
-	var hd := float(spec.get("d", 0.5)) * 0.5
+	var held_size := WalkEdits.size_of(model, str(holding.type), model.parts.get(str(holding.id), {}))
+	var hw := held_size.x * 0.5
+	var hd := held_size.z * 0.5
 	if int(fposmod(float(holding.rot), 180.0)) == 90:
 		var tmp := hw
 		hw = hd
@@ -823,7 +832,7 @@ func _update_spot() -> void:
 		at += Vector3(al.offset.x, 0, al.offset.y)
 		spot.at = at
 		spot["guides"] = al.guides
-	var box := AABB(at + Vector3(-hw, 0.02, -hd), Vector3(hw * 2.0, maxf(float(spec.get("h", 1.0)) - 0.04, 0.1), hd * 2.0)).grow(-0.02)
+	var box := AABB(at + Vector3(-hw, 0.02, -hd), Vector3(hw * 2.0, maxf(held_size.y - 0.04, 0.1), hd * 2.0)).grow(-0.02)
 	for pid in model.parts_on(level):
 		if pid == str(holding.id):
 			continue
@@ -938,7 +947,7 @@ func _make_ghost(state: String) -> Node3D:
 	world.add_child(g)
 	# Strong colours: pale ones vanish on the white model look.
 	var col := Color(0.1, 0.72, 0.3) if state == "true" else (Color(0.15, 0.5, 0.95) if state == "hand" else Color(0.95, 0.45, 0.08))
-	var size := Vector3(float(spec.get("w", 0.5)), float(spec.get("h", 0.8)), float(spec.get("d", 0.5)))
+	var size := WalkEdits.size_of(model, str(holding.type), model.parts.get(str(holding.id), {}))
 	var body_node: Node3D = null
 	if holding.has("module"):
 		var kits := Modules.bus("kits")
@@ -1409,6 +1418,144 @@ func _use_extra(item: Dictionary, source: String) -> bool:
 	return false
 
 
+## One size row: name, - and + a grid step, and the value to type (Enter sets it).
+func _dim_row(id: String, d: Dictionary) -> HBoxContainer:
+	var row := HBoxContainer.new()
+	row.name = "Dim_%s" % str(d.field)
+	var name_l := T.label(str(d.label).to_upper(), "mono_bold", 14, T.TEXT)
+	name_l.custom_minimum_size.x = 80
+	row.add_child(name_l)
+	var step := maxf(WalkEdits.grid(model), 0.05)
+	var box := SpinBox.new()
+	box.name = "Value"
+	box.min_value = 0.0 if str(d.field) == "sill" else 0.05
+	box.max_value = 200.0
+	box.step = 0.01
+	box.suffix = "m"
+	box.custom_arrow_step = step
+	box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	box.set_value_no_signal(float(d.value))
+	box.tooltip_text = "Type a size and press Enter, or step it %.2f m at a time" % step
+	var field := str(d.field)
+	var apply := func(v: float) -> void:
+		var op := WalkEdits.resize(model, id, field, v)
+		if op.is_empty():
+			_status("%s can't be %.2f m" % [str(d.label), v])
+		else:
+			sync.edit(op)
+	box.value_changed.connect(apply)
+	for spec: Array in [["-", -step], ["+", step]]:
+		var b := T.button(str(spec[0]), false, 16)
+		b.name = "Down" if spec[0] == "-" else "Up"
+		b.custom_minimum_size.x = 34
+		var by: float = spec[1]
+		b.pressed.connect(func() -> void: apply.call(snappedf(float(d.value) + by, 0.001)))
+		if spec[0] == "-":
+			row.add_child(b)
+			row.add_child(box)
+		else:
+			row.add_child(b)
+	return row
+
+
+## CHANGE TO: the kinds this part could be, a filter to narrow them, and the picked one's
+## preview with a button to change to it.
+func _fill_change_to() -> void:
+	var kinds := WalkEdits.kinds_like(model, edit_id)
+	if kinds.size() < 2:
+		return
+	_palette_list.add_child(T.label("CHANGE TO  (%d)" % (kinds.size() - 1), "mono_bold", 14, T.DIM))
+	var filter := LineEdit.new()
+	filter.name = "KindFilter"
+	filter.placeholder_text = "Filter (e.g. oak, double, shower)"
+	filter.text = _edit_filter
+	filter.clear_button_enabled = true
+	filter.text_changed.connect(func(t: String) -> void:
+		_edit_filter = t
+		_fill_kind_list())
+	_palette_list.add_child(filter)
+	var scroll := ScrollContainer.new()
+	scroll.name = "KindScroll"
+	scroll.custom_minimum_size.y = 220
+	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	_palette_list.add_child(scroll)
+	_kind_list = VBoxContainer.new()
+	_kind_list.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	scroll.add_child(_kind_list)
+	_edit_preview = VBoxContainer.new()
+	_edit_preview.name = "EditPreview"
+	_palette_list.add_child(_edit_preview)
+	_fill_kind_list()
+	_fill_edit_preview()
+
+
+## The CHANGE TO list as filtered: every word in the label, id or group.
+func _fill_kind_list() -> void:
+	if _kind_list == null or not is_instance_valid(_kind_list) or not model.parts.has(edit_id):
+		return
+	for c in _kind_list.get_children():
+		c.queue_free()
+	var now := str(model.parts[edit_id].kind)
+	var words := _edit_filter.strip_edges().to_lower().split(" ", false)
+	var shown := 0
+	var more := 0
+	for k in WalkEdits.kinds_like(model, edit_id):
+		var spec := model.catalog.kind(k)
+		var hay := ("%s %s %s" % [spec.get("label", k), k, spec.get("group", "")]).to_lower()
+		var ok := true
+		for w in words:
+			ok = ok and hay.contains(w)
+		if not ok:
+			continue
+		if shown >= KIND_LIST_MAX:
+			more += 1
+			continue
+		shown += 1
+		var b := T.button(str(spec.get("label", k)) + ("  (now)" if k == now else ""), k == edit_pick, 14)
+		b.name = "Kind_" + k
+		b.alignment = HORIZONTAL_ALIGNMENT_LEFT
+		b.disabled = k == now
+		b.pressed.connect(func() -> void: pick_kind(k))
+		_kind_list.add_child(b)
+	if more > 0:
+		_kind_list.add_child(T.label("%d more: type to narrow" % more, "body", 13, T.DIM))
+
+
+## Picks a kind in CHANGE TO: previewed, with a button to change to it.
+func pick_kind(k: String) -> void:
+	edit_pick = k
+	_fill_kind_list()
+	_fill_edit_preview()
+
+
+## Changes the part you're editing to the picked kind (one undo step).
+func change_to_pick() -> bool:
+	var op := WalkEdits.change_kind(model, edit_id, edit_pick)
+	if op.is_empty():
+		return false
+	sync.edit(op)
+	edit_pick = ""
+	return true
+
+
+func _fill_edit_preview() -> void:
+	if _edit_preview == null or not is_instance_valid(_edit_preview):
+		return
+	for c in _edit_preview.get_children():
+		c.queue_free()
+	if edit_pick == "" or not model.catalog.has_kind(edit_pick):
+		return
+	var spec := model.catalog.kind(edit_pick)
+	# The button first, so it shows without scrolling; the preview under it.
+	var b := T.button("CHANGE TO  %s" % str(spec.get("label", edit_pick)).to_upper(), true, 16)
+	b.name = "ChangeKind"
+	b.pressed.connect(func() -> void: change_to_pick())
+	_edit_preview.add_child(b)
+	var view: Variant = bus.call("make_preview", {"id": edit_pick, "label": str(spec.get("label", edit_pick)), "tags": PackedStringArray()})
+	if view is Control:
+		_edit_preview.add_child(view)
+
+
 func _fill_preview() -> void:
 	if _preview_box == null:
 		return
@@ -1455,14 +1602,19 @@ func help_text() -> String:
 	return re.sub(" ".join(help.shown()), "", true).strip_edges()
 
 
-## E: the aimed part's rows, each a button that steps to the next choice.
+## E: the aimed part's sizes (steps or typed), its material, section and turn, and a list of
+## what it could be changed to, with a preview.
 func _fill_edit() -> void:
 	var e: Dictionary = model.parts[edit_id]
 	var kind := str(e.kind)
 	var spec := model.catalog.kind(kind)
 	_palette_list.add_child(T.label(str(spec.get("label", kind)).to_upper(), "display_bold", 18, T.ORANGE))
+	var dims := WalkEdits.dims(model, edit_id)
+	if not dims.is_empty():
+		_palette_list.add_child(T.label("SIZE", "mono_bold", 14, T.DIM))
+		for d: Dictionary in dims:
+			_palette_list.add_child(_dim_row(edit_id, d))
 	var rows: Array = []
-	rows.append(["KIND  %s" % str(spec.get("label", kind)).to_upper(), WalkEdits.next_kind(model, edit_id), "EditKind"])
 	if model.catalog.materials_for(kind).size() > 1:
 		rows.append(["MATERIAL  %s" % str(e.get("material", "")).to_upper(), WalkEdits.cycle(model, edit_id, "material"), "EditMaterial"])
 	if model.catalog.sections_for(kind, str(e.get("material", ""))).size() > 1:
@@ -1476,6 +1628,7 @@ func _fill_edit() -> void:
 		b.disabled = op.is_empty()
 		b.pressed.connect(func() -> void: sync.edit(op))
 		_palette_list.add_child(b)
+	_fill_change_to()
 	var rm := T.button("REMOVE", false, 16)
 	rm.name = "EditRemove"
 	var id := edit_id
