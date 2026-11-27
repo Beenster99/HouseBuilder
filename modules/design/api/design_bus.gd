@@ -312,11 +312,12 @@ func palette_groups(kind: String) -> Array[Dictionary]:
 			if asset != "":
 				for t: Variant in AssetLibrary.info(asset).get("tags", []):
 					tags.append(str(t))
-			(by_id[gid].items as Array[Dictionary]).append({"id": k, "label": str(cat.kind(k).get("label", k)), "tags": tags})
+			(by_id[gid].items as Array[Dictionary]).append({"id": k, "label": str(cat.kind(k).get("label", k)), "tags": tags,
+					"lock": kind_locked_tier(k, gid)})
 		for k: String in cat.kinds_in("opening"):
 			var gid := "windows" if k.begins_with("window") else "doors"
 			(by_id[gid].items as Array[Dictionary]).append({"id": k, "label": str(cat.kind(k).get("label", k)),
-					"tags": PackedStringArray(["opening", gid, k])})
+					"tags": PackedStringArray(["opening", gid, k]), "lock": kind_locked_tier(k)})
 		library_groups.sort()
 		var order: Array[String] = []
 		for g: Array in OBJECT_GROUPS:
@@ -355,6 +356,25 @@ func unregister_palette_group(kind: String, id: String) -> void:
 
 func refresh_palette() -> void:
 	palette_changed.emit()
+
+
+## The tier a contract firm must reach before it may use `unlock_id` ("kind:<kind>",
+## "material:<id>", "roof:<gable|hip|mono>", "lib:<group>"), or 0 when it is open. Asks the
+## contracts module by name (ContractsBus.locked_tier), which answers 0 outside contract mode
+## or with its unlock tree off; with no contracts module everything is open.
+static func locked_tier(unlock_id: String) -> int:
+	var contracts := Modules.bus("contracts")
+	if contracts == null or not contracts.has_method("locked_tier"):
+		return 0
+	return int(contracts.call("locked_tier", unlock_id))
+
+
+## A catalog kind's lock: its own, or its library group's (the higher).
+static func kind_locked_tier(kind: String, group := "") -> int:
+	var t := locked_tier("kind:" + kind)
+	if group.begins_with("lib:"):
+		t = maxi(t, locked_tier(group))
+	return t
 
 
 ## Items whose label or tags contain `text` (any case); groups left empty are dropped.

@@ -991,7 +991,8 @@ func _refresh_tools() -> void:
 		"roof":
 			_option("Roof", _session.roof_forms(), _session.roof_form, func(v: String) -> void:
 				_session.roof_form = v
-				_refresh_tools(), func(v: String) -> String: return str(DesignSession.ROOF_LABELS.get(v, v)))
+				_refresh_tools(), func(v: String) -> String: return str(DesignSession.ROOF_LABELS.get(v, v)), "",
+				func(v: String) -> String: return "" if v == "flat" else "roof:" + v)
 			if _session.roof_form != "flat":
 				var pitch := SpinBox.new()
 				pitch.min_value = 5
@@ -1010,18 +1011,19 @@ func _refresh_tools() -> void:
 				_options.add_child(row)
 		"door":
 			_option("Door", cat.kinds_in("opening").duplicate(), _session.door_kind, func(v: String) -> void: _session.door_kind = v,
-					func(v: String) -> String: return str(cat.kind(v).get("label", v)), "door")
+					func(v: String) -> String: return str(cat.kind(v).get("label", v)), "door", func(v: String) -> String: return "kind:" + v)
 		"window":
 			_option("Window", cat.kinds_in("opening").duplicate(), _session.window_kind, func(v: String) -> void: _session.window_kind = v,
-					func(v: String) -> String: return str(cat.kind(v).get("label", v)), "window")
+					func(v: String) -> String: return str(cat.kind(v).get("label", v)), "window", func(v: String) -> String: return "kind:" + v)
 		"column", "beam":
 			_option("Material", cat.materials_for(DesignSession.KIND[_session.tool]), _session.frame_material,
-					func(v: String) -> void: _session.frame_material = v, func(v: String) -> String: return str(cat.material(v).get("label", v)))
+					func(v: String) -> void: _session.frame_material = v, func(v: String) -> String: return str(cat.material(v).get("label", v)), "",
+					func(v: String) -> String: return "material:" + v)
 		"note":
 			_notes_list()
 		"fixture":
 			_option("Furniture", cat.kinds_in("fixture"), _session.fixture_kind, func(v: String) -> void: _session.fixture_kind = v,
-					func(v: String) -> String: return str(cat.kind(v).get("label", v)))
+					func(v: String) -> String: return str(cat.kind(v).get("label", v)), "", func(v: String) -> String: return "kind:" + v)
 
 
 func _furnish_box() -> void:
@@ -1071,10 +1073,13 @@ func _do_note() -> void:
 func _wall_material() -> void:
 	var cat := _session.catalog
 	_option("Wall", cat.materials_for("wall_loadbearing"), _session.wall_material, func(v: String) -> void: _session.wall_material = v,
-			func(v: String) -> String: return str(cat.material(v).get("label", v)))
+			func(v: String) -> String: return str(cat.material(v).get("label", v)), "", func(v: String) -> String: return "material:" + v)
 
 
-func _option(label: String, values: PackedStringArray, current: String, pick: Callable, name_of: Callable, only := "") -> void:
+## A labelled dropdown of `values`. With `lock_id` (value -> unlock id), values a contract firm
+## has not unlocked yet are greyed with the tier that opens them and cannot be picked.
+func _option(label: String, values: PackedStringArray, current: String, pick: Callable, name_of: Callable, only := "",
+		lock_id := Callable()) -> void:
 	var l := Label.new()
 	l.text = label
 	_options.add_child(l)
@@ -1086,7 +1091,9 @@ func _option(label: String, values: PackedStringArray, current: String, pick: Ca
 		if only == "" or v.begins_with(only):
 			list.append(v)
 	for v in list:
-		o.add_item(str(name_of.call(v)))
+		var lock := DesignBus.locked_tier(str(lock_id.call(v))) if lock_id.is_valid() else 0
+		o.add_item(str(name_of.call(v)) if lock <= 0 else "%s   (Tier %d)" % [str(name_of.call(v)), lock])
+		o.set_item_disabled(o.item_count - 1, lock > 0)
 	o.select(maxi(0, list.find(current)))
 	o.item_selected.connect(func(i: int) -> void: pick.call(list[i]))
 	_options.add_child(o)

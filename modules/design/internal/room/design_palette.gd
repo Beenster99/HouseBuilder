@@ -3,7 +3,8 @@ extends VBoxContainer
 ## the same groups walk-inside's Tab menu shows) with a filter box. Picking a room type arms
 ## the Room tool with it (drag on the plan to size the room, let go to draw it); picking an
 ## object arms Furniture, Door or Window with it. Another module's group (saved modules)
-## gets its own pick.
+## gets its own pick. In contract mode, items the firm has not unlocked yet are greyed with the
+## tier that opens them (DesignBus.locked_tier) and cannot be picked.
 
 var room: Node3D
 var _session: DesignSession
@@ -65,9 +66,15 @@ func fill(kind: String) -> void:
 		head.collapsed = not filtering and groups.size() > 1 and not _holds_current(kind, g)
 		for it: Dictionary in g.items:
 			var row := t.create_item(head)
-			row.set_text(0, str(it.label))
-			row.set_metadata(0, {"id": str(it.id), "source": str(g.get("source", ""))})
-			row.set_tooltip_text(0, ", ".join(it.get("tags", PackedStringArray())))
+			var lock := int(it.get("lock", 0))
+			row.set_text(0, str(it.label) if lock <= 0 else "%s   Tier %d" % [str(it.label), lock])
+			row.set_metadata(0, {"id": str(it.id), "source": str(g.get("source", "")), "lock": lock})
+			if lock > 0:
+				# Not open to this firm yet: greyed, with the tier that opens it.
+				row.set_selectable(0, false)
+				row.set_tooltip_text(0, "Opens when the firm reaches tier %d" % lock)
+			else:
+				row.set_tooltip_text(0, ", ".join(it.get("tags", PackedStringArray())))
 	_show_current()
 
 
@@ -108,6 +115,8 @@ func _picked(kind: String) -> void:
 
 
 func _use(kind: String, m: Dictionary) -> void:
+	if int(m.get("lock", 0)) > 0:
+		return
 	var id := str(m.id)
 	var source := str(m.get("source", ""))
 	var design := Modules.bus("design") as DesignBus
@@ -151,5 +160,6 @@ func _show_current() -> void:
 		var cur := _current(kind)
 		for g in root.get_children():
 			for row in g.get_children():
-				var on := cur != "" and str((row.get_metadata(0) as Dictionary).id) == cur
-				row.set_custom_color(0, BsxTheme.ACCENT if on else BsxTheme.TEXT)
+				var meta := row.get_metadata(0) as Dictionary
+				var on := cur != "" and str(meta.id) == cur
+				row.set_custom_color(0, BsxTheme.ACCENT if on else (BsxTheme.HUD_DIM if int(meta.get("lock", 0)) > 0 else BsxTheme.TEXT))

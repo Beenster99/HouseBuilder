@@ -182,6 +182,10 @@ func set_tool(id: String) -> void:
 func use_kind(kind: String) -> bool:
 	if not catalog.has_kind(kind):
 		return false
+	var lock := DesignBus.kind_locked_tier(kind)
+	if lock > 0:
+		status.emit("%s opens when the firm reaches tier %d" % [str(catalog.kind(kind).get("label", kind)), lock], true)
+		return false
 	var fam := catalog.family_of(kind)
 	if fam == "opening":
 		if kind.begins_with("window") or bool(catalog.kind(kind).get("glass", false)):
@@ -601,6 +605,11 @@ func _finish_two_point(end: Vector3) -> void:
 				var kind := str(ROOF_KINDS.get(roof_form, "roof_flat"))
 				if not catalog.has_kind(kind):
 					kind = "roof_flat"
+				var lock := DesignBus.locked_tier("roof:" + roof_form) if kind != "roof_flat" else 0
+				if lock > 0:
+					status.emit("%s roofs open when the firm reaches tier %d" % [str(ROOF_LABELS.get(roof_form, roof_form)), lock], true)
+					anchor = null
+					return
 				var geo := {"outline": outline, "y": model.level_height(level)}
 				if kind != "roof_flat":
 					geo["pitch"] = roof_pitch
