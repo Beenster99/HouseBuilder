@@ -124,6 +124,9 @@ func _draw_notes() -> void:
 # --- Pings --------------------------------------------------------------------------------
 
 func _on_ping(p: Dictionary) -> void:
+	# Pings in the design hall itself (its walls, its floor) aren't on the design.
+	if str(p.get("object_id", "")).begins_with("hall:"):
+		return
 	var at: Vector3 = p.at
 	var colour: Color = p.colour
 	var root := Node3D.new()
@@ -163,6 +166,7 @@ func _drop_ping(id: int) -> void:
 
 
 func _process(_delta: float) -> void:
+	_fade_dims()
 	var now := Time.get_ticks_msec() / 1000.0
 	for id: int in _ping_nodes.keys():
 		var p: Dictionary = _ping_nodes[id]
@@ -201,6 +205,8 @@ func _dim_entry(id: String) -> void:
 	var a := Vector3(float(e.a[0]), 0, float(e.a[2]))
 	var b := Vector3(float(e.b[0]), 0, float(e.b[2]))
 	var label := _dim_label("%.2f m" % a.distance_to(b))
+	label.set_meta("span", a.distance_to(b))
+	_dim_fade_key = Vector4.INF
 	label.position = (a + b) / 2.0 + Vector3(0, model.level_elevation(level) + model.part_height(id) + 0.25, 0)
 	_dims.add_child(label)
 	_dim_nodes[id] = label
@@ -246,14 +252,38 @@ func measure_text() -> String:
 	return ""
 
 
+var _dim_fade_key := Vector4.INF
+
+
+## Wall lengths fade out as the walls get small on screen (zooming out de-clutters).
+func _fade_dims() -> void:
+	var cam := get_viewport().get_camera_3d()
+	if cam == null or _dim_nodes.is_empty():
+		return
+	var key := Vector4(cam.size if cam.projection == Camera3D.PROJECTION_ORTHOGONAL else cam.fov,
+			cam.global_position.x, cam.global_position.y, cam.global_position.z)
+	if key.is_equal_approx(_dim_fade_key):
+		return
+	_dim_fade_key = key
+	var vh := float(get_viewport().get_visible_rect().size.y)
+	for id: String in _dim_nodes:
+		var l := _dim_nodes[id] as Label3D
+		var a := preload("res://modules/design/internal/room/design_view.gd").fade_alpha(cam, vh, l.global_position, float(l.get_meta("span", 4.0)) * 0.6)
+		l.visible = a > 0.01
+		l.modulate.a = a
+		l.outline_modulate.a = 0.8 * a
+
+
 func _dim_label(text: String) -> Label3D:
 	var label := Label3D.new()
 	label.text = text
 	label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
 	label.no_depth_test = true
-	label.font_size = 30
-	label.pixel_size = 0.01
+	# Its size on screen, so sharp at any zoom; it fades as the wall gets small on screen.
+	label.fixed_size = true
+	label.font_size = 22
+	label.pixel_size = 0.0012
 	label.modulate = Color(0.1, 0.12, 0.2)
 	label.outline_modulate = Color(1, 1, 1, 0.8)
-	label.outline_size = 8
+	label.outline_size = 6
 	return label

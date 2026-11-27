@@ -16,6 +16,7 @@ const DesignRoomScene := preload("res://modules/design/internal/room/design_room
 const HallScreens := preload("res://modules/design/internal/hall/hall_screens.gd")
 const HallWalker := preload("res://modules/design/internal/hall/hall_walker.gd")
 const HallWallBoard := preload("res://modules/design/internal/hall/hall_wall_board.gd")
+const HallChannels := preload("res://modules/design/internal/hall/hall_channels.gd")
 const HallHoloTable := preload("res://modules/design/internal/hall/hall_holo_table.gd")
 const T := preload("res://modules/ui/api/terminal_kit.gd")
 
@@ -96,12 +97,17 @@ func _ready() -> void:
 	walker.position = Vector3(0, 0, 6.5)
 	walker.call("look_at_point", Vector3(0, 1.2, 0))
 	_build_hud()
+	net.ping_received.connect(_on_ping)
+	net.ping_removed.connect(_drop_ping)
 	if DisplayServer.get_name() != "headless":
 		Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 	net.set_activity("In the design hall")
 
 
 func _exit_tree() -> void:
+	if net.ping_received.is_connected(_on_ping):
+		net.ping_received.disconnect(_on_ping)
+		net.ping_removed.disconnect(_drop_ping)
 	HudSlots.release_pointer(DESIGNER_POINTER)
 	HudSlots.release_pointer(FULL_POINTER)
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
@@ -117,6 +123,11 @@ func model_world() -> World3D:
 ## The building's extent (world m), for framing the drawings and fitting the table.
 func bounds() -> AABB:
 	return _bounds.box()
+
+
+## The designer's whole copy of the design without shadows, for the plan and side screens.
+func flat_source() -> DesignMiniWorld:
+	return designer.hud.get("mini") as DesignMiniWorld
 
 
 func floor_y() -> float:
@@ -289,6 +300,115 @@ func _input(event: InputEvent) -> void:
 				get_viewport().set_input_as_handled()
 
 
+# --- Pings ---------------------------------------------------------------------------------
+# A middle-click pings what it is on, for everyone: a spot of the design (on a drawing on a
+# wall, or on the table's model) shows in the designer, on the table and on every screen; a
+# spot of the hall itself (a list on a wall, the floor) shows here as a ring with a label.
+
+var _hall_pings: Dictionary = {}  # ping id -> {node, born}
+
+
+## Pings a spot of the design (world m), as the designer's middle-click does.
+func ping_at(at: Variant) -> void:
+	if at is Vector3:
+		designer.call("ping_here", at)
+
+
+## A middle-click looking at something that isn't a screen: the table's model, or the hall.
+func ping_look() -> void:
+	var cam: Camera3D = walker.get("camera")
+	var from: Vector3 = cam.global_position
+	var dir: Vector3 = -cam.global_basis.z
+	var lf: Vector3 = holo.to_local(from)
+	var ld: Vector3 = holo.global_basis.inverse() * dir
+	var top: float = HallHoloTable.TABLE_HEIGHT + 0.02
+	if absf(ld.y) > 0.0001:
+		var t: float = (top - lf.y) / ld.y
+		var hit: Vector3 = lf + ld * t
+		if t > 0.0 and t < 8.0 and bool(holo.call("over_table", hit)):
+			ping_at(holo.call("from_table", hit))
+			return
+	var q := PhysicsRayQueryParameters3D.create(from, from + dir * 40.0)
+	var r := get_world_3d().direct_space_state.intersect_ray(q)
+	if not r.is_empty():
+		net.ping(r.position as Vector3, "hall:spot", r.normal as Vector3, "")
+
+
+func _on_wall_middle(px: Vector2, wall_id: String) -> void:
+	var board: Node = boards[wall_id]
+	var i := int(board.call("panel_at", px))
+	if i < 0:
+		return
+	var view := str((board.get("panels") as Array)[i].view)
+	if view in ["plan", "side", "3d"]:
+		return  # the drawing pings the design spot itself
+	var screen: HallScreen = walls[wall_id]
+	net.ping(screen.world_at(px), "hall:wall:%s" % view, screen.global_basis.z, HallChannels.title_of(self, view))
+
+
+func _on_ping(p: Dictionary) -> void:
+	var colour: Color = p.colour
+	var hall := str(p.get("object_id", "")).begins_with("hall:")
+	var root := Node3D.new()
+	root.name = "Ping"
+	var mat := StandardMaterial3D.new()
+	mat.albedo_color = colour
+	mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	mat.no_depth_test = true
+	var ring := MeshInstance3D.new()
+	var torus := TorusMesh.new()
+	torus.inner_radius = 0.12 if hall else 0.05
+	torus.outer_radius = 0.17 if hall else 0.08
+	ring.mesh = torus
+	ring.material_override = mat
+	var n: Vector3 = p.get("normal", Vector3.UP)
+	if hall and absf(n.y) < 0.7:
+		ring.rotation = Vector3(PI / 2.0, 0, 0)
+		root.basis = Basis.looking_at(-n, Vector3.UP)
+	root.add_child(ring)
+	var label := Label3D.new()
+	label.text = "%s%s" % [str(p.name), (": " + str(p.label)) if str(p.label) != "" else ""]
+	label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	label.no_depth_test = true
+	label.fixed_size = true
+	label.pixel_size = 0.0012
+	label.font_size = 28
+	label.modulate = colour
+	label.outline_size = 8
+	label.position.y = 0.3 if hall else 0.15
+	root.add_child(label)
+	if hall:
+		add_child(root)
+		root.global_position = p.at as Vector3
+	else:
+		holo.add_child(root)
+		root.position = holo.call("to_table", p.at as Vector3)
+		root.set_meta("design_at", p.at)
+	_hall_pings[int(p.id)] = {"node": root, "born": Time.get_ticks_msec() / 1000.0}
+
+
+func _drop_ping(id: int) -> void:
+	var p: Dictionary = _hall_pings.get(id, {})
+	if not p.is_empty():
+		(p.node as Node).queue_free()
+		_hall_pings.erase(id)
+
+
+func _tend_pings() -> void:
+	var now := Time.get_ticks_msec() / 1000.0
+	for id: int in _hall_pings.keys():
+		var p: Dictionary = _hall_pings[id]
+		if now - float(p.born) > MultiplayerBus.PING_LIFE:
+			_drop_ping(id)
+		elif (p.node as Node).has_meta("design_at"):
+			# Keeps to its spot as the table turns and zooms.
+			(p.node as Node3D).position = holo.call("to_table", (p.node as Node).get_meta("design_at") as Vector3)
+
+
+func ping_count() -> int:
+	return _hall_pings.size()
+
+
 func _unhandled_input(event: InputEvent) -> void:
 	if mode != "room" or HudSlots.pointer_claimed():
 		return
@@ -297,6 +417,10 @@ func _unhandled_input(event: InputEvent) -> void:
 		Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 		Menu.open_pause()
 		get_viewport().set_input_as_handled()
+	elif event is InputEventMouseButton and event.pressed \
+			and (event as InputEventMouseButton).button_index == MOUSE_BUTTON_MIDDLE:
+		ping_look()
+		get_viewport().set_input_as_handled()
 	elif event is InputEventMouseButton and event.pressed and Input.mouse_mode != Input.MOUSE_MODE_CAPTURED \
 			and DisplayServer.get_name() != "headless":
 		Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
@@ -304,6 +428,7 @@ func _unhandled_input(event: InputEvent) -> void:
 
 
 func _process(delta: float) -> void:
+	_tend_pings()
 	walker.set("enabled", mode == "room" and not HudSlots.pointer_claimed())
 	var near := mode == "room" and at_table() and not HudSlots.pointer_claimed()
 	if near and not Keys.typing():
@@ -407,6 +532,7 @@ func _build_designer() -> void:
 	designer_vp.add_child(designer)
 	designer.call("set_active", false)
 	designer.connect("leave_requested", close_designer)
+	(designer.hud.get("mini") as DesignMiniWorld).pointer_sink = set_pointer
 
 
 ## One screen over a wall. A HallScreen faces its +Z; it stands 10 cm off the wall's face.
@@ -422,6 +548,7 @@ func _add_wall(id: String, w: Dictionary) -> void:
 	var at: Vector3 = w.at
 	screen.transform = Transform3D(basis, at + basis.z * 0.1)
 	add_child(screen)
+	screen.middle_clicked.connect(_on_wall_middle.bind(id))
 	walls[id] = screen
 	boards[id] = board
 

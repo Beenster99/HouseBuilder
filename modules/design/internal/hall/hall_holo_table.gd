@@ -47,6 +47,7 @@ func setup(p_hall: Node, model: BuildingModel) -> void:
 	add_child(model_root)
 	view = DesignView.new()
 	view.name = "Building"
+	view.set("labels_fixed", false)
 	model_root.add_child(view)
 	view.call("bind", model)
 	view.call("show_level", 1000)
@@ -114,6 +115,16 @@ func _fit() -> void:
 ## Where a point of the design (world metres) is over the table, in this node's space.
 func to_table(p: Vector3) -> Vector3:
 	return model_root.transform * (view.position + p)
+
+
+## The point of the design (world metres) under a point over the table (this node's space).
+func from_table(local: Vector3) -> Vector3:
+	return model_root.transform.affine_inverse() * local - view.position
+
+
+## Whether a point (this node's space) is over the table top.
+func over_table(local: Vector3) -> bool:
+	return absf(local.x) <= TABLE_SIZE.x * 0.5 and absf(local.z) <= TABLE_SIZE.y * 0.5
 
 
 ## A little figure on the model for each player's pointer and each walker (WalkBus).

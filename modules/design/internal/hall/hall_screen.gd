@@ -19,6 +19,8 @@ extends Node3D
 signal aimed_changed(aimed: bool)
 signal button_pressed(id: String, on: bool)
 signal button_held(id: String, down: bool)
+## A middle-click on the picture at px (FredDibnah: the hall pings what is there).
+signal middle_clicked(px: Vector2)
 
 const T := preload("res://modules/ui/api/terminal_kit.gd")
 ## How far in front of the bezel the picture sits, m.
@@ -159,6 +161,8 @@ func _input(event: InputEvent) -> void:
 		return
 	if button.pressed and not _aimed:
 		return
+	if button.pressed and button.button_index == MOUSE_BUTTON_MIDDLE:
+		middle_clicked.emit(pointer_px)
 	var ev := button.duplicate() as InputEventMouseButton
 	ev.position = pointer_px
 	ev.global_position = pointer_px
@@ -168,6 +172,12 @@ func _input(event: InputEvent) -> void:
 	else:
 		_held &= ~(1 << button.button_index)
 	get_viewport().set_input_as_handled()
+
+
+## The point on the glass (world) for a pixel of the picture.
+func world_at(at: Vector2) -> Vector3:
+	var uv := at / Vector2(px)
+	return to_global(Vector3((uv.x - 0.5) * size_m.x, (0.5 - uv.y) * size_m.y, FACE))
 
 
 ## Presses the screen at a pixel, as a left click there (tests, or a key that uses it).

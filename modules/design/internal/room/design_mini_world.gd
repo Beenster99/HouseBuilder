@@ -15,8 +15,12 @@ const REDRAW := 0.3
 
 var session: DesignSession
 var view: Node3D
-## Small views showing now (each says so while it is visible).
+## Small views showing now; each says so with watch() every frame it is visible.
 var watchers := 0
+var _watched_frame := -10
+## Where a pointer on one of the views goes (the hall's set_pointer); unset, the designer
+## works it out from the view under the mouse.
+var pointer_sink := Callable()
 var _age := 10.0
 var _bounds: DesignBounds
 var _markers: Dictionary = {}  # peer -> Node3D
@@ -31,7 +35,9 @@ func setup(p_session: DesignSession) -> void:
 	render_target_update_mode = SubViewport.UPDATE_DISABLED
 	var sun := DirectionalLight3D.new()
 	sun.rotation = Vector3(deg_to_rad(-55), deg_to_rad(35), 0)
-	sun.shadow_enabled = true
+	# No shadows: the plan, side and section drawings read cleaner without them.
+	sun.shadow_enabled = false
+	sun.set_meta("gfx_no_shadow", true)
 	add_child(sun)
 	var env := WorldEnvironment.new()
 	var e := Environment.new()
@@ -51,6 +57,7 @@ func setup(p_session: DesignSession) -> void:
 	add_child(env)
 	view = DesignView.new()
 	view.name = "Building"
+	view.set("labels_fixed", false)
 	add_child(view)
 	view.call("bind", session.model)
 	view.call("show_level", 1000)
@@ -59,7 +66,7 @@ func setup(p_session: DesignSession) -> void:
 
 func _process(delta: float) -> void:
 	_age += delta
-	if watchers <= 0:
+	if watchers <= 0 and Engine.get_process_frames() - _watched_frame > 2:
 		return
 	if _age >= REDRAW:
 		_age = 0.0
@@ -81,9 +88,23 @@ func floor_y() -> float:
 	return session.floor_y()
 
 
-## The designer works out the pointer itself from the view under the mouse.
-func set_pointer(_at: Variant) -> void:
-	pass
+func set_pointer(at: Variant) -> void:
+	if pointer_sink.is_valid():
+		pointer_sink.call(at)
+
+
+## Pings that spot of the design for everyone (a middle-click on one of the views).
+func ping_at(at: Variant) -> void:
+	if not at is Vector3:
+		return
+	var p := session.snap(at as Vector3)
+	var id := session.pick(p)
+	session.net.ping(p, id, Vector3.UP, session.label_of(id))
+
+
+## A view showing this world says so each frame (ModelChannel does).
+func watch() -> void:
+	_watched_frame = Engine.get_process_frames()
 
 
 ## Every player's pointer now: peer -> {at, colour, name}. This player's own, the others'

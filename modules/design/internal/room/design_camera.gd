@@ -68,6 +68,17 @@ func move_focus(d: Vector2) -> void:
 	focus.z = clampf(focus.z, -limit, limit)
 
 
+## Drags the view by a mouse movement, px (the ground follows the pointer).
+func pan_pixels(rel: Vector2) -> void:
+	var px := (dist * 1.1 / get_viewport().get_visible_rect().size.y) if plan else dist * 0.0025
+	move_focus(-rel * px)
+
+
+## Ground metres per screen pixel at the focus (plan: exact; 3D: near enough).
+func metres_per_pixel() -> float:
+	return (dist * 1.1 / maxf(get_viewport().get_visible_rect().size.y, 1.0)) if plan else dist * 0.0012
+
+
 ## Handles orbit, pan and zoom; true if it used the event.
 func handle(event: InputEvent) -> bool:
 	if event is InputEventMouseButton:
@@ -94,8 +105,7 @@ func handle(event: InputEvent) -> bool:
 			pitch = clampf(pitch - mm.relative.y * ORBIT_SPEED, deg_to_rad(-89.0), deg_to_rad(-6.0))
 			return true
 		if _panning:
-			var px := (dist * 1.1 / get_viewport().get_visible_rect().size.y) if plan else dist * 0.0025
-			move_focus(-mm.relative * px)
+			pan_pixels(mm.relative)
 			return true
 	return false
 

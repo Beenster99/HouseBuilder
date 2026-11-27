@@ -44,7 +44,9 @@ static func make(id: String, hall: Node, font: int) -> Control:
 	match id:
 		"plan", "side", "3d":
 			var v := ModelChannel.new()
-			v.setup(hall, id)
+			# The drawings look at the designer's whole, shadow-free copy of the design; the 3D
+			# view at the designer's own world, shadows, crew cursors and all.
+			v.setup(hall.call("flat_source") if id != "3d" and hall.has_method("flat_source") else hall, id)
 			return v
 		"bom":
 			var b := BillChannel.new()
@@ -136,6 +138,8 @@ class ModelChannel extends SubViewportContainer:
 	func _process(delta: float) -> void:
 		if not is_visible_in_tree():
 			return
+		if hall.has_method("watch"):
+			hall.call("watch")
 		var box: AABB = hall.call("bounds")
 		var centre := box.get_center()
 		var span := maxf(maxf(box.size.x, box.size.z), 8.0) * 1.15 / zoom
@@ -175,6 +179,11 @@ class ModelChannel extends SubViewportContainer:
 				zoom = clampf(zoom / 1.15, 0.3, 8.0)
 			elif mb.button_index == MOUSE_BUTTON_LEFT:
 				_drag = mb.pressed
+			elif mb.button_index == MOUSE_BUTTON_MIDDLE and mb.pressed and hall.has_method("ping_at"):
+				# A middle-click pings that spot of the design for everyone.
+				var at: Variant = floor_point(mb.position)
+				if at != null:
+					hall.call("ping_at", at)
 			accept_event()
 		elif event is InputEventMouseMotion:
 			var mm := event as InputEventMouseMotion

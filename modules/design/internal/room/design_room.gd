@@ -51,6 +51,9 @@ var _middle_from: Variant = null
 var _middle_t := 0.0
 var _middle_moved := false
 var wheel: Control
+## The right-click menu and edit form.
+var context: Node
+var _right_from: Variant = null
 ## Opened from the hall's holotable (DesignHall): drawn into the hall's designer screen, and Esc
 ## goes back to the hall instead of the pause menu.
 var embedded := false
@@ -96,13 +99,18 @@ func _ready() -> void:
 	layer.name = "Hud"
 	add_child(layer)
 	layer.add_child(hud)
+	context = preload("res://modules/design/internal/room/design_context.gd").new()
+	add_child(context)
+	context.call("setup", session, hud)
 	wheel = DesignWheel.new()
 	wheel.name = "Wheel"
 	layer.add_child(wheel)
 	session.preview_changed.connect(_draw_ghost)
 	session.level_changed.connect(_on_level)
 	session.note_requested.connect(func(at: Vector3, target: String) -> void: hud.call("ask_note", at, target))
-	session.presence.selection_changed.connect(func(_p: int, _ids: PackedStringArray) -> void: _tint_dirty = true)
+	session.presence.selection_changed.connect(func(_p: int, _ids: PackedStringArray) -> void:
+		_tint_dirty = true
+		_draw_ghost())
 	session.presence.locks_changed.connect(func() -> void: _tint_dirty = true)
 	session.presence.pulsed.connect(_on_pulsed)
 	design.pulse_requested.connect(_on_pulse_requested)
@@ -117,9 +125,60 @@ func _ready() -> void:
 			set_overlay(""))
 	_on_level(0)
 	session.set_tool("room")
+	session.tool_changed.connect(func(_t: String) -> void: end_stamp())
+	design.open_room = self
+
+
+# --- Stamp (placing a saved module, or anything another module hands over) -------------------
+
+var _stamp: Dictionary = {}  # {label, ghost: Node3D, ops_at: Callable, rot}
+
+
+## A ghost under the pointer that a click places (DesignBus.begin_stamp).
+func begin_stamp(label: String, ghost: Node3D, ops_at: Callable) -> void:
+	session.set_tool("select")  # ends any stamp before
+	end_stamp()
+	if ghost:
+		add_child(ghost)
+	_stamp = {"label": label, "ghost": ghost, "ops_at": ops_at, "rot": 0.0}
+	session.status.emit("%s: click to place it, R turns it, Esc stops" % label, false)
+
+
+func end_stamp() -> void:
+	if _stamp.is_empty():
+		return
+	if is_instance_valid(_stamp.ghost):
+		(_stamp.ghost as Node).queue_free()
+	_stamp = {}
+
+
+func stamping() -> bool:
+	return not _stamp.is_empty()
+
+
+## Places the stamp at `at` (world, snapped).
+func stamp_at(at: Vector3) -> void:
+	if _stamp.is_empty():
+		return
+	var ops: Variant = (_stamp.ops_at as Callable).call(session.level, at, float(_stamp.rot))
+	if ops is Array and not (ops as Array).is_empty():
+		session.sync.edit(BuildingCommands.batch(ops as Array))
+
+
+func _place_stamp_ghost() -> void:
+	if _stamp.is_empty() or not is_instance_valid(_stamp.ghost):
+		return
+	var g := _stamp.ghost as Node3D
+	g.visible = session.cursor != null
+	if session.cursor != null:
+		g.position = session.cursor as Vector3
+		g.rotation.y = deg_to_rad(float(_stamp.rot))
 
 
 func _exit_tree() -> void:
+	if design and design.open_room == self:
+		design.open_room = null
+	end_stamp()
 	if session:
 		session.teardown()
 
@@ -245,6 +304,12 @@ func _process(_delta: float) -> void:
 		session.hover(c.call("floor_point", c.get_local_mouse_position()) if c.has_method("floor_point") else null)
 	else:
 		session.hover(_floor_point())
+	_place_stamp_ghost()
+	# Handles stay about 10 px wherever the zoom is.
+	var reach := clampf(cam.metres_per_pixel() * 12.0, 0.08, 3.0)
+	if absf(reach - session.handle_reach) > session.handle_reach * 0.1:
+		session.handle_reach = reach
+		_draw_ghost()
 	if not _pulses.is_empty():
 		var t := _now()
 		for id: String in _pulses.keys():
@@ -399,6 +464,7 @@ func _draw_ghost() -> void:
 	var pv := session.preview()
 	var y := session.floor_y() + 0.06
 	var mat := _ghost_mat(MINE)
+	_draw_handles(im, y + 0.02)
 	match str(pv.get("kind", "")):
 		"line":
 			_ghost_lines(im, mat, [pv.a, pv.b], y)
@@ -424,6 +490,12 @@ func _draw_ghost() -> void:
 				var kind := session.door_kind if session.tool == "door" else session.window_kind
 				var w := float(building.catalog.kind(kind).get("w", 1.0))
 				_ghost_lines(im, mat, [a + dir * (t - w / 2.0), a + dir * (t + w / 2.0)], y + 0.1)
+		"shape":
+			var pts: Array = []
+			for v: Vector2 in pv.outline:
+				pts.append(Vector3(v.x, 0, v.y))
+			pts.append(pts[0])
+			_ghost_lines(im, mat, pts, y)
 		"move":
 			var by: Vector3 = pv.by
 			for id: String in pv.ids:
@@ -432,6 +504,24 @@ func _draw_ghost() -> void:
 				var lo := box.position
 				var hi := box.end
 				_ghost_lines(im, mat, [lo, Vector3(hi.x, 0, lo.z), Vector3(hi.x, 0, hi.z), Vector3(lo.x, 0, hi.z), lo], y)
+
+
+## Handles on the selected room: squares on its corners, small crosses on its edges' middles.
+func _draw_handles(im: ImmediateMesh, y: float) -> void:
+	if session.tool != "select" or not session.shape.is_empty():
+		return
+	var h := session.shape_handles()
+	if h.is_empty():
+		return
+	var mat := _ghost_mat(Color(1.0, 0.75, 0.1))
+	var r := session.handle_reach * 0.7
+	for c: Vector2 in h.corners:
+		var p := Vector3(c.x, 0, c.y)
+		_ghost_lines(im, mat, [p + Vector3(-r, 0, -r), p + Vector3(r, 0, -r), p + Vector3(r, 0, r), p + Vector3(-r, 0, r), p + Vector3(-r, 0, -r)], y)
+	for m: Vector2 in h.mids:
+		var p := Vector3(m.x, 0, m.y)
+		_ghost_lines(im, mat, [p + Vector3(-r, 0, 0), p + Vector3(r, 0, 0)], y)
+		_ghost_lines(im, mat, [p + Vector3(0, 0, -r), p + Vector3(0, 0, r)], y)
 
 
 func _room_box(id: String) -> AABB:
@@ -488,6 +578,10 @@ func _unhandled_input(event: InputEvent) -> void:
 		var mb := event as InputEventMouseButton
 		if mb.button_index == MOUSE_BUTTON_LEFT:
 			var p: Variant = _floor_point()
+			if mb.pressed and p != null and stamping():
+				stamp_at(session.snap(p))
+				get_viewport().set_input_as_handled()
+				return
 			if mb.pressed and p != null:
 				_left_down = true
 				session.press(p, mb.shift_pressed)
@@ -512,13 +606,31 @@ func _unhandled_input(event: InputEvent) -> void:
 				if _middle_from != null and not _middle_moved:
 					ping_here()
 				_middle_from = null
-		if mb.button_index == MOUSE_BUTTON_RIGHT and mb.pressed and (cam.plan or session.anchor != null):
-			session.cancel()
+		if mb.button_index == MOUSE_BUTTON_RIGHT:
+			var busy := session.anchor != null or not session.drag.is_empty() or not session.shape.is_empty() or stamping()
+			if mb.pressed:
+				_right_from = null if busy else mb.position
+				if busy:
+					session.cancel()
+					end_stamp()
+					get_viewport().set_input_as_handled()
+					return
+			elif _right_from != null and (mb.position - (_right_from as Vector2)).length() < TAP_SLOP:
+				# A right click (not an orbit) on something: its menu.
+				_right_from = null
+				var at: Variant = _floor_point()
+				if at != null and context.open_at(at as Vector3, mb.position):
+					get_viewport().set_input_as_handled()
+					return
 			if cam.plan:
 				get_viewport().set_input_as_handled()
 				return
 	if event is InputEventMouseMotion:
 		var mm := event as InputEventMouseMotion
+		if session.pan_drag and _left_down:
+			cam.pan_pixels(mm.relative)
+			get_viewport().set_input_as_handled()
+			return
 		if wheel.get("is_open"):
 			wheel.call("aim", mm.position - (wheel.get("centre") as Vector2))
 			get_viewport().set_input_as_handled()
@@ -563,6 +675,9 @@ func _key(k: InputEventKey) -> bool:
 		KEY_DELETE, KEY_BACKSPACE:
 			session.delete_selection()
 			return true
+		KEY_R when stamping():
+			_stamp.rot = fmod(float(_stamp.rot) + 90.0, 360.0)
+			return true
 		KEY_R:
 			session.rotate()
 			return true
@@ -572,11 +687,16 @@ func _key(k: InputEventKey) -> bool:
 		KEY_V:
 			hud.call("set_realistic", not ArtStyle.realistic())
 			return true
+		KEY_ESCAPE when stamping():
+			end_stamp()
+			return true
 		KEY_ESCAPE:
 			if session.anchor != null or not session.drag.is_empty():
 				session.cancel()
 			elif not session.presence.my_selection().is_empty():
 				session.presence.select(PackedStringArray())
+			elif session.tool != "select":
+				session.set_tool("select")
 			elif embedded:
 				leave_requested.emit()
 			else:
@@ -658,5 +778,10 @@ func toggle_plan() -> void:
 	cam.set_plan(not cam.plan)
 	# Shadows only muddle a plan.
 	_sun.shadow_enabled = not cam.plan
+	# Graphics re-tunes lights when its settings change; this keeps the plan shadow-free.
+	if cam.plan:
+		_sun.set_meta("gfx_no_shadow", true)
+	else:
+		_sun.remove_meta("gfx_no_shadow")
 	view.call("set_cut", PLAN_CUT if cam.plan else INF)
 	hud.call("refresh_bar")

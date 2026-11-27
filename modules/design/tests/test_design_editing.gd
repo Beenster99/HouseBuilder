@@ -1,0 +1,146 @@
+extends ModuleTest
+## Editing in the designer: the Add rooms / Add objects palette (groups, filter, arming the
+## tool), reshaping a room by its corners and edges (walls follow), adding a corner, left-drag
+## panning on empty floor, the right-click menu and edit form, stamps, the mode banner,
+## rolling and moving docks, and room labels that stay sharp and fade with zoom.
+##   tools/run_tests.sh design
+
+const RoomScene := preload("res://modules/design/internal/room/design_room.tscn")
+
+
+func run_tests() -> void:
+	var building := Modules.bus("building") as BuildingBus
+	var design := Modules.bus("design") as DesignBus
+	building.reset_data()
+	var room: Node3D = RoomScene.instantiate()
+	add_child(room)
+	await frames(3)
+	var s: DesignSession = room.get("session")
+	var model := building.model
+	check(design.open_room == room, "the bus knows the open room")
+
+	# Palettes: grouped, filtered, and picking arms the tool.
+	var rooms := design.palette_groups("rooms")
+	var objects := design.palette_groups("objects")
+	check(rooms.size() >= 2 and objects.size() >= 2, "rooms and objects come in groups: %d, %d" % [rooms.size(), objects.size()])
+	var hud: Node = room.get("hud")
+	var pal: Node = hud.get("palette")
+	await frames(2)
+	var all_rows := int(pal.call("row_count", "rooms"))
+	pal.call("set_filter", "rooms", "bed")
+	var few := int(pal.call("row_count", "rooms"))
+	check(few >= 1 and few < all_rows, "the filter narrows the rooms: %d of %d" % [few, all_rows])
+	var seen := []
+	design.palette_previewed.connect(func(k: String, id: String, _src: String) -> void: seen.append([k, id]))
+	check(bool(pal.call("pick", "rooms", "bedroom")) and s.tool == "room" and s.room_type == "bedroom", "picking a room type arms the Room tool")
+	check(seen.size() == 1, "and tells the preview")
+	var fixture: String = (objects[0].items as Array)[0].id
+	check(design.use_kind(fixture) and s.tool in ["fixture", "door", "window"], "use_kind arms the placing tool for %s" % fixture)
+	var extra_picked := []
+	design.register_palette_group("rooms", "test.modules", "Saved modules", func() -> Array: return [{"id": "flat", "label": "Studio flat", "tags": PackedStringArray(["module"])}],
+			func(id: String) -> void: extra_picked.append(id))
+	check(str(design.palette_groups("rooms").back().title) == "Saved modules", "other modules add groups")
+	await frames(2)
+	pal.call("set_filter", "rooms", "studio")
+	check(bool(pal.call("pick", "rooms", "flat")) and extra_picked == ["flat"], "and get their picks")
+	design.unregister_palette_group("rooms", "test.modules")
+
+	# Draw a room, then reshape it.
+	s.use_room_type("bedroom")
+	s.press(Vector3(0, 0, 0))
+	s.release(Vector3(4, 0, 3))
+	var rid: String = model.rooms.keys()[0]
+	s.set_tool("select")
+	s.presence.select(PackedStringArray([rid]))
+	check(not s.shape_handles().is_empty(), "a selected room shows handles")
+	s.press(Vector3(4, 0, 3))   # its corner
+	s.hover(Vector3(5, 0, 4))
+	s.release(Vector3(5, 0, 4))
+	var o: Array = model.rooms[rid].outline
+	var has_corner := false
+	for p: Variant in o:
+		has_corner = has_corner or (is_equal_approx(float(p[0]), 5.0) and is_equal_approx(float(p[1]), 4.0))
+	check(has_corner, "dragging a corner moves it: %s" % str(o))
+	var follows := false
+	for pid: String in model.parts:
+		var e: Dictionary = model.parts[pid]
+		if model.catalog.family_of(str(e.kind)) == "wall":
+			follows = follows or (is_equal_approx(float(e.a[0]), 5.0) and is_equal_approx(float(e.a[2]), 4.0)) \
+					or (is_equal_approx(float(e.b[0]), 5.0) and is_equal_approx(float(e.b[2]), 4.0))
+	check(follows, "and the walls ending there follow")
+	var n := (model.rooms[rid].outline as Array).size()
+	var h := s.shape_handles()
+	var mid: Vector2 = (h.mids as Array)[0]
+	s.press(Vector3(mid.x, 0, mid.y))
+	s.hover(Vector3(mid.x, 0, mid.y - 1.0))
+	s.release(Vector3(mid.x, 0, mid.y - 1.0))
+	check((model.rooms[rid].outline as Array).size() == n + 1, "dragging an edge's middle adds a corner")
+	check(s.remove_corner(1), "and a corner can be taken away")
+	check((model.rooms[rid].outline as Array).size() == n, "back to %d corners" % n)
+
+	# Left-drag on empty floor pans when nothing is selected.
+	s.presence.select(PackedStringArray())
+	s.press(Vector3(30, 0, 30))
+	check(s.pan_drag, "left-drag on empty floor pans")
+	s.release(Vector3(31, 0, 31))
+	check(not s.pan_drag, "until the button comes up")
+
+	# The right-click menu and edit form.
+	var ctx: Node = room.get("context")
+	check(bool(ctx.call("open_at", Vector3(1, 0, 1), Vector2(400, 300))), "right-click on a room opens its menu")
+	check(s.presence.my_selection() == PackedStringArray([rid]), "and selects it")
+	var menu: PopupMenu = ctx.get("menu")
+	var labels := []
+	for i in menu.item_count:
+		labels.append(menu.get_item_text(i))
+	check("Edit…" in labels and "Delete  (Del)" in labels, "with Edit and Delete: %s" % str(labels))
+	(ctx.get("menu") as PopupMenu).hide()
+	ctx.call("open_edit", rid)
+	await frames(1)
+	check((ctx.get("_edit") as PopupPanel).visible, "Edit opens the form")
+	(ctx.get("_edit") as PopupPanel).hide()
+	check(not bool(ctx.call("open_at", Vector3(40, 0, 40), Vector2(10, 10))), "nothing there, no menu")
+
+	# Stamps.
+	var ghost := Node3D.new()
+	var ops_at := func(level: int, at: Vector3, _rot: float) -> Array:
+		return [BuildingCommands.place_part("column", level, {"at": [at.x, 0.0, at.z]}, "steel")]
+	check(design.begin_stamp("Test", ghost, ops_at) and bool(room.call("stamping")), "begin_stamp arms a stamp")
+	var parts := model.parts.size()
+	room.call("stamp_at", Vector3(10, 0, 10))
+	check(model.parts.size() == parts + 1, "a click places it")
+	s.set_tool("select")
+	check(not bool(room.call("stamping")), "another tool ends it")
+
+	# The mode banner and docks.
+	s.set_tool("select")
+	await frames(1)
+	var banner: RichTextLabel = hud.get("_banner_text")
+	check(banner.get_parsed_text().contains("SELECT MODE"), "the banner says Select mode: %s" % banner.get_parsed_text().left(40))
+	s.set_tool("wall")
+	check(banner.get_parsed_text().contains("WALL"), "and the tool otherwise")
+	var left := (hud.get("browser") as Node).get_parent().get_parent() as PanelContainer
+	var dock := left.get_child(0) as VBoxContainer
+	hud.call("roll_dock", left, dock, "left", true)
+	check(not dock.get_child(1).visible and left.offset_bottom - left.offset_top <= 40, "a dock rolls up to its bar")
+	hud.call("roll_dock", left, dock, "left", false)
+	check(dock.get_child(1).visible, "and down again")
+
+	# Room labels are drawn at their size on screen, and fade as the room gets small.
+	var view: Node = room.get("view")
+	var lab: Label3D = null
+	for c in view.find_children("*", "Label3D", true, false):
+		lab = c
+	check(lab != null and lab.fixed_size, "room labels keep their size on screen (sharp)")
+	var cam := Camera3D.new()
+	cam.projection = Camera3D.PROJECTION_ORTHOGONAL
+	cam.size = 2000.0
+	check(view.call("fade_alpha", cam, 1000.0, Vector3.ZERO, 4.0) == 0.0, "zoomed far out, a room's label is gone")
+	cam.size = 20.0
+	check(float(view.call("fade_alpha", cam, 1000.0, Vector3.ZERO, 4.0)) == 1.0, "close in, it shows")
+	cam.free()
+
+	room.queue_free()
+	await frames(2)
+	check(design.open_room == null, "the bus forgets the room when it closes")
+	building.reset_data()

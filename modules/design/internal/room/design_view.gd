@@ -36,6 +36,14 @@ var _geo_room := false
 var _geo_cell := Vector2i.ZERO
 ## Batches are split into squares this size, m, so an edit remakes only a small mesh.
 const CELL := 16.0
+## Room labels keep their size on screen (sharp at any zoom) and fade with it; false draws
+## them at a size in the world (the holotable's model, the small views).
+var labels_fixed := true
+## A room's label fades in as the room grows from LABEL_FADE to twice that many pixels
+## across on screen.
+const LABEL_FADE := 45.0
+var _fade_key := Vector4.INF
+var _fade_count := -1
 
 
 func bind(m: BuildingModel) -> void:
@@ -51,6 +59,44 @@ func bind(m: BuildingModel) -> void:
 
 func _process(_delta: float) -> void:
 	flush()
+	if labels_fixed:
+		fade_labels(get_viewport().get_camera_3d())
+
+
+## Room labels fade out as the view zooms out: a room smaller than LABEL_FADE px across on
+## screen loses its label, so a big plan seen whole isn't buried in text.
+func fade_labels(cam: Camera3D) -> void:
+	if cam == null:
+		return
+	var key := Vector4(cam.size if cam.projection == Camera3D.PROJECTION_ORTHOGONAL else cam.fov,
+			cam.global_position.x, cam.global_position.y, cam.global_position.z)
+	if key.is_equal_approx(_fade_key) and _fade_count == _recs.size():
+		return
+	_fade_key = key
+	_fade_count = _recs.size()
+	var vh := float(get_viewport().get_visible_rect().size.y)
+	for r: Dictionary in _recs.values():
+		if r.label == null or not _visible(int(r.level), true):
+			continue
+		var l := r.label as Label3D
+		var a := fade_alpha(cam, vh, l.global_position, float(l.get_meta("span", 4.0)))
+		l.visible = a > 0.01
+		l.modulate.a = a
+		l.outline_modulate.a = 0.85 * a
+
+
+## How much a label for something `span` m across at `at` shows (0..1) through `cam` on a
+## view `vh` px high: none under LABEL_FADE px across on screen, all from twice that.
+static func fade_alpha(cam: Camera3D, vh: float, at: Vector3, span: float) -> float:
+	if vh < 1.0:
+		return 1.0
+	var per_px := 0.0
+	if cam.projection == Camera3D.PROJECTION_ORTHOGONAL:
+		per_px = cam.size / vh
+	else:
+		per_px = 2.0 * tan(deg_to_rad(cam.fov) * 0.5) / vh * maxf(cam.global_position.distance_to(at), 0.1)
+	var px := span / maxf(per_px, 0.00001)
+	return clampf((px - LABEL_FADE) / LABEL_FADE, 0.0, 1.0)
 
 
 ## Every entry again (a load, a new level, the look or the plan cut changed).
@@ -211,6 +257,7 @@ func _apply_visibility() -> void:
 	for r: Dictionary in _recs.values():
 		if r.label:
 			(r.label as Node3D).visible = _visible(int(r.level), bool(r.room))
+	_fade_count = -1
 
 
 func _build(id: String) -> void:
@@ -222,6 +269,7 @@ func _build(id: String) -> void:
 	var rec := {"level": _geo_level, "room": room, "fam": "", "label": null, "top": _geo_level}
 	if room:
 		rec.label = _room(id)
+		_fade_count = -1
 	else:
 		var e: Dictionary = model.parts[id]
 		rec.fam = model.catalog.family_of(str(e.kind))
@@ -469,11 +517,21 @@ func _room(id: String) -> Label3D:
 	label.text = "%s\n%.1f m²%s" % [title, area, "  (min %.0f)" % min_area if short else ""]
 	label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
 	label.no_depth_test = true
-	label.font_size = 36
-	label.pixel_size = 0.01
+	if labels_fixed:
+		# Drawn at its size on screen, so it is sharp at any zoom; fade_labels() thins
+		# them out as the view zooms out.
+		label.fixed_size = true
+		label.font_size = 26
+		label.outline_size = 7
+		label.pixel_size = 0.0013
+	else:
+		label.font_size = 36
+		label.pixel_size = 0.01
+	label.set_meta("span", sqrt(maxf(area, 0.01)))
 	label.modulate = Color(1.0, 0.55, 0.35) if short else Color(0.08, 0.08, 0.1)
 	label.outline_modulate = Color(1, 1, 1, 0.85)
-	label.outline_size = 8
+	if not labels_fixed:
+		label.outline_size = 8
 	label.position = Vector3(centre.x, y + 0.5, centre.y)
 	return label
 

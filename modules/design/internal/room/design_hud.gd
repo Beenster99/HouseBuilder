@@ -35,6 +35,8 @@ var _overlay_slot: VBoxContainer
 var _side_slot: VBoxContainer
 ## The Rooms / Components / Levels tabs under the tools.
 var browser: TabContainer
+## Add rooms / Add objects, grouped and filtered, between the tools and the browser.
+var palette: VBoxContainer
 var _folded: Dictionary = {}
 var _note_popup: PopupPanel
 var _layers_pop: PopupMenu
@@ -87,6 +89,10 @@ func _ready() -> void:
 	_build_cost()
 	_build_section()
 	_build_status()
+	_build_banner()
+	_session.tool_changed.connect(func(_t: String) -> void: refresh_banner())
+	_session.presence.selection_changed.connect(func(_p: int, _ids: PackedStringArray) -> void: refresh_banner())
+	resized.connect(refresh_banner)
 	_build_popups()
 	_session.tool_changed.connect(func(_t: String) -> void: _refresh_tools())
 	_session.level_changed.connect(func(_l: int) -> void: refresh_bar())
@@ -117,7 +123,6 @@ func _exit_tree() -> void:
 
 
 func _process(delta: float) -> void:
-	mini.watchers = int(mini_3d.is_visible_in_tree()) + int(section.is_visible_in_tree())
 	# Up to 1.5 ms a frame of re-costing (all of it at once after an edit on most buildings),
 	# and the panel redrawn at most four times a second.
 	var current := _book.update(1500)
@@ -148,6 +153,179 @@ func _button(text: String, press: Callable, tip := "") -> Button:
 	b.focus_mode = FOCUS_NONE
 	b.pressed.connect(press)
 	return b
+
+
+# --- Docks, sections and the mode banner ---------------------------------------------------
+
+## Panels rolled up: dock id -> true.
+var rolled: Dictionary = {}
+var _dock_bottoms: Dictionary = {}
+var _banner: PanelContainer
+var _banner_text: RichTextLabel
+
+
+## A title bar on a dock: drag it to move the dock, ▾ rolls it up to the bar, ⟲ puts it back.
+func dock_header(p: PanelContainer, dock: VBoxContainer, title: String, id: String) -> void:
+	var bar := PanelContainer.new()
+	var sb := StyleBoxFlat.new()
+	sb.bg_color = Color(BsxTheme.ACCENT, 0.16)
+	sb.border_color = Color(BsxTheme.ACCENT, 0.5)
+	sb.border_width_bottom = 2
+	sb.content_margin_left = 8
+	sb.content_margin_right = 4
+	sb.content_margin_top = 3
+	sb.content_margin_bottom = 3
+	bar.add_theme_stylebox_override("panel", sb)
+	bar.mouse_filter = MOUSE_FILTER_STOP
+	bar.mouse_default_cursor_shape = CURSOR_MOVE
+	bar.tooltip_text = "Drag to move this panel"
+	var row := HBoxContainer.new()
+	bar.add_child(row)
+	var l := BsxTheme.hud_label("⠿  " + title, 14, BsxTheme.ACCENT)
+	l.size_flags_horizontal = SIZE_EXPAND_FILL
+	row.add_child(l)
+	var home := _button("⟲", func() -> void: reset_dock(p, id), "Put this panel back where it was")
+	home.flat = true
+	row.add_child(home)
+	var roll := _button("▾", func() -> void: roll_dock(p, dock, id, not rolled.get(id, false)), "Roll up / down")
+	roll.flat = true
+	roll.name = "Roll"
+	row.add_child(roll)
+	dock.add_child(bar)
+	bar.set_meta("home", [p.offset_left, p.offset_top, p.offset_right, p.offset_bottom])
+	p.set_meta("home", bar.get_meta("home"))
+	bar.gui_input.connect(func(e: InputEvent) -> void:
+		if e is InputEventMouseMotion and ((e as InputEventMouseMotion).button_mask & MOUSE_BUTTON_MASK_LEFT):
+			var r := (e as InputEventMouseMotion).relative
+			p.offset_left += r.x
+			p.offset_right += r.x
+			p.offset_top += r.y
+			p.offset_bottom += r.y
+			accept_event())
+
+
+## Rolls a dock up to its title bar, or back down.
+func roll_dock(p: PanelContainer, dock: VBoxContainer, id: String, up: bool) -> void:
+	rolled[id] = up
+	for i in range(1, dock.get_child_count()):
+		var c := dock.get_child(i) as Control
+		if up:
+			c.set_meta("was_visible", c.visible)
+			c.visible = false
+		else:
+			c.visible = bool(c.get_meta("was_visible", true))
+	if up:
+		_dock_bottoms[id] = [p.anchor_bottom, p.offset_bottom]
+		p.anchor_bottom = p.anchor_top
+		p.offset_bottom = p.offset_top + 36
+	elif _dock_bottoms.has(id):
+		p.anchor_bottom = float(_dock_bottoms[id][0])
+		p.offset_bottom = float(_dock_bottoms[id][1])
+	var roll := dock.get_child(0).find_child("Roll", true, false) as Button
+	if roll:
+		roll.text = "▸" if up else "▾"
+
+
+func reset_dock(p: PanelContainer, id: String) -> void:
+	var dock := p.get_child(0) as VBoxContainer
+	if rolled.get(id, false):
+		roll_dock(p, dock, id, false)
+	var h: Array = p.get_meta("home")
+	p.offset_left = float(h[0])
+	p.offset_top = float(h[1])
+	p.offset_right = float(h[2])
+	p.offset_bottom = float(h[3])
+
+
+## A section's heading: a bright title on a bar, and a line on how to use it.
+func section_title(title: String, how: String) -> Control:
+	var box := VBoxContainer.new()
+	box.add_theme_constant_override("separation", 0)
+	var l := BsxTheme.hud_label(title, 13, BsxTheme.ACCENT)
+	box.add_child(l)
+	var h := Label.new()
+	h.text = how
+	h.add_theme_font_size_override("font_size", 11)
+	h.modulate = BsxTheme.MUTED
+	h.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	box.add_child(h)
+	var line := ColorRect.new()
+	line.color = Color(BsxTheme.ACCENT, 0.35)
+	line.custom_minimum_size.y = 1
+	box.add_child(line)
+	return box
+
+
+## The banner over the middle: what mode this player is in and what a click does.
+func _build_banner() -> void:
+	_banner = PanelContainer.new()
+	_banner.name = "ModeBanner"
+	_banner.mouse_filter = MOUSE_FILTER_IGNORE
+	_banner.set_anchors_preset(PRESET_CENTER_TOP)
+	_banner.position.y = TOP_H + 2
+	_banner_text = RichTextLabel.new()
+	_banner_text.bbcode_enabled = true
+	_banner_text.fit_content = true
+	_banner_text.scroll_active = false
+	_banner_text.autowrap_mode = TextServer.AUTOWRAP_OFF
+	_banner_text.mouse_filter = MOUSE_FILTER_IGNORE
+	_banner.add_child(_banner_text)
+	add_child(_banner)
+	refresh_banner()
+
+
+## Says the mode: SELECT (and what is selected) or the tool and what it will place.
+func refresh_banner() -> void:
+	if _banner == null:
+		return
+	var sel := _session.presence.my_selection()
+	var colour := BsxTheme.LIVE
+	var head := ""
+	var how := ""
+	if bool(room.call("stamping")):
+		head = "PLACING"
+		how = "click to place · R turns · Esc stops"
+	elif _session.tool == "select":
+		colour = Color(0.45, 1.0, 0.55)
+		head = "SELECT MODE"
+		if sel.is_empty():
+			how = "click a room or part · drag empty floor to pan · Shift adds"
+		else:
+			var what := _session.label_of(sel[0]) if sel.size() == 1 else "%d items" % sel.size()
+			how = "[b]%s[/b] selected · drag to move · corners and edges reshape a room · Del deletes · right-click: Edit / Delete" % what
+	else:
+		var t := _session.tool
+		var label := t.capitalize()
+		for d: Dictionary in DesignSession.TOOLS:
+			if d.id == t:
+				label = str(d.label)
+		head = label.to_upper()
+		match t:
+			"room":
+				head += ": " + str(_session.catalog.room_type(_session.room_type).get("label", _session.room_type)).to_upper()
+				how = "drag on the plan to size it, let go to draw it"
+			"fixture":
+				head += ": " + str(_session.catalog.kind(_session.fixture_kind).get("label", "")).to_upper()
+				how = "click to place · R turns"
+			_:
+				for d: Dictionary in DesignSession.TOOLS:
+					if d.id == t:
+						how = str(d.hint)
+		how += " · [b]1[/b] or [b]Esc[/b]: back to Select"
+	var sb := StyleBoxFlat.new()
+	sb.bg_color = Color(0.03, 0.05, 0.08, 0.88)
+	sb.border_color = colour
+	sb.set_border_width_all(2)
+	sb.set_corner_radius_all(6)
+	sb.content_margin_left = 14
+	sb.content_margin_right = 14
+	sb.content_margin_top = 4
+	sb.content_margin_bottom = 4
+	_banner.add_theme_stylebox_override("panel", sb)
+	_banner_text.text = "[color=#%s][b]%s[/b][/color]   [color=#%s]%s[/color]" % [colour.to_html(false), head,
+			BsxTheme.TEXT.to_html(false), how]
+	_banner.reset_size()
+	_banner.position.x = (size.x - _banner.size.x) * 0.5
 
 
 # --- Top bar ----------------------------------------------------------------------------
@@ -347,11 +525,18 @@ func _build_tools() -> void:
 	add_child(p)
 	var dock := VBoxContainer.new()
 	p.add_child(dock)
+	dock_header(p, dock, "DESIGN TOOLS", "left")
 	var scroll := ScrollContainer.new()
 	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	scroll.size_flags_vertical = SIZE_EXPAND_FILL
 	scroll.size_flags_stretch_ratio = 1.3
 	dock.add_child(scroll)
+	dock.add_child(section_title("ADD TO THE DESIGN", "pick a room type or an object, then draw it"))
+	palette = preload("res://modules/design/internal/room/design_palette.gd").new()
+	palette.name = "Palette"
+	palette.set("room", room)
+	dock.add_child(palette)
+	dock.add_child(section_title("IN THIS DESIGN", "click to select · right-click a part for Edit / Delete"))
 	browser = preload("res://modules/design/internal/room/design_browser.gd").new()
 	browser.name = "Browser"
 	browser.set("room", room)
@@ -359,7 +544,7 @@ func _build_tools() -> void:
 	var col := VBoxContainer.new()
 	col.size_flags_horizontal = SIZE_EXPAND_FILL
 	scroll.add_child(col)
-	col.add_child(BsxTheme.hud_label("TOOLS", 13, BsxTheme.HUD_DIM))
+	col.add_child(section_title("TOOLS", "1 Select · 2 Room · 3 Wall … (keys)"))
 	var grid := GridContainer.new()
 	grid.columns = 2
 	col.add_child(grid)
@@ -367,6 +552,16 @@ func _build_tools() -> void:
 		var key := "" if int(t.key) == KEY_NONE else "  [%s]" % OS.get_keycode_string(int(t.key))
 		var b := _button(str(t.label) + key, func() -> void: _session.set_tool(str(t.id)), str(t.hint))
 		b.toggle_mode = true
+		# The armed tool stands out: filled in its colour (Select green, the rest amber).
+		var on := StyleBoxFlat.new()
+		on.bg_color = Color(0.45, 1.0, 0.55, 0.3) if t.id == "select" else Color(BsxTheme.LIVE, 0.28)
+		on.border_color = Color(0.45, 1.0, 0.55) if t.id == "select" else BsxTheme.LIVE
+		on.set_border_width_all(2)
+		on.set_corner_radius_all(3)
+		on.content_margin_left = 6
+		b.add_theme_stylebox_override("pressed", on)
+		b.add_theme_stylebox_override("hover_pressed", on)
+		b.add_theme_color_override("font_pressed_color", Color.WHITE)
 		b.size_flags_horizontal = SIZE_EXPAND_FILL
 		b.alignment = HORIZONTAL_ALIGNMENT_LEFT
 		grid.add_child(b)
@@ -513,6 +708,7 @@ func _build_cost() -> void:
 	add_child(p)
 	var dock := VBoxContainer.new()
 	p.add_child(dock)
+	dock_header(p, dock, "VIEWS AND CHECKS", "right")
 	# The small 3D view on top: the whole building, whatever the middle is showing.
 	_mini_head = Button.new()
 	_mini_head.flat = true

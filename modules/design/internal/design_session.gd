@@ -84,6 +84,13 @@ var anchor: Variant = null
 ## The drag in progress: {ids, from, by, group} or {}.
 var drag: Dictionary = {}
 var _press: Variant = null
+## Reshaping a room (select tool, one room selected): {room, base: Array[Vector2], mode
+## ("corner", "mid" or "edge"), i, from: Vector3, outline: Array[Vector2]} or {}.
+var shape: Dictionary = {}
+## How near the pointer must be to a corner or edge handle, m (the room sets it from zoom).
+var handle_reach := 0.35
+## A left drag on empty floor with nothing selected pans the view (the room moves the camera).
+var pan_drag := false
 var _pressed_on := ""
 var _group_n := 0
 
@@ -148,6 +155,34 @@ func set_tool(id: String) -> void:
 	net.set_activity("Design: %s" % id)
 
 
+## Arms the tool that places a catalog kind: Furniture, Door or Window (the palette, kits).
+func use_kind(kind: String) -> bool:
+	if not catalog.has_kind(kind):
+		return false
+	var fam := catalog.family_of(kind)
+	if fam == "opening":
+		if kind.begins_with("window") or bool(catalog.kind(kind).get("glass", false)):
+			window_kind = kind
+			set_tool("window")
+		else:
+			door_kind = kind
+			set_tool("door")
+	elif fam == "fixture":
+		fixture_kind = kind
+		set_tool("fixture")
+	else:
+		return false
+	status.emit("%s: click to place it (R turns it)" % str(catalog.kind(kind).get("label", kind)), false)
+	return true
+
+
+## Arms the Room tool with a room type: drag on the plan to size it, let go to draw it.
+func use_room_type(type_id: String) -> void:
+	room_type = type_id
+	set_tool("room")
+	status.emit("%s: drag on the plan to size it, let go to draw it" % str(catalog.room_type(type_id).get("label", type_id)), false)
+
+
 func set_level(l: int) -> void:
 	level = clampi(l, 0, model.level_count() - 1)
 	cancel()
@@ -193,7 +228,9 @@ func hover(p: Variant) -> void:
 		at = DesignSnap.run(anchor, at, grid)
 	cursor = at
 	presence.set_cursor(at)
-	if not drag.is_empty():
+	if not shape.is_empty():
+		_update_shape(at)
+	elif not drag.is_empty():
 		var by: Vector3 = at - (drag.from as Vector3)
 		by.y = 0.0
 		drag.by = by
@@ -208,7 +245,16 @@ func press(p: Vector3, add := false) -> void:
 	hover(p)
 	var at: Vector3 = cursor
 	if tool == "select":
+		var sh := shape_hit(p)
+		if not sh.is_empty() and not add:
+			_begin_shape(sh, at)
+			return
 		var hit := pick(at)
+		pan_drag = hit == "" and not add and presence.my_selection().is_empty()
+		if pan_drag:
+			_press = null
+			_pressed_on = ""
+			return
 		_press = at
 		_pressed_on = hit
 		var sel := presence.my_selection()
@@ -247,6 +293,9 @@ func press(p: Vector3, add := false) -> void:
 func release(p: Vector3) -> void:
 	hover(p)
 	if tool == "select":
+		pan_drag = false
+		if not shape.is_empty():
+			_end_shape()
 		if not drag.is_empty():
 			_end_drag()
 		_press = null
@@ -261,6 +310,10 @@ func release(p: Vector3) -> void:
 
 ## Esc or right click: drops the drag or the half-drawn part.
 func cancel() -> void:
+	pan_drag = false
+	if not shape.is_empty():
+		presence.unlock(PackedStringArray([str(shape.room)]))
+		shape = {}
 	if not drag.is_empty():
 		presence.unlock(PackedStringArray(drag.ids))
 		drag = {}
@@ -609,6 +662,8 @@ func wall_at(at: Vector3) -> String:
 ##   {"kind": "line", "a", "b"} · {"kind": "rect", "a", "b"} · {"kind": "point", "at"}
 ##   {"kind": "move", "ids", "by"} · {"kind": "opening", "wall", "at"} · {} for nothing.
 func preview() -> Dictionary:
+	if not shape.is_empty():
+		return {"kind": "shape", "outline": shape.outline}
 	if not drag.is_empty():
 		return {"kind": "move", "ids": drag.ids, "by": drag.by}
 	if cursor == null:
@@ -680,3 +735,151 @@ static func list_designs() -> PackedStringArray:
 static func _v3(a: Variant) -> Vector3:
 	var arr: Array = a
 	return Vector3(float(arr[0]), float(arr[1]), float(arr[2]))
+
+
+# --- Reshaping rooms ----------------------------------------------------------------------
+# With one room selected, its corners and the middles of its edges have handles: drag a
+# corner to move it, drag an edge to push or pull that side, drag an edge's middle to add a
+# corner there (for L-shapes and the like). Walls that end on a moved corner follow it.
+
+## The room whose handles show: the one room this player has selected, on this level.
+func shape_room() -> String:
+	var sel := presence.my_selection()
+	if sel.size() != 1 or not model.rooms.has(sel[0]) or int(model.rooms[sel[0]].level) != level:
+		return ""
+	return sel[0]
+
+
+## The room's corners and edge middles (plan m), for drawing handles.
+func shape_handles() -> Dictionary:
+	var rid := shape_room()
+	if rid == "":
+		return {}
+	var pts := _outline2(model.rooms[rid].outline)
+	var mids: Array[Vector2] = []
+	for i in pts.size():
+		mids.append((pts[i] + pts[(i + 1) % pts.size()]) * 0.5)
+	return {"room": rid, "corners": pts, "mids": mids}
+
+
+## What the pointer is on: {mode: "corner"|"mid"|"edge", i} or {} (raw, unsnapped point).
+func shape_hit(p: Vector3) -> Dictionary:
+	var h := shape_handles()
+	if h.is_empty():
+		return {}
+	var at := Vector2(p.x, p.z)
+	var pts: Array[Vector2] = h.corners
+	for i in pts.size():
+		if at.distance_to(pts[i]) <= handle_reach:
+			return {"mode": "corner", "i": i}
+	var mids: Array[Vector2] = h.mids
+	for i in mids.size():
+		if at.distance_to(mids[i]) <= handle_reach:
+			return {"mode": "mid", "i": i}
+	for i in pts.size():
+		var a := pts[i]
+		var b := pts[(i + 1) % pts.size()]
+		if Geometry2D.get_closest_point_to_segment(at, a, b).distance_to(at) <= handle_reach * 0.6:
+			return {"mode": "edge", "i": i}
+	return {}
+
+
+## Takes away one corner of the selected room (a room keeps at least three).
+func remove_corner(i: int) -> bool:
+	var rid := shape_room()
+	if rid == "" or not presence.may_edit(rid):
+		return false
+	var pts := _outline2(model.rooms[rid].outline)
+	if pts.size() <= 3 or i < 0 or i >= pts.size():
+		return false
+	pts.remove_at(i)
+	sync.edit(C.set_fields(rid, {"outline": _outline_data(pts)}))
+	return true
+
+
+func _begin_shape(hit: Dictionary, at: Vector3) -> void:
+	var rid := shape_room()
+	if not presence.may_edit(rid):
+		status.emit("%s is moving that" % net.player_name(presence.locked_by(rid)), true)
+		return
+	var base := _outline2(model.rooms[rid].outline)
+	shape = {"room": rid, "base": base, "mode": hit.mode, "i": int(hit.i), "from": at, "outline": base.duplicate()}
+	presence.lock(PackedStringArray([rid]))
+	status.emit({"corner": "Drag the corner", "mid": "Drag to add a corner here",
+			"edge": "Drag to push or pull this side"}[hit.mode], false)
+
+
+func _update_shape(at: Vector3) -> void:
+	var d := Vector2(at.x - (shape.from as Vector3).x, at.z - (shape.from as Vector3).z)
+	var base: Array[Vector2] = shape.base
+	var out: Array[Vector2] = base.duplicate()
+	var i := int(shape.i)
+	var n := base.size()
+	match str(shape.mode):
+		"corner":
+			out[i] = base[i] + d
+		"mid":
+			out.insert(i + 1, (base[i] + base[(i + 1) % n]) * 0.5 + d)
+		"edge":
+			var a := base[i]
+			var b := base[(i + 1) % n]
+			var normal := (b - a).orthogonal().normalized()
+			var push := normal * d.dot(normal)
+			out[i] = a + push
+			out[(i + 1) % n] = b + push
+	shape.outline = out
+	presence.lock(PackedStringArray([str(shape.room)]))
+
+
+func _end_shape() -> void:
+	var rid := str(shape.room)
+	var base: Array[Vector2] = shape.base
+	var out: Array[Vector2] = shape.outline
+	var mode := str(shape.mode)
+	shape = {}
+	presence.unlock(PackedStringArray([rid]))
+	preview_changed.emit()
+	if out == base or absf(_area2(out)) < 0.25:
+		return
+	var ops: Array = [C.set_fields(rid, {"outline": _outline_data(out)})]
+	# Walls that end on a corner that moved follow it.
+	var moved := {}  # old corner -> new
+	if mode != "mid":
+		for j in base.size():
+			if not base[j].is_equal_approx(out[j]):
+				moved[base[j]] = out[j]
+	for pid in model.parts_on(level):
+		var e: Dictionary = model.parts[pid]
+		if catalog.family_of(str(e.kind)) != "wall":
+			continue
+		var fields := {}
+		for end: String in ["a", "b"]:
+			var p2 := Vector2(float(e[end][0]), float(e[end][2]))
+			for old: Vector2 in moved:
+				if p2.distance_to(old) < 0.01:
+					var q: Vector2 = moved[old]
+					fields[end] = [q.x, float(e[end][1]), q.y]
+		if not fields.is_empty() and presence.may_edit(pid):
+			ops.append(C.set_fields(pid, fields))
+	sync.edit(C.batch(ops) if ops.size() > 1 else ops[0])
+
+
+static func _outline2(outline: Array) -> Array[Vector2]:
+	var out: Array[Vector2] = []
+	for p: Variant in outline:
+		out.append(p as Vector2 if p is Vector2 else Vector2(float(p[0]), float(p[1])))
+	return out
+
+
+static func _outline_data(pts: Array[Vector2]) -> Array:
+	var out: Array = []
+	for v in pts:
+		out.append([snappedf(v.x, 0.001), snappedf(v.y, 0.001)])
+	return out
+
+
+static func _area2(pts: Array[Vector2]) -> float:
+	var a := 0.0
+	for i in pts.size():
+		a += pts[i].cross(pts[(i + 1) % pts.size()])
+	return a * 0.5

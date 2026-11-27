@@ -51,6 +51,24 @@ func run_tests() -> void:
 	await frames(2)
 	check(int(holo.call("figure_count")) == 0, "and goes when it leaves the screen")
 
+	# Pings: on the table's model, on a list on a wall, and on a drawing.
+	var pings := hall.call("ping_count") as int
+	hall.call("ping_at", Vector3(2, 0, 2))
+	await frames(2)
+	check(int(hall.call("ping_count")) == pings + 1, "a ping on the design shows on the table")
+	await get_tree().create_timer(0.3).timeout  # one ping per player every 0.25 s
+	var right: Node = boards["right"]
+	var px: Vector2 = ((right.get("_slots") as Array)[0] as Control).get_global_rect().get_center()
+	hall.call("_on_wall_middle", px, "right")
+	await frames(2)
+	check(int(hall.call("ping_count")) == pings + 2, "a ping on a wall's list shows in the hall")
+	await get_tree().create_timer(0.3).timeout
+	var walker_cam: Camera3D = (hall.get("walker") as Node).get("camera")
+	walker_cam.global_transform = Transform3D(Basis.looking_at(Vector3(0, -1, 0.01).normalized()), Vector3(0, 2.5, 0))
+	hall.call("ping_look")
+	await frames(2)
+	check(int(hall.call("ping_count")) == pings + 3, "looking down at the table's model and middle-clicking pings it")
+
 	# The designer at the table, and back.
 	hall.call("open_designer")
 	await frames(2)
