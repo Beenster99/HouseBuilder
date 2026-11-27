@@ -31,6 +31,30 @@ const KNOWN := {
 	"sandbox.site": [0, "sandbox"],
 }
 
+## Library models scanned one by one: every ASSET_STEP-th id (all of them with PERF_FULL=1,
+## about 10 minutes), in the realistic look where each material is its own.
+const ASSET_STEP := 25
+## Models allowed a fight (owner, or why) (a fight within one surface and material can't flicker).
+const KNOWN_ASSETS := {
+	"context.church.wal_saddle": "assets: a 10 cm² sliver of dark glass over itself, same surface and material",
+	# Found in the realistic look 2026-11-27 (the clean look draws them in one white): remove each when fixed.
+	"context.church.sco_free": "assets",
+	"context.dales.house_10": "assets",
+	"context.farm.dales_barn": "assets",
+	"context.industrial.supermarket": "assets",
+	"fixture.locker": "assets",
+	"industrial.workshop.repair_pro": "assets",
+	"industrial.yard.cone": "assets",
+	"people.staff.teacher": "assets",
+	"plant.cabin.toilet_green": "assets",
+	"plant.excavator.midi": "assets",
+	"services.plant.pump_set": "assets",
+	"street.furniture.info_board": "assets",
+	"street.traffic.signal_three_aspect": "assets",
+	"vehicle.car.dales_1": "assets",
+	"vehicle.car.wreck": "assets",
+}
+
 var building: BuildingBus
 var lines: Array[String] = []
 
@@ -58,6 +82,7 @@ func run_tests() -> void:
 		await _demolition(size)
 	await _sites()
 	await _walk()
+	await _assets()
 	var gallery := _open(AssetsBus.GALLERY_SCENE)
 	await frames(5)
 	_judge("assets.gallery", gallery)
@@ -95,6 +120,32 @@ func _sites() -> void:
 		await frames(2)
 	sites.clear_site()
 	await frames(2)
+
+
+func _assets() -> void:
+	_set_look("realistic")
+	var all := AssetLibrary.ids()
+	var step := 1 if OS.get_environment("PERF_FULL") == "1" else ASSET_STEP
+	var scanned := 0
+	var bad: Array[String] = []
+	for i in range(0, all.size(), step):
+		var id := all[i]
+		var node := AssetLibrary.make(id)
+		add_child(node)
+		var fights := ZFightScan.scan(node)
+		scanned += 1
+		if fights.is_empty() and KNOWN_ASSETS.has(id) and str(KNOWN_ASSETS[id]) == "assets":
+			lines.append("      %s is clean now: take it out of KNOWN_ASSETS" % id)
+		if not fights.is_empty() and not KNOWN_ASSETS.has(id):
+			bad.append("%s: %d pairs, worst %s" % [id, fights.size(), ZFightScan.describe(fights[0])])
+		node.free()
+	_set_look("clean")
+	lines.append("  %-26s %4d of %d models scanned one by one, %d with new z-fighting, %d listed%s" % ["assets.models", scanned, all.size(),
+			bad.size(), KNOWN_ASSETS.size(), "" if step == 1 else " (PERF_FULL=1 scans them all)"])
+	for b in bad:
+		lines.append("      " + b)
+	check(bad.is_empty(), "library models with z-fighting (assets): %s" % ", ".join(bad))
+	await frames(1)
 
 
 ## Walking round inside the house.
