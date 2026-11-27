@@ -1,11 +1,14 @@
 class_name ContractCareer
 extends RefCounted
-## The firm's standing across contracts: money, reputation, finished jobs and what has been
-## unlocked. Reputation unlocks building types (ContractGenerator offers them) and
-## materials and part kinds (the design room's palette asks is_kind_unlocked()).
+## The architecture firm across contracts: money, XP and its tier (ContractTiers), finished
+## jobs and what has been unlocked. Completing contracts earns XP; each tier unlocks building
+## types (ContractGenerator offers them) and materials and part kinds (the design room's
+## palette asks is_kind_unlocked()). A tier, once reached, is never lost.
 ##
 ##   var career := ContractCareer.new()
 ##   var new_unlocks := career.record(settlement)   # after ContractPayout.settle
+##   career.tier()                                  # 1..ContractTiers.top()
+##   career.progress()                              # ContractTiers.progress(career.xp)
 ##   career.is_unlocked("type:primary_school")
 ##   career.is_kind_unlocked("truss", catalog)     # kind and its materials both allowed
 ##
@@ -14,25 +17,25 @@ extends RefCounted
 signal changed
 
 const START_MONEY := 250000.0
-## Unlocks by reputation, beyond the building types (whose thresholds are in the generator's
-## building type table). id: "material:<id>" or "kind:<id>".
+## Unlocks by tier, beyond the building types (whose tiers are in the generator's building
+## type table). id: "material:<id>" or "kind:<id>".
 const UNLOCKS := [
-	{"rep": 0, "id": "material:timber", "label": "Timber"},
-	{"rep": 0, "id": "material:masonry", "label": "Brick and block"},
-	{"rep": 0, "id": "material:concrete", "label": "Reinforced concrete"},
-	{"rep": 0, "id": "material:glass", "label": "Glazing"},
-	{"rep": 0, "id": "material:ceramic", "label": "Sanitaryware"},
-	{"rep": 8, "id": "material:steel", "label": "Structural steel"},
-	{"rep": 15, "id": "kind:truss", "label": "Trusses"},
-	{"rep": 15, "id": "kind:pile", "label": "Bored piles"},
-	{"rep": 20, "id": "material:glulam", "label": "Glulam"},
-	{"rep": 30, "id": "kind:curtain_wall", "label": "Curtain walling"},
-	{"rep": 30, "id": "kind:raft", "label": "Raft foundations"},
+	{"tier": 1, "id": "material:timber", "label": "Timber"},
+	{"tier": 1, "id": "material:masonry", "label": "Brick and block"},
+	{"tier": 1, "id": "material:concrete", "label": "Reinforced concrete"},
+	{"tier": 1, "id": "material:glass", "label": "Glazing"},
+	{"tier": 1, "id": "material:ceramic", "label": "Sanitaryware"},
+	{"tier": 3, "id": "material:steel", "label": "Structural steel"},
+	{"tier": 3, "id": "kind:truss", "label": "Trusses"},
+	{"tier": 4, "id": "kind:pile", "label": "Bored piles"},
+	{"tier": 4, "id": "material:glulam", "label": "Glulam"},
+	{"tier": 5, "id": "kind:curtain_wall", "label": "Curtain walling"},
+	{"tier": 5, "id": "kind:raft", "label": "Raft foundations"},
 ]
 
 var money := START_MONEY
-var reputation := 0
-## Finished contracts, oldest first: {brief_id, title, passed, profit, reputation, days}.
+var xp := 0
+## Finished contracts, oldest first: {brief_id, title, tier, passed, profit, xp, days}.
 var history: Array = []
 var unlocked: PackedStringArray = []
 
@@ -44,13 +47,43 @@ func _init() -> void:
 ## Books a settled contract. Returns the ids unlocked by it.
 func record(settlement: Dictionary) -> PackedStringArray:
 	money += float(settlement.get("profit", 0.0))
-	reputation = maxi(0, reputation + int(settlement.get("reputation", 0)))
+	xp += maxi(0, int(settlement.get("xp", 0)))
 	history.append({"brief_id": str(settlement.get("brief_id", "")), "title": str(settlement.get("title", "")),
-			"passed": bool(settlement.get("passed", false)), "profit": float(settlement.get("profit", 0.0)),
-			"reputation": int(settlement.get("reputation", 0)), "days": int(settlement.get("days", 0))})
+			"tier": int(settlement.get("tier", 1)), "passed": bool(settlement.get("passed", false)),
+			"profit": float(settlement.get("profit", 0.0)), "xp": int(settlement.get("xp", 0)), "days": int(settlement.get("days", 0))})
 	var fresh := _unlock_due()
 	changed.emit()
 	return fresh
+
+
+func tier() -> int:
+	return ContractTiers.tier_for(xp)
+
+
+func progress() -> Dictionary:
+	return ContractTiers.progress(xp)
+
+
+## Sets the XP outright (the debug menu's Max XP). Unlocks what the new tier opens; going down
+## re-locks what is above it, so a tester can step back through the tiers. Returns the ids
+## newly unlocked.
+func set_xp(value: int) -> PackedStringArray:
+	xp = clampi(value, 0, ContractTiers.MAX_XP * 10)
+	var t := tier()
+	var keep := PackedStringArray()
+	for u: Dictionary in all_unlocks():
+		if int(u.tier) <= t and is_unlocked(str(u.id)):
+			keep.append(str(u.id))
+	unlocked = keep
+	var fresh := _unlock_due()
+	changed.emit()
+	return fresh
+
+
+## Takes XP away (abandoning a contract), never below the current tier's floor.
+func lose_xp(amount: int) -> void:
+	xp = maxi(int(ContractTiers.info(tier()).xp), xp - maxi(0, amount))
+	changed.emit()
 
 
 func is_unlocked(unlock_id: String) -> bool:
@@ -81,30 +114,35 @@ func streak() -> int:
 	return n
 
 
-## What the next unlock is: {rep, id, label} or {} when everything is open.
+## What the next unlock is: {tier, id, label} or {} when everything is open.
 func next_unlock() -> Dictionary:
 	var best := {}
 	for u: Dictionary in all_unlocks():
-		if not is_unlocked(str(u.id)) and (best.is_empty() or int(u.rep) < int(best.rep)):
+		if not is_unlocked(str(u.id)) and (best.is_empty() or int(u.tier) < int(best.tier)):
 			best = u
 	return best
+
+
+## Everything a tier opens: [{tier, id, label}].
+static func unlocks_at(t: int) -> Array:
+	return all_unlocks().filter(func(u: Dictionary) -> bool: return int(u.tier) == t)
 
 
 ## Every unlock: materials and kinds above, plus "type:<building type>" for each type.
 static func all_unlocks() -> Array:
 	var out: Array = UNLOCKS.duplicate(true)
 	for t: String in ContractGenerator.TYPES:
-		out.append({"rep": int(ContractGenerator.TYPES[t].rep), "id": "type:" + t, "label": str(ContractGenerator.TYPES[t].label)})
+		out.append({"tier": int(ContractGenerator.TYPES[t].tier), "id": "type:" + t, "label": str(ContractGenerator.TYPES[t].label)})
 	return out
 
 
 func to_data() -> Dictionary:
-	return {"money": money, "reputation": reputation, "history": history.duplicate(true), "unlocked": Array(unlocked)}
+	return {"money": money, "xp": xp, "history": history.duplicate(true), "unlocked": Array(unlocked)}
 
 
 func load_data(data: Dictionary) -> void:
 	money = float(data.get("money", START_MONEY))
-	reputation = int(data.get("reputation", 0))
+	xp = maxi(0, int(data.get("xp", 0)))
 	history = (data.get("history", []) as Array).duplicate(true) if data.get("history") is Array else []
 	unlocked = PackedStringArray(data.get("unlocked", []))
 	_unlock_due()
@@ -114,7 +152,7 @@ func load_data(data: Dictionary) -> void:
 func _unlock_due() -> PackedStringArray:
 	var fresh := PackedStringArray()
 	for u: Dictionary in all_unlocks():
-		if int(u.rep) <= reputation and not is_unlocked(str(u.id)):
+		if int(u.tier) <= tier() and not is_unlocked(str(u.id)):
 			unlocked.append(str(u.id))
 			fresh.append(str(u.id))
 	return fresh

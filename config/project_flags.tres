@@ -13,6 +13,7 @@ flags = {
 "building": true,
 "contracts": true,
 "contracts.panel": true,
+"contracts.board": true,
 "design": true,
 "design.room": true,
 "design.hall": true,

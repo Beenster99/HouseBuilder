@@ -5,15 +5,16 @@ extends RefCounted
 ## homes, hospital wings and airport terminals. Deterministic: the same seed gives the same
 ## brief on every machine, so the host only needs to send the seed.
 ##
-##   var brief := ContractGenerator.generate(seed)                       # any type open at rep 0
+##   var brief := ContractGenerator.generate(seed)                    # small works (tier 1)
 ##   var brief := ContractGenerator.generate(seed, "primary_school")
-##   var board := ContractGenerator.board(seed, career.reputation, 5)    # a job board
-##   var brief := ContractGenerator.generate_on_site(seed, "", reputation)  # on a real plot
+##   var board := ContractGenerator.board(seed, career.tier(), 5)     # a job board
+##   var brief := ContractGenerator.generate_on_site(seed, "", tier)  # on a real plot
 ##
 ## Each brief takes its rooms from the building type's program (internal/building_types.gd),
 ## sized by a roll, prices its budget from the rooms' floor area at the type's rate with
-## some slack (less slack as reputation grows), and sometimes adds a site twist (a height
-## limit, a small footprint) or asks for a stress test.
+## some slack (less slack at higher tiers), and sometimes adds a site twist (a height limit,
+## a small footprint) or asks for a stress test. It carries the type's tier and the XP it
+## earns ("tier", "xp"). Most briefs are for the firm's own tier, some for the tier below.
 
 const TYPES_SCRIPT := preload("res://modules/contracts/internal/building_types.gd")
 const TYPES: Dictionary = TYPES_SCRIPT.TYPES
@@ -24,23 +25,39 @@ const FEE_MARGIN := 0.12
 const SERVICES_SHARE := 0.08
 
 
-## Building type ids open at a reputation, in table order.
-static func types_open(reputation: int) -> PackedStringArray:
+## Share of briefs for the firm's own tier (the rest are from the tiers below).
+const OWN_TIER_SHARE := 0.7
+
+
+## Building type ids open at a tier (that tier and below), in table order.
+static func types_open(tier: int) -> PackedStringArray:
 	var out := PackedStringArray()
 	for t: String in TYPES:
-		if int(TYPES[t].rep) <= reputation:
+		if int(TYPES[t].tier) <= tier:
 			out.append(t)
 	return out
 
 
-## One brief. type "" picks among the types open at `reputation`.
-static func generate(seed: int, type: String = "", reputation: int = 0) -> Dictionary:
+## Building type ids first offered at exactly this tier.
+static func types_of_tier(tier: int) -> PackedStringArray:
+	var out := PackedStringArray()
+	for t: String in TYPES:
+		if int(TYPES[t].tier) == tier:
+			out.append(t)
+	return out
+
+
+## One brief. type "" picks a type for a firm at `tier`: usually one of that tier's own.
+static func generate(seed: int, type: String = "", tier: int = 1) -> Dictionary:
 	var rng := RandomNumberGenerator.new()
 	rng.seed = seed
-	var open := types_open(reputation)
+	tier = clampi(tier, 1, ContractTiers.top())
 	if type == "" or not TYPES.has(type):
-		type = open[rng.randi_range(0, open.size() - 1)]
+		var own := types_of_tier(tier)
+		var pool := own if own.size() > 0 and (rng.randf() < OWN_TIER_SHARE or tier == 1) else types_open(tier)
+		type = pool[rng.randi_range(0, pool.size() - 1)]
 	var spec: Dictionary = TYPES[type]
+	var type_tier := int(spec.tier)
 	var cat := BuildingCatalog.default_catalog()
 	var size := rng.randf()
 	var reqs: Array = []
@@ -84,7 +101,7 @@ static func generate(seed: int, type: String = "", reputation: int = 0) -> Dicti
 		twist = "The client's engineer wants to see a passed stress test."
 	reqs.append({"id": "budget", "kind": "budget"})
 	# Money and time.
-	var slack := rng.randf_range(1.15, 1.45) - minf(reputation, 60) * 0.002
+	var slack := rng.randf_range(1.15, 1.45) - (tier - 1) * 0.02
 	var budget := snappedf(area * float(spec.rate) * (1.0 + SERVICES_SHARE) * slack, 1000.0)
 	var fee := snappedf(budget * (1.0 + FEE_MARGIN), 1000.0)
 	var deadline := int(snappedf((60.0 + area * 0.5) * rng.randf_range(1.1, 1.4), 5.0))
@@ -105,24 +122,24 @@ static func generate(seed: int, type: String = "", reputation: int = 0) -> Dicti
 		"id": "%s-%d" % [type, seed], "title": "%s %s" % [size_word, label.to_lower()], "type": type,
 		"client": client, "summary": summary, "seed": seed,
 		"budget": budget, "fee": fee, "deadline_days": deadline,
-		"reputation": {"min": int(spec.rep), "reward": clampi(2 + int(area / 120.0), 2, 25)},
+		"tier": type_tier, "xp": snappedi(roundi(float(ContractTiers.info(type_tier).award) * (0.8 + 0.4 * size)), 10),
 		"requirements": reqs, "goals": goals,
 	}
 
 
-## The hardest site (1 to 5) offered at a reputation.
-static func max_site_rating(reputation: int) -> int:
-	return clampi(2 + reputation / 15, 2, 5)
+## The hardest site (1 to 5) offered at a firm tier.
+static func max_site_rating(tier: int) -> int:
+	return clampi(1 + (tier + 1) / 2, 2, 5)
 
 
 ## A brief on a real plot from the sites pool (Phase 6): the plot's outline becomes a
 ## within_plot requirement (BuildingModel coordinates, the plot centre at 0, 0), the budget
-## and fee rise by the plot's cost multiplier, the reward by its difficulty, and its problems
-## go in the summary. Falls back to an ordinary brief when no plot suits the type.
-static func generate_on_site(seed: int, type: String = "", reputation: int = 0) -> Dictionary:
-	var b := generate(seed, type, reputation)
+## and fee rise by the plot's cost multiplier, the XP by a tenth per difficulty step, and its
+## problems go in the summary. Falls back to an ordinary brief when no plot suits the type.
+static func generate_on_site(seed: int, type: String = "", tier: int = 1) -> Dictionary:
+	var b := generate(seed, type, tier)
 	var kind := str(TYPES_SCRIPT.SITE_KIND.get(str(b.type), ""))
-	var site_id := SitePool.pick(kind, seed, max_site_rating(reputation)) if kind != "" else ""
+	var site_id := SitePool.pick(kind, seed, max_site_rating(tier)) if kind != "" else ""
 	if site_id == "":
 		return b
 	var pack := SitePool.open(site_id)
@@ -139,7 +156,7 @@ static func generate_on_site(seed: int, type: String = "", reputation: int = 0) 
 	b["budget"] = snappedf(float(b.budget) * mult, 1000.0)
 	b["fee"] = snappedf(float(b.fee) * mult, 1000.0)
 	b["deadline_days"] = int(snappedf(float(b.deadline_days) * (1.0 + 0.05 * (pack.rating() - 1)), 5.0))
-	b.reputation["reward"] = int(b.reputation.reward) + pack.rating() - 1
+	b["xp"] = snappedi(roundi(float(b.xp) * (1.0 + 0.1 * (pack.rating() - 1))), 10)
 	b["title"] = "%s at %s" % [b.title, pack.title()]
 	var site_line := "The site is %s (%d m2), difficulty %d of 5" % [pack.title(), roundi(pack.plot_area()), pack.rating()]
 	site_line += ": " + _and_list(labels) + "." if not labels.is_empty() else "."
@@ -149,14 +166,15 @@ static func generate_on_site(seed: int, type: String = "", reputation: int = 0) 
 
 ## n briefs for a job board, each from its own seed; one of the hand-written briefs leads
 ## while it has not been done, and every other generated one is on a real site.
-static func board(seed: int, reputation: int, n: int = 5, done: Array = []) -> Array:
+## A hand-written brief leads once the firm reaches its tier, until it has been done.
+static func board(seed: int, tier: int, n: int = 5, done: Array = []) -> Array:
 	var out: Array = []
 	for b: Dictionary in ContractBrief.authored():
-		if not str(b.id) in done and int(b.reputation.min) <= reputation and out.size() < 1:
+		if not str(b.id) in done and int(b.tier) <= tier and out.size() < 1:
 			out.append(b)
 	var i := 0
 	while out.size() < n:
-		out.append(generate_on_site(seed * 31 + i, "", reputation) if i % 2 == 1 else generate(seed * 31 + i, "", reputation))
+		out.append(generate_on_site(seed * 31 + i, "", tier) if i % 2 == 1 else generate(seed * 31 + i, "", tier))
 		i += 1
 	return out
 

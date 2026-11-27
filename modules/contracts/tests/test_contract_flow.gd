@@ -1,6 +1,7 @@
 extends ModuleTest
-## Generated briefs, payout, career and unlocks, and the bus taking a contract from the
-## board to handover, solo and with two players.
+## Generated briefs, payout, the firm's XP, tiers and unlocks, and the bus taking a contract
+## from the board to handover, solo and with two players; the big-screen board and the
+## debug menu's XP buttons.
 ##   tools/run_tests.sh contracts
 
 const Kit := preload("res://modules/contracts/tests/building_kit.gd")
@@ -12,7 +13,9 @@ func run_tests() -> void:
 	_generator()
 	_payout()
 	_career()
+	_tiers()
 	_bus_solo()
+	_debug_xp()
 	await _panel()
 	await _bus_two_players()
 
@@ -25,7 +28,7 @@ func _generator() -> void:
 	var types := {}
 	var all_ok := true
 	for s in 200:
-		var g := ContractGenerator.generate(s, "", 100)
+		var g := ContractGenerator.generate(s, "", 7)
 		types[g.type] = true
 		var n := ContractBrief.normalize(g)
 		if n.is_empty() or float(n.budget) <= 0.0 or float(n.fee) <= float(n.budget) or int(n.deadline_days) <= 0 or (n.requirements as Array).is_empty():
@@ -35,12 +38,21 @@ func _generator() -> void:
 				all_ok = false
 	check(all_ok, "every generated brief has a budget, a fee above it, a deadline and readable requirements")
 	check(types.size() >= 12, "200 briefs cover at least 12 building types (%d)" % types.size())
-	var open := ContractGenerator.types_open(0)
-	check("bungalow" in open and not "airport_terminal" in open, "a new firm is offered houses, not airports")
+	var open := ContractGenerator.types_open(1)
+	check("garden_studio" in open and not "bungalow" in open and not "airport_terminal" in open, "a new firm is offered small works only")
 	for s in 50:
-		if not str(ContractGenerator.generate(s, "", 0).type) in open:
+		var g := ContractGenerator.generate(s, "", 1)
+		if not str(g.type) in open or int(g.tier) != 1 or int(g.xp) <= 0:
 			all_ok = false
 	check(all_ok, "and never rolls a type it has not unlocked")
+	var own := 0
+	for s in 100:
+		if int(ContractGenerator.generate(s, "", 4).tier) == 4:
+			own += 1
+	check(own >= 55 and own < 100, "a tier 4 firm is mostly offered tier 4 work, some from below (%d of 100)" % own)
+	var small := ContractGenerator.generate(5, "garden_studio", 1)
+	var big := ContractGenerator.generate(5, "airport_terminal", 7)
+	check(int(big.xp) > int(small.xp) * 20, "an airport earns far more XP than a garden studio (%d, %d)" % [int(big.xp), int(small.xp)])
 	var school := ContractGenerator.generate(7, "primary_school")
 	check(str(school.type) == "primary_school" and "classroom" in str(school.summary), "a type can be asked for: %s" % school.summary)
 	# A generated semi-detached house brief can be won by the test house, near enough:
@@ -53,7 +65,7 @@ func _generator() -> void:
 	var onsite := 0
 	var site_ok := true
 	for s in 40:
-		var g := ContractGenerator.generate_on_site(s, "", 100)
+		var g := ContractGenerator.generate_on_site(s, "", 7)
 		if g.has("site"):
 			onsite += 1
 			var plot: Array = g.site.plot
@@ -65,15 +77,17 @@ func _generator() -> void:
 				site_ok = false
 	check(onsite >= 20, "most briefs find a real plot (%d of 40)" % onsite)
 	check(site_ok, "each has the plot's outline, a within_plot requirement and the site in its summary")
-	var plain := ContractGenerator.generate(11, "primary_school", 100)
-	var sited := ContractGenerator.generate_on_site(11, "primary_school", 100)
+	var plain := ContractGenerator.generate(11, "primary_school", 7)
+	var sited := ContractGenerator.generate_on_site(11, "primary_school", 7)
 	check(sited.has("site") and float(sited.budget) >= float(plain.budget), "a hard plot raises the budget (%s on %s)" % [
 			ContractValidator.money(sited.budget), str(sited.get("site", {}).get("name", "?"))])
-	check(ContractGenerator.generate_on_site(11, "primary_school", 100) == sited, "and the same seed picks the same plot")
-	check(ContractGenerator.max_site_rating(0) == 2 and ContractGenerator.max_site_rating(100) == 5, "harder plots open up with reputation")
-	var board := ContractGenerator.board(1, 0, 5)
-	check(board.size() == 5 and str(board[0].id) == "house_detached_3bed", "the first board leads with the hand-written house")
-	var later := ContractGenerator.board(1, 0, 5, ["house_detached_3bed"])
+	check(ContractGenerator.generate_on_site(11, "primary_school", 7) == sited, "and the same seed picks the same plot")
+	check(ContractGenerator.max_site_rating(1) == 2 and ContractGenerator.max_site_rating(7) == 5, "harder plots open up with the tier")
+	var first := ContractGenerator.board(1, 1, 5)
+	check(first.size() == 5 and first.all(func(b: Dictionary) -> bool: return int(b.tier) == 1), "a new firm's board is all small works")
+	var board := ContractGenerator.board(1, 3, 5)
+	check(board.size() == 5 and str(board[0].id) == "house_detached_3bed", "at tier 3 the board leads with the hand-written house")
+	var later := ContractGenerator.board(1, 3, 5, ["house_detached_3bed"])
 	check(str(later[0].id) != "house_detached_3bed", "and moves on once it is done")
 
 
@@ -83,37 +97,70 @@ func _payout() -> void:
 	var on_time := ContractPayout.settle(brief, a, {"days": 120})
 	check(on_time.passed and on_time.fee == 202000.0 and on_time.late_days == 0, "a passing house on time is paid in full")
 	check(is_equal_approx(on_time.profit, 202000.0 + a.bonus - a.cost), "profit is fee plus bonuses less the build cost")
-	check(on_time.reputation == 4, "and earns the brief's reputation")
+	check(on_time.xp >= 1000 and int(on_time.tier) == 3, "and earns the brief's XP, more for goals met (%d)" % on_time.xp)
 	var late := ContractPayout.settle(brief, a, {"days": 164})
 	check(late.late_days == 14 and is_equal_approx(late.late_penalty, 202000.0 * 0.005 * 14), "two weeks late costs 7% of the fee")
-	check(late.reputation == 2, "and two reputation")
+	check(late.xp == on_time.xp - 200, "and two weeks late earns a fifth less XP (%d)" % late.xp)
 	var failed := a.duplicate(true)
 	failed.ok = false
 	(failed.items as Array)[0].ok = false
 	var f := ContractPayout.settle(brief, failed, {"days": 100})
-	check(not f.passed and f.fee == 0.0 and f.profit < 0.0 and f.reputation == -2, "a failed handover is not paid, loses money and reputation")
+	check(not f.passed and f.fee == 0.0 and f.profit < 0.0 and f.xp == 0, "a failed handover is not paid, loses money and earns no XP")
 	check("Not paid" in str(f.lines[0]) and "3 bedrooms" in str(f.lines[0]), "and says why: %s" % f.lines[0])
 
 
 func _career() -> void:
 	var c := ContractCareer.new()
-	check(c.money == ContractCareer.START_MONEY and c.reputation == 0, "a new firm starts with money and no name")
+	check(c.money == ContractCareer.START_MONEY and c.xp == 0 and c.tier() == 1, "a new firm starts with money, no XP, at tier 1")
 	var cat := BuildingCatalog.default_catalog()
 	check(c.is_kind_unlocked("column", cat) and not c.is_material_unlocked("steel"), "timber and concrete columns are open, steel is not")
-	check(not c.is_kind_unlocked("truss", cat) and not c.is_unlocked("type:primary_school"), "trusses and schools are locked")
-	var fresh := c.record({"brief_id": "x", "passed": true, "profit": 30000.0, "reputation": 10})
-	check(c.reputation == 10 and c.money == ContractCareer.START_MONEY + 30000.0, "a contract books its profit and reputation")
-	check("material:steel" in fresh and "type:primary_school" in fresh, "reputation 10 unlocks steel and primary schools")
+	check(not c.is_kind_unlocked("truss", cat) and not c.is_unlocked("type:bungalow") and c.is_unlocked("type:garden_studio"),
+			"trusses and houses are locked, small works are open")
+	var fresh := c.record({"brief_id": "x", "passed": true, "profit": 30000.0, "xp": 3000})
+	check(c.xp == 3000 and c.money == ContractCareer.START_MONEY + 30000.0, "a contract books its profit and XP")
+	check(c.tier() == 3 and "material:steel" in fresh and "type:detached_house" in fresh and "type:bungalow" in fresh,
+			"3,000 XP is tier 3: steel, detached houses and everything below")
 	check(c.is_kind_unlocked("beam", cat), "beams are open")
-	check(not c.next_unlock().is_empty() and int(c.next_unlock().rep) > 10, "the next unlock is further up")
+	check(not c.next_unlock().is_empty() and int(c.next_unlock().tier) == 4, "the next unlock is at tier 4")
+	c.lose_xp(5000)
+	check(c.xp == 3000 and c.tier() == 3, "losing XP never drops the firm a tier")
+	c.set_xp(ContractTiers.MAX_XP)
+	check(c.tier() == ContractTiers.top() and c.is_unlocked("type:airport_terminal") and c.is_kind_unlocked("curtain_wall", cat),
+			"Max XP opens the top tier and everything in it")
+	c.set_xp(0)
+	check(c.tier() == 1 and not c.is_material_unlocked("steel"), "and back to 0 locks it again")
+	c.set_xp(3000)
 	var copy := ContractCareer.new()
 	copy.load_data(c.to_data())
-	check(copy.to_data() == c.to_data() and copy.streak() == 1, "the career saves and loads")
+	check(copy.to_data() == c.to_data() and copy.streak() == 1 and copy.tier() == 3, "the career saves and loads")
+
+
+func _tiers() -> void:
+	check(ContractTiers.tier_for(0) == 1 and ContractTiers.tier_for(999) == 1 and ContractTiers.tier_for(1000) == 2, "tier 2 starts at 1,000 XP")
+	check(ContractTiers.tier_for(ContractTiers.MAX_XP) == ContractTiers.top(), "MAX_XP is the top tier")
+	var p := ContractTiers.progress(2000)
+	check(int(p.tier) == 2 and int(p.next) == 3000 and is_equal_approx(float(p.share), 0.5), "progress is halfway from tier 2 to 3")
+	check(int(ContractTiers.progress(ContractTiers.MAX_XP).next) == -1, "the top tier has no next")
+	check(ContractTiers.xp_text(12500) == "12,500 XP", "XP reads with commas")
+	var every := true
+	for t in range(1, ContractTiers.top() + 1):
+		if ContractGenerator.types_of_tier(t).is_empty():
+			every = false
+	check(every, "every tier brings new building types")
+	# About four contracts at a tier reach the next one.
+	var steady := true
+	for t in range(1, ContractTiers.top()):
+		var need := int(ContractTiers.info(t + 1).xp) - int(ContractTiers.info(t).xp)
+		var n := float(need) / float(ContractTiers.info(t).award)
+		if n < 2.5 or n > 6.0:
+			steady = false
+	check(steady, "each tier takes a few contracts, not one or twenty")
 
 
 func _bus_solo() -> void:
 	var bus := ContractsBus.new()
 	add_child(bus)
+	bus.career.set_xp(3000)
 	bus._deal_board(5)
 	check(bus.board.size() == ContractsBus.BOARD_SIZE, "the bus deals a board")
 	var model := Kit.house()
@@ -140,7 +187,7 @@ func _bus_solo() -> void:
 	# Hand over needs the shared building; check the payout path with this model directly.
 	var s := ContractPayout.settle(bus.active, bus.assess(model), {"days": 100})
 	bus._apply_handover({"settlement": s, "seed": 6})
-	check(settled.size() == 1 and bus.active.is_empty() and bus.career.reputation == 4, "handover books it and clears the contract")
+	check(settled.size() == 1 and bus.active.is_empty() and bus.career.xp == 3000 + int(s.xp), "handover books its XP and clears the contract")
 	check(bus.board_seed == 6 and str(bus.board[0].id) != house_id, "and deals a new board without the finished house")
 	var saved := bus.save_data()
 	var other := ContractsBus.new()
@@ -154,20 +201,41 @@ func _bus_solo() -> void:
 ## A stand-in for the design bus's panel registry.
 class FakeDesign extends Node:
 	var panels := {}
+	var channels := {}
 	func register_panel(id: String, title: String, make: Callable, order: int = 50) -> void:
 		panels[id] = {"title": title, "make": make, "order": order}
 	func unregister_panel(id: String) -> void:
 		panels.erase(id)
+	func register_channel(id: String, title: String, make: Callable, order: int = 50) -> void:
+		channels[id] = {"title": title, "make": make, "order": order}
+	func unregister_channel(id: String) -> void:
+		channels.erase(id)
 
 
 func _panel() -> void:
 	var bus := ContractsBus.new()
 	add_child(bus)
+	bus.career.set_xp(3000)
 	bus._deal_board(5)
 	var design := FakeDesign.new()
 	add_child(design)
 	bus.hook_design(design)
 	check(design.panels.is_empty(), "no Contract window without a contract")
+	check(design.channels.has(ContractsBus.CHANNEL_ID) and str(design.channels[ContractsBus.CHANNEL_ID].title) == "Contracts",
+			"the Contracts big-screen channel is registered")
+	var board: Control = (design.channels[ContractsBus.CHANNEL_ID].make as Callable).call(null)
+	add_child(board)
+	var accepts := board.find_children("Accept", "Button", true, false)
+	check(accepts.size() == ContractsBus.BOARD_SIZE and not (accepts[0] as Button).disabled, "it lists the board with an Accept button each")
+	check("Tier 3" in _texts(board) and "7,000 XP" in _texts(board), "and the firm's tier and the XP to the next")
+	(accepts[0] as Button).pressed.emit()
+	await frames(2)
+	check(str(bus.active.get("id", "")) == str(bus.board[0].id), "Accept on the big screen takes the contract")
+	check(board.find_children("ContractPanel", "", true, false).size() == 1, "and it shows the live brief")
+	bus.abandon()
+	await frames(2)
+	check(bus.active.is_empty() and bus.career.xp == 3000, "abandoning costs XP, never the tier")
+	board.queue_free()
 	bus.accept(str(bus.board[0].id))
 	check(design.panels.has(ContractsBus.PANEL_ID), "taking a contract puts the Contract window in the design room")
 	var model := Kit.house()
@@ -184,6 +252,36 @@ func _panel() -> void:
 	panel.queue_free()
 	bus.queue_free()
 	design.queue_free()
+
+
+func _texts(root: Node) -> String:
+	var out := ""
+	for n in root.find_children("*", "", true, false):
+		if n is Label:
+			out += (n as Label).text + "\n"
+		elif n is RichTextLabel:
+			out += (n as RichTextLabel).get_parsed_text() + "\n"
+	return out
+
+
+func _debug_xp() -> void:
+	var bus := ContractsBus.new()
+	add_child(bus)
+	bus._deal_board(5)
+	var section := bus.make_debug_section()
+	add_child(section)
+	check("Tier 1" in _texts(section), "the debug section shows the firm's tier")
+	(section.find_child("MaxXP", true, false) as Button).pressed.emit()
+	check(bus.career.tier() == ContractTiers.top() and bus.career.xp == ContractTiers.MAX_XP, "Max XP jumps to the top tier")
+	check(bus.board.any(func(b: Dictionary) -> bool: return int(b.tier) == ContractTiers.top()), "and deals a board with top-tier work")
+	check("Tier 7" in _texts(section), "and the section updates")
+	(section.find_child("ResetXP", true, false) as Button).pressed.emit()
+	(section.find_child("Nexttier", true, false) as Button).pressed.emit()
+	check(bus.career.tier() == 2 and bus.career.xp == 1000, "Next tier steps up one tier")
+	check(Menu.settings_sections(Menu.DEBUG).any(func(c: Dictionary) -> bool: return str(c.id) == ContractsBus.DEBUG_SECTION),
+			"the contracts module adds it to Settings > Debug")
+	section.queue_free()
+	bus.queue_free()
 
 
 func _bus_two_players() -> void:

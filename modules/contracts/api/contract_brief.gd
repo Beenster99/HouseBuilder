@@ -6,7 +6,8 @@ extends RefCounted
 ##
 ##   {id, title, type (building type), client, summary,
 ##    budget (GBP the client will let the build cost), fee (GBP paid on handover),
-##    deadline_days, reputation: {min (to be offered it), reward},
+##    deadline_days, tier (the firm tier that is offered it, ContractTiers), xp (earned on
+##    a passed handover),
 ##    site?: {plot: [[x, z], ...]}           # the plot the building must stay inside
 ##    requirements: [requirement, ...],      # hard: all must pass to be paid
 ##    goals: [requirement + {bonus}, ...]}   # soft: each one met pays its bonus
@@ -55,8 +56,8 @@ static func normalize(brief: Variant) -> Dictionary:
 		"client": str(b.get("client", "")), "summary": str(b.get("summary", "")),
 		"budget": float(b.get("budget", 0.0)), "fee": float(b.get("fee", 0.0)),
 		"deadline_days": int(b.get("deadline_days", 0)),
-		"reputation": {"min": int((b.get("reputation", {}) as Dictionary).get("min", 0)),
-				"reward": int((b.get("reputation", {}) as Dictionary).get("reward", 1))},
+		"tier": clampi(int(b.get("tier", 1)), 1, ContractTiers.top()),
+		"xp": maxi(0, int(b.get("xp", 0))),
 		"requirements": [], "goals": [],
 	}
 	if b.get("site") is Dictionary:

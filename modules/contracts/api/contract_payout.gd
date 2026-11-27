@@ -1,18 +1,21 @@
 class_name ContractPayout
 extends RefCounted
 ## Settles a finished contract: what the client pays, what the build cost, the profit, and
-## the change in reputation, with a line of explanation for each.
+## the XP the firm earns, with a line of explanation for each.
 ##
 ##   var s := ContractPayout.settle(brief, assessment, {"days": schedule.days})
-##   # {brief_id, passed, fee, bonus, cost, late_days, late_penalty, profit, reputation, lines}
+##   # {brief_id, title, tier, passed, fee, bonus, cost, late_days, late_penalty, profit, xp, lines}
 ##
 ## Rules: the fee is paid only if every hard requirement passes; each goal met adds its
 ## bonus. Finishing late costs LATE_SHARE of the fee a day, up to MAX_LATE_SHARE. The build
-## cost is always spent. Reputation: the brief's reward for a pass, less one a week late (at
-## least 1); a fail loses half the reward.
+## cost is always spent. XP: the brief's xp for a pass, plus GOAL_XP of it for each bonus
+## goal met, less LATE_XP of it a week late (down to MIN_XP_SHARE); a fail earns none.
 
 const LATE_SHARE := 0.005
 const MAX_LATE_SHARE := 0.5
+const GOAL_XP := 0.1
+const LATE_XP := 0.1
+const MIN_XP_SHARE := 0.25
 
 
 ## build: {days: the construction schedule's length}. Omit days for an on-time handover.
@@ -26,8 +29,12 @@ static func settle(brief: Dictionary, assessment: Dictionary, build: Dictionary 
 	var fee := float(b.fee) if passed else 0.0
 	var bonus := float(assessment.get("bonus", 0.0)) if passed else 0.0
 	var penalty := minf(fee * LATE_SHARE * late, fee * MAX_LATE_SHARE)
-	var reward := int((b.reputation as Dictionary).get("reward", 1))
-	var rep := maxi(1, reward - late / 7) if passed else -ceili(reward / 2.0)
+	var goals_met := 0
+	for it: Dictionary in assessment.get("items", []):
+		if not bool(it.get("hard", true)) and bool(it.get("ok", false)):
+			goals_met += 1
+	var share := maxf(MIN_XP_SHARE, 1.0 + GOAL_XP * goals_met - LATE_XP * (late / 7))
+	var xp := roundi(float(b.xp) * share) if passed else 0
 	var profit := fee + bonus - penalty - cost
 	var lines := PackedStringArray()
 	if passed:
@@ -46,9 +53,9 @@ static func settle(brief: Dictionary, assessment: Dictionary, build: Dictionary 
 	elif deadline > 0:
 		lines.append("Handed over on time (%d of %d days)." % [days, deadline])
 	lines.append("%s of %s." % ["Profit" if profit >= 0.0 else "A loss", ContractValidator.money(absf(profit))])
-	lines.append("Reputation %s%d." % ["+" if rep >= 0 else "", rep])
-	return {"brief_id": str(b.id), "title": str(b.title), "passed": passed, "fee": fee, "bonus": bonus, "cost": cost,
-			"days": days, "late_days": late, "late_penalty": penalty, "profit": profit, "reputation": rep, "lines": lines}
+	lines.append("+%s for the firm." % ContractTiers.xp_text(xp) if passed else "No XP: the contract was not completed.")
+	return {"brief_id": str(b.id), "title": str(b.title), "tier": int(b.tier), "passed": passed, "fee": fee, "bonus": bonus, "cost": cost,
+			"days": days, "late_days": late, "late_penalty": penalty, "profit": profit, "xp": xp, "lines": lines}
 
 
 static func _client(b: Dictionary) -> String:

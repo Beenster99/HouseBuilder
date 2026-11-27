@@ -129,7 +129,7 @@ static func check(req: Dictionary, ctx: Dictionary) -> Dictionary:
 		"vehicle_access":
 			var n := _doors(model, ["door_vehicle"], true).size()
 			_count(out, n, 1, "No vehicle door yet." if n == 0 else "A vehicle door is in place.",
-					"Put a vehicle door in an outside wall of the vehicle bay.")
+					"Put a vehicle door in an outside wall of the garage or vehicle bay.")
 		"secure_cells":
 			var cells := _rooms_of(model, "custody_cell").size()
 			var doors := 0

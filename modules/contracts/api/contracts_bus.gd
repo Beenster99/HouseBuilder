@@ -11,12 +11,16 @@ extends Node
 ##   c.set_structure_report(rep)    # a stress test result by hand (normally taken from the
 ##                                  # structure module's report_changed on every peer)
 ##   c.hand_over(days)              # settle: pays out, books the career, deals a new board
-##   c.abandon()                    # drop the contract (costs reputation)
-##   c.career                       # ContractCareer: money, reputation, unlocks
+##   c.abandon()                    # drop the contract (costs some XP, never a tier)
+##   c.career                       # ContractCareer: money, XP and tier, unlocks
+##   c.set_xp(ContractTiers.MAX_XP) # testing: jump the firm's XP (Settings > Debug)
 ##   signals: board_changed, active_changed, settled(settlement), report_taken, career.changed
 ##
 ## While a contract is taken, a live "Contract" window sits in the design room's side column
-## (DesignBus.register_panel, reached by name so contracts does not depend on design).
+## (DesignBus.register_panel). The "Contracts" wall-screen channel (DesignBus.register_channel,
+## id "contracts.board") shows the firm's tier and XP, the board, the active brief and the
+## next tier. Both are reached by name, so contracts does not depend on design. Settings >
+## Debug gets "Contracts: firm XP" (Max XP, next tier, reset).
 ##
 ## Everything that changes shared state is a host-validated event, so all players see the
 ## same board, contract and payout. Save section "contracts".
@@ -34,15 +38,23 @@ const PANEL_ID := "contracts.brief"
 const PANEL_FLAG := "contracts.panel"
 const PANEL_ORDER := 20
 const PANEL_SCRIPT := preload("res://modules/contracts/internal/contract_panel.gd")
+## The design hall's big-screen channel.
+const CHANNEL_ID := "contracts.board"
+const CHANNEL_FLAG := "contracts.board"
+const CHANNEL_ORDER := 20
+const BOARD_SCRIPT := preload("res://modules/contracts/internal/contract_board.gd")
+const DEBUG_SECTION := "contracts.xp"
 
 const SAVE_SECTION := "contracts"
 const SAVE_VERSION := 1
 const BOARD_SIZE := 5
-const ABANDON_REPUTATION := 2
+## Abandoning a contract costs this share of its XP (never below the tier's floor).
+const ABANDON_XP_SHARE := 0.5
 const EV_ACCEPT := "contracts.accept"
 const EV_HANDOVER := "contracts.handover"
 const EV_ABANDON := "contracts.abandon"
 const EV_REPORT := "contracts.structure_report"
+const EV_SET_XP := "contracts.set_xp"
 
 var career := ContractCareer.new()
 var board: Array = []
@@ -66,6 +78,7 @@ var _checked_fresh := false
 
 func register_module() -> void:
 	Saves.register_section(SAVE_SECTION, self)
+	Menu.register_settings_section(Menu.DEBUG, DEBUG_SECTION, "Contracts: firm XP", make_debug_section, 30)
 	_deal_board(board_seed)
 	if Modules.ready_done:
 		_hook_net()
@@ -75,8 +88,11 @@ func register_module() -> void:
 
 func unregister_module() -> void:
 	Saves.unregister_section(SAVE_SECTION)
+	Menu.unregister_settings_section(Menu.DEBUG, DEBUG_SECTION)
 	if is_instance_valid(_design):
 		_design.unregister_panel(PANEL_ID)
+		if _design.has_method("unregister_channel"):
+			_design.unregister_channel(CHANNEL_ID)
 	unbind()
 
 
@@ -85,7 +101,7 @@ func _hook_net() -> void:
 	if bus != null:
 		bind(bus)
 	var design := Modules.bus("design")
-	if design != null and design.has_method("register_panel") and Flags.is_on(PANEL_FLAG):
+	if design != null and design.has_method("register_panel"):
 		hook_design(design)
 	var st := Modules.bus("structure") as StructureBus
 	if st != null and not st.report_changed.is_connected(_on_structure_report):
@@ -109,13 +125,15 @@ func _take_report(report: Dictionary) -> void:
 ## Shows the Contract window in a design bus (or a stand-in in tests) while a contract is taken.
 func hook_design(design: Node) -> void:
 	_design = design
+	if design.has_method("register_channel") and Flags.is_on(CHANNEL_FLAG):
+		design.register_channel(CHANNEL_ID, "Contracts", make_board, CHANNEL_ORDER)
 	if not active_changed.is_connected(_sync_panel):
 		active_changed.connect(_sync_panel)
 	_sync_panel()
 
 
 func _sync_panel() -> void:
-	if not is_instance_valid(_design):
+	if not is_instance_valid(_design) or not Flags.is_on(PANEL_FLAG):
 		return
 	if active.is_empty():
 		_design.unregister_panel(PANEL_ID)
@@ -131,6 +149,48 @@ func make_panel(model: BuildingModel) -> Control:
 	return p
 
 
+## The big-screen Contracts page (the design hall's wall screens call this).
+func make_board(model: BuildingModel = null) -> Control:
+	var b: Control = BOARD_SCRIPT.new()
+	b.name = "ContractBoard"
+	b.setup(self, model if model != null else building())
+	return b
+
+
+## Settings > Debug: the firm's XP, with Max XP, next tier and reset buttons.
+func make_debug_section() -> Control:
+	var box := VBoxContainer.new()
+	var info := Label.new()
+	info.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	box.add_child(info)
+	var row := HBoxContainer.new()
+	box.add_child(row)
+	var buttons := [["Max XP", func() -> void: set_xp(ContractTiers.MAX_XP)], ["Next tier", _debug_next_tier],
+			["+1,000 XP", func() -> void: set_xp(career.xp + 1000)], ["Reset XP", func() -> void: set_xp(0)]]
+	for b: Array in buttons:
+		var btn := Button.new()
+		btn.text = str(b[0])
+		btn.name = str(b[0]).replace(" ", "").replace(",", "").replace("+", "Plus")
+		btn.pressed.connect(b[1])
+		row.add_child(btn)
+	var refresh_info := func() -> void:
+		if is_instance_valid(info):
+			var p := career.progress()
+			info.text = "Tier %d, %s: %s.%s" % [int(p.tier), str(p.name), ContractTiers.xp_text(career.xp),
+					" Next: tier %d at %s." % [int(p.tier) + 1, ContractTiers.xp_text(int(p.next))] if int(p.next) >= 0 else " Top tier."]
+	career.changed.connect(refresh_info)
+	box.tree_exiting.connect(func() -> void:
+		if career.changed.is_connected(refresh_info):
+			career.changed.disconnect(refresh_info))
+	refresh_info.call()
+	return box
+
+
+func _debug_next_tier() -> void:
+	var p := career.progress()
+	set_xp(int(p.next) if int(p.next) >= 0 else career.xp)
+
+
 ## Ties the board and contract to a session (tests bind their own buses).
 func bind(bus: MultiplayerBus) -> void:
 	unbind()
@@ -139,13 +199,14 @@ func bind(bus: MultiplayerBus) -> void:
 	net.register_event(EV_HANDOVER, _apply_handover, _validate_handover)
 	net.register_event(EV_ABANDON, _apply_abandon, _validate_abandon)
 	net.register_event(EV_REPORT, _apply_report, _validate_report)
+	net.register_event(EV_SET_XP, _apply_set_xp, _validate_set_xp)
 	net.register_snapshot_provider(SAVE_SECTION, self)
 
 
 func unbind() -> void:
 	if net == null:
 		return
-	for e: String in [EV_ACCEPT, EV_HANDOVER, EV_ABANDON, EV_REPORT]:
+	for e: String in [EV_ACCEPT, EV_HANDOVER, EV_ABANDON, EV_REPORT, EV_SET_XP]:
 		net.unregister_event(e)
 	net.unregister_snapshot_provider(SAVE_SECTION)
 	net = null
@@ -206,6 +267,11 @@ func set_structure_report(report: Dictionary) -> void:
 	_request(EV_REPORT, {"report": report})
 
 
+## Testing: sets the firm's XP (and so its tier) for every player, and deals a board for it.
+func set_xp(value: int) -> void:
+	_request(EV_SET_XP, {"xp": value})
+
+
 func _request(ev: String, payload: Dictionary) -> void:
 	if net != null:
 		net.request(ev, payload)
@@ -224,8 +290,8 @@ func _validate_accept(_sender: int, p: Dictionary) -> Variant:
 	var b := brief(str(p.get("id", "")))
 	if b.is_empty():
 		return "that contract is no longer on the board"
-	if int((b.get("reputation", {}) as Dictionary).get("min", 0)) > career.reputation:
-		return "needs reputation %d" % int(b.reputation.min)
+	if int(b.get("tier", 1)) > career.tier():
+		return "needs a tier %d firm" % int(b.tier)
 	return {"brief": b}
 
 
@@ -243,11 +309,17 @@ func _validate_handover(_sender: int, p: Dictionary) -> Variant:
 func _validate_abandon(_sender: int, _p: Dictionary) -> Variant:
 	if active.is_empty():
 		return "no contract taken"
-	return {"title": str(active.title)}
+	return {"title": str(active.title), "xp": ceili(int(active.get("xp", 0)) * ABANDON_XP_SHARE)}
 
 
 func _validate_report(_sender: int, p: Dictionary) -> Variant:
 	return {"report": p.get("report", {}) if p.get("report") is Dictionary else {}}
+
+
+func _validate_set_xp(_sender: int, p: Dictionary) -> Variant:
+	if not Flags.is_on("ui.debug_tab"):
+		return "testing shortcuts are off"
+	return {"xp": clampi(int(p.get("xp", 0)), 0, ContractTiers.MAX_XP * 10), "seed": board_seed + 1}
 
 
 # Every peer
@@ -269,7 +341,9 @@ func _apply_accept(p: Dictionary) -> void:
 
 func _apply_handover(p: Dictionary) -> void:
 	var s: Dictionary = (p.get("settlement", {}) as Dictionary).duplicate(true)
+	var before := career.tier()
 	s["unlocked"] = Array(career.record(s))
+	s["tier_up"] = career.tier() if career.tier() > before else 0
 	last_settlement = s
 	active = {}
 	structure_report = {}
@@ -280,9 +354,8 @@ func _apply_handover(p: Dictionary) -> void:
 	settled.emit(s)
 
 
-func _apply_abandon(_p: Dictionary) -> void:
-	career.reputation = maxi(0, career.reputation - ABANDON_REPUTATION)
-	career.changed.emit()
+func _apply_abandon(p: Dictionary) -> void:
+	career.lose_xp(int(p.get("xp", 0)))
 	active = {}
 	structure_report = {}
 	_report_sum = 0
@@ -294,13 +367,18 @@ func _apply_report(p: Dictionary) -> void:
 	_take_report(p.get("report", {}))
 
 
+func _apply_set_xp(p: Dictionary) -> void:
+	career.set_xp(int(p.get("xp", 0)))
+	_deal_board(int(p.get("seed", board_seed + 1)))
+
+
 func _deal_board(seed: int) -> void:
 	board_seed = seed
 	var done: Array = []
 	for h: Dictionary in career.history:
 		if h.passed:
 			done.append(str(h.brief_id))
-	board = ContractGenerator.board(board_seed, career.reputation, BOARD_SIZE, done)
+	board = ContractGenerator.board(board_seed, career.tier(), BOARD_SIZE, done)
 	board_changed.emit()
 
 

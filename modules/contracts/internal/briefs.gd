@@ -7,7 +7,7 @@ const BRIEFS := [
 		"id": "house_detached_3bed", "title": "Three-bedroom detached house", "type": "detached_house",
 		"client": "The Okafor family",
 		"summary": "A family home on a quiet plot: three bedrooms (one a proper double), two bathrooms, a kitchen and a garage, on no more than two floors.",
-		"budget": 180000.0, "fee": 202000.0, "deadline_days": 150, "reputation": {"min": 0, "reward": 4},
+		"budget": 180000.0, "fee": 202000.0, "deadline_days": 150, "tier": 3, "xp": 1000,
 		"requirements": [
 			{"id": "bedrooms", "kind": "rooms", "type": "bedroom", "count": 3},
 			{"id": "double", "kind": "double_bedroom", "count": 1},
@@ -26,7 +26,7 @@ const BRIEFS := [
 		"id": "school_primary_8", "title": "Eight-class primary school", "type": "primary_school",
 		"client": "The county council",
 		"summary": "A primary school for 240 pupils: eight classrooms of 30, a hall, an accessible entrance, and a fire exit within 30 m of every room.",
-		"budget": 900000.0, "fee": 1010000.0, "deadline_days": 420, "reputation": {"min": 0, "reward": 10},
+		"budget": 900000.0, "fee": 1010000.0, "deadline_days": 420, "tier": 4, "xp": 2000,
 		"requirements": [
 			{"id": "classrooms", "kind": "rooms", "type": "classroom", "count": 8, "capacity": 30},
 			{"id": "hall", "kind": "rooms", "type": "school_hall", "count": 1},
@@ -46,7 +46,7 @@ const BRIEFS := [
 		"id": "police_station_town", "title": "Town police station", "type": "police_station",
 		"client": "The county constabulary",
 		"summary": "A town police station: a public front desk, a custody suite of four cells behind secure doors close to the custody desk, an interview room, and a vehicle bay.",
-		"budget": 600000.0, "fee": 672000.0, "deadline_days": 330, "reputation": {"min": 0, "reward": 8},
+		"budget": 600000.0, "fee": 672000.0, "deadline_days": 330, "tier": 5, "xp": 3500,
 		"requirements": [
 			{"id": "front_desk", "kind": "rooms", "type": "reception", "count": 1},
 			{"id": "custody_desk", "kind": "rooms", "type": "custody_desk", "count": 1},
