@@ -35,13 +35,13 @@ static var _meshes: Dictionary = {}
 func burst(box: AABB, centre: Vector3, material: String, look: Material, power := 1.0, seed_key := "") -> int:
 	var style := style_of(material)
 	var volume := maxf(box.get_volume(), 0.01)
-	var n := clampi(int(volume * 14.0 * power), 12, MAX_PER_BURST)
+	var n := clampi(int((40.0 + volume * 20.0) * power), 10, MAX_PER_BURST)
 	if style == "steel":
 		n = maxi(n >> 1, 8)
 	n = mini(n, MAX_LIVE - _live)
 	if n <= 0:
 		_retire_oldest()
-		n = mini(clampi(int(volume * 14.0 * power), 12, MAX_PER_BURST), MAX_LIVE - _live)
+		n = mini(clampi(int((40.0 + volume * 20.0) * power), 10, MAX_PER_BURST), MAX_LIVE - _live)
 		if n <= 0:
 			return 0
 	var rng := RandomNumberGenerator.new()
