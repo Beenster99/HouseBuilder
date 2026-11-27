@@ -16,4 +16,5 @@ Fixes since the copy (worth porting back to BSX Ltd):
   frees a registered mover or avatar before it is unregistered.
 - Crew avatars appear only in scenes whose root has meta `crew_avatars` = true (BSX's
   first-person scenes would set it); FredDibnah's overhead views use cursors instead.
+- net_stats() no longer reports everything sent before its first call as one second of traffic.
 - New in core here, not in BSX: ArtStyle and the Graphics "Look" option.

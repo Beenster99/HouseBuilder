@@ -188,8 +188,13 @@ func net_stats() -> Dictionary:
 		_stats_sent += peer.host.pop_statistic(ENetConnection.HOST_TOTAL_SENT_DATA)
 		_stats_recv += peer.host.pop_statistic(ENetConnection.HOST_TOTAL_RECEIVED_DATA)
 	var now := Time.get_ticks_msec() / 1000.0
-	if now - _stats_at >= 0.25:
-		var dt := now - _stats_at if _stats_at > 0.0 else 1.0
+	if _stats_at <= 0.0:
+		# The first call starts the clock: what was sent before it isn't a rate.
+		_stats_sent = 0.0
+		_stats_recv = 0.0
+		_stats_at = now
+	elif now - _stats_at >= 0.25:
+		var dt := now - _stats_at
 		_stats.sent_bytes_per_s = _stats_sent / dt
 		_stats.recv_bytes_per_s = _stats_recv / dt
 		_stats_sent = 0.0
