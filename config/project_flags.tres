@@ -39,5 +39,9 @@ flags = {
 "perf.overlay": true,
 "perf.desync_check": true,
 "walk": true,
-"walk.inside": true
+"walk.inside": true,
+"kits": true,
+"kits.modules": true,
+"kits.preview": true,
+"kits.walk_preview": true
 }
