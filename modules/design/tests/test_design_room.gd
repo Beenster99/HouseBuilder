@@ -82,6 +82,13 @@ func run_tests() -> void:
 	check(hud.find_children("*", "Button", true, false).size() > DesignSession.TOOLS.size(), "the HUD has the tools")
 	var labels := hud.find_children("*", "Button", true, false).map(func(b: Node) -> String: return (b as Button).text)
 	check("Test it" in labels, "and other modules' actions: %s" % str(labels))
+	var look_was := ArtStyle.style()
+	hud.call("set_realistic", true)
+	check(ArtStyle.realistic(), "the Realistic toggle switches the look")
+	hud.call("set_realistic", false)
+	check(not ArtStyle.realistic(), "and back to the sketch model")
+	GraphicsOptions.set_value("art_style", look_was)
+	Graphics.apply_all()
 	var browser: TabContainer = hud.get("browser")
 	browser.call("refresh")
 	check(int(browser.call("room_rows")) >= 1 and int(browser.call("component_rows")) >= 1,

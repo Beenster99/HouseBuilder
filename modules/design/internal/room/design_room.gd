@@ -533,6 +533,9 @@ func _key(k: InputEventKey) -> bool:
 		KEY_T:
 			session.retag_selection()
 			return true
+		KEY_V:
+			hud.call("set_realistic", not ArtStyle.realistic())
+			return true
 		KEY_ESCAPE:
 			if session.anchor != null or not session.drag.is_empty():
 				session.cancel()

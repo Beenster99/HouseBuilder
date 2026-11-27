@@ -31,6 +31,7 @@ var browser: TabContainer
 var _folded: Dictionary = {}
 var _note_popup: PopupPanel
 var _layers_pop: PopupMenu
+var _look: CheckButton
 var _note_text: LineEdit
 var _note_at := Vector3.ZERO
 var _note_target := ""
@@ -181,6 +182,14 @@ func _build_top() -> void:
 		pop.set_item_checked(i, on)
 		set_layer(str(LAYERS[i][0]), on))
 	row2.add_child(layers)
+	_look = CheckButton.new()
+	_look.text = "Realistic"
+	_look.focus_mode = FOCUS_NONE
+	_look.tooltip_text = "Off: plain white sketch model with ink lines, for designing. On: real materials (V)"
+	_look.button_pressed = ArtStyle.realistic()
+	_look.toggled.connect(set_realistic)
+	Graphics.changed.connect(_on_graphics_changed)
+	row2.add_child(_look)
 	_views = OptionButton.new()
 	_views.focus_mode = FOCUS_NONE
 	_views.tooltip_text = "The view you look through: Architect, or another discipline's overlay"
@@ -189,6 +198,20 @@ func _build_top() -> void:
 	_actions = HBoxContainer.new()
 	row2.add_child(_actions)
 	row.add_child(_button("Menu", Menu.open_pause, "Pause menu (Esc)"))
+
+
+## The look for this player: the sketch model (false) or real materials (true). It is the
+## same setting as Graphics > Display > Look, so it sticks.
+func set_realistic(on: bool) -> void:
+	if on == ArtStyle.realistic():
+		return
+	GraphicsOptions.set_value("art_style", ArtStyle.REALISTIC if on else ArtStyle.MODEL)
+	GraphicsOptions.save_settings()
+	Graphics.apply_all()
+
+
+func _on_graphics_changed() -> void:
+	_look.set_pressed_no_signal(ArtStyle.realistic())
 
 
 func _build_actions() -> void:
@@ -305,7 +328,7 @@ func _build_tools() -> void:
 	col.add_child(_options)
 	col.add_child(HSeparator.new())
 	var keys := Label.new()
-	keys.text = "Left drag: use tool\nRight drag: orbit · Middle: pan · Wheel: zoom\nMiddle click: ping · Hold middle: notes wheel · Tab 2D/3D · PgUp/PgDn level\nDel delete · Ctrl+Z undo · Ctrl+Y redo · R turn · Esc cancel"
+	keys.text = "Left drag: use tool\nRight drag: orbit · Middle: pan · Wheel: zoom\nMiddle click: ping · Hold middle: notes wheel · Tab 2D/3D · PgUp/PgDn level\nDel delete · Ctrl+Z undo · Ctrl+Y redo · R turn · V realistic look · Esc cancel"
 	keys.add_theme_font_size_override("font_size", 13)
 	keys.modulate = BsxTheme.MUTED
 	keys.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
