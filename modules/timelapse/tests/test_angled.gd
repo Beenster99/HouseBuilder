@@ -63,15 +63,19 @@ func run_tests() -> void:
 				base = minf(base, q.y)
 		var pitch := float(m.parts[rid].get("pitch", m.catalog.kind("roof_pitched").get("pitch", 35.0)))
 		var want := RoofShape.rise([[-30, 0], [-22, 0], [-22, 6], [-30, 6]], pitch, "gable")
-		check(absf(base - 3.0) < 0.01 and absf(top - base - want) < 0.01, "on its walls, its ridge %.2f m up (want %.2f)" % [top - base, want])
-		var rm := View.faces_mesh(roof.shape.faces)
-		var rv: PackedVector3Array = rm.surface_get_arrays(0)[Mesh.ARRAY_VERTEX]
-		var ok := rv.size() >= 18
-		var mid := Vector3(-26, 3.0 + want * 0.3, 3)
-		for i in range(0, rv.size(), 3):
-			var n := (rv[i + 2] - rv[i]).cross(rv[i + 1] - rv[i])
-			if n.dot((rv[i] + rv[i + 1] + rv[i + 2]) / 3.0 - mid) <= 0.0:
-				ok = false
+		var west := INF
+		for f: Array in roof.shape.faces:
+			for q: Vector3 in f[0]:
+				west = minf(west, q.x)
+		check(base < 3.0 and absf(top - 3.0 - want) < 0.01, "on its walls, its ridge %.2f m up (want %.2f)" % [top - 3.0, want])
+		check(absf(west - (-30.0 - RoofShape.EAVE)) < 0.01, "overhanging the walls by the eave: %.2f m" % (-30.0 - west))
+		# Each face drawn facing the way RoofShape says it faces (slopes up and out, soffits down).
+		var ok := (View.faces_mesh(roof.shape.faces).surface_get_arrays(0)[Mesh.ARRAY_VERTEX] as PackedVector3Array).size() >= 18
+		for f: Array in roof.shape.faces:
+			var fv: PackedVector3Array = View.faces_mesh([f]).surface_get_arrays(0)[Mesh.ARRAY_VERTEX]
+			for i in range(0, fv.size(), 3):
+				if (fv[i + 2] - fv[i]).cross(fv[i + 1] - fv[i]).dot(f[1]) <= 0.0:
+					ok = false
 		check(ok, "its faces point outwards")
 	check(slab.has("shape") and (slab.shape as Dictionary).has("outline")
 			and (slab.shape.outline as PackedVector2Array).size() == 3, "a triangular slab keeps its three corners")

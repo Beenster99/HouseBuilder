@@ -257,7 +257,7 @@ static func shape_of(model: BuildingModel, pid: String, joins: WallJoins = null,
 			if form != "":
 				# A pitched roof (gable, hip, mono): its slopes, ends and underside, as designed.
 				var faces: Array = []
-				for f: Array in RoofShape.faces(outline, float(e.get("pitch", spec.get("pitch", 35.0))), form):
+				for f: Array in RoofShape.faces(outline, float(e.get("pitch", spec.get("pitch", 35.0))), form, RoofShape.EAVE):
 					var corners: Array = []
 					for q: Vector3 in f[0]:
 						corners.append(q + Vector3(0, top, 0))
