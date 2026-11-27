@@ -200,7 +200,7 @@ func _cost_part(id: String) -> Dictionary:
 	var q := BuildingQuantities.part(model, id)
 	var fam := model.catalog.family_of(str(e.kind))
 	var rec := {"cost": float(q.cost), "mass": float(q.mass), "fam": fam, "material": str(e.material),
-			"level": model.level_of(id), "kind": str(e.kind)}
+			"level": model.level_of(id), "kind": str(e.kind), "qty": float(q.quantity), "unit": str(q.unit)}
 	if fam == "fixture":
 		rec["at"] = Vector2(float(e.at[0]), float(e.at[2]))
 	return rec
@@ -271,3 +271,24 @@ func summary() -> Dictionary:
 			"currency": str(model.catalog.currency), "families": fams, "levels": lvls, "rooms": _room_rows,
 			"notes": DesignCosts.notes_from(model, _room_rows, per_level, fam_count), "current": is_current(),
 			"progress": progress()}
+
+
+## The bill of materials: one row per kind and material, most expensive first:
+## [{kind, material, label, count, qty, unit, cost, fam}].
+func bill() -> Array:
+	var rows := {}
+	for pid: String in _parts:
+		var p: Dictionary = _parts[pid]
+		var key := "%s|%s" % [p.kind, p.material]
+		if not rows.has(key):
+			var label := str(model.catalog.kind(str(p.kind)).get("label", p.kind))
+			var mat := str(model.catalog.material(str(p.material)).get("label", p.material))
+			rows[key] = {"kind": p.kind, "material": p.material, "label": label, "material_label": mat,
+					"count": 0, "qty": 0.0, "unit": p.unit, "cost": 0.0, "fam": p.fam}
+		var r: Dictionary = rows[key]
+		r.count += 1
+		r.qty += float(p.get("qty", 0.0))
+		r.cost += float(p.cost)
+	var out: Array = rows.values()
+	out.sort_custom(func(a: Dictionary, b: Dictionary) -> bool: return float(a.cost) > float(b.cost))
+	return out

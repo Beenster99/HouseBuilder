@@ -15,6 +15,7 @@ flags = {
 "contracts.panel": true,
 "design": true,
 "design.room": true,
+"design.hall": true,
 "multiplayer.crew": true,
 "multiplayer.online": true,
 "sandbox": true,

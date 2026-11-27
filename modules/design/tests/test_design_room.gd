@@ -10,7 +10,8 @@ const C := preload("res://modules/building/api/building_commands.gd")
 func run_tests() -> void:
 	var design := Modules.bus("design") as DesignBus
 	var building := Modules.bus("building") as BuildingBus
-	check(Menu.start().get("scene", "") == DesignBus.ROOM_SCENE, "Start goes to the design room: %s" % str(Menu.start()))
+	var start_scene := DesignBus.HALL_SCENE if Flags.is_on(DesignBus.HALL_FLAG) else DesignBus.ROOM_SCENE
+	check(Menu.start().get("scene", "") == start_scene, "Start goes to the design hall (or room): %s" % str(Menu.start()))
 	check(Router.has_scene(DesignBus.ROOM_SCENE), "the room scene is registered")
 	var pressed: Array = []
 	design.register_action("test.act", "Test it", func(m: BuildingModel) -> void: pressed.append(m), 99)

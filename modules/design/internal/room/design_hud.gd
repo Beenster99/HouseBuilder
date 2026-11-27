@@ -544,50 +544,7 @@ func side_panel_count() -> int:
 
 
 func _refresh_cost() -> void:
-	var s := _book.summary()
-	var cur := str(s.currency)
-	var t := "[font_size=14][color=#%s]COST · LIVE%s[/color][/font_size]\n" % [BsxTheme.HUD_DIM.to_html(false),
-			"" if bool(s.current) else " · costing %d%%" % int(float(s.progress) * 100.0)]
-	t += "[font_size=30][b]%s[/b][/font_size]\n" % DesignCosts.money(s.total, cur)
-	t += "[color=#%s]structure %s · fit-out %s · floor %.0f m²[/color]\n" % [BsxTheme.MUTED.to_html(false),
-			DesignCosts.money(s.structure, cur), DesignCosts.money(s.fit_out, cur), s.floor_area]
-	if float(s.floor_area) > 0.0:
-		t += "[color=#%s]%s per m²[/color]\n" % [BsxTheme.MUTED.to_html(false), DesignCosts.money(float(s.total) / float(s.floor_area), cur)]
-	t += "\n[b]By element[/b]\n"
-	t += _rows(s.families, cur)
-	if (s.families as Array).is_empty():
-		t += "[color=#%s]Nothing placed yet.[/color]\n" % BsxTheme.MUTED.to_html(false)
-	t += "\n[b]By level[/b]\n"
-	t += _rows(s.levels, cur)
-	t += "\n[b]Rooms[/b]\n"
-	var listed := 0
-	for r: Dictionary in s.rooms:
-		listed += 1
-		if listed > COST_ROOMS:
-			t += "[color=#%s]and %d more in the Rooms tab[/color]\n" % [BsxTheme.MUTED.to_html(false), (s.rooms as Array).size() - COST_ROOMS]
-			break
-		var c := BsxTheme.WARN.to_html(false) if r.short else BsxTheme.TEXT.to_html(false)
-		t += "[color=#%s]%s · L%d · %.1f m²%s[/color]\n" % [c, r.label, int(r.level), r.area,
-				" (min %.0f)" % r.min_area if r.short else ""]
-	if (s.rooms as Array).is_empty():
-		t += "[color=#%s]No rooms yet: paint one with the Room tool.[/color]\n" % BsxTheme.MUTED.to_html(false)
-	var notes: Array = s.notes
-	if not notes.is_empty():
-		t += "\n[b]Notes[/b]\n"
-		for n: Dictionary in notes:
-			var c := BsxTheme.WARN.to_html(false) if n.warn else BsxTheme.LIVE.to_html(false)
-			t += "[color=#%s]• %s[/color]\n  [color=#%s]%s[/color]\n" % [c, n.text, BsxTheme.MUTED.to_html(false), n.tip]
-	_cost.text = t
-
-
-## Label and money in two columns, the money right-aligned.
-static func _rows(rows: Array, cur: String) -> String:
-	if rows.is_empty():
-		return ""
-	var t := "[table=2]"
-	for r: Dictionary in rows:
-		t += "[cell expand=3]%s[/cell][cell expand=1][right]%s[/right][/cell]" % [r.label, DesignCosts.money(r.cost, cur)]
-	return t + "[/table]\n"
+	_cost.text = DesignCosts.bbcode(_book.summary(), COST_ROOMS)
 
 
 # --- Status line ------------------------------------------------------------------------

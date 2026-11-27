@@ -51,6 +51,13 @@ var _middle_from: Variant = null
 var _middle_t := 0.0
 var _middle_moved := false
 var wheel: Control
+## Opened from the hall's holotable (DesignHall): drawn into the hall's designer screen, and Esc
+## goes back to the hall instead of the pause menu.
+var embedded := false
+## Taking the mouse and keys (false while the hall is shown and the designer is put away).
+var active := true
+## Esc with nothing to cancel, while embedded: back to the hall.
+signal leave_requested
 
 
 func _ready() -> void:
@@ -220,7 +227,9 @@ func _process(_delta: float) -> void:
 	if cam.focus.distance_to(_last_focus) > 2.0:
 		_last_focus = cam.focus
 		_draw_grid()
-	if _pointer_over_hud():
+	if not active:
+		pass
+	elif _pointer_over_hud():
 		session.hover(null)
 	else:
 		session.hover(_floor_point())
@@ -443,7 +452,25 @@ func _ghost_mat(c: Color) -> StandardMaterial3D:
 
 # --- Input ------------------------------------------------------------------------------
 
+## Puts the designer away (the hall shows) or brings it back. Put away, it takes no input and
+## its plan cut comes off, so the hall's screens and table show the whole building.
+func set_active(on: bool) -> void:
+	active = on
+	hud.visible = on
+	if not on:
+		_left_down = false
+		_middle_from = null
+		if wheel.get("is_open"):
+			wheel.call("close")
+		session.hover(null)
+		session.cancel()
+	var cam := camera as DesignCamera
+	view.call("set_cut", PLAN_CUT if on and cam.plan else INF)
+
+
 func _unhandled_input(event: InputEvent) -> void:
+	if not active:
+		return
 	var cam := camera as DesignCamera
 	if event is InputEventMouseButton:
 		var mb := event as InputEventMouseButton
@@ -538,6 +565,8 @@ func _key(k: InputEventKey) -> bool:
 				session.cancel()
 			elif not session.presence.my_selection().is_empty():
 				session.presence.select(PackedStringArray())
+			elif embedded:
+				leave_requested.emit()
 			else:
 				Menu.open_pause()
 			return true

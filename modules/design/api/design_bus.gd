@@ -27,6 +27,10 @@ signal pulse_requested(ids: PackedStringArray)
 
 const ROOM_SCENE := "design.room"
 const ROOM_FLAG := "design.room"
+## The design hall (BSX's design room): walls of screens, the holotable, and the designer at
+## the table. Start goes here while its flag is on, else straight to the designer.
+const HALL_SCENE := "design.hall"
+const HALL_FLAG := "design.hall"
 const START_PRIORITY := 20
 const SETTINGS := "design"
 
@@ -48,14 +52,23 @@ func register_module() -> void:
 	if Flags.is_on(ROOM_FLAG):
 		Router.register_scene(ROOM_SCENE, "res://modules/design/internal/room/design_room.tscn")
 		Router.set_loading_title(ROOM_SCENE, "Design room")
-		Menu.set_start(ROOM_SCENE, START_PRIORITY)
-		Menu.register_entry(ROOM_SCENE, "Design Room", ROOM_SCENE, 2)
 		Shots.register("design_room", ROOM_SCENE)
+		if Flags.is_on(HALL_FLAG):
+			Router.register_scene(HALL_SCENE, "res://modules/design/internal/hall/design_hall.tscn")
+			Router.set_loading_title(HALL_SCENE, "Design hall")
+			Menu.set_start(HALL_SCENE, START_PRIORITY)
+			Menu.register_entry(HALL_SCENE, "Design Room", HALL_SCENE, 2)
+			Shots.register("design_hall", HALL_SCENE)
+		else:
+			Menu.set_start(ROOM_SCENE, START_PRIORITY)
+			Menu.register_entry(ROOM_SCENE, "Design Room", ROOM_SCENE, 2)
 
 
 func unregister_module() -> void:
 	Menu.clear_start(ROOM_SCENE)
 	Menu.unregister_entry(ROOM_SCENE)
+	Menu.clear_start(HALL_SCENE)
+	Menu.unregister_entry(HALL_SCENE)
 
 
 ## Adds a button to the design room's top bar; press gets the open BuildingModel.
