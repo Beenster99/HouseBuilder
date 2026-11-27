@@ -86,7 +86,7 @@ var clipboard: Dictionary = {}
 
 
 func register_module() -> void:
-	Settings.register(SETTINGS, {"grid": 0.25, "auto_walls": true})
+	Settings.register(SETTINGS, {"grid": 0.25, "auto_walls": true, "snap_grid": true, "snap_guides": true})
 	if Flags.is_on(ROOM_FLAG):
 		Router.register_scene(ROOM_SCENE, "res://modules/design/internal/room/design_room.tscn")
 		Router.set_loading_title(ROOM_SCENE, "Design room")

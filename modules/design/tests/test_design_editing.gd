@@ -378,6 +378,31 @@ func run_tests() -> void:
 			"a tag draws on its part")
 	dbus.set_part_tags("test.failing", {})
 	await frames(20)
+	# Snapping on and off: G for the grid, Shift+G for the guides, toggles on the top bar,
+	# the state in the help bar, kept for next time.
+	var gkey := func(shift: bool) -> void:
+		var k := InputEventKey.new()
+		k.keycode = KEY_G
+		k.shift_pressed = shift
+		k.pressed = true
+		room.call("_unhandled_input", k)
+	s.set_tool("select")
+	s.presence.select(PackedStringArray())
+	gkey.call(false)
+	check(not s.snap_grid and not bool(Settings.get_value(DesignBus.SETTINGS, "snap_grid")), "G turns grid snapping off (and it's kept)")
+	s.hover(Vector3(-30.13, 0, -30.07))
+	check(s.cursor != null and (s.cursor as Vector3).distance_to(Vector3(-30.13, 0, -30.07)) < 0.001, "the pointer goes anywhere: %s" % s.cursor)
+	var snap_toggle := hud.find_child("Toggle_snap_grid", true, false) as CheckButton
+	check(snap_toggle != null and not snap_toggle.button_pressed, "the Snap toggle on the top bar shows it")
+	check(str(HelpBar.keys_text(hud.call("mode_keys"))).contains("grid snap OFF"), "and so does the help bar")
+	gkey.call(false)
+	s.hover(Vector3(-30.13, 0, -30.07))
+	check(s.snap_grid and (s.cursor as Vector3).is_equal_approx(Vector3(-30.25, 0, -30.0)), "G again: back on the grid: %s" % s.cursor)
+	gkey.call(true)
+	check(not s.snap_guides, "Shift+G turns the guides off")
+	snap_toggle = hud.find_child("Toggle_snap_guides", true, false) as CheckButton
+	snap_toggle.button_pressed = true
+	check(s.snap_guides, "and the Guides toggle on again")
 	var tag_left := room.find_child("Tag_" + col_b, true, false)
 	check(tag_left == null, "and clears: %s" % (str(tag_left.get_path()) if tag_left else ""))
 	# The docks' cards stretch up and down (a grip between them), and keep their sizes.

@@ -67,6 +67,10 @@ var catalog: BuildingCatalog
 var tool := "select"
 var level := 0
 var grid := 0.25
+## Snapping to the grid (G) and lining up with the alignment guides (Shift+G); Alt held skips
+## both for a moment.
+var snap_grid := true
+var snap_guides := true
 ## Tool options: room type, door and window kinds, fixture kind and turn, wall material.
 var room_type := "bedroom"
 var door_kind := "door_internal"
@@ -217,6 +221,16 @@ func add_level() -> void:
 	set_level.call_deferred(model.level_count() - 1)
 
 
+## The step points snap to: the grid, or 0 with grid snapping off (or Alt held).
+func snap_step() -> float:
+	return grid if snap_grid and not Input.is_key_pressed(KEY_ALT) else 0.0
+
+
+## The smallest room or slab side that counts as drawn (not a slip of the mouse).
+func min_size() -> float:
+	return maxf(snap_step(), 0.1)
+
+
 func snap(p: Vector3) -> Vector3:
 	var corners: Array = []
 	for pid in model.parts_on(level):
@@ -224,7 +238,7 @@ func snap(p: Vector3) -> Vector3:
 		if e.has("a"):
 			for k: String in ["a", "b"]:
 				corners.append(Vector3(float(e[k][0]), 0.0, float(e[k][2])) + Vector3(0, floor_y(), 0))
-	var at := DesignSnap.point(Vector3(p.x, floor_y(), p.z), grid, corners)
+	var at := DesignSnap.point(Vector3(p.x, floor_y(), p.z), snap_step(), corners)
 	return at
 
 
@@ -239,7 +253,7 @@ func hover(p: Variant) -> void:
 		return
 	var at := snap(p)
 	if anchor != null and tool in TWO_POINT and tool != "measure":
-		at = DesignSnap.run(anchor, at, grid)
+		at = DesignSnap.run(anchor, at, snap_step())
 	at = _align(at)
 	cursor = at
 	presence.set_cursor(at)
@@ -344,7 +358,7 @@ func release(p: Vector3) -> void:
 	# A press-drag-release draws a rectangle in one go.
 	if tool in RECT and anchor != null and cursor != null:
 		var span: Vector3 = (cursor as Vector3) - (anchor as Vector3)
-		if absf(span.x) >= grid and absf(span.z) >= grid:
+		if absf(span.x) >= min_size() and absf(span.z) >= min_size():
 			_finish_two_point(cursor)
 
 
@@ -377,7 +391,7 @@ func ids_in_box(a: Vector3, b: Vector3) -> PackedStringArray:
 ## drawn, reshaped or moved; sets `guides`.
 func _align(at: Vector3) -> Vector3:
 	guides = []
-	if Input.is_key_pressed(KEY_ALT):
+	if not snap_guides or Input.is_key_pressed(KEY_ALT):
 		return at
 	var skip := PackedStringArray()
 	var box := Rect2()
@@ -552,7 +566,7 @@ func _place_opening(at: Vector3) -> void:
 	var length := Vector2(b.x - a.x, b.z - a.z).length()
 	var kind := door_kind if tool == "door" else window_kind
 	var w := float(catalog.kind(kind).get("w", 1.0))
-	var t := snappedf(DesignSnap.along(_local(at), a, b), grid)
+	var t := snappedf(DesignSnap.along(_local(at), a, b), snap_step())
 	t = clampf(t, w / 2.0, maxf(w / 2.0, length - w / 2.0))
 	sync.edit(C.place_opening(kind, wall, t))
 
@@ -560,10 +574,10 @@ func _place_opening(at: Vector3) -> void:
 func _finish_two_point(end: Vector3) -> void:
 	var start: Vector3 = anchor
 	if tool in RECT:
-		var r := DesignSnap.rect(start, end, grid)
+		var r := DesignSnap.rect(start, end, snap_step())
 		var w := r[1].x - r[0].x
 		var d := r[1].z - r[0].z
-		if w < grid or d < grid:
+		if w < min_size() or d < min_size():
 			return
 		var outline := C.rect(r[0].x, r[0].z, w, d)
 		match tool:
@@ -1206,7 +1220,7 @@ func preview() -> Dictionary:
 	if tool in TWO_POINT and anchor != null:
 		return {"kind": "line", "a": anchor, "b": cursor}
 	if tool in RECT and anchor != null:
-		var r := DesignSnap.rect(anchor, cursor, grid)
+		var r := DesignSnap.rect(anchor, cursor, snap_step())
 		return {"kind": "rect", "a": r[0], "b": r[1]}
 	if tool in OPENING:
 		return {"kind": "opening", "wall": wall_at(cursor), "at": cursor}

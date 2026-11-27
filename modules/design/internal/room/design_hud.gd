@@ -27,6 +27,7 @@ var _crew_label: RichTextLabel
 var _level_label: Label
 var _view_button: Button
 var _grid_pick: OptionButton
+var _snap_toggles: Dictionary = {}  # "snap_grid" / "snap_guides" -> CheckButton
 var _cost: RichTextLabel
 ## The help bar along the bottom: keys for the mode, what the pointer is over, messages.
 var help: HelpBar
@@ -514,6 +515,16 @@ func _build_top() -> void:
 		Settings.set_value(DesignBus.SETTINGS, "grid", DesignSession.GRIDS[i])
 		room.call("_draw_grid"))
 	row.add_child(_grid_pick)
+	for which: String in ["snap_grid", "snap_guides"]:
+		var t := CheckButton.new()
+		t.name = "Toggle_" + which
+		t.text = "Snap" if which == "snap_grid" else "Guides"
+		t.tooltip_text = "Snap to the grid (G)" if which == "snap_grid" else "Line things up with the alignment guides (Shift+G)"
+		t.focus_mode = FOCUS_NONE
+		t.button_pressed = bool(_session.get(which))
+		t.toggled.connect(func(on: bool) -> void: set_snap(which, on))
+		row.add_child(t)
+		_snap_toggles[which] = t
 	_view_button = _button("2D plan", func() -> void: room.call("toggle_plan"), "Switch between the 3D view and the 2D plan (Tab)")
 	row.add_child(_view_button)
 	row.add_child(VSeparator.new())
@@ -1198,6 +1209,18 @@ func _show_status(text: String, warn: bool) -> void:
 
 
 ## What the keys and mouse do in this player's mode now: [[key, what], ...].
+## Turns grid snapping ("snap_grid") or the alignment guides ("snap_guides") on or off, keeps
+## it for next time and says so in the help bar.
+func set_snap(which: String, on: bool) -> void:
+	_session.set(which, on)
+	Settings.set_value(DesignBus.SETTINGS, which, on)
+	var t: CheckButton = _snap_toggles.get(which)
+	if t and t.button_pressed != on:
+		t.set_pressed_no_signal(on)
+	_show_status("%s %s" % ["Grid snap" if which == "snap_grid" else "Alignment guides", "on" if on else "off"], false)
+	refresh_banner()
+
+
 func mode_keys() -> Array:
 	var out: Array = []
 	if bool(room.call("stamping")):
@@ -1217,6 +1240,8 @@ func mode_keys() -> Array:
 				out = [["LMB", "two points"], ["Esc", "Select"]]
 			_:
 				out = [["LMB", "place"], ["R", "turn 90°"], ["Shift+wheel", "turn 15° (Alt 1°)"], ["Esc", "Select"]]
+	out.append_array([["G", "grid snap %s" % ("on" if _session.snap_grid else "OFF")],
+			["Shift+G", "guides %s" % ("on" if _session.snap_guides else "OFF")], ["Alt", "no snap"]])
 	out.append_array([["Wheel", "zoom"], ["RMB drag", "orbit"], ["MMB", "ping (on a ping: clear it) · hold: wheel"], ["Tab", "2D/3D"],
 			["PgUp/Dn", "level"], ["Ctrl+Z", "undo"]])
 	return out

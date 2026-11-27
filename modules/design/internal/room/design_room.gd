@@ -85,6 +85,8 @@ func _ready() -> void:
 	session.setup(net, building.model, building.sync)
 	session.grid = float(Settings.get_value(DesignBus.SETTINGS, "grid"))
 	session.auto_walls = bool(Settings.get_value(DesignBus.SETTINGS, "auto_walls"))
+	session.snap_grid = bool(Settings.get_value(DesignBus.SETTINGS, "snap_grid"))
+	session.snap_guides = bool(Settings.get_value(DesignBus.SETTINGS, "snap_guides"))
 	_build_world()
 	view = DesignView.new()
 	view.name = "Building"
@@ -807,6 +809,9 @@ func _key(k: InputEventKey) -> bool:
 		KEY_M when k.shift_pressed:
 			# Shift+M: a mirrored copy beside the selection (Ctrl too: below it).
 			session.mirror_selection(1 if ctrl else 0, true)
+			return true
+		KEY_G:
+			hud.call("set_snap", "snap_guides" if k.shift_pressed else "snap_grid", not bool(session.get("snap_guides" if k.shift_pressed else "snap_grid")))
 			return true
 		KEY_T:
 			session.retag_selection()
