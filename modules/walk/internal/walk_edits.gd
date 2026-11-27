@@ -37,21 +37,22 @@ static func room_at(model: BuildingModel, level: int, p: Vector2) -> String:
 	return ""
 
 
-## A new point part (a fitting, a column) standing at world point `at`, snapped to the grid.
-static func place(model: BuildingModel, kind: String, at: Vector3, rot: float) -> Dictionary:
+## A new point part (a fitting, a column) standing at world point `at`, snapped to the grid
+## (unless `on_grid` is false: the spot is already snapped, or lined up on a guide).
+static func place(model: BuildingModel, kind: String, at: Vector3, rot: float, on_grid := true) -> Dictionary:
 	var level := level_at(model, at.y)
-	var g := grid(model)
+	var g := grid(model) if on_grid else 0.0
 	var p := Vector3(snap(at.x, g), 0.0, snap(at.z, g))
 	return C.place_part(kind, level, {"at": p, "rot": fposmod(rot, 360.0)})
 
 
 ## A placed point part moved to world point `at` (and turned to rot): one undo step.
-static func move_to(model: BuildingModel, id: String, at: Vector3, rot: float) -> Dictionary:
+static func move_to(model: BuildingModel, id: String, at: Vector3, rot: float, on_grid := true) -> Dictionary:
 	var e: Dictionary = model.parts.get(id, {})
 	if e.is_empty() or not e.has("at"):
 		return {}
 	var level := level_at(model, at.y)
-	var g := grid(model)
+	var g := grid(model) if on_grid else 0.0
 	var fields := {"at": [snap(at.x, g), float(e.at[1]), snap(at.z, g)], "rot": fposmod(rot, 360.0)}
 	if level != int(e.level):
 		fields["level"] = level

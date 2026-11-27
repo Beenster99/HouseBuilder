@@ -188,6 +188,26 @@ func run_tests() -> void:
 	check(is_equal_approx(float(model.parts[sofa].rot), 90.0), "turned a quarter")
 	await _physics(2)
 
+	# Smart guides (the designer's, from BSX): a part in your hands lines up with the ones round it.
+	v.take_new("sofa")
+	v.body.position = Vector3(float(now[0]) + 0.6, 0.95, float(now[2]) + 2.2)
+	_face(v, Vector3(float(now[0]) + 1.6, 0.0, float(now[2]) + 0.07))
+	await _settle()
+	var spec: Dictionary = model.catalog.kind("sofa")
+	var at: Vector3 = v.spot.get("at", Vector3.ZERO)
+	var lined := v.guide_count() > 0
+	for g: Array in v.spot.get("guides", []):
+		var axis := 0 if is_equal_approx(g[0].x, g[1].x) else 1
+		var c: float = at.x if axis == 0 else at.z
+		var half := float(spec.w if axis == 0 else spec.d) * 0.5
+		var line: float = g[0].x if axis == 0 else g[0].y
+		lined = lined and [c - half, c, c + half].any(func(e: float) -> bool: return is_equal_approx(e, line))
+	check(lined, "beside the sofa, the new one lines up on guides: %s on %s" % [at, v.spot.get("guides")])
+	check(v._guides != null and v._guides.mesh != null and v._guides.mesh.get_surface_count() > 0, "and the guides are drawn")
+	v._drop_holding()
+	await _settle()
+	check(v._guides.mesh == null, "no guides with nothing in your hands")
+
 	# E edits what you aim at; X removes it.
 	v.body.position = Vector3(2.0, 0.95, 3.0)
 	_face(v, Vector3(2.0, 1.5, 0.0))

@@ -27,6 +27,7 @@ extends Node
 const T := preload("res://modules/ui/api/terminal_kit.gd")
 const WalkBuild := preload("res://modules/walk/internal/walk_build.gd")
 const WalkEdits := preload("res://modules/walk/internal/walk_edits.gd")
+const WalkGuides := preload("res://modules/walk/internal/walk_guides.gd")
 const WalkPalette := preload("res://modules/walk/internal/walk_palette.gd")
 const AssetLibrary := preload("res://modules/assets/api/asset_library.gd")
 const C := preload("res://modules/building/api/building_commands.gd")
@@ -73,6 +74,9 @@ var edit_id := ""
 var crew: Dictionary = {}
 var _ghost: Node3D
 var _ghost_key := ""
+## The smart guides the part in your hands lines up on (magenta, through everything).
+var _guides: MeshInstance3D
+var _guides_key := ""
 var _title: Label
 var _where: Label
 var _look: Label
@@ -469,9 +473,9 @@ func put_down() -> bool:
 	if bool(holding.opening):
 		op = WalkEdits.opening_at(model, str(spot.get("wall", "")), spot.at, str(holding.type))
 	elif str(holding.id) == "":
-		op = WalkEdits.place(model, str(holding.type), spot.at, float(holding.rot))
+		op = WalkEdits.place(model, str(holding.type), spot.at, float(holding.rot), false)
 	else:
-		op = WalkEdits.move_to(model, str(holding.id), spot.at, float(holding.rot))
+		op = WalkEdits.move_to(model, str(holding.id), spot.at, float(holding.rot), false)
 	if op.is_empty():
 		return false
 	sync.edit(op)
@@ -725,7 +729,7 @@ func _aim_text() -> String:
 		return "Parts menu\n[b]Type[/b] to filter   [b]Click[/b] a group to open it, an item to see it, [b]Take[/b] to hold it   [b]Tab[/b] or [b]Esc[/b] close"
 	if not holding.is_empty():
 		var label := str(holding.get("label", model.catalog.kind(str(holding.type)).get("label", holding.type)))
-		return "%s: %s\n[b]Click[/b] put down   [b]R[/b] turn (the arrow shows its front)   [b]Right-click[/b] or [b]Esc[/b] drop" % [label, str(spot.get("why", "Aim at a floor"))]
+		return "%s: %s\n[b]Click[/b] put down   [b]R[/b] turn (the arrow shows its front)   [b]Alt[/b] no guides   [b]Right-click[/b] or [b]Esc[/b] drop" % [label, str(spot.get("why", "Aim at a floor"))]
 	var a := aim()
 	if a.is_empty():
 		return "Flying\n[b]WASD[/b] move   [b]Space[/b] up   [b]C[/b] down   [b]Q[/b] walk   [b]Tab[/b] parts" if flying else "Walking\n[b]WASD[/b] walk   [b]Shift[/b] run   [b]Space[/b] jump   [b]Q[/b] fly   [b]Tab[/b] parts   [b]Esc[/b] back to the designer"
@@ -812,8 +816,14 @@ func _update_spot() -> void:
 		var tmp := hw
 		hw = hd
 		hd = tmp
-	var box := AABB(at + Vector3(-hw, 0.02, -hd), Vector3(hw * 2.0, maxf(float(spec.get("h", 1.0)) - 0.04, 0.1), hd * 2.0)).grow(-0.02)
 	var level := WalkEdits.level_at(model, at.y)
+	# Smart guides (BSX): edges and middles line up with the parts and walls round it.
+	if not Input.is_key_pressed(KEY_ALT):
+		var al := WalkGuides.align_at(model, level, at, Vector2(hw * 2.0, hd * 2.0), str(holding.id))
+		at += Vector3(al.offset.x, 0, al.offset.y)
+		spot.at = at
+		spot["guides"] = al.guides
+	var box := AABB(at + Vector3(-hw, 0.02, -hd), Vector3(hw * 2.0, maxf(float(spec.get("h", 1.0)) - 0.04, 0.1), hd * 2.0)).grow(-0.02)
 	for pid in model.parts_on(level):
 		if pid == str(holding.id):
 			continue
@@ -843,6 +853,7 @@ func _wall_hits(wall_id: String, box: AABB) -> bool:
 
 ## The part in your hands, where it would go: green for a good spot, amber if not.
 func _update_ghost() -> void:
+	_update_guides()
 	var state := "hand" if not spot.has("at") else str(spot.get("ok", false))
 	var key := "" if holding.is_empty() else "%s/%s/%s" % [holding.type, holding.get("module", ""), state]
 	if key != _ghost_key:
@@ -874,6 +885,34 @@ func _update_ghost() -> void:
 		return
 	_ghost.position = spot.at
 	_ghost.rotation = Vector3(0, deg_to_rad(float(holding.rot)), 0)
+
+
+## Draws the spot's smart guides (rebuilt only when they change).
+func _update_guides() -> void:
+	var guides: Array = spot.get("guides", [])
+	var key := str(guides) if spot.has("at") else ""
+	if key == _guides_key:
+		return
+	_guides_key = key
+	if _guides == null:
+		_guides = MeshInstance3D.new()
+		_guides.name = "Guides"
+		var m := StandardMaterial3D.new()
+		m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+		m.cull_mode = BaseMaterial3D.CULL_DISABLED
+		m.no_depth_test = true
+		m.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+		m.render_priority = 9
+		m.albedo_color = WalkGuides.COLOUR
+		_guides.material_override = m
+		_guides.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		world.add_child(_guides)
+	_guides.mesh = WalkGuides.mesh(guides, float((spot.get("at", Vector3.ZERO) as Vector3).y) + 0.02) if key != "" else null
+
+
+## How many guides show now (for tests).
+func guide_count() -> int:
+	return (spot.get("guides", []) as Array).size() if spot.has("at") else 0
 
 
 ## Nothing to put it on: the part is held up in front of you, small, turned as it would go
