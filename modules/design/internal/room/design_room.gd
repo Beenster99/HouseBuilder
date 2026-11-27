@@ -15,6 +15,9 @@ const DesignHud := preload("res://modules/design/internal/room/design_hud.gd")
 const DesignMarks := preload("res://modules/design/internal/room/design_marks.gd")
 ## A middle press that moves less than this before it lets go is a ping, not a pan, px.
 const TAP_SLOP := 6.0
+## Holding the middle button still this long opens the mark-up wheel, s.
+const WHEEL_HOLD := 0.3
+const DesignWheel := preload("res://modules/design/internal/room/design_wheel.gd")
 
 const PLOT_HALF := 40.0
 const GROUND := Color(0.5, 0.58, 0.45)
@@ -41,6 +44,9 @@ var _sun: DirectionalLight3D
 var overlay := ""
 var marks: Node3D
 var _middle_from: Variant = null
+var _middle_t := 0.0
+var _middle_moved := false
+var wheel: Control
 
 
 func _ready() -> void:
@@ -77,6 +83,9 @@ func _ready() -> void:
 	layer.name = "Hud"
 	add_child(layer)
 	layer.add_child(hud)
+	wheel = DesignWheel.new()
+	wheel.name = "Wheel"
+	layer.add_child(wheel)
 	session.preview_changed.connect(_draw_ghost)
 	session.level_changed.connect(_on_level)
 	session.note_requested.connect(func(at: Vector3, target: String) -> void: hud.call("ask_note", at, target))
@@ -198,6 +207,9 @@ var _last_focus := Vector3.INF
 
 func _process(_delta: float) -> void:
 	var cam := camera as DesignCamera
+	if _middle_from != null and not _middle_moved and not wheel.get("is_open") \
+			and _now() - _middle_t >= WHEEL_HOLD:
+		open_wheel(_middle_from)
 	if cam.focus.distance_to(_last_focus) > 2.0:
 		_last_focus = cam.focus
 		_draw_grid()
@@ -420,18 +432,34 @@ func _unhandled_input(event: InputEvent) -> void:
 			get_viewport().set_input_as_handled()
 			return
 		if mb.button_index == MOUSE_BUTTON_MIDDLE:
-			# A tap pings the spot for the team; a drag pans (the camera handles it).
+			# A tap pings the spot for the team, a hold opens the mark-up wheel, a drag pans
+			# (the camera handles it).
 			if mb.pressed:
 				_middle_from = mb.position
-			elif _middle_from != null and (mb.position - (_middle_from as Vector2)).length() < TAP_SLOP:
-				ping_here()
-			if not mb.pressed:
+				_middle_t = _now()
+				_middle_moved = false
+			else:
+				if wheel.get("is_open"):
+					close_wheel()
+					get_viewport().set_input_as_handled()
+					_middle_from = null
+					return
+				if _middle_from != null and not _middle_moved:
+					ping_here()
 				_middle_from = null
 		if mb.button_index == MOUSE_BUTTON_RIGHT and mb.pressed and (cam.plan or session.anchor != null):
 			session.cancel()
 			if cam.plan:
 				get_viewport().set_input_as_handled()
 				return
+	if event is InputEventMouseMotion:
+		var mm := event as InputEventMouseMotion
+		if wheel.get("is_open"):
+			wheel.call("aim", mm.position - (wheel.get("centre") as Vector2))
+			get_viewport().set_input_as_handled()
+			return
+		if _middle_from != null and (mm.position - (_middle_from as Vector2)).length() >= TAP_SLOP:
+			_middle_moved = true
 	if cam.handle(event):
 		get_viewport().set_input_as_handled()
 		return
@@ -493,9 +521,55 @@ func _key(k: InputEventKey) -> bool:
 	return false
 
 
-## Pings the spot under the pointer, labelled with what is there.
-func ping_here() -> void:
-	var p: Variant = _floor_point()
+static func _now() -> float:
+	return Time.get_ticks_msec() / 1000.0
+
+
+## Opens the mark-up wheel at a screen point; what it picks acts on the spot under it.
+func open_wheel(at: Vector2) -> void:
+	_wheel_spot = _floor_point_at(at)
+	(camera as DesignCamera).stop_drag()
+	wheel.call("open", at)
+
+
+## Closes the wheel and does what it points at: a note, a ping or a measure from that spot,
+## or shows and hides the notes.
+func close_wheel() -> void:
+	var pick: String = wheel.call("close")
+	var spot: Variant = _wheel_spot
+	_wheel_spot = null
+	if pick == "notes_layer":
+		hud.call("toggle_layer", "notes")
+		return
+	if pick == "" or spot == null:
+		return
+	var at := session.snap(spot)
+	match pick:
+		"note":
+			session.note_requested.emit(at, session.pick(at))
+		"ping":
+			ping_here(spot)
+		"measure":
+			session.set_tool("measure")
+			session.press(at)
+
+
+var _wheel_spot: Variant = null
+
+
+func _floor_point_at(screen: Vector2) -> Variant:
+	var hit: Variant = (camera as DesignCamera).ground_point(screen, session.floor_y())
+	if hit == null:
+		return null
+	var p: Vector3 = hit
+	if absf(p.x) > PLOT_HALF or absf(p.z) > PLOT_HALF:
+		return null
+	return p
+
+
+## Pings the spot under the pointer (or `where`), labelled with what is there.
+func ping_here(where: Variant = null) -> void:
+	var p: Variant = where if where != null else _floor_point()
 	if p == null:
 		return
 	var at := session.snap(p)

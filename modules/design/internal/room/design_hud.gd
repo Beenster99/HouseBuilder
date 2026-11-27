@@ -24,6 +24,7 @@ var _actions: HBoxContainer
 var _views: OptionButton
 var _overlay_slot: VBoxContainer
 var _note_popup: PopupPanel
+var _layers_pop: PopupMenu
 var _note_text: LineEdit
 var _note_at := Vector3.ZERO
 var _note_target := ""
@@ -162,6 +163,7 @@ func _build_top() -> void:
 	layers.focus_mode = FOCUS_NONE
 	layers.tooltip_text = "Show or hide rooms, notes, pings and wall lengths"
 	var pop := layers.get_popup()
+	_layers_pop = pop
 	pop.hide_on_checkable_item_selection = false
 	for i in LAYERS.size():
 		pop.add_check_item(LAYERS[i][1], i)
@@ -188,6 +190,15 @@ func _build_actions() -> void:
 	for a: Dictionary in design.action_list():
 		var press: Callable = a.press
 		_actions.add_child(_button(str(a.label), func() -> void: press.call(_model)))
+
+
+## Flips a layer from outside the menu (the mark-up wheel), keeping the menu's tick in step.
+func toggle_layer(id: String) -> void:
+	for i in LAYERS.size():
+		if LAYERS[i][0] == id:
+			var on := not _layers_pop.is_item_checked(i)
+			_layers_pop.set_item_checked(i, on)
+			set_layer(id, on)
 
 
 func set_layer(id: String, on: bool) -> void:
@@ -278,7 +289,7 @@ func _build_tools() -> void:
 	col.add_child(_options)
 	col.add_child(HSeparator.new())
 	var keys := Label.new()
-	keys.text = "Left drag: use tool\nRight drag: orbit · Middle: pan · Wheel: zoom\nMiddle click: ping · Tab 2D/3D · PgUp/PgDn level\nDel delete · Ctrl+Z undo · Ctrl+Y redo · R turn · Esc cancel"
+	keys.text = "Left drag: use tool\nRight drag: orbit · Middle: pan · Wheel: zoom\nMiddle click: ping · Hold middle: notes wheel · Tab 2D/3D · PgUp/PgDn level\nDel delete · Ctrl+Z undo · Ctrl+Y redo · R turn · Esc cancel"
 	keys.add_theme_font_size_override("font_size", 13)
 	keys.modulate = BsxTheme.MUTED
 	keys.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART

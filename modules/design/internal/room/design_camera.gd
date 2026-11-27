@@ -53,6 +53,12 @@ func _process(delta: float) -> void:
 	place()
 
 
+## Stops an orbit or pan in progress (the mark-up wheel took the middle button).
+func stop_drag() -> void:
+	_orbiting = false
+	_panning = false
+
+
 func move_focus(d: Vector2) -> void:
 	var y := 0.0 if plan else yaw
 	var right := Vector3(cos(y), 0.0, -sin(y))
