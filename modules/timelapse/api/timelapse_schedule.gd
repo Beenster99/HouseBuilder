@@ -7,7 +7,7 @@ extends RefCounted
 ##   {"id": "col_3", "kind": "column", "aabb": AABB(...), "supported_by": ["pad_1"],
 ##    "cost": 1200.0 (optional), "level": 1 (optional, else from the part's base height)}
 ## Output (build()):
-##   {"tasks": [{id, kind, stage, level, start, end, cost, aabb, shape}, ...]  ordered by start,
+##   {"tasks": [{id, kind, stage, level, start, end, cost, aabb, shape, model}, ...]  ordered by start,
 ##    "days": total days, "cost": total cost, "crews": crews used,
 ##    "stages": {stage: [first start, last end]}, "levels": number of storeys,
 ##    "start_date": "YYYY-MM-DD"}
@@ -82,7 +82,7 @@ static func build(parts: Array, options: Dictionary = {}) -> Dictionary:
 			preds.append(str(s))
 		tasks[id] = {"id": id, "kind": kind, "stage": stage, "level": level, "aabb": box,
 				"material": str(p.get("material", "")), "family": str(p.get("family", kind)),
-				"shape": p.get("shape", {}), "cost": cost, "duration": _duration(stage, box), "preds": preds}
+				"shape": p.get("shape", {}), "model": p.get("model", {}), "cost": cost, "duration": _duration(stage, box), "preds": preds}
 		order.append(id)
 
 	# Site work around the building.
@@ -202,7 +202,7 @@ static func build(parts: Array, options: Dictionary = {}) -> Dictionary:
 		result_tasks.append({"id": t.id, "kind": t.kind, "stage": t.stage, "level": t.level,
 				"start": t.start, "end": t.end, "cost": t.cost, "aabb": t.aabb,
 				"material": str(t.get("material", "")), "family": str(t.get("family", t.kind)),
-				"shape": t.get("shape", {})})
+				"shape": t.get("shape", {}), "model": t.get("model", {})})
 	return {"tasks": result_tasks, "days": days, "cost": cost, "crews": crews, "stages": stages,
 			"levels": max_level + 1, "start_date": str(options.get("start_date", DEFAULT_START))}
 

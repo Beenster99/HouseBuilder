@@ -1,7 +1,7 @@
 extends Node3D
 ## The timelapse: the scheduled building rises part by part on the shared clock, in a clean
-## architectural-model look. A tower crane swings to the work, the sun turns at slow speeds,
-## and the HUD shows the date, build day, stages under way and money spent, with play,
+## architectural-model look, inside a busy work site (timelapse_site.gd: the library tower
+## crane, crew, plant, deliveries). The sun turns at slow speeds, and the HUD shows the date, build day, stages under way and money spent, with play,
 ## speed and a scrub bar any of the crew can use (the host applies them for everyone).
 ##
 ## Router args {"demo": true} schedules the built-in demo house when nothing is running.
@@ -33,9 +33,6 @@ var _pieces: Dictionary = {}  # task id -> {pivot, mesh, axis, task}
 var _ghost_root: Node3D
 var _build_root: Node3D
 var _sun: DirectionalLight3D
-var _crane: Node3D
-var _jib: Node3D
-var _hook: MeshInstance3D
 var _materials: Dictionary = {}
 var _working_mat: StandardMaterial3D
 var _focus := Vector3.ZERO
@@ -125,62 +122,11 @@ func _build_world() -> void:
 	_working_mat.emission_enabled = true
 	_working_mat.emission = WORKING
 	_working_mat.emission_energy_multiplier = 0.4
-	_build_crane()
 
 	camera = Camera3D.new()
 	camera.far = 800.0
 	add_child(camera)
 	camera.make_current()
-
-
-func _build_crane() -> void:
-	_crane = Node3D.new()
-	_crane.name = "Crane"
-	add_child(_crane)
-	var steel := StandardMaterial3D.new()
-	steel.albedo_color = Color(0.95, 0.72, 0.1)
-	var mast := MeshInstance3D.new()
-	mast.name = "Mast"
-	mast.mesh = BoxMesh.new()
-	mast.material_override = steel
-	_crane.add_child(mast)
-	_jib = Node3D.new()
-	_crane.add_child(_jib)
-	var arm := MeshInstance3D.new()
-	arm.name = "Arm"
-	arm.mesh = BoxMesh.new()
-	arm.material_override = steel
-	_jib.add_child(arm)
-	var counter := MeshInstance3D.new()
-	counter.name = "Counter"
-	var cb := BoxMesh.new()
-	cb.size = Vector3(1.6, 1.0, 1.6)
-	counter.mesh = cb
-	var cm := StandardMaterial3D.new()
-	cm.albedo_color = Color(0.4, 0.4, 0.42)
-	counter.material_override = cm
-	_jib.add_child(counter)
-	_hook = MeshInstance3D.new()
-	var cable := BoxMesh.new()
-	cable.size = Vector3(0.05, 1.0, 0.05)
-	_hook.mesh = cable
-	_hook.material_override = cm
-	_jib.add_child(_hook)
-
-
-## Places the crane beside the building, tall enough to clear it.
-func _place_crane(bounds: AABB) -> void:
-	var height := bounds.end.y + 8.0
-	var reach := maxf(bounds.size.x, bounds.size.z) * 0.9 + 6.0
-	_crane.position = Vector3(bounds.end.x + 3.0, 0.0, bounds.position.z - 3.0)
-	var mast := _crane.get_node("Mast") as MeshInstance3D
-	(mast.mesh as BoxMesh).size = Vector3(1.2, height, 1.2)
-	mast.position.y = height / 2.0
-	_jib.position.y = height
-	var arm := _jib.get_node("Arm") as MeshInstance3D
-	(arm.mesh as BoxMesh).size = Vector3(1.0, 1.0, reach + 5.0)
-	arm.position = Vector3(0, 0.5, -(reach - 5.0) / 2.0)
-	(_jib.get_node("Counter") as Node3D).position = Vector3(0, 0, 4.5)
 
 
 func _rebuild() -> void:
@@ -189,10 +135,8 @@ func _rebuild() -> void:
 	_pieces.clear()
 	_empty.visible = not bus.is_active()
 	if not bus.is_active():
-		_crane.visible = false
 		site.visible = false
 		return
-	_crane.visible = true
 	_title.text = bus.title.to_upper()
 	var bounds := AABB()
 	var first := true
@@ -203,11 +147,8 @@ func _rebuild() -> void:
 		_add_piece(t)
 	_focus = bounds.get_center()
 	_dist = clampf(maxf(bounds.size.x, maxf(bounds.size.y, bounds.size.z)) * 2.4, 12.0, 300.0)
-	_place_crane(bounds)
 	site.visible = true
 	site.setup(bus.schedule, bounds)
-	# The site's library tower crane does the lifting; the old plain crane stays hidden.
-	_crane.visible = false
 	_scrub.max_value = bus.total_days()
 	_scrub.step = 0.01
 	_sync_buttons()
@@ -246,6 +187,10 @@ static func fades(t: Dictionary) -> bool:
 
 
 func _add_piece(t: Dictionary) -> void:
+	var look: Dictionary = t.get("model", {})
+	if not look.is_empty() and AssetLibrary.has(AssetLibrary.id_for_kind(str(look.kind))):
+		_add_model(t, look)
+		return
 	var shape: Dictionary = t.get("shape", {})
 	if fades(t) and not shape.is_empty():
 		_add_shaped(t, shape)
@@ -292,6 +237,28 @@ func _add_piece(t: Dictionary) -> void:
 		ghost.material_override = _material(t, true)
 		ghost.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 		_ghost_root.add_child(ghost)
+
+
+## A library object (an airliner, a car, a desk) as its own model, fading in like the rest.
+func _add_model(t: Dictionary, look: Dictionary) -> void:
+	for ghost: bool in [false, true]:
+		var node := AssetLibrary.make_kind(str(look.kind), {"size": look.size, "family": "fixture"})
+		node.name = "Model_" + str(t.id)
+		node.position = look.at
+		node.rotation.y = deg_to_rad(float(look.rot))
+		var meshes: Array[MeshInstance3D] = []
+		for mi in node.find_children("*", "MeshInstance3D", true, false):
+			meshes.append(mi as MeshInstance3D)
+		if ghost:
+			for mi in meshes:
+				mi.material_override = _material(t, true)
+				mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+			_ghost_root.add_child(node)
+		else:
+			node.visible = false
+			_build_root.add_child(node)
+			_pieces[t.id] = {"pivot": node, "mesh": meshes[0] if not meshes.is_empty() else null,
+					"meshes": meshes, "axis": 1, "task": t}
 
 
 ## A part at its real angle and outline: angled walls, beams and openings as turned boxes,
@@ -378,7 +345,6 @@ func _process(delta: float) -> void:
 		return
 	var day := bus.day()
 	site.tick(day, delta * SiteScript.pace(bus.speed(), bus.is_playing()))
-	var working: Array[Vector3] = []
 	for id: String in _pieces:
 		var piece: Dictionary = _pieces[id]
 		var t: Dictionary = piece.task
@@ -390,9 +356,12 @@ func _process(delta: float) -> void:
 		var mesh := piece.mesh as MeshInstance3D
 		if fades(t):
 			# Building parts fade in at full size over their build time.
-			mesh.transparency = 1.0 - smoothstep(0.0, 1.0, p)
-			if p < 1.0:
-				working.append((t.aabb as AABB).get_center())
+			var fade := 1.0 - smoothstep(0.0, 1.0, p)
+			if piece.has("meshes"):
+				for mi: MeshInstance3D in piece.meshes:
+					mi.transparency = fade
+			elif mesh:
+				mesh.transparency = fade
 			continue
 		# Site work spreads across the plot.
 		var s := Vector3.ONE
@@ -400,30 +369,8 @@ func _process(delta: float) -> void:
 		pivot.scale = s
 		var busy: bool = p < 1.0 and t.stage != "site" and t.stage != "landscape"
 		mesh.material_override = _working_mat if busy else _material(t, false)
-		if busy:
-			working.append((t.aabb as AABB).get_center())
-	if _crane.visible:
-		_aim_crane(working)
 	_turn_sun(day)
 	_update_hud(day)
-
-
-func _aim_crane(working: Array[Vector3]) -> void:
-	if working.is_empty():
-		_hook.visible = false
-		return
-	var target := Vector3.ZERO
-	for w in working:
-		target += w
-	target /= working.size()
-	var local := target - _crane.global_position
-	var want := atan2(-local.x, -local.z)
-	_jib.rotation.y = lerp_angle(_jib.rotation.y, want, 0.08)
-	var reach := Vector2(local.x, local.z).length()
-	var drop := _jib.position.y - target.y
-	_hook.visible = drop > 0.5
-	_hook.scale.y = maxf(drop, 0.1)
-	_hook.position = Vector3(0, -drop / 2.0, -reach)
 
 
 ## The sun turns with the hour at slow speeds; faster than a day a second it stays at noon.

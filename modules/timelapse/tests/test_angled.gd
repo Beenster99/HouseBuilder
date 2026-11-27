@@ -14,6 +14,10 @@ func run_tests() -> void:
 	var b := dir * 6.0
 	var wid := str(m.apply(BuildingCommands.place_part("wall_loadbearing", 0, {"a": [0, 0, 0], "b": [b.x, 0, b.z]}, "masonry")).do.entry.id)
 	var sid := str(m.apply(BuildingCommands.place_part("slab", 0, {"outline": [[0, 0], [8, 0], [0, 6]]})).do.entry.id)
+	var jet_kind := "airport.aircraft.jumbo"
+	var jid := ""
+	if m.catalog.kind(jet_kind).has("asset"):
+		jid = str(m.apply(BuildingCommands.place_part(jet_kind, 0, {"at": [40, 0, 40]})).do.entry.id)
 	var parts := BuildingParts.from_model(m)
 	var wall: Dictionary = {}
 	var slab: Dictionary = {}
@@ -72,5 +76,16 @@ func run_tests() -> void:
 	var wm := view._pieces[wid].mesh as MeshInstance3D
 	check(wm.transform.basis.x.normalized().dot(dir) > 0.999, "the timelapse draws the wall at its angle")
 	check(view._pieces[sid].mesh.mesh is ArrayMesh, "and the slab as its outline")
+	if jid != "":
+		# A library object (the jumbo jet) builds as its own model, not its box.
+		var jet: Dictionary = view._pieces[jid]
+		check((jet.get("meshes", []) as Array).size() > 1 and (jet.pivot as Node3D).position.distance_to(Vector3(40, 0, 40)) < 0.01,
+				"a library object builds as its own model where it was placed: %d meshes" % (jet.get("meshes", []) as Array).size())
+		bus.request_seek(bus.total_days())
+		await frames(2)
+		var shown := (jet.pivot as Node3D).visible
+		for mi: MeshInstance3D in jet.meshes:
+			shown = shown and mi.transparency < 0.01
+		check(shown, "and is solid once built")
 	view.queue_free()
 	await frames(1)

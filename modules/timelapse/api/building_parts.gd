@@ -3,7 +3,9 @@ extends RefCounted
 ## The building model as plain part Dictionaries, the input of TimelapseSchedule and the
 ## demolition module:
 ##   {"id", "kind", "family", "material", "aabb": AABB (world, m), "supported_by": [ids],
-##    "cost", "mass", "level"}
+##    "cost", "mass", "level", "shape"?, "model"?}
+## `shape` is the exact outline or turned box (shape_of); `model` a library object's own
+## model (model_of).
 ## `kind` is the schedule's word for the part (column, beam, slab, wall, window, door, roof,
 ## fitout, stairs...). What a part rests on comes from three places: the model's explicit
 ## connections (the lower part carries the upper), an opening's host wall, and geometry
@@ -45,6 +47,9 @@ static func from_model(model: BuildingModel) -> Array[Dictionary]:
 		var shape := shape_of(model, pid)
 		if not shape.is_empty():
 			p.shape = shape
+		var look := model_of(model, pid)
+		if not look.is_empty():
+			p.model = look
 		if family == "opening" and e.has("host"):
 			p.supported_by.append(str(e.host))
 		out.append(p)
@@ -151,6 +156,22 @@ static func _overlap_plan(a: AABB, b: AABB) -> bool:
 static func _add_support(p: Dictionary, carrier: String) -> void:
 	if not (p.supported_by as Array).has(carrier):
 		p.supported_by.append(carrier)
+
+
+## A library object's own model (an airliner, a car, a desk) to draw in place of its box:
+## {"kind", "size": Vector3, "at": Vector3 (world, on its floor), "rot": degrees}. {} for
+## anything else.
+static func model_of(model: BuildingModel, pid: String) -> Dictionary:
+	var e: Dictionary = model.parts.get(pid, {})
+	var spec := model.catalog.kind(str(e.get("kind", "")))
+	if str(spec.get("family", "")) != "fixture" or str(spec.get("asset", "")) == "" or not e.has("at"):
+		return {}
+	var a: Variant = e.at
+	var at: Vector3 = a if a is Vector3 else Vector3(float(a[0]), float(a[1]), float(a[2]))
+	return {"kind": str(e.kind),
+			"size": Vector3(float(spec.get("w", 0.5)), float(spec.get("h", 0.8)), float(spec.get("d", 0.5))),
+			"at": at + Vector3(0, model.level_elevation(model.level_of(pid)), 0),
+			"rot": float(e.get("rot", 0.0))}
 
 
 ## A part's exact shape for drawing, beyond its box: walls, beams, braces and openings at
