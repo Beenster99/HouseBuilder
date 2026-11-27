@@ -342,7 +342,10 @@ func _build() -> void:
 	add_child(viewport)
 	var root := Control.new()
 	root.name = "Root"
-	root.theme = BsxTheme.get_theme()
+	# Screens keep the classic screen look whatever the game's menu style (pencil is for the
+	# game's own UI, not what shows on a TV).
+	root.set_meta(BsxTheme.SCREEN_META, true)
+	root.theme = BsxTheme.screen_theme()
 	root.size = Vector2(px)
 	root.set_meta("holo", true)  # its buttons tick
 	viewport.add_child(root)

@@ -219,18 +219,20 @@ func open_fullscreen(wall_id: String, panel := -1) -> bool:
 	var page := PanelContainer.new()
 	page.name = "WallFullScreen"
 	page.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	page.theme = BsxTheme.get_theme()
-	page.add_theme_stylebox_override("panel", T.box(Color(BsxTheme.PANEL, 0.98), T.EDGE, 0, 0.0))
+	# A wall screen made big: still a screen, so the classic look.
+	page.set_meta(BsxTheme.SCREEN_META, true)
+	page.theme = BsxTheme.screen_theme()
+	page.add_theme_stylebox_override("panel", T.box(Color(BsxTheme.palette_for(page).PANEL, 0.98), TerminalKit.col(page, "EDGE"), 0, 0.0))
 	var col := VBoxContainer.new()
 	page.add_child(col)
 	var bar := HBoxContainer.new()
 	bar.add_theme_constant_override("separation", 8)
 	col.add_child(bar)
-	bar.add_child(T.label("WALL SCREEN, FULL", "display_bold", 18, T.ORANGE))
-	var tip := T.label("%s or Esc to go back" % Keys.prompt(Keys.INTERACT), "body", 15, T.DIM)
+	bar.add_child(BsxTheme.as_screen(func() -> Label: return T.label("WALL SCREEN, FULL", "display_bold", 18, T.ORANGE)))
+	var tip: Label = BsxTheme.as_screen(func() -> Label: return T.label("%s or Esc to go back" % Keys.prompt(Keys.INTERACT), "body", 15, T.DIM))
 	tip.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	bar.add_child(tip)
-	var back := T.button("BACK", false, 16)
+	var back: Button = BsxTheme.as_screen(func() -> Button: return T.button("BACK", false, 16))
 	back.name = "Back"
 	back.focus_mode = Control.FOCUS_NONE
 	back.pressed.connect(close_fullscreen)

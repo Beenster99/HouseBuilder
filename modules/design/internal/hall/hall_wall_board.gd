@@ -20,7 +20,13 @@ var _row: HBoxContainer
 var _slots: Array[Control] = []
 
 
+## Built in the classic screen look: the boards are TV screens, not the game's own UI.
 func setup(p_hall: Node, id: String, layout: Array, density: float) -> void:
+	set_meta(BsxTheme.SCREEN_META, true)
+	BsxTheme.as_screen(func() -> void: _setup(p_hall, id, layout, density))
+
+
+func _setup(p_hall: Node, id: String, layout: Array, density: float) -> void:
 	hall = p_hall
 	wall_id = id
 	px_per_m = density
@@ -107,6 +113,10 @@ func content(i: int) -> Control:
 
 
 func _fill(i: int) -> void:
+	BsxTheme.as_screen(func() -> void: _fill_now(i))
+
+
+func _fill_now(i: int) -> void:
 	var slot := _slots[i]
 	for c in slot.get_children():
 		slot.remove_child(c)

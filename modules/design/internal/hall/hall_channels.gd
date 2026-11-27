@@ -42,7 +42,12 @@ static func title_of(hall: Node, id: String) -> String:
 
 
 ## A control showing channel `id`; font is the body text size, px.
+## Built in the classic screen look (a wall screen is a TV, not the game's own UI).
 static func make(id: String, hall: Node, font: int) -> Control:
+	return BsxTheme.as_screen(func() -> Control: return _make(id, hall, font))
+
+
+static func _make(id: String, hall: Node, font: int) -> Control:
 	match id:
 		"plan", "side", "3d":
 			var v := ModelChannel.new()
@@ -96,7 +101,7 @@ static func make(id: String, hall: Node, font: int) -> Control:
 
 ## The game's theme with its text at `font` px (wall screens are read from across the room).
 static func _scaled_theme(font: int) -> Theme:
-	var th := BsxTheme.get_theme().duplicate() as Theme
+	var th := BsxTheme.screen_theme().duplicate() as Theme
 	th.default_font_size = font
 	return th
 
@@ -282,7 +287,7 @@ class BillChannel extends PanelContainer:
 					r.label, r.material_label, int(r.count), _qty(float(r.qty), str(r.unit)), DesignCosts.money(float(r.cost), cur)]
 		t += "[/table]\n[b]%d lines, %s[/b]" % [rows.size(), DesignCosts.money(total, cur)]
 		if rows.is_empty():
-			t = "[color=#%s]Nothing placed yet.[/color]" % BsxTheme.MUTED.to_html(false)
+			t = "[color=#%s]Nothing placed yet.[/color]" % BsxTheme.col(self, "MUTED").to_html(false)
 		_text.text = t
 
 	static func _qty(q: float, unit: String) -> String:
@@ -321,7 +326,9 @@ class CostChannel extends PanelContainer:
 			return
 		_age = 0.0
 		_rev = book.revision
-		_text.text = DesignCosts.bbcode(book.summary(), 40, font * 2)
+		var sum := book.summary()
+		_text.text = BsxTheme.as_screen(func() -> String: return DesignCosts.bbcode(sum, 40, font * 2)) \
+				if BsxTheme.on_screen(self) else DesignCosts.bbcode(sum, 40, font * 2)
 
 
 ## Shows its one child scaled by `base`, or less if the child's own width wouldn't fit at that
