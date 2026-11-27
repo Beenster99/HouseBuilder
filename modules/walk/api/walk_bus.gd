@@ -1,0 +1,267 @@
+class_name WalkBus
+extends Node
+## Walk-inside mode's bus (Modules.bus("walk")), ported from BSX Ltd's design room
+## (modules/design/internal/walk): the open building built round you at full size, in the
+## architectural model look (white, ink edges, sun shadows) or the realistic one, to walk or
+## fly through and design in. Everything you change in here goes through BuildingSync, so the
+## designer, the holotable and every other player follow.
+##
+##   var walk := Modules.bus("walk") as WalkBus
+##   walk.open(model, get_tree().current_scene)    # lays the walk view over that scene
+##   walk.closed.connect(...)                       # Esc: back to whatever opened it
+##   walk.walkers                                   # who is walking, where, and their pointer
+##
+## The design room's designer gets a "Walk inside" button on its top bar (DesignBus
+## register_action, found by name: walk does not depend on design). While the view is open it
+## holds HudSlots.claim_pointer(POINTER), so the hall's own walker and screens stand down.
+##
+## walkers: peer id -> {name, colour, pos (feet, world m), yaw (rad), aim (Vector3 world, or
+## null when aiming at nothing), flying}, for the design room to draw each walking player on
+## the holotable model and their pointer on the plan and 3D screens. walkers_changed when
+## someone starts or stops walking; positions and pointers update every frame (read them in
+## _process). Your own entry is there too while you walk.
+##
+## Features (Flags): "walk" (the module), "walk.inside" (the view and its designer button).
+
+signal opened
+signal closed
+## Someone started or stopped walking (or flying).
+signal walkers_changed
+
+const FLAG := "walk.inside"
+const ACTION := "walk.inside"
+const POINTER := "walk.inside"
+const EVENT := "walk.state"
+const SECTION := "walk"
+const VIEW_SCRIPT := "res://modules/walk/internal/walk_inside.gd"
+## Movers: each walker's body and pointer, driven by that player (the "player:" prefix).
+const BODY_MOVER := "player:%d:walk"
+const AIM_MOVER := "player:%d:walkaim"
+## The pointer mover sits here when its player aims at nothing.
+const NO_AIM := Vector3(0, -10000, 0)
+
+var walkers: Dictionary = {}
+## The open walk view (WalkInside), or null.
+var view: Node = null
+var _net: MultiplayerBus
+## peer id -> {body: Node3D, aim: Node3D}: where other players' walks land.
+var _proxies: Dictionary = {}
+var _design: Node = null
+
+
+func register_module() -> void:
+	if Modules.ready_done:
+		_hook()
+	else:
+		Modules.modules_ready.connect(_hook, CONNECT_ONE_SHOT)
+
+
+func unregister_module() -> void:
+	close()
+	if _design and is_instance_valid(_design) and _design.has_method("unregister_action"):
+		_design.call("unregister_action", ACTION)
+	if _net:
+		_net.unregister_event(EVENT)
+		_net.unregister_snapshot_provider(SECTION)
+		for peer: int in _proxies.keys():
+			_drop_proxy(peer)
+	_net = null
+
+
+func _hook() -> void:
+	bind(Modules.bus("multiplayer") as MultiplayerBus)
+	hook_design(Modules.bus("design"))
+
+
+## Shares walk state through a session's bus (tests bind their own).
+func bind(net: MultiplayerBus) -> void:
+	if net == null:
+		return
+	_net = net
+	_net.register_event(EVENT, _apply_state, _stamp)
+	_net.register_snapshot_provider(SECTION, self)
+	_net.peer_left.connect(_on_peer_left)
+	_net.session_ended.connect(_on_session_ended)
+
+
+func net() -> MultiplayerBus:
+	return _net
+
+
+## The designer's "Walk inside" button (a design bus or a stand-in in tests).
+func hook_design(design: Node) -> void:
+	if design == null or not design.has_method("register_action") or not Flags.is_on(FLAG):
+		return
+	_design = design
+	design.call("register_action", ACTION, "Walk inside", func(model: BuildingModel) -> void:
+		open(model, get_tree().current_scene), 45)
+
+
+## Opens walk-inside over `parent` (the current scene): the building in a world of its own,
+## drawn over the whole screen. spawn: {at: Vector3 (feet), yaw} to start somewhere given.
+## sync: the edits' way to the host (default: the building bus's, for its shared model).
+## Returns the view (or the one already open).
+func open(model: BuildingModel = null, parent: Node = null, spawn: Dictionary = {}, sync: BuildingSync = null) -> Node:
+	if view and is_instance_valid(view):
+		return view
+	if model == null:
+		var b := Modules.bus("building") as BuildingBus
+		model = b.model if b else null
+	if model == null:
+		return null
+	if parent == null:
+		parent = get_tree().current_scene if get_tree().current_scene else self
+	var v: Node = (load(VIEW_SCRIPT) as GDScript).new()
+	parent.add_child(v)
+	v.call("setup", self, model, sync if sync else _sync_for(model), spawn)
+	view = v
+	HudSlots.claim_pointer(POINTER)
+	opened.emit()
+	return v
+
+
+## Closes the view (Esc does this); the player is back where they were.
+func close() -> void:
+	if view == null:
+		return
+	var v := view
+	view = null
+	if is_instance_valid(v):
+		v.queue_free()
+		if v.is_inside_tree():
+			v.get_parent().remove_child(v)
+	HudSlots.release_pointer(POINTER)
+	if DisplayServer.get_name() != "headless":
+		Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+	closed.emit()
+
+
+func is_open() -> bool:
+	return view != null and is_instance_valid(view)
+
+
+## The shared building's sync when `model` is the shared one, else an unbound one (tests,
+## previews): edits from walk-inside always go through BuildingSync.
+func _sync_for(model: BuildingModel) -> BuildingSync:
+	var b := Modules.bus("building") as BuildingBus
+	if b and b.model == model:
+		return b.sync
+	return BuildingSync.new(model)
+
+
+# Walking together (BSX DesignBus.set_walking / walkers): who is in walk-inside is a host
+# event, so everyone agrees; where they are streams as movers.
+
+## Says whether this player is walking (and flying), for everyone.
+func set_state(walking: bool, flying := false) -> void:
+	if _net == null:
+		_apply_state({"peer": 1, "on": walking, "flying": flying})
+		return
+	_net.request(EVENT, {"on": walking, "flying": flying})
+
+
+func local_peer() -> int:
+	return _net.local_peer_id() if _net else 1
+
+
+func _stamp(sender: int, p: Dictionary) -> Variant:
+	return {"peer": sender, "on": bool(p.get("on", false)), "flying": bool(p.get("flying", false))}
+
+
+func _apply_state(p: Dictionary) -> void:
+	var peer := int(p.get("peer", 0))
+	var was := walkers.has(peer)
+	if bool(p.get("on", false)):
+		var w: Dictionary = walkers.get(peer, {"pos": Vector3.ZERO, "yaw": 0.0, "aim": null})
+		w["name"] = _net.player_name(peer) if _net else "You"
+		w["colour"] = _net.player_colour(peer) if _net else Color(0.3, 0.7, 1.0)
+		w["flying"] = bool(p.get("flying", false))
+		walkers[peer] = w
+		if peer != local_peer():
+			_add_proxy(peer)
+		walkers_changed.emit()
+	elif was:
+		walkers.erase(peer)
+		_drop_proxy(peer)
+		walkers_changed.emit()
+
+
+func _add_proxy(peer: int) -> void:
+	if _proxies.has(peer) or _net == null:
+		return
+	var body := Node3D.new()
+	body.name = "Walker_%d" % peer
+	var aim := Node3D.new()
+	aim.name = "WalkerAim_%d" % peer
+	aim.position = NO_AIM
+	add_child(body)
+	add_child(aim)
+	_net.register_mover(BODY_MOVER % peer, body)
+	_net.register_mover(AIM_MOVER % peer, aim)
+	_proxies[peer] = {"body": body, "aim": aim}
+
+
+func _drop_proxy(peer: int) -> void:
+	var p: Dictionary = _proxies.get(peer, {})
+	if p.is_empty():
+		return
+	_proxies.erase(peer)
+	if _net:
+		_net.unregister_mover(BODY_MOVER % peer)
+		_net.unregister_mover(AIM_MOVER % peer)
+	for k: String in ["body", "aim"]:
+		if is_instance_valid(p[k]):
+			(p[k] as Node).queue_free()
+
+
+## Where another walker's figure is (their streamed body), or null.
+func proxy_body(peer: int) -> Node3D:
+	var p: Dictionary = _proxies.get(peer, {})
+	return p.get("body") if not p.is_empty() else null
+
+
+func proxy_aim(peer: int) -> Node3D:
+	var p: Dictionary = _proxies.get(peer, {})
+	return p.get("aim") if not p.is_empty() else null
+
+
+func _process(_delta: float) -> void:
+	for peer: int in walkers:
+		var w: Dictionary = walkers[peer]
+		if _proxies.has(peer):
+			var body: Node3D = _proxies[peer].body
+			var aim: Node3D = _proxies[peer].aim
+			w["pos"] = body.position
+			w["yaw"] = body.rotation.y
+			w["aim"] = null if aim.position.y < NO_AIM.y * 0.5 else aim.position
+		elif peer == local_peer() and is_open():
+			w["pos"] = view.call("feet")
+			w["yaw"] = float(view.call("yaw"))
+			w["aim"] = view.call("aim_point")
+
+
+func _on_peer_left(peer: int, _why: String) -> void:
+	if walkers.erase(peer):
+		_drop_proxy(peer)
+		walkers_changed.emit()
+
+
+func _on_session_ended(_why: String) -> void:
+	for peer: int in walkers.keys():
+		if peer != local_peer():
+			walkers.erase(peer)
+			_drop_proxy(peer)
+	walkers_changed.emit()
+
+
+func get_net_snapshot() -> Dictionary:
+	var out := {}
+	for peer: int in walkers:
+		out[str(peer)] = bool(walkers[peer].get("flying", false))
+	return {"walkers": out}
+
+
+func apply_net_snapshot(data: Dictionary) -> void:
+	var got: Dictionary = data.get("walkers", {})
+	for k: String in got:
+		_apply_state({"peer": int(k), "on": true, "flying": bool(got[k])})

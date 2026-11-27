@@ -1,0 +1,1111 @@
+extends Node
+## Walk-inside mode (BSX Ltd's WalkInside, beenster 18 Nov, repurposed for FredDibnah): the
+## open building built round you at full size (WalkBuild), to walk through with the mouse and
+## keyboard and get a feel for it, and to design in: what you change in here goes through
+## BuildingSync, so the designer, the holotable and the rest of the crew follow.
+##
+##   WASD walk, Shift run, Space jump, mouse look, Esc back to the designer.
+##   Q flies: no gravity, through the walls, WASD where you look, Space up, C down; Q again
+##     to walk.
+##   V: the architectural model look (white, ink edges, shadows) or the realistic one.
+##   Tab: fittings, doors and windows and columns to take in hand, undo and redo.
+##   Aim at a part: click to pick it up and click again to put it down, R turns it, X removes
+##     it, E edits it (its material, section and kind).
+##   Aim at a wall: F puts a door in it; the mouse wheel pushes it away or pulls it towards
+##     you by a grid step (the walls meeting it and the rooms and floors on it follow).
+##   Aim at the ceiling: the mouse wheel raises or lowers it (the storey's height).
+##   Ctrl+Z undo, Ctrl+Y or Ctrl+Shift+Z redo.
+## A part in your hands shows green where it fits and amber where it hits something, with
+## the reason under the crosshair.
+##
+## The crew: everyone walking is a figure in their colour with their name over it, and their
+## pointer is a dot in their colour where they aim, with a faint line from their eyes.
+##
+## Built in a world of its own (a SubViewport with its own World3D, sky, sun and physics),
+## drawn over the whole screen, so nothing of the room it was opened from lights or touches it.
+
+const T := preload("res://modules/ui/api/terminal_kit.gd")
+const WalkBuild := preload("res://modules/walk/internal/walk_build.gd")
+const WalkEdits := preload("res://modules/walk/internal/walk_edits.gd")
+const C := preload("res://modules/building/api/building_commands.gd")
+
+const LAYER := WalkBuild.LAYER
+## How far you can reach to design, m; flying, m.
+const REACH := 8.0
+const FLY_REACH := 40.0
+## Families you can pick up and carry (point parts).
+const CARRY := ["fixture", "column"]
+
+## Walking speed, m/s.
+@export var walk_speed := 3.0
+## Running speed (Shift), m/s.
+@export var run_speed := 6.0
+## Jump speed, m/s.
+@export var jump_speed := 4.2
+## Gravity, m/s2.
+@export var gravity := 9.8
+## Flying (Q): how fast, m/s (Shift twice as fast).
+@export var fly_speed := 6.0
+## Mouse look, radians per pixel.
+@export var look_speed := 0.003
+
+var bus: Node  # WalkBus
+var model: BuildingModel
+var sync: BuildingSync
+var builder: WalkBuild
+var viewport: SubViewport
+var world: Node3D
+var body: CharacterBody3D
+var camera: Camera3D
+var hud: CanvasLayer
+var sun: DirectionalLight3D
+## A part in your hands: {type, id ("" for a new one), rot, opening (a door or window)}.
+var holding: Dictionary = {}
+## Flying (Q): no gravity, through the walls.
+var flying := false
+## Where the part in your hands would go now: {ok, at (Vector3), wall?, why}.
+var spot: Dictionary = {}
+## The part the edit rows (E) show, "" for the parts list.
+var edit_id := ""
+## The crew walking about in here too: peer id -> {figure, dot, ray}.
+var crew: Dictionary = {}
+var _ghost: Node3D
+var _ghost_key := ""
+var _title: Label
+var _where: Label
+var _look: Label
+var _aim_label: Label
+var _palette: PanelContainer
+var _palette_list: VBoxContainer
+var _pitch := 0.0
+var _aim_node: Node3D
+var _me := 1
+var _push_group := ""
+var _push_target := ""
+var _push_at := 0
+var _push_n := 0
+var _lamp_t := 0.0
+
+
+func setup(walk_bus: Node, building: BuildingModel, building_sync: BuildingSync, start: Dictionary = {}) -> void:
+	bus = walk_bus
+	model = building
+	sync = building_sync
+	name = "WalkInside"
+	_add_view()
+	_add_sky()
+	_add_ground()
+	builder = WalkBuild.new()
+	world.add_child(builder)
+	builder.bind(model)
+	_add_player()
+	_add_hud()
+	model.changed.connect(_on_changed)
+	spawn(start)
+	if DisplayServer.get_name() != "headless":
+		Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+	_join_crew()
+
+
+func _exit_tree() -> void:
+	if model and model.changed.is_connected(_on_changed):
+		model.changed.disconnect(_on_changed)
+	_drop_holding()
+	_leave_crew()
+
+
+# Walking about together: this player's walk and pointer stream to the crew as movers under
+# their own "player:<id>:" ids (so they always drive them); everyone else in walk-inside
+# shows here as a figure in their colour, their name over it and their pointer where they aim.
+
+func _join_crew() -> void:
+	var net: MultiplayerBus = bus.call("net")
+	_me = int(bus.call("local_peer"))
+	if net:
+		net.register_mover(WalkBusRef.BODY % _me, body)
+		net.register_mover(WalkBusRef.AIM % _me, _aim_node)
+	bus.connect("walkers_changed", _sync_crew)
+	bus.call("set_state", true, flying)
+	_sync_crew()
+
+
+func _leave_crew() -> void:
+	if bus == null:
+		return
+	if bus.is_connected("walkers_changed", _sync_crew):
+		bus.disconnect("walkers_changed", _sync_crew)
+	var net: MultiplayerBus = bus.call("net")
+	if net:
+		net.unregister_mover(WalkBusRef.BODY % _me)
+		net.unregister_mover(WalkBusRef.AIM % _me)
+	bus.call("set_state", false, false)
+	crew.clear()
+
+
+func _sync_crew() -> void:
+	if world == null:
+		return
+	var walkers: Dictionary = bus.get("walkers")
+	for peer: int in crew.keys():
+		if not walkers.has(peer):
+			for k: String in ["figure", "dot", "ray"]:
+				(crew[peer][k] as Node).queue_free()
+			crew.erase(peer)
+	for peer: int in walkers:
+		if peer == _me or crew.has(peer):
+			continue
+		var w: Dictionary = walkers[peer]
+		var colour: Color = w.get("colour", Color.WHITE)
+		var fig := crew_figure(str(w.get("name", "Player")), colour)
+		fig.name = "Crew_%d" % peer
+		world.add_child(fig)
+		var dot := pointer_dot(colour)
+		dot.name = "Pointer_%d" % peer
+		dot.visible = false
+		world.add_child(dot)
+		var ray := MeshInstance3D.new()
+		ray.name = "PointerRay_%d" % peer
+		ray.mesh = ImmediateMesh.new()
+		var rm := StandardMaterial3D.new()
+		rm.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+		rm.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+		rm.albedo_color = Color(colour.r, colour.g, colour.b, 0.35)
+		ray.material_override = rm
+		ray.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		world.add_child(ray)
+		crew[peer] = {"figure": fig, "dot": dot, "ray": ray}
+
+
+## A crewmate in walk-inside (BSX crew_figure): a figure in their colour, a visor, their name
+## over their head. Its origin is their feet.
+static func crew_figure(player: String, colour: Color) -> Node3D:
+	var fig := Node3D.new()
+	var mi := MeshInstance3D.new()
+	mi.name = "Body"
+	var cap := CapsuleMesh.new()
+	cap.radius = 0.3
+	cap.height = 1.8
+	mi.mesh = cap
+	mi.position.y = 0.9
+	var m := StandardMaterial3D.new()
+	m.albedo_color = colour
+	m.roughness = 0.6
+	mi.material_override = m
+	fig.add_child(mi)
+	var visor := MeshInstance3D.new()
+	var vb := BoxMesh.new()
+	vb.size = Vector3(0.34, 0.12, 0.08)
+	visor.mesh = vb
+	var vm := StandardMaterial3D.new()
+	vm.albedo_color = Color(0.1, 0.12, 0.14)
+	vm.emission_enabled = true
+	vm.emission = colour * 0.6
+	visor.material_override = vm
+	visor.position = Vector3(0, 1.52, -0.27)
+	fig.add_child(visor)
+	var tag := Label3D.new()
+	tag.name = "Name"
+	tag.text = player
+	tag.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	tag.no_depth_test = true
+	tag.font_size = 40
+	tag.pixel_size = 0.005
+	tag.modulate = colour
+	tag.outline_size = 8
+	tag.position = Vector3(0, 2.1, 0)
+	fig.add_child(tag)
+	return fig
+
+
+## Another player's pointer: a glowing dot in their colour, seen through walls.
+static func pointer_dot(colour: Color) -> MeshInstance3D:
+	var dot := MeshInstance3D.new()
+	var s := SphereMesh.new()
+	s.radius = 0.06
+	s.height = 0.12
+	dot.mesh = s
+	var m := StandardMaterial3D.new()
+	m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	m.no_depth_test = true
+	m.albedo_color = colour
+	dot.material_override = m
+	dot.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	return dot
+
+
+func _update_crew() -> void:
+	for peer: int in crew:
+		var c: Dictionary = crew[peer]
+		var pb: Node3D = bus.call("proxy_body", peer)
+		var pa: Node3D = bus.call("proxy_aim", peer)
+		if pb == null:
+			continue
+		var fig: Node3D = c.figure
+		fig.position = pb.position - Vector3(0, 0.9, 0)
+		fig.rotation.y = pb.rotation.y
+		var dot: MeshInstance3D = c.dot
+		var ray: MeshInstance3D = c.ray
+		var im: ImmediateMesh = ray.mesh
+		im.clear_surfaces()
+		var aiming := pa != null and pa.position.y > float(WalkBusRef.NO_AIM.y) * 0.5
+		dot.visible = aiming
+		if aiming:
+			dot.position = pa.position
+			im.surface_begin(Mesh.PRIMITIVE_LINES)
+			im.surface_add_vertex(pb.position + Vector3(0, 0.6, 0))
+			im.surface_add_vertex(pa.position)
+			im.surface_end()
+
+
+## The crew's ids for the movers (kept in step with WalkBus).
+class WalkBusRef:
+	const BODY := "player:%d:walk"
+	const AIM := "player:%d:walkaim"
+	const NO_AIM := Vector3(0, -10000, 0)
+
+
+# Where you are
+
+## Puts you at start {at (feet), yaw}, else outside the front door facing in, else in the
+## first room on the ground floor, else in front of the building.
+func spawn(start: Dictionary = {}) -> void:
+	var at := Vector3(0, 0, 6)
+	var face := Vector3(0, 0, -1)
+	if start.has("at"):
+		at = start.at
+		face = Vector3(-sin(float(start.get("yaw", 0.0))), 0, -cos(float(start.get("yaw", 0.0))))
+	else:
+		var found := false
+		for pid in model.parts_of_family("opening"):
+			var e: Dictionary = model.parts[pid]
+			if str(e.kind) == "door_external" and model.level_of(pid) == 0:
+				var pts := model.points_of(pid)
+				var mid := (pts[0] + pts[1]) / 2.0
+				var along := (pts[1] - pts[0]).normalized()
+				var n := Vector3(-along.z, 0, along.x)
+				var centre := _centre()
+				if n.dot(mid - centre) < 0.0:
+					n = -n
+				at = mid + n * 2.0
+				face = -n
+				found = true
+				break
+		if not found and not model.rooms_on(0).is_empty():
+			var r: Dictionary = model.rooms[model.rooms_on(0)[0]]
+			var c := Vector2.ZERO
+			for p: Array in r.outline:
+				c += Vector2(float(p[0]), float(p[1]))
+			c /= maxf(float((r.outline as Array).size()), 1.0)
+			at = Vector3(c.x, 0.0, c.y)
+			var mid2 := _centre()
+			face = Vector3(mid2.x - c.x, 0, mid2.z - c.y)
+			if face.length() < 0.1:
+				face = Vector3(0, 0, -1)
+			found = true
+		if not found and not model.parts.is_empty():
+			var box := _bounds()
+			at = Vector3(box.get_center().x, 0.0, box.end.z + 5.0)
+			face = Vector3(0, 0, -1)
+	body.position = at + Vector3(0, 0.95, 0)
+	body.velocity = Vector3.ZERO
+	body.rotation.y = atan2(-face.x, -face.z)
+	_pitch = 0.0
+	camera.rotation.x = 0.0
+
+
+func _bounds() -> AABB:
+	var box := AABB()
+	var first := true
+	for pid: String in model.parts:
+		var b := model.aabb_of(pid)
+		if b.size == Vector3.ZERO and b.position == Vector3.ZERO:
+			continue
+		box = b if first else box.merge(b)
+		first = false
+	return box
+
+
+func _centre() -> Vector3:
+	var c := _bounds().get_center()
+	return Vector3(c.x, 0, c.z)
+
+
+## Your feet, world m (the crew's figures stand there).
+func feet() -> Vector3:
+	return body.position - Vector3(0, 0.9, 0)
+
+
+func yaw() -> float:
+	return body.rotation.y
+
+
+## Where you aim, world m, or null for nothing in reach.
+func aim_point() -> Variant:
+	var a := aim()
+	return a.point if not a.is_empty() else null
+
+
+## The level you're on and the room you're in ("" outside).
+func where() -> Dictionary:
+	var level := WalkEdits.level_at(model, feet().y)
+	return {"level": level, "room": WalkEdits.room_at(model, level, Vector2(body.position.x, body.position.z))}
+
+
+func look(relative: Vector2) -> void:
+	body.rotation.y -= relative.x * look_speed
+	_pitch = clampf(_pitch - relative.y * look_speed, -1.45, 1.45)
+	camera.rotation.x = _pitch
+
+
+## What you're looking at within reach: {info (the "walk" meta), point, normal, collider},
+## or {} for nothing.
+func aim() -> Dictionary:
+	if camera == null or not camera.is_inside_tree():
+		return {}
+	var from := camera.global_position
+	var to := from - camera.global_basis.z * (FLY_REACH if flying else REACH)
+	var q := PhysicsRayQueryParameters3D.create(from, to, LAYER, [body.get_rid()])
+	var hit := world.get_world_3d().direct_space_state.intersect_ray(q)
+	if hit.is_empty() or not (hit.collider as Object).has_meta("walk"):
+		return {}
+	return {"info": (hit.collider as Object).get_meta("walk"), "point": hit.position as Vector3,
+			"normal": hit.normal as Vector3, "collider": hit.collider}
+
+
+## The part you're aiming at ("" for none, the ground or a room's stand-in floor).
+func aimed_part() -> String:
+	var a := aim()
+	if a.is_empty() or str(a.info.kind) != "part":
+		return ""
+	return str(a.info.id)
+
+
+# Designing from inside
+
+func is_palette_open() -> bool:
+	return _palette != null and _palette.visible
+
+
+func toggle_palette() -> void:
+	_palette.visible = not _palette.visible
+	if not _palette.visible:
+		edit_id = ""
+	else:
+		_fill_palette()
+	if DisplayServer.get_name() != "headless":
+		Input.mouse_mode = Input.MOUSE_MODE_VISIBLE if _palette.visible else Input.MOUSE_MODE_CAPTURED
+
+
+## Takes a new part of `kind` in your hands (a door or window goes in the wall you aim at).
+func take_new(kind: String) -> void:
+	_drop_holding()
+	holding = {"type": kind, "id": "", "rot": 0.0, "opening": model.catalog.family_of(kind) == "opening"}
+	if is_palette_open():
+		toggle_palette()
+
+
+## Picks up a placed part to move it (others can't edit it while you hold it).
+func pick_up(part_id: String) -> bool:
+	var e: Dictionary = model.parts.get(part_id, {})
+	if e.is_empty() or not model.catalog.family_of(str(e.kind)) in CARRY:
+		return false
+	var net: MultiplayerBus = bus.call("net")
+	if net and net.claim_owner(part_id) != 0 and net.claim_owner(part_id) != _me:
+		return false
+	_drop_holding()
+	holding = {"type": str(e.kind), "id": part_id, "rot": float(e.get("rot", 0.0)), "opening": false}
+	if net:
+		net.claim(part_id)
+	return true
+
+
+func _drop_holding() -> void:
+	if holding.is_empty():
+		return
+	var id := str(holding.get("id", ""))
+	holding = {}
+	var net: MultiplayerBus = bus.call("net") if bus else null
+	if id != "" and net:
+		net.release(id)
+
+
+## Puts the part in your hands down where you're aiming. Returns true if it went down.
+func put_down() -> bool:
+	_update_spot()
+	if holding.is_empty() or not spot.has("at"):
+		return false
+	var op := {}
+	if bool(holding.opening):
+		op = WalkEdits.opening_at(model, str(spot.get("wall", "")), spot.at, str(holding.type))
+	elif str(holding.id) == "":
+		op = WalkEdits.place(model, str(holding.type), spot.at, float(holding.rot))
+	else:
+		op = WalkEdits.move_to(model, str(holding.id), spot.at, float(holding.rot))
+	if op.is_empty():
+		return false
+	sync.edit(op)
+	_drop_holding()
+	return true
+
+
+## R: turns the part in your hands, else the one you aim at.
+func turn() -> void:
+	if not holding.is_empty():
+		holding.rot = fposmod(float(holding.rot) + 90.0, 360.0)
+		return
+	var op := WalkEdits.turn(model, aimed_part())
+	if not op.is_empty():
+		sync.edit(op)
+
+
+## X: removes the part you aim at.
+func remove_aimed() -> bool:
+	var id := aimed_part()
+	if id == "":
+		return false
+	sync.edit(C.delete([id]))
+	return true
+
+
+## F: a door in the wall you're aiming at. Returns true if it asked for one.
+func door_here(kind := "door_internal") -> bool:
+	var a := aim()
+	if a.is_empty() or str(a.info.kind) != "part" or str(a.info.family) != "wall":
+		return false
+	var op := WalkEdits.opening_at(model, str(a.info.id), a.point, kind)
+	if op.is_empty():
+		return false
+	sync.edit(op)
+	return true
+
+
+## The mouse wheel: pushes the wall you aim at away from you (steps > 0) or pulls it towards
+## you by grid steps; on a ceiling, raises or lowers it. Returns true if it asked for a change.
+func push(steps: int) -> bool:
+	var a := aim()
+	if a.is_empty() or str(a.info.kind) != "part":
+		return false
+	var id := str(a.info.id)
+	var fam := str(a.info.family)
+	var by := WalkEdits.grid(model) * steps
+	var op := {}
+	if fam == "wall":
+		op = WalkEdits.push_wall(model, id, camera.global_position, by)
+	elif fam in ["slab", "roof"] and (a.normal as Vector3).y < -0.5:
+		# A ceiling over you: the storey under it (a floor slab is its level's floor, so the
+		# storey below; a roof covers its own level).
+		var level := maxi(model.level_of(id) - 1, 0) if fam == "slab" else model.level_of(id)
+		id = "level:%d" % level
+		op = WalkEdits.push_ceiling(model, level, by)
+	if op.is_empty():
+		return false
+	# A run of wheel steps on the same thing is one undo.
+	var now := Time.get_ticks_msec()
+	if id != _push_target or now - _push_at > 1500:
+		_push_n += 1
+		_push_target = id
+		_push_group = "walk-push-%d-%d" % [_me, _push_n]
+	_push_at = now
+	sync.edit(op, _push_group)
+	return true
+
+
+## E: the edit rows for the part you aim at.
+func edit_aimed() -> bool:
+	var id := aimed_part()
+	if id == "":
+		return false
+	edit_id = id
+	if not is_palette_open():
+		toggle_palette()
+		edit_id = id
+	_fill_palette()
+	return true
+
+
+## V: the architectural model look or the realistic one (the Graphics "Look" option).
+func toggle_look() -> void:
+	GraphicsOptions.set_value("art_style", ArtStyle.MODEL if ArtStyle.realistic() else ArtStyle.REALISTIC)
+	GraphicsOptions.save_settings()
+	var g := get_node_or_null("/root/Graphics")
+	if g:
+		g.call("apply_all")
+	_apply_look()
+
+
+func toggle_fly() -> void:
+	flying = not flying
+	body.collision_mask = 0 if flying else LAYER
+	body.velocity = Vector3.ZERO
+	bus.call("set_state", true, flying)
+
+
+## A left click: put down what you hold, or pick up the part you aim at.
+func click() -> void:
+	if not holding.is_empty():
+		put_down()
+		return
+	pick_up(aimed_part())
+
+
+# Input and frames
+
+func _input(event: InputEvent) -> void:
+	if event is InputEventMouseMotion:
+		if not is_palette_open() and (Input.mouse_mode == Input.MOUSE_MODE_CAPTURED or DisplayServer.get_name() == "headless"):
+			look((event as InputEventMouseMotion).relative)
+			get_viewport().set_input_as_handled()
+	elif event is InputEventMouseButton and (event as InputEventMouseButton).pressed:
+		if is_palette_open():
+			return  # the palette's buttons take it
+		match (event as InputEventMouseButton).button_index:
+			MOUSE_BUTTON_LEFT:
+				if DisplayServer.get_name() != "headless":
+					Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+				click()
+			MOUSE_BUTTON_RIGHT:
+				_drop_holding()
+			MOUSE_BUTTON_WHEEL_UP:
+				push(1)
+			MOUSE_BUTTON_WHEEL_DOWN:
+				push(-1)
+		get_viewport().set_input_as_handled()
+	elif event is InputEventKey and (event as InputEventKey).pressed and not (event as InputEventKey).echo and not Keys.typing():
+		var k := event as InputEventKey
+		var vp := get_viewport()
+		var handled := true
+		match k.physical_keycode:
+			KEY_TAB:
+				toggle_palette()
+			KEY_ESCAPE:
+				if is_palette_open():
+					toggle_palette()
+				elif not holding.is_empty():
+					_drop_holding()
+				else:
+					bus.call("close")
+			KEY_R:
+				turn()
+			KEY_X, KEY_DELETE:
+				remove_aimed()
+			KEY_F:
+				door_here()
+			KEY_E:
+				edit_aimed()
+			KEY_Q:
+				toggle_fly()
+			KEY_V:
+				toggle_look()
+			KEY_Z:
+				if k.ctrl_pressed:
+					sync.redo() if k.shift_pressed else sync.undo()
+				else:
+					handled = false
+			KEY_Y:
+				if k.ctrl_pressed:
+					sync.redo()
+				else:
+					handled = false
+			_:
+				handled = false
+		if handled and vp:
+			vp.set_input_as_handled()
+
+
+func _physics_process(delta: float) -> void:
+	if body == null:
+		return
+	var move := Vector2.ZERO if is_palette_open() else _axis(Keys.LEFT, Keys.RIGHT, Keys.FORWARD, Keys.BACK)
+	var running := InputMap.has_action(Keys.RUN) and Input.is_action_pressed(Keys.RUN)
+	if flying:
+		_fly(move, running)
+		return
+	var dir := body.global_basis * Vector3(move.x, 0, move.y)
+	dir.y = 0.0
+	dir = dir.normalized() * minf(move.length(), 1.0)
+	var speed := run_speed if running else walk_speed
+	body.velocity.x = dir.x * speed
+	body.velocity.z = dir.z * speed
+	if body.is_on_floor():
+		body.velocity.y = 0.0
+		if InputMap.has_action(Keys.JUMP) and Input.is_action_just_pressed(Keys.JUMP) and not is_palette_open():
+			body.velocity.y = jump_speed
+	else:
+		body.velocity.y -= gravity * delta
+	body.move_and_slide()
+	if body.position.y < -30.0:
+		spawn()
+
+
+## Flying: where you look, Space up and C down, through the walls.
+func _fly(move: Vector2, running: bool) -> void:
+	var dir := camera.global_basis * Vector3(move.x, 0, move.y)
+	var up := 0.0
+	if not is_palette_open():
+		if InputMap.has_action(Keys.JUMP) and Input.is_action_pressed(Keys.JUMP):
+			up += 1.0
+		if Input.is_physical_key_pressed(KEY_C):
+			up -= 1.0
+	dir += Vector3.UP * up
+	if dir.length() > 1.0:
+		dir = dir.normalized()
+	body.velocity = dir * fly_speed * (2.0 if running else 1.0)
+	body.move_and_slide()
+
+
+func _process(delta: float) -> void:
+	if body == null:
+		return
+	var near: Array[Vector3] = [feet()]
+	var walkers: Dictionary = bus.get("walkers")
+	for peer: int in crew:
+		var pb: Node3D = bus.call("proxy_body", peer)
+		if pb:
+			near.append(pb.position - Vector3(0, 0.9, 0))
+	builder.update_doors(near, delta)
+	_lamp_t -= delta
+	if _lamp_t <= 0.0:
+		_lamp_t = 0.25
+		builder.update_lamps(camera.global_position)
+	_update_spot()
+	_update_ghost()
+	_update_crew()
+	var ap: Variant = aim_point()
+	_aim_node.position = ap if ap is Vector3 else WalkBusRef.NO_AIM
+	if _where == null:
+		return
+	var w := where()
+	var room_name := "Outside"
+	if str(w.room) != "":
+		room_name = _room_name(str(w.room))
+	_title.text = "WALK-INSIDE   %s" % model.name.to_upper()
+	var lv: Dictionary = model.levels[clampi(int(w.level), 0, model.level_count() - 1)]
+	_where.text = "%s   %s%s" % [str(lv.get("name", "Level %d" % int(w.level))).to_upper(), room_name.to_upper(),
+			"   FLYING" if flying else ""]
+	_aim_label.text = _aim_text()
+	if walkers.size() > 1:
+		_where.text += "   %d WALKING" % walkers.size()
+
+
+func _aim_text() -> String:
+	if not holding.is_empty():
+		var label := str(model.catalog.kind(str(holding.type)).get("label", holding.type))
+		return "%s   %s\nClick put down   R turn   Right-click or Esc drop" % [label, str(spot.get("why", "Aim at a floor"))]
+	var a := aim()
+	if a.is_empty():
+		return "Flying   Space up   C down   Q to walk" if flying else "Tab  parts"
+	if str(a.info.kind) != "part":
+		return "Floor\nTab  parts"
+	var id := str(a.info.id)
+	var e: Dictionary = model.parts.get(id, {})
+	var label2 := str(model.catalog.kind(str(e.get("kind", ""))).get("label", e.get("kind", "Part")))
+	var fam := str(a.info.family)
+	var net: MultiplayerBus = bus.call("net")
+	var owner := net.claim_owner(id) if net else 0
+	var held := "   (%s has it)" % net.player_name(owner) if owner != 0 and owner != _me else ""
+	match fam:
+		"wall":
+			return "%s%s\nF door here   Wheel push away or pull towards you   E edit   X remove" % [label2, held]
+		"fixture", "column":
+			return "%s%s\nClick pick up   R turn   E edit   X remove" % [label2, held]
+		"slab", "roof":
+			if (a.normal as Vector3).y < -0.5:
+				return "Ceiling (%.2f m storey)\nWheel raise or lower it   E edit" % model.level_height(maxi(model.level_of(id) - (1 if fam == "slab" else 0), 0))
+			return "%s\nTab  parts   E edit" % label2
+	return "%s%s\nE edit   X remove" % [label2, held]
+
+
+static func _axis(neg_x: String, pos_x: String, neg_y: String, pos_y: String) -> Vector2:
+	for a in [neg_x, pos_x, neg_y, pos_y]:
+		if not InputMap.has_action(a):
+			return Vector2.ZERO
+	return Input.get_vector(neg_x, pos_x, neg_y, pos_y)
+
+
+func _on_changed(_op: Dictionary) -> void:
+	if not holding.is_empty() and str(holding.id) != "" and not model.parts.has(str(holding.id)):
+		_drop_holding()
+	if is_palette_open():
+		_fill_palette()
+
+
+func _room_name(rid: String) -> String:
+	var r: Dictionary = model.rooms[rid]
+	if str(r.get("name", "")) != "":
+		return str(r.name)
+	return str(model.catalog.room_type(str(r.type)).get("label", r.type))
+
+
+## Where the part in your hands would go: on the floor you aim at (a door or window in the
+## wall), and whether it hits anything.
+func _update_spot() -> void:
+	spot = {}
+	if holding.is_empty():
+		return
+	var a := aim()
+	if a.is_empty():
+		spot = {"why": "Aim at a wall" if bool(holding.opening) else "Aim at a floor"}
+		return
+	var p: Vector3 = a.point
+	if bool(holding.opening):
+		if str(a.info.kind) != "part" or str(a.info.family) != "wall":
+			spot = {"why": "Aim at a wall"}
+			return
+		var op := WalkEdits.opening_at(model, str(a.info.id), p, str(holding.type))
+		spot = {"at": p, "wall": str(a.info.id), "ok": not op.is_empty(),
+				"why": "Fits" if not op.is_empty() else "No room in this wall"}
+		if not op.is_empty():
+			spot["t"] = float(op.entry.t)
+		return
+	if (a.normal as Vector3).y < 0.7:
+		spot = {"why": "Aim at a floor"}
+		return
+	var g := WalkEdits.grid(model)
+	var at := Vector3(WalkEdits.snap(p.x, g), p.y, WalkEdits.snap(p.z, g))
+	spot = {"at": at, "ok": true, "why": "Fits"}
+	var spec := model.catalog.kind(str(holding.type))
+	var hw := float(spec.get("w", 0.5)) * 0.5
+	var hd := float(spec.get("d", 0.5)) * 0.5
+	if int(fposmod(float(holding.rot), 180.0)) == 90:
+		var tmp := hw
+		hw = hd
+		hd = tmp
+	var box := AABB(at + Vector3(-hw, 0.02, -hd), Vector3(hw * 2.0, maxf(float(spec.get("h", 1.0)) - 0.04, 0.1), hd * 2.0)).grow(-0.02)
+	var level := WalkEdits.level_at(model, at.y)
+	for pid in model.parts_on(level):
+		if pid == str(holding.id):
+			continue
+		var fam := model.catalog.family_of(str(model.parts[pid].kind))
+		if not fam in ["fixture", "column", "wall"]:
+			continue
+		if fam == "wall" and not _wall_hits(pid, box):
+			continue
+		if fam != "wall" and not model.aabb_of(pid).intersects(box):
+			continue
+		spot.ok = false
+		spot.why = "Hits the %s" % str(model.catalog.kind(str(model.parts[pid].kind)).get("label", "part")).to_lower()
+		return
+
+
+## Whether a wall (as a thick line in plan) runs through a box.
+func _wall_hits(wall_id: String, box: AABB) -> bool:
+	var e: Dictionary = model.parts[wall_id]
+	var a := Vector2(float(e.a[0]), float(e.a[2]))
+	var b := Vector2(float(e.b[0]), float(e.b[2]))
+	var half := float(model.catalog.section(str(e.get("section", ""))).get("d", 0.2)) * 0.5
+	var c := Vector2(box.get_center().x, box.get_center().z)
+	var q := Geometry2D.get_closest_point_to_segment(c, a, b)
+	var r := Rect2(Vector2(box.position.x, box.position.z), Vector2(box.size.x, box.size.z)).grow(half)
+	return r.has_point(q)
+
+
+## The part in your hands, where it would go: green for a good spot, amber if not.
+func _update_ghost() -> void:
+	var key := "" if holding.is_empty() else "%s/%s" % [holding.type, spot.get("ok", false)]
+	if key != _ghost_key:
+		_ghost_key = key
+		if _ghost:
+			_ghost.queue_free()
+			_ghost = null
+		if key != "":
+			_ghost = _make_ghost()
+	if _ghost == null:
+		return
+	_ghost.visible = spot.has("at")
+	if not _ghost.visible:
+		return
+	if bool(holding.opening):
+		var wall: Dictionary = model.parts.get(str(spot.wall), {})
+		if wall.is_empty() or not spot.has("t"):
+			_ghost.visible = false
+			return
+		var a := Vector3(float(wall.a[0]), 0, float(wall.a[2]))
+		var b := Vector3(float(wall.b[0]), 0, float(wall.b[2]))
+		var dir := (b - a).normalized()
+		var spec := model.catalog.kind(str(holding.type))
+		var at := a + dir * float(spot.t) + Vector3(0, model.level_elevation(int(wall.level)) + float(spec.get("sill", 0.0)), 0)
+		_ghost.position = at
+		_ghost.rotation = Vector3(0, -Vector2(dir.x, dir.z).angle(), 0)
+		return
+	_ghost.position = spot.at
+	_ghost.rotation.y = deg_to_rad(float(holding.rot))
+
+
+func _make_ghost() -> Node3D:
+	var spec := model.catalog.kind(str(holding.type))
+	var g := Node3D.new()
+	g.name = "Ghost"
+	world.add_child(g)
+	var col := Color(0.35, 1.0, 0.5) if spot.get("ok", false) else Color(1.0, 0.7, 0.2)
+	var m := StandardMaterial3D.new()
+	m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	m.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	m.albedo_color = Color(col.r, col.g, col.b, 0.35)
+	m.cull_mode = BaseMaterial3D.CULL_DISABLED
+	var mi := MeshInstance3D.new()
+	var bm := BoxMesh.new()
+	if bool(holding.opening):
+		bm.size = Vector3(float(spec.get("w", 0.9)), float(spec.get("h", 2.0)), 0.3)
+	elif model.catalog.family_of(str(holding.type)) == "column":
+		var sec := model.catalog.section(str(model.catalog.sections_for(str(holding.type), "")[0]) if not model.catalog.sections_for(str(holding.type), "").is_empty() else "")
+		bm.size = Vector3(float(sec.get("w", 0.3)), model.level_height(where().level), float(sec.get("d", sec.get("w", 0.3))))
+	else:
+		bm.size = Vector3(float(spec.get("w", 0.5)), float(spec.get("h", 0.8)), float(spec.get("d", 0.5)))
+	mi.mesh = bm
+	mi.material_override = m
+	mi.position.y = bm.size.y * 0.5
+	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	g.add_child(mi)
+	return g
+
+
+# The world and you
+
+func _add_view() -> void:
+	var layer := CanvasLayer.new()
+	layer.name = "WalkView"
+	layer.layer = 5
+	add_child(layer)
+	var box := SubViewportContainer.new()
+	box.name = "View"
+	box.stretch = true
+	box.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	box.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	layer.add_child(box)
+	viewport = SubViewport.new()
+	viewport.own_world_3d = true
+	viewport.world_3d = World3D.new()
+	viewport.handle_input_locally = false
+	viewport.msaa_3d = get_viewport().msaa_3d if get_viewport() else Viewport.MSAA_DISABLED
+	box.add_child(viewport)
+	world = Node3D.new()
+	world.name = "World"
+	viewport.add_child(world)
+
+
+## A daylight sky and a sun with shadows (the model look's shadows are its depth).
+func _add_sky() -> void:
+	var env := Environment.new()
+	env.background_mode = Environment.BG_SKY
+	var sky_mat := ProceduralSkyMaterial.new()
+	sky_mat.sky_top_color = Color(0.4, 0.58, 0.86)
+	sky_mat.sky_horizon_color = Color(0.8, 0.85, 0.9)
+	sky_mat.ground_horizon_color = Color(0.62, 0.64, 0.6)
+	sky_mat.ground_bottom_color = Color(0.45, 0.47, 0.42)
+	var sky := Sky.new()
+	sky.sky_material = sky_mat
+	env.sky = sky
+	env.ambient_light_source = Environment.AMBIENT_SOURCE_SKY
+	env.ambient_light_energy = 0.8
+	env.tonemap_mode = Environment.TONE_MAPPER_FILMIC
+	env.ssao_enabled = true
+	# Haze so the far ground melts into the horizon rather than ending in a hard band.
+	env.fog_enabled = true
+	env.fog_light_color = sky_mat.sky_horizon_color
+	env.fog_density = 0.004
+	env.fog_sky_affect = 0.0
+	var we := WorldEnvironment.new()
+	we.name = "WorldEnvironment"
+	we.environment = env
+	world.add_child(we)
+	sun = DirectionalLight3D.new()
+	sun.name = "Sun"
+	sun.light_energy = 1.4
+	sun.light_color = Color(1.0, 0.97, 0.92)
+	sun.shadow_enabled = true
+	sun.rotation = Vector3(-0.9, 0.6, 0)
+	sun.directional_shadow_max_distance = 120.0
+	world.add_child(sun)
+
+
+func _add_ground() -> void:
+	var g := StaticBody3D.new()
+	g.name = "Ground"
+	g.collision_layer = LAYER
+	g.collision_mask = 0
+	g.set_meta("walk", {"kind": "ground", "id": "", "family": "ground", "level": 0})
+	var s := CollisionShape3D.new()
+	var plane := WorldBoundaryShape3D.new()
+	plane.plane = Plane(Vector3.UP, -0.02)
+	s.shape = plane
+	g.add_child(s)
+	var mi := MeshInstance3D.new()
+	mi.name = "GroundMesh"
+	var pm := PlaneMesh.new()
+	pm.size = Vector2(2400, 2400)  # past the camera's far plane: no edge in view
+	mi.mesh = pm
+	mi.position.y = -0.02
+	mi.material_override = ArtStyle.ground()
+	g.add_child(mi)
+	world.add_child(g)
+
+
+func _apply_look() -> void:
+	var gm := world.get_node_or_null("Ground/GroundMesh") as MeshInstance3D
+	if gm:
+		gm.material_override = ArtStyle.ground()
+	if _look:
+		_look.text = "%s LOOK  (V)" % ("REALISTIC" if ArtStyle.realistic() else "MODEL")
+
+
+func _add_player() -> void:
+	body = CharacterBody3D.new()
+	body.name = "Walker"
+	body.collision_layer = 0
+	body.collision_mask = LAYER
+	body.floor_max_angle = deg_to_rad(50.0)
+	body.floor_snap_length = 0.3
+	var shape := CollisionShape3D.new()
+	var cap := CapsuleShape3D.new()
+	cap.radius = 0.3
+	cap.height = 1.8
+	shape.shape = cap
+	body.add_child(shape)
+	camera = Camera3D.new()
+	camera.name = "WalkCamera"
+	camera.fov = 75.0
+	camera.near = 0.05
+	camera.far = 900.0
+	camera.position.y = 0.7
+	body.add_child(camera)
+	world.add_child(body)
+	camera.current = true
+	# Your own light, so a corner is never pitch black.
+	var lamp := OmniLight3D.new()
+	lamp.light_energy = 0.3
+	lamp.omni_range = 5.0
+	lamp.position.y = 0.6
+	body.add_child(lamp)
+	_aim_node = Node3D.new()
+	_aim_node.name = "Aim"
+	_aim_node.position = WalkBusRef.NO_AIM
+	world.add_child(_aim_node)
+
+
+func _add_hud() -> void:
+	hud = CanvasLayer.new()
+	hud.name = "WalkHud"
+	hud.layer = 6
+	add_child(hud)
+	var box := PanelContainer.new()
+	box.add_theme_stylebox_override("panel", T.box(Color(0.02, 0.05, 0.09, 0.8), T.CYAN, 1, 10.0))
+	box.position = Vector2(20, 20)
+	box.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	hud.add_child(box)
+	var col := VBoxContainer.new()
+	box.add_child(col)
+	_title = T.label("WALK-INSIDE", "display_bold", 22, T.CYAN)
+	col.add_child(_title)
+	_where = T.label("", "mono_bold", 18, T.TEXT)
+	_where.name = "Where"
+	col.add_child(_where)
+	_look = T.label("", "mono_bold", 15, T.AMBER)
+	_look.name = "Look"
+	col.add_child(_look)
+	col.add_child(T.label("WASD walk   Shift run   Space jump   Mouse look   Tab parts   Q fly   V model or real look   Esc back to the designer",
+			"body", 15, T.DIM))
+	_aim_label = T.label("", "body_medium", 18, T.TEXT)
+	_aim_label.name = "Aim"
+	_aim_label.set_anchors_and_offsets_preset(Control.PRESET_CENTER_BOTTOM)
+	_aim_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_aim_label.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	_aim_label.grow_vertical = Control.GROW_DIRECTION_BEGIN
+	_aim_label.position.y -= 60
+	_aim_label.add_theme_constant_override("outline_size", 6)
+	_aim_label.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.8))
+	_aim_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	hud.add_child(_aim_label)
+	var dot := ColorRect.new()
+	dot.name = "Crosshair"
+	dot.color = Color(0.7, 0.95, 1.0, 0.8)
+	dot.size = Vector2(4, 4)
+	dot.set_anchors_preset(Control.PRESET_CENTER)
+	dot.position -= Vector2(2, 2)
+	dot.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	hud.add_child(dot)
+	_palette = PanelContainer.new()
+	_palette.name = "Palette"
+	_palette.add_theme_stylebox_override("panel", T.box(Color(0.02, 0.05, 0.09, 0.92), T.CYAN, 1, 12.0))
+	_palette.set_anchors_and_offsets_preset(Control.PRESET_RIGHT_WIDE)
+	_palette.custom_minimum_size.x = 380
+	_palette.offset_left = -400
+	_palette.offset_right = -20
+	_palette.offset_top = 20
+	_palette.offset_bottom = -20
+	_palette.visible = false
+	hud.add_child(_palette)
+	var scroll := ScrollContainer.new()
+	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	_palette.add_child(scroll)
+	_palette_list = VBoxContainer.new()
+	_palette_list.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_palette_list.add_theme_constant_override("separation", 6)
+	scroll.add_child(_palette_list)
+	_apply_look()
+
+
+func _fill_palette() -> void:
+	for c in _palette_list.get_children():
+		_palette_list.remove_child(c)
+		c.queue_free()
+	if edit_id != "" and model.parts.has(edit_id):
+		_fill_edit()
+	else:
+		edit_id = ""
+		_section("FITTINGS", "fixture")
+		_section("DOORS AND WINDOWS", "opening")
+		_section("COLUMNS", "column")
+	var row := HBoxContainer.new()
+	for spec: Array in [["UNDO", func() -> void: sync.undo()], ["REDO", func() -> void: sync.redo()]]:
+		var b := T.button(str(spec[0]), false, 16)
+		b.pressed.connect(spec[1])
+		row.add_child(b)
+	_palette_list.add_child(row)
+	_palette_list.add_child(T.label("Aim at a part: click to move it, R to turn it, E to edit it, X to remove it.\n"
+			+ "Aim at a wall: F for a door, the mouse wheel to push it away or pull it to you.\n"
+			+ "Aim at the ceiling: the mouse wheel raises or lowers it.", "body", 14, T.DIM))
+
+
+func _section(title: String, family: String) -> void:
+	_palette_list.add_child(T.label(title, "display_bold", 18, T.ORANGE))
+	for kind in model.catalog.kinds_in(family):
+		var b := T.button(str(model.catalog.kind(kind).get("label", kind)), false, 16)
+		b.name = "Part_" + kind
+		b.pressed.connect(take_new.bind(kind))
+		_palette_list.add_child(b)
+
+
+## E: the aimed part's rows, each a button that steps to the next choice.
+func _fill_edit() -> void:
+	var e: Dictionary = model.parts[edit_id]
+	var kind := str(e.kind)
+	var spec := model.catalog.kind(kind)
+	_palette_list.add_child(T.label(str(spec.get("label", kind)).to_upper(), "display_bold", 18, T.ORANGE))
+	var rows: Array = []
+	rows.append(["KIND  %s" % str(spec.get("label", kind)).to_upper(), WalkEdits.next_kind(model, edit_id), "EditKind"])
+	if model.catalog.materials_for(kind).size() > 1:
+		rows.append(["MATERIAL  %s" % str(e.get("material", "")).to_upper(), WalkEdits.cycle(model, edit_id, "material"), "EditMaterial"])
+	if model.catalog.sections_for(kind, str(e.get("material", ""))).size() > 1:
+		rows.append(["SECTION  %s" % str(e.get("section", "")).to_upper(), WalkEdits.cycle(model, edit_id, "section"), "EditSection"])
+	if e.has("at"):
+		rows.append(["TURN 90°", WalkEdits.turn(model, edit_id), "EditTurn"])
+	for r: Array in rows:
+		var b := T.button(str(r[0]), false, 16)
+		b.name = str(r[2])
+		var op: Dictionary = r[1]
+		b.disabled = op.is_empty()
+		b.pressed.connect(func() -> void: sync.edit(op))
+		_palette_list.add_child(b)
+	var rm := T.button("REMOVE", false, 16)
+	rm.name = "EditRemove"
+	var id := edit_id
+	rm.pressed.connect(func() -> void:
+		sync.edit(C.delete([id]))
+		edit_id = ""
+		_fill_palette())
+	_palette_list.add_child(rm)
+	var back := T.button("ALL PARTS", false, 16)
+	back.pressed.connect(func() -> void:
+		edit_id = ""
+		_fill_palette())
+	_palette_list.add_child(back)

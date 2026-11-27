@@ -6,6 +6,7 @@
 | modules/ui/ | Beenster99/BSXLtd modules/ui/ | same |
 | modules/multiplayer/ | Beenster99/BSXLtd modules/multiplayer/ | same |
 | tools/run_tests.sh, tools/check_boundaries.py, Makefile | Beenster99/BSXLtd | same |
+| modules/walk/ | Beenster99/BSXLtd modules/design/internal/walk/ (walk_inside.gd, walk_build.gd), repurposed for the BuildingModel | same |
 
 Changes made on copy: player cap 3 (MultiplayerBus.MAX_CREW), UPnP description, flag set,
 core tests that named BSX-only modules, default player name "Builder". Port fixes between the two games on purpose and

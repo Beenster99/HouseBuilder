@@ -35,5 +35,7 @@ flags = {
 "ui.sun_slider": false,
 "perf": true,
 "perf.overlay": true,
-"perf.desync_check": true
+"perf.desync_check": true,
+"walk": true,
+"walk.inside": true
 }
