@@ -8,8 +8,8 @@ extends RefCounted
 ## asks the structure module (StructureBuilding.collapse_after) on the host.
 
 ## Longest side of a chunk, m. Parts split into pieces this size when they fall.
-const CHUNK := 2.6
-const MAX_CHUNKS_PER_PART := 24
+const CHUNK := 1.9
+const MAX_CHUNKS_PER_PART := 32
 ## A whole building is cut into at most this many chunks (PerfBudget.MAX_BODIES is 6000):
 ## big buildings get bigger chunks (chunk_size).
 const MAX_CHUNKS := 4000

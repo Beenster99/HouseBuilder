@@ -14,6 +14,7 @@ extends Node3D
 ## Q/E cable. Right drag orbits, middle drag pans, wheel zooms, Esc pauses.
 
 const DemoOffice := preload("res://modules/demolition/internal/demo_office.gd")
+const DebrisScript := preload("res://modules/demolition/internal/debris.gd")
 
 const COLOURS := {
 	"foundation": Color(0.55, 0.55, 0.53), "column": Color(0.78, 0.77, 0.74),
@@ -37,6 +38,12 @@ const STILL_SPIN := 0.5
 const STILL_TIME := 0.75
 const BLAST_RADIUS := 5.0
 const BLAST_IMPULSE := 900.0
+## Parts within this many metres of a charge have their faces spalled when it goes off, in a
+## cube this many metres each way round it.
+const SPALL_REACH := 3.0
+const SPALL_SIZE := 1.2
+## A part breaking up this close to a charge crumbles finer and throws off more.
+const CRUMBLE_REACH := 8.0
 const SETTLE_SPEED := 0.4
 const SETTLE_TIME := 1.5
 const SETTLE_MAX := 25.0
@@ -72,6 +79,8 @@ var _delay := 0.0
 var _hover := ""
 var _building_root: Node3D
 var _fx_root: Node3D
+## Fine fragments thrown off by charges and hard hits (debris.gd).
+var debris: Node3D
 var _settle_since := -1.0
 var _active_since := -1.0
 var _watching := false
@@ -172,6 +181,9 @@ func _build_world() -> void:
 	add_child(_building_root)
 	_fx_root = Node3D.new()
 	add_child(_fx_root)
+	debris = DebrisScript.new()
+	debris.name = "Debris"
+	add_child(debris)
 	camera = Camera3D.new()
 	camera.far = 900.0
 	add_child(camera)
@@ -180,6 +192,7 @@ func _build_world() -> void:
 
 func _rebuild() -> void:
 	_unregister_all()
+	debris.clear()
 	for n in _building_root.get_children() + _fx_root.get_children():
 		n.free()
 	_ball = null
@@ -482,8 +495,33 @@ func _fracture(id: String) -> void:
 			body.angular_velocity = w
 		out.append(body)
 	net.erase_group_node(GROUP, int(_whole_index[id]))
+	_crumble(id, xf, whole)
 	whole.queue_free()
 	_chunks[id] = out
+
+
+## A falling part breaking up throws off fragments where it broke: more and finer the
+## closer it is to a charge.
+func _crumble(id: String, xf: Transform3D, whole: RigidBody3D) -> void:
+	var p: Dictionary = bus.by_id.get(id, {})
+	var one := whole.get_node_or_null("Whole") as CollisionShape3D
+	if p.is_empty() or one == null:
+		return
+	var half := (one.shape as BoxShape3D).size * 0.5
+	var box := AABB(xf * (one.position - half), Vector3.ZERO)
+	for c in 8:
+		box = box.expand(xf * (one.position + Vector3(half.x * (1 if c & 1 else -1), half.y * (1 if c & 2 else -1), half.z * (1 if c & 4 else -1))))
+	var centre := Vector3(box.get_center().x, box.position.y, box.get_center().z)
+	var close := INF
+	for cid: String in bus.charges:
+		var cp := bus.charge_point(cid)
+		var d := cp.distance_to(cp.clamp(box.position, box.end))
+		if d < close:
+			close = d
+			if d < CRUMBLE_REACH:
+				centre = cp.clamp(box.position, box.end)
+	var power := 0.25 + 0.5 * clampf(1.0 - close / CRUMBLE_REACH, 0.0, 1.0)
+	debris.burst(box, centre, _break_material(p), _part_material(p), power, id + "~")
 
 
 ## Host: falling bodies moving now (not frozen, not asleep).
@@ -546,6 +584,7 @@ func _on_blasted(id: String) -> void:
 		mark.queue_free()
 		_charge_marks.erase(id)
 	_flash(at)
+	_shatter(id)
 	if net.is_host():
 		for other: String in _chunks:
 			if not bus.released_ids.has(other):
@@ -554,6 +593,35 @@ func _on_blasted(id: String) -> void:
 				var d := body.global_position - at
 				if d.length() < BLAST_RADIUS:
 					body.apply_central_impulse(d.normalized() * BLAST_IMPULSE * (1.0 - d.length() / BLAST_RADIUS))
+
+
+## A charge going off breaks its part into fine fragments round the charge, and spalls the
+## faces of parts close by.
+func _shatter(id: String) -> void:
+	var p: Dictionary = bus.by_id.get(id, {})
+	if p.is_empty():
+		return
+	var at := bus.charge_point(id)
+	debris.burst(p.aabb, at, _break_material(p), _part_material(p), 1.0, id)
+	for other: Dictionary in bus.parts:
+		if other.id == id or bus.blasted_ids.has(other.id):
+			continue
+		var box: AABB = other.aabb
+		var near := at.clamp(box.position, box.end)
+		var d := near.distance_to(at)
+		if d > SPALL_REACH:
+			continue
+		var bit := box.intersection(AABB(at - Vector3.ONE * SPALL_SIZE, Vector3.ONE * SPALL_SIZE * 2.0))
+		if bit.size == Vector3.ZERO:
+			continue
+		debris.burst(bit, near, _break_material(other), _part_material(other), 0.35 * (1.0 - d / SPALL_REACH) + 0.1, str(other.id) + id)
+
+
+## How a part breaks: its material, glass for windows.
+static func _break_material(p: Dictionary) -> String:
+	if str(p.get("kind", "")) == "window":
+		return "glass"
+	return str(p.get("material", ""))
 
 
 func _flash(at: Vector3) -> void:

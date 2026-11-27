@@ -27,7 +27,7 @@ func run_tests() -> void:
 	var vol := 0.0
 	for c in cs:
 		vol += c.get_volume()
-	check(cs.size() == 4 * 2 and is_equal_approx(vol, 10.0), "a 10 x 5 slab breaks into 8 pieces of the same volume")
+	check(cs.size() == 6 * 3 and is_equal_approx(vol, 10.0), "a 10 x 5 slab breaks into 18 pieces of the same volume: %d" % cs.size())
 	var huge := {"id": "h", "family": "wall", "aabb": AABB(Vector3.ZERO, Vector3(60, 20, 1))}
 	check(DemolitionRules.chunks(huge).size() <= DemolitionRules.MAX_CHUNKS_PER_PART, "chunks per part are capped")
 	check(DemolitionRules.need({"family": "beam"}, 2) == 2 and DemolitionRules.need({"family": "column"}, 1) == 1

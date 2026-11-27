@@ -46,6 +46,7 @@ var title := ""
 var zone := Rect2()
 var neighbours: Array = []  # AABB
 var charges: Dictionary = {}  # part id -> delay, s
+var charge_at: Dictionary = {}  # part id -> Vector3 (world) where it was placed, when given
 var fire_at := -1.0
 var blasted_ids: Dictionary = {}
 var released_ids: Dictionary = {}
@@ -106,8 +107,22 @@ func start_from_model(from: BuildingModel, options: Dictionary = {}) -> void:
 	start_demolition(BuildingParts.from_model(from), from.name, o)
 
 
-func request_charge(part_id: String, delay: float) -> void:
-	net.request(CHARGE, {"part": part_id, "delay": delay})
+## Charges `part_id` to go off `delay` s after firing, at world point `at` on it (an inside
+## face picked when walking in, say; the part's centre when null). Charging a part again at
+## the same delay takes the charge off; at another delay or point it moves the charge.
+func request_charge(part_id: String, delay: float, at: Variant = null) -> void:
+	var p := {"part": part_id, "delay": delay}
+	if at is Vector3:
+		p["at"] = at
+	net.request(CHARGE, p)
+
+
+## Where part `id`'s charge sits (world): the point it was placed at, else the part's centre.
+func charge_point(id: String) -> Vector3:
+	if charge_at.has(id):
+		return charge_at[id]
+	var part: Dictionary = by_id.get(id, {})
+	return (part.aabb as AABB).get_center() if part.has("aabb") else Vector3.ZERO
 
 
 func request_fire() -> void:
@@ -246,6 +261,7 @@ func _apply_start(p: Dictionary) -> void:
 	zone = p.get("zone", Rect2())
 	neighbours = p.get("neighbours", [])
 	charges = (p.get("charges", {}) as Dictionary).duplicate()
+	charge_at = (p.get("charge_at", {}) as Dictionary).duplicate()
 	fire_at = float(p.get("fire_at", -1.0))
 	blasted_ids = (p.get("blasted", {}) as Dictionary).duplicate()
 	released_ids = (p.get("released", {}) as Dictionary).duplicate()
@@ -272,19 +288,31 @@ func _validate_charge(_sender: int, p: Dictionary) -> Variant:
 	if str(by_id[id].get("family", "")) == "foundation":
 		return "charges go on the structure above ground"
 	var delay := snappedf(clampf(float(p.get("delay", 0.0)), 0.0, MAX_DELAY), DELAY_STEP)
-	if charges.has(id) and is_equal_approx(float(charges[id]), delay):
+	var out := {"part": id, "delay": delay}
+	var at: Variant = p.get("at")
+	if at is Vector3:
+		# On the part (a little outside its box at most).
+		var box: AABB = (by_id[id].aabb as AABB).grow(0.5)
+		out["at"] = (at as Vector3).clamp(box.position, box.end)
+	if charges.has(id) and is_equal_approx(float(charges[id]), delay) \
+			and (not out.has("at") or not charge_at.has(id) or (charge_at[id] as Vector3).distance_to(out.at) < 0.3):
 		return {"part": id, "remove": true}
 	if not charges.has(id) and charges.size() >= MAX_CHARGES:
 		return "%d charges at most" % MAX_CHARGES
-	return {"part": id, "delay": delay}
+	return out
 
 
 func _apply_charge(p: Dictionary) -> void:
 	var id := str(p.get("part", ""))
 	if bool(p.get("remove", false)):
 		charges.erase(id)
+		charge_at.erase(id)
 	else:
 		charges[id] = float(p.get("delay", 0.0))
+		if p.get("at") is Vector3:
+			charge_at[id] = p.at
+		else:
+			charge_at.erase(id)
 	charges_changed.emit()
 
 
@@ -357,6 +385,7 @@ func _clear() -> void:
 	parts = []
 	by_id.clear()
 	charges.clear()
+	charge_at.clear()
 	fire_at = -1.0
 	blasted_ids.clear()
 	released_ids.clear()
@@ -367,7 +396,7 @@ func get_net_snapshot() -> Dictionary:
 	if not is_active():
 		return {}
 	return {"parts": parts, "title": title, "zone": zone, "neighbours": neighbours,
-			"charges": charges.duplicate(), "fire_at": fire_at, "blasted": blasted_ids.duplicate(),
+			"charges": charges.duplicate(), "charge_at": charge_at.duplicate(), "fire_at": fire_at, "blasted": blasted_ids.duplicate(),
 			"released": released_ids.duplicate(), "fractured": fractured_ids.duplicate(), "result": result.duplicate(), "open": false}
 
 
