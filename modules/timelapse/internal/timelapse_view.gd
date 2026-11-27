@@ -54,6 +54,7 @@ var _speeds: Dictionary = {}  # speed -> Button
 var _scrub: HSlider
 var _empty: Label
 var _hand_over: Button
+var _ground: MeshInstance3D
 var _settlement: PanelContainer
 
 
@@ -63,6 +64,9 @@ func _ready() -> void:
 	_build_hud()
 	bus.started.connect(func(_t: String) -> void: _rebuild())
 	bus.clock_changed.connect(_sync_buttons)
+	Graphics.changed.connect(func() -> void:
+		_ground.material_override = ArtStyle.ground()
+		_rebuild())
 	if not bus.is_active() and bool(Router.args.get("demo", false)):
 		bus.start_timelapse(DemoHouse.parts(), "Demo house", false)
 	_rebuild()
@@ -97,11 +101,8 @@ func _build_world() -> void:
 	var plane := PlaneMesh.new()
 	plane.size = Vector2(1200, 1200)
 	ground.mesh = plane
-	var gm := StandardMaterial3D.new()
-	gm.albedo_color = Color(0.42, 0.46, 0.38)
-	gm.roughness = 1.0
-	gm.metallic_specular = 0.1
-	ground.material_override = gm
+	_ground = ground
+	ground.material_override = ArtStyle.ground()
 	add_child(ground)
 
 	_ghost_root = Node3D.new()
@@ -199,7 +200,15 @@ func _rebuild() -> void:
 	_sync_buttons()
 
 
+## Kinds whose family name differs (for the realistic look's materials).
+const KIND_FAMILY := {"pad": "foundation", "footing": "foundation", "window": "opening",
+		"door": "opening", "fitout": "fixture", "stairs": "room", "lift": "room", "frame": "column"}
+
+
 func _material(t: Dictionary, ghost: bool) -> StandardMaterial3D:
+	if not ghost and ArtStyle.realistic() and t.stage != "site" and t.stage != "landscape":
+		var family := str(t.get("family", t.kind))
+		return ArtStyle.material(str(t.get("material", "")), str(KIND_FAMILY.get(family, KIND_FAMILY.get(t.kind, family))))
 	var colour: Color = KIND_COLOURS.get(t.kind, COLOURS.get(t.stage, Color.WHITE))
 	var key := "%s|%s" % [colour.to_html(), ghost]
 	if _materials.has(key):

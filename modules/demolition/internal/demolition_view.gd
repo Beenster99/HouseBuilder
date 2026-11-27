@@ -40,6 +40,7 @@ var net: MultiplayerBus
 var camera: Camera3D
 var _chunks: Dictionary = {}  # part id -> Array[RigidBody3D]
 var _materials: Dictionary = {}
+var _ground: MeshInstance3D
 var _damage: Dictionary = {}  # part id -> J taken
 var _pending: PackedStringArray = []
 var _neighbour_hits: Dictionary = {}
@@ -82,6 +83,9 @@ func _ready() -> void:
 	_build_hud()
 	bus.started.connect(func(_t: String) -> void: _rebuild())
 	bus.reset.connect(_rebuild)
+	Graphics.changed.connect(func() -> void:
+		_ground.material_override = ArtStyle.ground()
+		_refresh_preview())
 	bus.charges_changed.connect(_refresh_charges)
 	bus.blasted.connect(_on_blasted)
 	bus.released.connect(_on_released)
@@ -133,11 +137,8 @@ func _build_world() -> void:
 	var plane := PlaneMesh.new()
 	plane.size = Vector2(600, 600)
 	gm.mesh = plane
-	var gmat := StandardMaterial3D.new()
-	gmat.albedo_color = Color(0.44, 0.45, 0.4)
-	gmat.roughness = 1.0
-	gmat.metallic_specular = 0.1
-	gm.material_override = gmat
+	gm.material_override = ArtStyle.ground()
+	_ground = gm
 	ground.add_child(gm)
 	add_child(ground)
 
@@ -195,6 +196,10 @@ func _rebuild() -> void:
 	_show_result()
 
 
+func _part_material(p: Dictionary) -> StandardMaterial3D:
+	return ArtStyle.material(str(p.get("material", "")), str(p.get("family", "")))
+
+
 func _material(family: String) -> StandardMaterial3D:
 	if _materials.has(family):
 		return _materials[family]
@@ -223,7 +228,7 @@ func _make_chunk(p: Dictionary, index: int, box: AABB) -> RigidBody3D:
 	var bm := BoxMesh.new()
 	bm.size = size * 0.995
 	mesh.mesh = bm
-	mesh.material_override = _material(str(p.get("family", "")))
+	mesh.material_override = _part_material(p)
 	body.add_child(mesh)
 	body.position = box.get_center()
 	_building_root.add_child(body)
@@ -463,7 +468,7 @@ func _refresh_preview() -> void:
 	var hot := _material("__preview")
 	hot.albedo_color = PREVIEW_COLOUR
 	for id: String in _chunks:
-		var mat := hot if doomed.has(id) else _material(str(bus.by_id[id].get("family", "")))
+		var mat := hot if doomed.has(id) else _part_material(bus.by_id[id])
 		for body: RigidBody3D in _chunks[id]:
 			if is_instance_valid(body):
 				(body.get_child(1) as MeshInstance3D).material_override = mat

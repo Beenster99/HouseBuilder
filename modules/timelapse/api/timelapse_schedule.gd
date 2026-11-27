@@ -81,6 +81,7 @@ static func build(parts: Array, options: Dictionary = {}) -> Dictionary:
 		for s: Variant in p.get("supported_by", []):
 			preds.append(str(s))
 		tasks[id] = {"id": id, "kind": kind, "stage": stage, "level": level, "aabb": box,
+				"material": str(p.get("material", "")), "family": str(p.get("family", kind)),
 				"cost": cost, "duration": _duration(stage, box), "preds": preds}
 		order.append(id)
 
@@ -199,7 +200,8 @@ static func build(parts: Array, options: Dictionary = {}) -> Dictionary:
 		var span: Array = stages.get(t.stage, [t.start, t.end])
 		stages[t.stage] = [minf(span[0], t.start), maxf(span[1], t.end)]
 		result_tasks.append({"id": t.id, "kind": t.kind, "stage": t.stage, "level": t.level,
-				"start": t.start, "end": t.end, "cost": t.cost, "aabb": t.aabb})
+				"start": t.start, "end": t.end, "cost": t.cost, "aabb": t.aabb,
+				"material": str(t.get("material", "")), "family": str(t.get("family", t.kind))})
 	return {"tasks": result_tasks, "days": days, "cost": cost, "crews": crews, "stages": stages,
 			"levels": max_level + 1, "start_date": str(options.get("start_date", DEFAULT_START))}
 
