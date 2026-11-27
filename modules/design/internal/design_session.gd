@@ -438,10 +438,69 @@ func _start_drag() -> void:
 			status.emit("%s is moving that" % net.player_name(presence.locked_by(id)), true)
 			_press = null
 			return
+	ids = carried(ids)
 	_group_n += 1
 	drag = {"ids": Array(ids), "from": _press, "by": Vector3.ZERO,
 			"group": "drag-%d-%d" % [net.local_peer_id(), _group_n]}
 	presence.lock(ids)
+
+
+## `ids` plus what moves with the rooms among them: the walls on a room's outline (but those it
+## shares with a room that stays) and the parts standing inside it. Doors and windows ride on
+## their walls. Without this a room slid along one axis left its walls behind, still lined up
+## with its edges, and looked as if it had not moved.
+func carried(ids: PackedStringArray) -> PackedStringArray:
+	var out := ids.duplicate()
+	var moving: Array = []
+	var staying: Array = []
+	for rid in model.rooms_on(level):
+		var o := _outline_2d(rid)
+		if o.size() >= 3:
+			(moving if rid in ids else staying).append(o)
+	if moving.is_empty():
+		return out
+	for pid in model.parts_on(level):
+		if pid in out or not presence.may_edit(pid):
+			continue
+		var e: Dictionary = model.parts[pid]
+		var take := false
+		if e.has("a") and e.has("b"):
+			if catalog.family_of(str(e.kind)) != "wall":
+				continue
+			var pa := Vector2(float(e.a[0]), float(e.a[2]))
+			var pb := Vector2(float(e.b[0]), float(e.b[2]))
+			take = moving.any(func(o: PackedVector2Array) -> bool: return _on_outline(pa, pb, o)) \
+					and not staying.any(func(o: PackedVector2Array) -> bool: return _on_outline(pa, pb, o))
+		elif e.has("at"):
+			var q := Vector2(float(e.at[0]), float(e.at[2]))
+			take = moving.any(func(o: PackedVector2Array) -> bool: return Geometry2D.is_point_in_polygon(q, o))
+		if take:
+			out.append(pid)
+	return out
+
+
+func _outline_2d(rid: String) -> PackedVector2Array:
+	var o := PackedVector2Array()
+	for c: Array in model.rooms[rid].get("outline", []):
+		o.append(Vector2(float(c[0]), float(c[1])))
+	return o
+
+
+## Whether the run pa-pb lies along one of the outline's edges.
+static func _on_outline(pa: Vector2, pb: Vector2, o: PackedVector2Array) -> bool:
+	for j in o.size():
+		var a := o[j]
+		var b := o[(j + 1) % o.size()]
+		var len2 := a.distance_squared_to(b)
+		if len2 < 0.0001:
+			continue
+		var t1 := (pa - a).dot(b - a) / len2
+		var t2 := (pb - a).dot(b - a) / len2
+		if t1 < -0.001 or t1 > 1.001 or t2 < -0.001 or t2 > 1.001:
+			continue
+		if pa.distance_to(a.lerp(b, t1)) <= 0.02 and pb.distance_to(a.lerp(b, t2)) <= 0.02:
+			return true
+	return false
 
 
 func _end_drag() -> void:

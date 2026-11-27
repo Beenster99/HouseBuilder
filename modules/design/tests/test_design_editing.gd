@@ -164,6 +164,59 @@ func run_tests() -> void:
 	s.set_tool("select")
 	s.hover(Vector3(61.2, 0, 64.0))
 	check(s.guides.is_empty(), "no guides when just pointing")
+	# Moving a room along one axis only: it moves, its walls and contents go with it (but a
+	# wall it shares with a room that stays), and its own walls don't snap it back.
+	s.set_tool("room")
+	s.room_type = "bedroom"
+	s.press(Vector3(-60, 0, -60))
+	s.press(Vector3(-56, 0, -57))
+	s.press(Vector3(-56, 0, -60))
+	s.press(Vector3(-52, 0, -57))
+	s.sync.edit(BuildingCommands.place_part("column", s.level, {"at": [-58.0, 0, -58.5]}, "steel"))
+	await frames(2)
+	var mv_a := ""
+	for r_id in model.rooms_on(s.level):
+		if DesignGuides.room_box(model, r_id).has_point(Vector2(-58, -58.5)):
+			mv_a = r_id
+	var walls_at := func(x: float) -> int:
+		var count := 0
+		for wid in model.parts_on(s.level):
+			var we: Dictionary = model.parts[wid]
+			if we.has("a") and absf(float(we.a[0]) - x) < 0.01 and absf(float(we.b[0]) - x) < 0.01:
+				count += 1
+		return count
+	var shared_before: int = walls_at.call(-56.0)
+	check(mv_a != "" and int(walls_at.call(-60.0)) >= 1 and shared_before >= 1, "two rooms side by side, with walls")
+	s.set_tool("select")
+	s.press(Vector3(-59, 0, -59.25))
+	for k in 6:
+		s.hover(Vector3(-59.0 - 0.25 * (k + 1), 0, -59.25))
+	check(s.drag.size() > 0 and (s.drag.ids as Array).size() >= 5, "the drag takes the room, its walls and what stands in it: %s" % [s.drag.get("ids")])
+	s.release(Vector3(-60.5, 0, -59.25))
+	await frames(2)
+	var box_a := DesignGuides.room_box(model, mv_a) if mv_a != "" else Rect2()
+	check(box_a.position.is_equal_approx(Vector2(-61.5, -60)) and box_a.size.is_equal_approx(Vector2(4, 3)),
+			"a room slid along x alone moves 1.5 m along x: %s" % box_a)
+	check(int(walls_at.call(-61.5)) >= 1 and int(walls_at.call(-60.0)) == 0, "its wall went with it")
+	check(int(walls_at.call(-56.0)) == shared_before, "the wall it shares with the room that stays, stays")
+	var col_moved := false
+	for cid in model.parts_on(s.level):
+		var ce: Dictionary = model.parts[cid]
+		if ce.has("at") and Vector2(float(ce.at[0]), float(ce.at[2])).is_equal_approx(Vector2(-59.5, -58.5)):
+			col_moved = true
+	check(col_moved, "and so did the column inside it")
+	s.undo()
+	await frames(2)
+	check(DesignGuides.room_box(model, mv_a).position.is_equal_approx(Vector2(-60, -60)) and int(walls_at.call(-60.0)) >= 1,
+			"one undo puts the room and its walls back")
+	s.press(Vector3(-59, 0, -59.25))
+	for k in 4:
+		s.hover(Vector3(-59, 0, -59.25 + 0.25 * (k + 1)))
+	s.release(Vector3(-59, 0, -58.25))
+	await frames(2)
+	check(DesignGuides.room_box(model, mv_a).position.is_equal_approx(Vector2(-60, -59)), "and along z alone too: %s" % DesignGuides.room_box(model, mv_a))
+	s.undo()
+	await frames(2)
 	# The docks' cards stretch up and down (a grip between them), and keep their sizes.
 	var lsplit := hud2.find_child("Split_left", true, false) as VSplitContainer
 	check(lsplit != null and lsplit.get_child_count() == 3, "the left dock's cards sit in a splitter")
