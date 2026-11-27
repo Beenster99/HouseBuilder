@@ -42,6 +42,8 @@ const MODEL_BUDGET_US := 3000
 ## How walls meet at corners and tees, and which walls each one's ends touch (redrawn with it).
 var _joins: WallJoins
 var _wall_nb: Dictionary = {}
+## Pitched roof -> the roofs on its level when last drawn (they join up, so redraw together).
+var _roof_nb: Dictionary = {}
 ## A model node the entry being built adds (a library asset), or null.
 var _geo_node: Node3D = null
 var _geo_room := false
@@ -161,6 +163,12 @@ func refresh(id: String) -> void:
 		_dirty[n] = true
 	if _joins and model.parts.has(id):
 		for n: String in _joins.neighbours(id):
+			_dirty[n] = true
+	# A pitched roof's neighbours join up with it: those on its level before and after.
+	for n: String in _roof_nb.get(id, PackedStringArray()):
+		_dirty[n] = true
+	if model.parts.has(id) and RoofShape.form_of(str(model.parts[id].get("kind", ""))) != "":
+		for n: String in RoofShape.roof_parts(model, model.level_of(id)):
 			_dirty[n] = true
 	var e := model.entry(id)
 	var old_host := str(_host_of.get(id, ""))
@@ -472,7 +480,9 @@ func _part(id: String) -> void:
 			var y0 := floor_y + float(e.get("y", 0.0))
 			var verts := PackedVector3Array()
 			var norms := PackedVector3Array()
-			for f: Array in RoofShape.faces(e.outline, float(e.get("pitch", spec.get("pitch", 35.0))), RoofShape.form_of(kind), RoofShape.EAVE):
+			# Joined with the level's other pitched roofs (valleys where wings meet).
+			_roof_nb[id] = RoofShape.roof_parts(model, model.level_of(id))
+			for f: Array in RoofShape.part_faces(model, id, RoofShape.EAVE):
 				var pts: Array = f[0]
 				var lift := func(q: Vector3) -> Vector3: return q + Vector3(0, y0, 0)
 				if pts.size() == 3:

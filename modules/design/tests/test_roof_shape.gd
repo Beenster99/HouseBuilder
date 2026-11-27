@@ -1,4 +1,6 @@
 extends ModuleTest
+
+const C := preload("res://modules/building/api/building_commands.gd")
 ## Pitched roofs: RoofShape's faces for gable, hip and mono-pitch over an outline (ridge along
 ## the longer side, at the right height for the pitch), and the Roof tool placing them.
 ##   tools/run_tests.sh design
@@ -53,6 +55,30 @@ func run_tests() -> void:
 	var rt: Array = ridge.call(turned)
 	check(rt.size() == 2 and is_equal_approx(absf((rt[0] as Vector3).z - (rt[1] as Vector3).z), 7.0 + 2.0 * RoofShape.EAVE), "the ridge follows the longer side whichever way it lies")
 
+	# T, L and cross plans: wings that meet in valleys, one roof surface over every point.
+	var t_plan := [[0, 0], [12, 0], [12, 4], [8, 4], [8, 10], [4, 10], [4, 4], [0, 4]]
+	check(RoofShape.wings(t_plan, "gable").size() == 2, "a T-shaped roof is two wings: %d" % RoofShape.wings(t_plan, "gable").size())
+	var tn := tan(deg_to_rad(45.0))
+	var t_faces := RoofShape.faces(t_plan, 45.0, "gable", RoofShape.EAVE)
+	# Over the bar's middle, the stem's ridge has run on to meet the bar's: 2 m up.
+	check(absf(_surface(t_faces, Vector2(6, 3)) - 2.0 * tn) < 0.01 and absf(_surface(t_faces, Vector2(4.5, 3)) - tn) < 0.01,
+			"a T's wing runs on into the main roof, meeting it in valleys: %.2f, %.2f" % [_surface(t_faces, Vector2(6, 3)), _surface(t_faces, Vector2(4.5, 3))])
+	check(_one_surface(t_faces, t_plan), "a T has one roof surface over every point, with no gable end showing inside")
+	var l_plan := [[0, 0], [8, 0], [8, 4], [4, 4], [4, 9], [0, 9]]
+	check(_one_surface(RoofShape.faces(l_plan, 40.0, "gable", RoofShape.EAVE), l_plan), "so does an L")
+	check(_one_surface(RoofShape.faces(t_plan, 35.0, "hip", RoofShape.EAVE), t_plan), "and a hipped T")
+	var plus := [[4, 0], [8, 0], [8, 4], [12, 4], [12, 8], [8, 8], [8, 12], [4, 12], [4, 8], [0, 8], [0, 4], [4, 4]]
+	check(_one_surface(RoofShape.faces(plus, 45.0, "gable", RoofShape.EAVE), plus), "and a cross with four gables")
+	# Two roofs drawn separately, a bar and a wing against it, join the same way.
+	var bm := BuildingModel.new()
+	bm.apply(C.place_part("roof_pitched", 0, {"outline": C.rect(0, 0, 12, 4), "y": 3.0, "pitch": 45.0}, "timber"))
+	bm.apply(C.place_part("roof_pitched", 0, {"outline": C.rect(4, 4, 4, 6), "y": 3.0, "pitch": 45.0}, "timber"))
+	var both: Array = []
+	for rid: String in RoofShape.roof_parts(bm, 0):
+		both.append_array(RoofShape.part_faces(bm, rid))
+	check(RoofShape.roof_parts(bm, 0).size() == 2 and _one_surface(both, t_plan) and absf(_surface(both, Vector2(6, 3)) - 2.0 * tn) < 0.01,
+			"two roofs drawn as a T join up as one")
+
 	# The Roof tool: a gable at the pitch set.
 	var building := Modules.bus("building") as BuildingBus
 	building.reset_data()
@@ -75,3 +101,52 @@ func run_tests() -> void:
 	s.teardown()
 	s.queue_free()
 	building.reset_data()
+
+
+## The heights of the faces facing up (or down, `up` false) over plan point p.
+static func _hits(faces: Array, p: Vector2, up: bool) -> Array:
+	var out: Array = []
+	for f: Array in faces:
+		var n: Vector3 = f[1]
+		if (n.y > 0.05) != up or (not up and n.y > -0.05):
+			continue
+		var q: Array = f[0]
+		for k in range(1, q.size() - 1):
+			var a: Vector3 = q[0]
+			var b: Vector3 = q[k]
+			var c: Vector3 = q[k + 1]
+			var bc := Geometry2D.point_is_inside_triangle(p, Vector2(a.x, a.z), Vector2(b.x, b.z), Vector2(c.x, c.z))
+			if bc:
+				# Height of the plane through a, b, c at p.
+				var nn := (b - a).cross(c - a)
+				out.append(a.y - (nn.x * (p.x - a.x) + nn.z * (p.y - a.z)) / nn.y)
+				break
+	return out
+
+
+## The roof's height over plan point p (the highest face facing up).
+static func _surface(faces: Array, p: Vector2) -> float:
+	var h := -INF
+	for y: float in _hits(faces, p, true):
+		h = maxf(h, y)
+	return h
+
+
+## Over every sample point inside the plan: exactly one face looking up and one ceiling.
+func _one_surface(faces: Array, plan: Array) -> bool:
+	var poly := PackedVector2Array()
+	for c: Array in plan:
+		poly.append(Vector2(float(c[0]), float(c[1])))
+	var bad := 0
+	for i in 60:
+		for j in 60:
+			var p := Vector2(-1.0 + i * 0.237 + 0.011, -1.0 + j * 0.237 + 0.017)
+			if not Geometry2D.is_point_in_polygon(p, poly):
+				continue
+			var ups := _hits(faces, p, true).size()
+			var downs := _hits(faces, p, false).filter(func(y: float) -> bool: return absf(y) < 0.001).size()
+			if ups != 1 or downs != 1:
+				if bad < 3:
+					print("    at %s: %d surfaces, %d ceilings" % [p, ups, downs])
+				bad += 1
+	return bad == 0
