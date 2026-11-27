@@ -19,6 +19,14 @@ var entry_box: VBoxContainer
 var section := SINGLE
 var _center: Control
 var _sections: Dictionary = {}  # id -> Button
+## The help line along the bottom, as on every screen.
+var help: HelpBar
+
+const SECTION_TIPS := {
+	SINGLE: "Play on your own: carry on, start a new firm, or load or delete a saved one",
+	ONLINE: "Play with up to two friends: host a game, or join one",
+	SETTINGS: "Gameplay, graphics and sound",
+}
 ## The section open last, so the menu comes back on it when it's rebuilt (a menu style switch).
 static var _last_section := ""
 
@@ -85,6 +93,7 @@ func _ready() -> void:
 		var id: String = s[0]
 		var b := BsxTheme.button(str(s[1]), func() -> void: open_section(id))
 		b.name = str(s[2])
+		b.tooltip_text = SECTION_TIPS[id]
 		b.toggle_mode = true
 		b.custom_minimum_size.y = 52
 		main.add_child(b)
@@ -92,6 +101,7 @@ func _ready() -> void:
 	main.add_child(_spacer(8))
 	var exit := BsxTheme.button("Exit game", func() -> void: Modules.quit_game())
 	exit.name = "ExitGame"
+	exit.tooltip_text = "Close the game"
 	exit.custom_minimum_size.y = 52
 	main.add_child(exit)
 
@@ -101,6 +111,8 @@ func _ready() -> void:
 	entry_box.add_theme_constant_override("separation", 12)
 	row.add_child(entry_box)
 
+	help = HelpBar.new()
+	add_child(help)
 	Menu.entries_changed.connect(_fill_entries)
 	open_section(_last_section if _last_section != "" else SINGLE)
 	_last_section = ""
@@ -111,6 +123,13 @@ func open_section(id: String) -> void:
 	for s: String in _sections:
 		(_sections[s] as Button).set_pressed_no_signal(s == id)
 	_fill_entries()
+	_menu_help()
+
+
+func _menu_help() -> void:
+	var heads := {SINGLE: "SINGLE PLAYER", ONLINE: "ONLINE", SETTINGS: "SETTINGS"}
+	help.set_help("MAIN MENU: " + str(heads.get(section, "")),
+			HelpBar.keys_text([["click", "pick a section, then a choice beside it"]]))
 
 
 func _fill_entries() -> void:
@@ -135,18 +154,22 @@ func _fill_single() -> void:
 			var latest: Dictionary = games[0]
 			var cont := BsxTheme.button("Continue  -  %s" % latest.name, func() -> void: _continue(latest.slot))
 			cont.name = "Continue"
+			cont.tooltip_text = "Carry on with your latest game"
 			cont.disabled = not playable
 			entry_box.add_child(cont)
 		var go := BsxTheme.button("New", func() -> void: _open_games("new"))
 		go.name = "Start"
+		go.tooltip_text = "Start a new firm in a new save slot"
 		go.disabled = not playable
 		entry_box.add_child(go)
 		var load_button := BsxTheme.button("Load", func() -> void: _open_games("load"))
 		load_button.name = "LoadGame"
+		load_button.tooltip_text = "Pick a saved game to play"
 		load_button.disabled = games.is_empty() or not playable
 		entry_box.add_child(load_button)
 		var del := BsxTheme.button("Delete", func() -> void: _open_games("delete"))
 		del.name = "DeleteGame"
+		del.tooltip_text = "Pick a saved game to delete"
 		del.disabled = games.is_empty()
 		entry_box.add_child(del)
 	var shown := 0
@@ -187,12 +210,15 @@ func _fill_online() -> void:
 func _fill_settings() -> void:
 	var gameplay := BsxTheme.button("Gameplay", func() -> void: _open_settings(Menu.GAMEPLAY))
 	gameplay.name = "Gameplay"
+	gameplay.tooltip_text = "Your name, controls and how the game plays"
 	entry_box.add_child(gameplay)
 	var graphics := BsxTheme.button("Graphics", _open_graphics)
 	graphics.name = "Graphics"
+	graphics.tooltip_text = "Look (architectural model or realistic), display and quality"
 	entry_box.add_child(graphics)
 	var sound := BsxTheme.button("Sound", func() -> void: _open_settings(Menu.SOUND))
 	sound.name = "Sound"
+	sound.tooltip_text = "Volumes"
 	entry_box.add_child(sound)
 	var style := BsxTheme.button("Menu style:  %s" % BsxTheme.style_setting(), func() -> void:
 		_last_section = SETTINGS
@@ -203,6 +229,7 @@ func _fill_settings() -> void:
 	entry_box.add_child(style)
 	var more := BsxTheme.button("More settings", func() -> void: Router.goto(UiBus.SETTINGS))
 	more.name = "MoreSettings"
+	more.tooltip_text = "Every setting, on its own screen"
 	entry_box.add_child(more)
 
 
@@ -211,6 +238,7 @@ func _entry_button(e: Dictionary) -> Button:
 	var b := BsxTheme.button(e.label, func(): Router.goto_loading(e.scene, args))
 	b.name = e.id
 	b.disabled = not Router.has_scene(e.scene)
+	b.tooltip_text = str(e.get("hint", ""))
 	return b
 
 
@@ -228,8 +256,11 @@ func _open_games(mode: String) -> void:
 	panel.mode = mode
 	panel.closed.connect(func() -> void:
 		_center.visible = true
-		_fill_entries())
+		_fill_entries()
+		_menu_help())
 	add_child(panel)
+	var what := {"new": "NEW GAME", "load": "LOAD", "delete": "DELETE"}
+	help.set_help(str(what.get(mode, "GAMES")), HelpBar.keys_text([["click", "pick a game"], ["Esc", "back"]]))
 
 
 ## The graphics settings over the menu (the menu hides until it's closed).
@@ -237,8 +268,11 @@ func _open_graphics() -> void:
 	_center.visible = false
 	var panel := GraphicsPanel.new()
 	panel.name = "GraphicsPanel"
-	panel.closed.connect(func() -> void: _center.visible = true)
+	panel.closed.connect(func() -> void:
+		_center.visible = true
+		_menu_help())
 	add_child(panel)
+	help.set_help("GRAPHICS", HelpBar.keys_text([["click", "change a setting"], ["Esc", "back"]]))
 
 
 ## Gameplay or Sound: that tab of the in-game settings, over the menu, with Back.
@@ -258,9 +292,11 @@ func _open_settings(tab: String) -> void:
 	tabs.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	box.add_child(tabs)
 	tabs.open_tab(tab)
+	help.set_help(tab.to_upper(), HelpBar.keys_text([["click", "change a setting"], ["Esc", "back"]]))
 	var back := BsxTheme.button("Back", func() -> void:
 		over.queue_free()
-		_center.visible = true)
+		_center.visible = true
+		_menu_help())
 	back.name = "Back"
 	box.add_child(back)
 
@@ -271,6 +307,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		if over:
 			over.queue_free()
 			_center.visible = true
+			_menu_help()
 			get_viewport().set_input_as_handled()
 
 

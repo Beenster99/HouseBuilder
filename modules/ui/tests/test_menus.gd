@@ -13,6 +13,12 @@ func run_tests() -> void:
 	var menu: Control = (load(Router.scene_path(UiBus.MAIN_MENU)) as PackedScene).instantiate()
 	add_child(menu)
 	await frames(2)
+	var menu_help := menu.find_child(HelpBar.NODE_NAME, false, false) as HelpBar
+	check(menu_help != null and menu_help.shown()[0].contains("MAIN MENU"), "the main menu has the help bar")
+	menu.open_section("settings")
+	check(menu_help != null and menu_help.shown()[0].contains("SETTINGS"), "the help bar follows the open section")
+	check((menu.find_child("Graphics", true, false) as Button).tooltip_text != "", "choices carry a tip for the bar")
+	menu.open_section("single")
 	var entry := menu.find_child("_job", true, false) as Button
 	check(entry != null and entry.text == "Start job", "main menu shows a registered entry")
 	check(entry != null and not entry.disabled, "entry enabled when its scene exists")

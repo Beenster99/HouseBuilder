@@ -8,6 +8,9 @@ func _ready() -> void:
 	theme = BsxTheme.get_theme()
 	set_anchors_preset(Control.PRESET_FULL_RECT)
 	add_child(BsxTheme.paper_backdrop())
+	var help := HelpBar.new()
+	add_child(help)
+	help.set_help("SETTINGS", HelpBar.keys_text([["click or drag", "change a setting"], ["Back", "return to the menu"]]))
 
 	var center := CenterContainer.new()
 	center.set_anchors_preset(Control.PRESET_FULL_RECT)
