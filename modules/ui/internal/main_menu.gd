@@ -34,7 +34,7 @@ static var _last_section := ""
 func _ready() -> void:
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 	theme = BsxTheme.get_theme()
-	set_anchors_preset(Control.PRESET_FULL_RECT)
+	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	# The splash picture drawn over in pencil, fading to plain paper under the menu, on
 	# drawing paper with a faint grid.
 	add_child(BsxTheme.paper_backdrop())

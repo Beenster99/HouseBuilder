@@ -6,7 +6,7 @@ extends Control
 
 func _ready() -> void:
 	theme = BsxTheme.get_theme()
-	set_anchors_preset(Control.PRESET_FULL_RECT)
+	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	add_child(BsxTheme.paper_backdrop())
 	var help := HelpBar.new()
 	add_child(help)

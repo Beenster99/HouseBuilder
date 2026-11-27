@@ -27,7 +27,7 @@ func _ready() -> void:
 	net = Modules.bus("multiplayer") as MultiplayerBus
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 	theme = BsxTheme.get_theme()
-	set_anchors_preset(Control.PRESET_FULL_RECT)
+	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	var bg := ColorRect.new()
 	bg.color = BsxTheme.BG
 	bg.set_anchors_preset(Control.PRESET_FULL_RECT)

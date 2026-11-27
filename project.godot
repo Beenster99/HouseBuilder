@@ -10,7 +10,7 @@ config_version=5
 
 config/name="FredDibnah"
 config/description="Co-op design, timelapse construction and precise demolition of real buildings."
-config/version="0.0.2"
+config/version="0.0.3"
 run/main_scene="res://modules/core/internal/boot.tscn"
 config/features=PackedStringArray("4.7", "Forward Plus")
 config/icon="res://icon.svg"
