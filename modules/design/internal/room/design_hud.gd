@@ -726,14 +726,15 @@ func open_contracts() -> void:
 	_contract_pop = PopupPanel.new()
 	_contract_pop.name = "ContractsPopup"
 	_contract_pop.add_theme_stylebox_override("panel", BsxTheme.panel_style(8))
-	var scroll := ScrollContainer.new()
-	scroll.custom_minimum_size = Vector2(980, 620)
-	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
-	_contract_pop.add_child(scroll)
+	# A fixed-size page: the board's own lists scroll inside it.
+	var box := MarginContainer.new()
+	box.custom_minimum_size = Vector2(980, 620)
+	_contract_pop.add_child(box)
 	var page: Variant = (ch.make as Callable).call(_model)
 	if page is Control:
 		(page as Control).size_flags_horizontal = SIZE_EXPAND_FILL
-		scroll.add_child(page as Control)
+		(page as Control).size_flags_vertical = SIZE_EXPAND_FILL
+		box.add_child(page as Control)
 	add_child(_contract_pop)
 	_contract_pop.popup_centered()
 
