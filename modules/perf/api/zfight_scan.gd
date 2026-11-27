@@ -227,6 +227,10 @@ static func _compare(tris: Array[Dictionary], list: Array, pairs: Dictionary, se
 			continue
 		centre /= area
 		var at := u * centre.x + v * centre.y + (ti.n as Vector3) * float(ti.d)
+		# Planes a few degrees apart can have close d far from the origin and still be well
+		# apart here (a path 40 cm over a road on a slope 100 m out): measure the gap at it.
+		if absf((tj.n as Vector3).dot(at) - float(tj.d)) > PLANE_GAP or absf((ti.n as Vector3).dot(at) - float(ti.d)) > PLANE_GAP:
+			continue
 		# Inside another solid (two walls overlapping at a corner, the cut faces of chunks)
 		# nobody sees it.
 		if _hidden(solids, int(ti.world), at + (ti.n as Vector3) * HIDDEN_PROBE):

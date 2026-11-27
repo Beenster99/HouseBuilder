@@ -103,10 +103,17 @@ func _design_room(size: String) -> void:
 			break
 	_judge("design_idle.%s" % size, idle, PerfBudget.FRAME_MS)
 	if _should_measure("design_edit.%s" % size):
-		t0 = Time.get_ticks_usec()
-		building.sync.edit(BuildingCommands.place_part("column", 0, {"at": [1.0, 0.0, 1.0]}, "steel"))
-		await frames(2)
-		_judge("design_edit.%s" % size, _ms(t0), PerfBudget.CLICK_MS)
+		# Best of up to three edits: another test process can take the CPU for one of them.
+		var edit := INF
+		for attempt in 3:
+			t0 = Time.get_ticks_usec()
+			building.sync.edit(BuildingCommands.place_part("column", 0, {"at": [1.0 + attempt, 0.0, 1.0]}, "steel"))
+			await frames(2)
+			edit = minf(edit, _ms(t0))
+			if edit <= PerfBudget.CLICK_MS:
+				break
+			await frames(5)
+		_judge("design_edit.%s" % size, edit, PerfBudget.CLICK_MS)
 	room.queue_free()
 	await frames(2)
 
@@ -208,10 +215,12 @@ func _judge(id: String, value: float, budget: float, unit: String = "ms", strict
 
 
 ## Times f (best of runs) and judges it. Tests share the CPU with other test processes, so
-## something over budget that isn't KNOWN gets two more tries before it fails.
+## something that would fail (over budget and not KNOWN, or over twice its KNOWN figure)
+## gets two more tries before it fails.
 func _timed(id: String, runs: int, f: Callable, budget: float) -> void:
 	var ms := _best_of(runs, f)
-	if ms > budget and not KNOWN.has(id):
+	var limit := float(KNOWN[id][0]) * 2.0 if KNOWN.has(id) else budget
+	if ms > limit:
 		ms = minf(ms, _best_of(2, f))
 	_judge(id, ms, budget)
 
