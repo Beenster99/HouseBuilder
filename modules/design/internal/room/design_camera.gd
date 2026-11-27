@@ -1,6 +1,6 @@
 extends Camera3D
 ## The design room's camera: an orbit view in 3D, or a top-down plan in 2D (orthographic,
-## north up). Right drag orbits (3D), middle drag or WASD pans, the wheel zooms.
+## north up). Right drag orbits (3D), left drag on empty floor (the room) or WASD pans, the wheel zooms.
 
 const ORBIT_SPEED := 0.006
 const KEY_PAN := 14.0
@@ -88,8 +88,9 @@ func handle(event: InputEvent) -> bool:
 				_orbiting = mb.pressed and not plan
 				return not plan
 			MOUSE_BUTTON_MIDDLE:
-				_panning = mb.pressed
-				return true
+				# The middle button pings (tap) and opens the mark-up wheel (hold); left drag
+				# on empty floor pans.
+				return false
 			MOUSE_BUTTON_WHEEL_UP:
 				if mb.pressed:
 					dist = clampf(dist / ZOOM_STEP, MIN_DIST, MAX_DIST)

@@ -9,10 +9,10 @@ extends Control
 
 const PANEL_W := 300
 ## Height taken by the two-row top bar, px.
-const TOP_H := 96
+const TOP_H := 80
 const COST_W := 340
 ## Body text size, px.
-const FONT := 12
+const FONT := 11
 ## The small 3D view's height, and the section's, px.
 const MINI_H := 230
 const SECTION_H := 280
@@ -87,9 +87,7 @@ func _ready() -> void:
 	_book = DesignCostBook.new(_model)
 	# Cost the building while the room opens; a design loaded later is costed a slice a frame.
 	_book.update()
-	var th := BsxTheme.get_theme().duplicate() as Theme
-	th.default_font_size = FONT
-	theme = th
+	theme = dense_theme(BsxTheme.get_theme())
 	mini = DesignMiniWorld.new()
 	add_child(mini)
 	mini.setup(_session)
@@ -155,9 +153,35 @@ func _process(delta: float) -> void:
 		help.hover(_hover_text)
 
 
+## The game's theme made dense, like a CAD tool: small text everywhere and tight boxes, so
+## the columns show a lot at once.
+static func dense_theme(base: Theme) -> Theme:
+	var th := base.duplicate() as Theme
+	th.default_font_size = FONT
+	for type in th.get_font_size_type_list():
+		for n in th.get_font_size_list(type):
+			th.set_font_size(n, type, mini(th.get_font_size(n, type), FONT + 1))
+	for type in th.get_stylebox_type_list():
+		for n in th.get_stylebox_list(type):
+			var sb := th.get_stylebox(n, type)
+			if sb == null:
+				continue
+			sb = sb.duplicate() as StyleBox
+			sb.content_margin_top = minf(sb.content_margin_top, 2.0)
+			sb.content_margin_bottom = minf(sb.content_margin_bottom, 2.0)
+			sb.content_margin_left = minf(sb.content_margin_left, 5.0)
+			sb.content_margin_right = minf(sb.content_margin_right, 5.0)
+			th.set_stylebox(n, type, sb)
+	for type in th.get_constant_type_list():
+		for n in th.get_constant_list(type):
+			if n in ["separation", "h_separation", "v_separation", "item_margin", "v_separation"]:
+				th.set_constant(n, type, mini(th.get_constant(n, type), 3))
+	return th
+
+
 func _panel(min_w: int) -> PanelContainer:
 	var p := PanelContainer.new()
-	p.add_theme_stylebox_override("panel", BsxTheme.panel_style(10))
+	p.add_theme_stylebox_override("panel", BsxTheme.panel_style(6))
 	p.custom_minimum_size.x = min_w
 	p.mouse_filter = MOUSE_FILTER_STOP
 	return p
@@ -177,7 +201,7 @@ func _button(text: String, press: Callable, tip := "") -> Button:
 func card(title: String, body: Control, id: String, tip := "") -> PanelContainer:
 	var p := PanelContainer.new()
 	p.name = "Card_" + id
-	p.add_theme_stylebox_override("panel", BsxTheme.card_style(6.0, 0.9))
+	p.add_theme_stylebox_override("panel", BsxTheme.card_style(4.0, 0.9))
 	p.size_flags_vertical = body.size_flags_vertical
 	p.size_flags_stretch_ratio = body.size_flags_stretch_ratio
 	p.mouse_filter = MOUSE_FILTER_PASS
@@ -190,7 +214,7 @@ func card(title: String, body: Control, id: String, tip := "") -> PanelContainer
 	head.focus_mode = FOCUS_NONE
 	head.alignment = HORIZONTAL_ALIGNMENT_LEFT
 	head.tooltip_text = tip
-	head.add_theme_font_size_override("font_size", 12)
+	head.add_theme_font_size_override("font_size", 11)
 	head.add_theme_color_override("font_color", BsxTheme.ACCENT)
 	head.add_theme_color_override("font_hover_color", BsxTheme.ACCENT)
 	head.add_theme_constant_override("h_separation", 4)
@@ -250,7 +274,7 @@ func dock_header(p: PanelContainer, dock: VBoxContainer, title: String, id: Stri
 	bar.tooltip_text = "Drag to move this panel"
 	var row := HBoxContainer.new()
 	bar.add_child(row)
-	var l := BsxTheme.hud_label("⠿  " + title, 13, BsxTheme.ACCENT)
+	var l := BsxTheme.hud_label("⠿  " + title, 12, BsxTheme.ACCENT)
 	l.size_flags_horizontal = SIZE_EXPAND_FILL
 	row.add_child(l)
 	var home := _button("⟲", func() -> void: reset_dock(p, id), "Put this panel back where it was")
@@ -358,7 +382,7 @@ func refresh_banner() -> void:
 		colour = Color(0.12, 0.55, 0.25) if BsxTheme.pencil() else Color(0.45, 1.0, 0.55)
 		head = "SELECT MODE"
 		if sel.is_empty():
-			how = "click a room or part · drag empty floor to pan · Shift adds"
+			how = "click a room or part · drag empty floor to pan · Shift+drag a box to select many"
 		else:
 			var what := _session.label_of(sel[0]) if sel.size() == 1 else "%d items" % sel.size()
 			how = "[b]%s[/b] selected · drag to move · corners and edges reshape a room · Del deletes · right-click: Edit / Delete" % what
@@ -417,7 +441,7 @@ func _build_top() -> void:
 	var row2 := HBoxContainer.new()
 	row2.add_theme_constant_override("separation", 8)
 	rows.add_child(row2)
-	var title := BsxTheme.hud_label("DESIGN ROOM", 16, BsxTheme.ACCENT)
+	var title := BsxTheme.hud_label("DESIGN ROOM", 14, BsxTheme.ACCENT)
 	row.add_child(title)
 	_crew_label = RichTextLabel.new()
 	_crew_label.bbcode_enabled = true
@@ -630,7 +654,7 @@ func _build_tools() -> void:
 	col.size_flags_horizontal = SIZE_EXPAND_FILL
 	scroll.add_child(col)
 	var grid := GridContainer.new()
-	grid.columns = 2
+	grid.columns = 3
 	col.add_child(grid)
 	for t: Dictionary in DesignSession.TOOLS:
 		var key := "" if int(t.key) == KEY_NONE else "  [%s]" % OS.get_keycode_string(int(t.key))
@@ -919,9 +943,9 @@ func mode_keys() -> Array:
 		match _session.tool:
 			"select":
 				if _session.presence.my_selection().is_empty():
-					out = [["LMB", "select"], ["Shift", "add"], ["LMB drag", "pan"], ["RMB", "Edit / Delete menu"]]
+					out = [["LMB", "select"], ["LMB drag", "pan"], ["Shift+drag", "box select"], ["Shift", "add"], ["RMB", "Edit / Delete menu"]]
 				else:
-					out = [["LMB drag", "move"], ["Handles", "reshape"], ["Del", "delete"], ["RMB", "Edit / Delete"], ["Esc", "deselect"]]
+					out = [["LMB drag", "move"], ["Handles", "reshape"], ["Del", "delete"], ["Shift+drag", "box adds"], ["RMB", "Edit / Delete"], ["Esc", "deselect"]]
 			"room", "slab", "roof", "raft":
 				out = [["LMB drag", "size it"], ["release", "draw it"], ["Esc", "Select"]]
 			"wall", "partition", "beam", "footing", "stair":

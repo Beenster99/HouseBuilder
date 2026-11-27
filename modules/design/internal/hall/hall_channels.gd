@@ -126,13 +126,18 @@ class ModelChannel extends SubViewportContainer:
 	func setup(p_hall: Node, p_mode: String) -> void:
 		hall = p_hall
 		mode = p_mode
-		stretch = true
 		mouse_filter = Control.MOUSE_FILTER_STOP
 		vp = SubViewport.new()
 		vp.world_3d = hall.call("model_world") as World3D
 		vp.render_target_update_mode = SubViewport.UPDATE_WHEN_VISIBLE
 		vp.handle_input_locally = false
-		add_child(vp)
+		vp.size = Vector2i(2, 2)
+		# Not a direct child, so the container doesn't size it to the layout: it is drawn at
+		# the screen's real sharpness (a wall screen at 4K has several pixels per layout pixel).
+		var holder := Node.new()
+		holder.name = "Render"
+		add_child(holder)
+		holder.add_child(vp)
 		cam = Camera3D.new()
 		cam.current = true
 		if mode != "3d":
@@ -151,9 +156,22 @@ class ModelChannel extends SubViewportContainer:
 				_hovered = false
 				hall.call("set_pointer", null))
 
+	## Picture pixels per layout pixel where this view is drawn.
+	func sharpness() -> float:
+		var t := get_viewport().get_final_transform() * get_global_transform_with_canvas()
+		return clampf(t.get_scale().x, 1.0, 4.0)
+
+	func _draw() -> void:
+		if vp:
+			draw_texture_rect(vp.get_texture(), Rect2(Vector2.ZERO, size), false)
+
 	func _process(delta: float) -> void:
 		if not is_visible_in_tree():
 			return
+		var want := Vector2i((size * sharpness()).round()).max(Vector2i(2, 2))
+		if vp.size != want:
+			vp.size = want
+			queue_redraw()
 		if hall.has_method("watch"):
 			hall.call("watch")
 		var box: AABB = hall.call("bounds")

@@ -91,6 +91,11 @@ var shape: Dictionary = {}
 var handle_reach := 0.35
 ## A left drag on empty floor with nothing selected pans the view (the room moves the camera).
 var pan_drag := false
+## The pan moved the view (the room says so); a press and release on empty floor that didn't
+## pan clears the selection instead.
+var pan_moved := false
+## Shift-drag on empty floor: the box being drawn, {a, b} (plan points), or empty.
+var box := {}
 var _pressed_on := ""
 var _group_n := 0
 
@@ -230,6 +235,8 @@ func hover(p: Variant) -> void:
 	presence.set_cursor(at)
 	if not shape.is_empty():
 		_update_shape(at)
+	elif not box.is_empty():
+		box.b = at
 	elif not drag.is_empty():
 		var by: Vector3 = at - (drag.from as Vector3)
 		by.y = 0.0
@@ -250,10 +257,19 @@ func press(p: Vector3, add := false) -> void:
 			_begin_shape(sh, at)
 			return
 		var hit := pick(at)
-		pan_drag = hit == "" and not add and presence.my_selection().is_empty()
+		# Empty floor: a drag pans the plan (a click clears the selection); with Shift, a
+		# drag draws a box that selects everything inside it.
+		pan_drag = hit == "" and not add
+		pan_moved = false
 		if pan_drag:
 			_press = null
 			_pressed_on = ""
+			return
+		if hit == "" and add:
+			box = {"a": at, "b": at}
+			_press = null
+			_pressed_on = ""
+			preview_changed.emit()
 			return
 		_press = at
 		_pressed_on = hit
@@ -293,7 +309,21 @@ func press(p: Vector3, add := false) -> void:
 func release(p: Vector3) -> void:
 	hover(p)
 	if tool == "select":
+		if pan_drag and not pan_moved:
+			presence.select(PackedStringArray())
 		pan_drag = false
+		if not box.is_empty():
+			box.b = cursor if cursor != null else box.b
+			var ids := ids_in_box(box.a as Vector3, box.b as Vector3)
+			box = {}
+			var sel := presence.my_selection()
+			for id in ids:
+				if not id in sel:
+					sel.append(id)
+			presence.select(sel)
+			if not ids.is_empty():
+				status.emit("%d selected: Del deletes them, drag one to move them all" % sel.size(), false)
+			preview_changed.emit()
 		if not shape.is_empty():
 			_end_shape()
 		if not drag.is_empty():
@@ -308,9 +338,35 @@ func release(p: Vector3) -> void:
 			_finish_two_point(cursor)
 
 
+## Every room and part on this level that lies wholly inside the plan box a..b.
+func ids_in_box(a: Vector3, b: Vector3) -> PackedStringArray:
+	var lo := Vector2(minf(a.x, b.x), minf(a.z, b.z))
+	var hi := Vector2(maxf(a.x, b.x), maxf(a.z, b.z))
+	var out := PackedStringArray()
+	if hi.x - lo.x < 0.01 and hi.y - lo.y < 0.01:
+		return out
+	var inside := func(pts: Array) -> bool:
+		for q: Vector2 in pts:
+			if q.x < lo.x - 0.001 or q.x > hi.x + 0.001 or q.y < lo.y - 0.001 or q.y > hi.y + 0.001:
+				return false
+		return not pts.is_empty()
+	for rid in model.rooms_on(level):
+		var pts: Array = []
+		for c: Array in model.rooms[rid].get("outline", []):
+			pts.append(Vector2(float(c[0]), float(c[1])))
+		if inside.call(pts):
+			out.append(rid)
+	for pid in model.parts_on(level):
+		var bb: AABB = model.aabb_of(pid)
+		if inside.call([Vector2(bb.position.x, bb.position.z), Vector2(bb.end.x, bb.end.z)]):
+			out.append(pid)
+	return out
+
+
 ## Esc or right click: drops the drag or the half-drawn part.
 func cancel() -> void:
 	pan_drag = false
+	box = {}
 	if not shape.is_empty():
 		presence.unlock(PackedStringArray([str(shape.room)]))
 		shape = {}
@@ -664,6 +720,8 @@ func wall_at(at: Vector3) -> String:
 func preview() -> Dictionary:
 	if not shape.is_empty():
 		return {"kind": "shape", "outline": shape.outline}
+	if not box.is_empty():
+		return {"kind": "box", "a": box.a, "b": box.b}
 	if not drag.is_empty():
 		return {"kind": "move", "ids": drag.ids, "by": drag.by}
 	if cursor == null:

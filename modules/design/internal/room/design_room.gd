@@ -490,6 +490,10 @@ func _draw_ghost() -> void:
 				var kind := session.door_kind if session.tool == "door" else session.window_kind
 				var w := float(building.catalog.kind(kind).get("w", 1.0))
 				_ghost_lines(im, mat, [a + dir * (t - w / 2.0), a + dir * (t + w / 2.0)], y + 0.1)
+		"box":
+			var a: Vector3 = pv.a
+			var b: Vector3 = pv.b
+			_ghost_lines(im, _ghost_mat(Color(0.3, 0.7, 1.0)), [a, Vector3(b.x, 0, a.z), b, Vector3(a.x, 0, b.z), a], y)
 		"shape":
 			var pts: Array = []
 			for v: Vector2 in pv.outline:
@@ -629,6 +633,8 @@ func _unhandled_input(event: InputEvent) -> void:
 		var mm := event as InputEventMouseMotion
 		if session.pan_drag and _left_down:
 			cam.pan_pixels(mm.relative)
+			if mm.relative.length() > 0.5:
+				session.pan_moved = true
 			get_viewport().set_input_as_handled()
 			return
 		if wheel.get("is_open"):

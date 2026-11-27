@@ -84,6 +84,33 @@ func run_tests() -> void:
 	check(s.pan_drag, "left-drag on empty floor pans")
 	s.release(Vector3(31, 0, 31))
 	check(not s.pan_drag, "until the button comes up")
+	s.presence.select(PackedStringArray([rid]))
+	s.press(Vector3(30, 0, 30))
+	check(s.pan_drag, "and pans with something selected too")
+	s.pan_moved = true
+	s.release(Vector3(31, 0, 31))
+	check(s.presence.my_selection().size() == 1, "a pan keeps the selection")
+	s.press(Vector3(30, 0, 30))
+	s.release(Vector3(30, 0, 30))
+	check(s.presence.my_selection().is_empty(), "a click on empty floor clears it")
+	# Shift+drag on empty floor draws a box that selects all inside it.
+	var whole := (room.get("hud") as Node).get("mini") as DesignMiniWorld
+	var bb := whole.bounds()
+	var lo := bb.position - Vector3(1, 0, 1)
+	var hi := bb.end + Vector3(1, 0, 1)
+	s.hover(Vector3(lo.x, 0, lo.z))
+	s.press(Vector3(lo.x, 0, lo.z), true)
+	check(str(s.preview().get("kind", "")) == "box", "Shift+drag on empty floor draws a box")
+	s.hover(Vector3(hi.x, 0, hi.z))
+	s.release(Vector3(hi.x, 0, hi.z))
+	var boxed := s.presence.my_selection()
+	check(boxed.size() > 1 and rid in boxed, "and selects everything inside it: %d" % boxed.size())
+	s.delete_selection()
+	await frames(2)
+	check(model.rooms_on(s.level).is_empty() and model.parts_on(s.level).is_empty(), "then Del deletes them all")
+	s.undo()
+	await frames(2)
+	check(model.rooms.has(rid), "and undo brings them back")
 
 	# The right-click menu and edit form.
 	var ctx: Node = room.get("context")

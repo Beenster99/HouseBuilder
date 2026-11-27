@@ -60,6 +60,24 @@ static var _cand_t := INF
 static var _current: HallScreen
 
 
+## Set to force how many picture pixels each layout pixel gets (tests); 0 follows the display.
+static var scale_override := 0.0
+## The largest picture side, px.
+const MAX_SIDE := 8192
+
+
+## Picture pixels per layout pixel: 1.5 at 1080p, 2 at 1440p, 3 at 4K (capped by MAX_SIDE).
+static func render_scale(p_px: Vector2i) -> float:
+	var k := scale_override
+	if k <= 0.0:
+		var tree := Engine.get_main_loop() as SceneTree
+		var h := float(tree.root.size.y) if tree and tree.root else 1080.0
+		if DisplayServer.get_name() != "headless":
+			h = maxf(h, float(DisplayServer.screen_get_size().y))
+		k = clampf(snappedf(h / 1080.0 * 1.5, 0.5), 1.0, 3.0)
+	return minf(k, float(MAX_SIDE) / float(maxi(maxi(p_px.x, p_px.y), 1)))
+
+
 func _init(p_content: Control = null, p_px := Vector2i(1000, 600), p_size_m := Vector2(1.0, 0.6)) -> void:
 	content = p_content
 	px = p_px
@@ -309,7 +327,12 @@ static func led_button(text: String, toggle := false, on := false, font_size := 
 func _build() -> void:
 	viewport = SubViewport.new()
 	viewport.name = "Viewport"
-	viewport.size = px
+	# Laid out at `px` but drawn at the display's sharpness: at 4K the picture has up to 3x
+	# the pixels, so text stays crisp up close and at an angle.
+	var k := render_scale(px)
+	viewport.size = Vector2i((Vector2(px) * k).round())
+	viewport.size_2d_override = px
+	viewport.size_2d_override_stretch = true
 	viewport.disable_3d = true
 	viewport.transparent_bg = false
 	# Drawn only while its picture is on screen (it was redrawn every frame, seen or not).
