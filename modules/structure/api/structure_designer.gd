@@ -9,6 +9,10 @@ extends RefCounted
 ##       building.sync.edit(plan.op)     # one shared edit, one undo for everyone
 ##   print("\n".join(plan.notes))
 ##
+## With complete (the Design structure button), it first finishes the structure: footings
+## under ground-floor walls and columns (a raft on soft ground), a ground slab, floors on
+## upper levels and a roof over the top, wherever the crew has not drawn them.
+##
 ## Fixes, cheapest first, one per failing part per round, round after round:
 ## - An overloaded member, wall or footing gets the next stronger section of its material;
 ##   a masonry or timber wall at its strongest becomes reinforced concrete.
@@ -42,15 +46,24 @@ const BEAM_DEPTH := 4
 const MAX_STUCK_NOTES := 6
 
 
-static func design(model: BuildingModel, scenarios: Array[StructureScenario] = [], options: Dictionary = {}) -> Dictionary:
+static func design(model: BuildingModel, scenarios: Array[StructureScenario] = [], options: Dictionary = {},
+		complete: bool = false) -> Dictionary:
 	var work := BuildingModel.from_data(model.to_data(), model.catalog)
-	var g := StructureBuilding.graph(work, PackedStringArray(), options)
-	var before := StructureSolver.stress_test(g, scenarios)
-	var report := before
 	var dos: Array = []
 	var upsized := 0
 	var added := 0
 	var count := {}  # kind -> parts added
+	if complete:
+		for op: Dictionary in complete_ops(work):
+			var r := work.apply(op)
+			if r.is_empty():
+				continue
+			dos.append(r.do)
+			added += 1
+			count[str(op.entry.kind)] = int(count.get(str(op.entry.kind), 0)) + 1
+	var g := StructureBuilding.graph(work, PackedStringArray(), options)
+	var before := StructureSolver.stress_test(g, scenarios)
+	var report := before
 	var stuck := {}  # part id -> why nothing more can be done
 	for round_i in MAX_ROUNDS:
 		if report.passed():
@@ -84,10 +97,11 @@ static func design(model: BuildingModel, scenarios: Array[StructureScenario] = [
 		report = StructureSolver.stress_test(g, scenarios)
 	var did := _did(count, upsized)
 	var head := ""
-	if before.passed():
+	if before.passed() and dos.is_empty():
 		head = "Nothing to fix: the structure already passes every test."
 	elif report.passed():
-		head = "Structure designed: it now passes every test. %s" % did
+		head = "Structure designed: it now passes every test. %s" % did if not before.passed() \
+				else "Structure completed: it passes every test. %s" % did
 	elif dos.is_empty():
 		head = "The engineer could not fix this structure."
 	else:
@@ -213,7 +227,7 @@ static func _fix(model: BuildingModel, g: StructureGraph, pid: String, row: Dict
 					"why": "its spans are as short as columns can make them"}
 		"slab", "roof":
 			if _is_pitched(model, pid):
-				return {"ops": [], "why": "it is the strongest roof of its kind; add a wall or beam under its ridge"}
+				return {"ops": _ridge_beam(model, pid), "why": "it is the strongest roof of its kind even with a ridge beam; add a wall under its ridge"}
 			return {"ops": _beams_across(model, pid), "why": "it already has as many beams under it as fit"}
 		"wall":
 			return _wall_fix(model, g, pid, str(row.get("member", "")), mode)
@@ -473,6 +487,34 @@ static func _beams_across(model: BuildingModel, pid: String) -> Array:
 	return []
 
 
+## A steel ridge beam under a pitched roof, along its long way at its eaves height (so it
+## holds the rafters at mid-span); [] if one is there.
+static func _ridge_beam(model: BuildingModel, pid: String) -> Array:
+	var e: Dictionary = model.parts[pid]
+	var lo := Vector2(INF, INF)
+	var hi := Vector2(-INF, -INF)
+	for p: Array in e.outline:
+		lo = lo.min(Vector2(float(p[0]), float(p[1])))
+		hi = hi.max(Vector2(float(p[0]), float(p[1])))
+	var y := float(e.get("y", 0.0))
+	var a: Array
+	var b: Array
+	if (hi - lo).x >= (hi - lo).y:
+		var mz := (lo.y + hi.y) * 0.5
+		a = [lo.x, y, mz]
+		b = [hi.x, y, mz]
+	else:
+		var mx := (lo.x + hi.x) * 0.5
+		a = [mx, y, lo.y]
+		b = [mx, y, hi.y]
+	for id: String in model.parts_on(int(e.level)):
+		var q: Dictionary = model.parts[id]
+		if str(q.kind) == "beam" and _same_line(q, a, b):
+			return []
+	var secs := model.catalog.sections_for("beam", BEAM_MATERIAL)
+	return [BuildingCommands.place_part("beam", int(e.level), {"a": a, "b": b}, BEAM_MATERIAL, secs[0] if not secs.is_empty() else "")]
+
+
 static func _is_pitched(model: BuildingModel, pid: String) -> bool:
 	var e: Dictionary = model.parts[pid]
 	return model.catalog.family_of(str(e.kind)) == "roof" \
@@ -511,3 +553,118 @@ static func _label(model: BuildingModel, id: String) -> String:
 
 static func _section_label(cat: BuildingCatalog, sid: String) -> String:
 	return str(cat.section(sid).get("label", sid)) if sid != "" else "no section"
+
+
+# --- Completing the structure ---------------------------------------------------------
+
+## Soils too weak for strips and pads: the whole building goes on a raft.
+const RAFT_SOILS: PackedStringArray = ["soft_clay", "made_ground"]
+## A pitched roof only over a plain rectangle this narrow or less, m.
+const PITCH_MAX_SPAN := 12.0
+
+
+## What the structure is missing, as add ops on model: footings (or a raft), a ground slab,
+## upper floors and a roof. Nothing the crew drew is changed.
+static func complete_ops(model: BuildingModel) -> Array:
+	var ops: Array = []
+	var cat := model.catalog
+	var levels_with_walls: Array[int] = []
+	for lv in model.level_count():
+		if not _walls_on(model, lv).is_empty():
+			levels_with_walls.append(lv)
+	if levels_with_walls.is_empty():
+		return ops
+	var soil := str(model.meta.get("soil", "clay"))
+	var has := func(lv: int, fam: String) -> bool:
+		for id: String in model.parts_on(lv):
+			if cat.family_of(str(model.parts[id].kind)) == fam:
+				return true
+		return false
+	# Foundations.
+	var ground := _footprint(model, 0) if levels_with_walls.has(0) else []
+	var raft_there := false
+	for id: String in model.parts_on(0):
+		if str(model.parts[id].kind) == "raft":
+			raft_there = true
+	if soil in RAFT_SOILS and not ground.is_empty():
+		if not raft_there:
+			for outline: Array in ground:
+				var rafts := cat.sections_for("raft", "concrete")
+				ops.append(BuildingCommands.place_part("raft", 0, {"outline": outline, "y": 0.0}, "concrete", rafts[0] if not rafts.is_empty() else ""))
+	elif not raft_there:
+		var strips := cat.sections_for("strip_footing", "concrete")
+		for id: String in _walls_on(model, 0):
+			if not bool(cat.kind(str(model.parts[id].kind)).get("structural", false)):
+				continue
+			var pts := model.points_of(id)
+			if not _strip_under(model, pts[0], pts[1]):
+				ops.append(BuildingCommands.place_part("strip_footing", 0, {"a": [pts[0].x, 0.0, pts[0].z], "b": [pts[1].x, 0.0, pts[1].z]},
+						"concrete", strips[0] if not strips.is_empty() else ""))
+		var pads := cat.sections_for("pad_footing", "concrete")
+		for id: String in model.parts_on(0):
+			if cat.family_of(str(model.parts[id].kind)) != "column":
+				continue
+			var p := model.points_of(id)[0]
+			if not _pad_at(model, p.x, p.z):
+				ops.append(BuildingCommands.place_part("pad_footing", 0, {"at": [p.x, 0.0, p.z]}, "concrete", pads[0] if not pads.is_empty() else ""))
+	# Floors: a ground slab, and a floor on each upper level the walls reach.
+	for lv: int in levels_with_walls:
+		if has.call(lv, "slab"):
+			continue
+		var floors := cat.sections_for("slab", "concrete")
+		var sec: String = floors[0 if lv == 0 else mini(1, floors.size() - 1)] if not floors.is_empty() else ""
+		for outline: Array in _footprint(model, lv):
+			ops.append(BuildingCommands.place_part("slab", lv, {"outline": outline, "y": 0.0}, "concrete", sec))
+	# A roof over the top level with walls, unless one is there (or on the level above).
+	var top: int = levels_with_walls[levels_with_walls.size() - 1]
+	if not has.call(top, "roof") and not (top + 1 < model.level_count() and has.call(top + 1, "roof")):
+		var outlines := _footprint(model, top)
+		for outline: Array in outlines:
+			var h := model.level_height(top)
+			var lo := Vector2(INF, INF)
+			var hi := Vector2(-INF, -INF)
+			for q: Array in outline:
+				lo = lo.min(Vector2(float(q[0]), float(q[1])))
+				hi = hi.max(Vector2(float(q[0]), float(q[1])))
+			var rect := outline.size() == 4 and absf(BuildingModel.outline_area(outline) - (hi - lo).x * (hi - lo).y) < 0.01
+			if outlines.size() == 1 and rect and minf((hi - lo).x, (hi - lo).y) <= PITCH_MAX_SPAN:
+				ops.append(BuildingCommands.place_part("roof_pitched", top, {"outline": outline, "y": h}, "timber"))
+			else:
+				ops.append(BuildingCommands.place_part("roof_flat", top, {"outline": outline, "y": h}, "timber",
+						str(cat.sections_for("roof_flat", "timber")[0]) if not cat.sections_for("roof_flat", "timber").is_empty() else ""))
+	return ops
+
+
+static func _walls_on(model: BuildingModel, lv: int) -> PackedStringArray:
+	var out := PackedStringArray()
+	for id: String in model.parts_on(lv):
+		if model.catalog.family_of(str(model.parts[id].kind)) == "wall" and model.parts[id].has("a"):
+			out.append(id)
+	return out
+
+
+## Outlines to cover on a level: the box round its walls, or, when the rooms drawn there
+## fill clearly less of that box (an L or U shaped plan), each room's own outline.
+static func _footprint(model: BuildingModel, lv: int) -> Array:
+	var lo := Vector2(INF, INF)
+	var hi := Vector2(-INF, -INF)
+	for id: String in _walls_on(model, lv):
+		for p in model.points_of(id):
+			lo = lo.min(Vector2(p.x, p.z))
+			hi = hi.max(Vector2(p.x, p.z))
+	if lo.x == INF or (hi - lo).x < 0.5 or (hi - lo).y < 0.5:
+		return []
+	var box := BuildingCommands.rect(lo.x, lo.y, hi.x - lo.x, hi.y - lo.y)
+	var rooms := model.rooms_on(lv)
+	if rooms.is_empty():
+		return [box]
+	var area := 0.0
+	for rid: String in rooms:
+		area += BuildingModel.outline_area(model.rooms[rid].outline)
+	if area >= 0.85 * (hi - lo).x * (hi - lo).y:
+		return [box]
+	var out: Array = []
+	for rid: String in rooms:
+		out.append((model.rooms[rid].outline as Array).duplicate(true))
+	return out
+

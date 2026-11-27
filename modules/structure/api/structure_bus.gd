@@ -192,7 +192,7 @@ func design_structure() -> Dictionary:
 		_plan = {"op": {}, "notes": PackedStringArray(["Nothing to design yet: draw some walls and floors first."]), "passed": false}
 		design_done.emit(_plan.notes)
 		return _plan
-	_plan = StructureDesigner.design(model)
+	_plan = StructureDesigner.design(model, [], {}, true)
 	if not (_plan.op as Dictionary).is_empty() and _editor.is_valid():
 		_editor.call(_plan.op, "")
 	if _net:
@@ -325,12 +325,13 @@ func _start_check() -> void:
 	_job_design = _design_requested
 	_design_requested = false
 	var engineer := (live_engineer or _job_design) and _editor.is_valid()
-	_job = WorkerThreadPool.add_task(_check.bind(data, ops, cat, engineer, _watched.revision, diagram_on), false, "structure live check")
+	_job = WorkerThreadPool.add_task(_check.bind(data, ops, cat, engineer, _watched.revision, diagram_on, _job_design), false, "structure live check")
 	checking_changed.emit(true)
 
 
 ## On a worker thread: works only on its own copy of the building.
-func _check(data: Dictionary, ops: Array, cat: BuildingCatalog, engineer: bool, revision: int, diagram: bool = false) -> void:
+func _check(data: Dictionary, ops: Array, cat: BuildingCatalog, engineer: bool, revision: int, diagram: bool = false,
+		complete: bool = false) -> void:
 	if not data.is_empty():
 		_mirror = BuildingModel.from_data(data, cat)
 	else:
@@ -347,8 +348,8 @@ func _check(data: Dictionary, ops: Array, cat: BuildingCatalog, engineer: bool, 
 	var report := full.compact()
 	# Serialising and fingerprinting a big report takes tens of ms: do it here, not on a frame.
 	var out := {"report": report, "data": report.to_dict(), "digest": report.digest()}
-	if engineer and not report.passed():
-		out["plan"] = StructureDesigner.design(m)
+	if engineer and (complete or not report.passed()):
+		out["plan"] = StructureDesigner.design(m, [], {}, complete)
 	_job_out = out
 
 

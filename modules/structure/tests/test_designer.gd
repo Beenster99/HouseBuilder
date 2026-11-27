@@ -14,6 +14,7 @@ func run_tests() -> void:
 	_floating_beam()
 	_bus()
 	_school_hall()
+	_completes()
 
 
 ## A two-storey 14 x 10 m office on perimeter walls only: far too far for its slabs.
@@ -144,3 +145,33 @@ func _school_hall() -> void:
 	check(plan.notes.size() == 1, "and sums it up in one line: %s" % plan.notes[0])
 	check(StructureDesigner.describe(m, walls[0]).contains("ground floor") and StructureDesigner.describe(m, walls[0]).contains("30.0 m long"),
 			"parts are described so they can be found: %s" % StructureDesigner.describe(m, walls[0]))
+
+
+## Walls only: Design structure delivers the rest of the structure: footings (a raft on soft
+## ground), a ground slab, the upper floor and a roof.
+func _completes() -> void:
+	for soil: String in ["clay", "made_ground"]:
+		var C := BuildingCommands
+		var m := BuildingModel.new("box", "Box", BuildingCatalog.default_catalog())
+		m.apply({"op": "set_meta", "fields": {"soil": soil}})
+		m.apply(C.add_level(3.0, "First floor"))
+		var corners := [[0, 0, 0], [10, 0, 0], [10, 0, 8], [0, 0, 8]]
+		for lv in 2:
+			for i in 4:
+				m.apply(C.place_part("wall_loadbearing", lv, {"a": corners[i], "b": corners[(i + 1) % 4]}, "masonry", "wall_block_140"))
+		var plan := StructureDesigner.design(m, [], {}, true)
+		var kinds := {}
+		for op: Dictionary in plan.op.ops:
+			if str(op.op) == "add":
+				kinds[str(op.entry.kind)] = int(kinds.get(str(op.entry.kind), 0)) + 1
+		if soil == "clay":
+			check(int(kinds.get("strip_footing", 0)) >= 4 and not kinds.has("raft"), "strip footings under the walls on firm ground: %s" % [kinds])
+		else:
+			check(kinds.has("raft") and not kinds.has("strip_footing"), "a raft on made ground: %s" % [kinds])
+		check(int(kinds.get("slab", 0)) == 2, "a ground slab and the first floor")
+		check(kinds.has("roof_pitched") or kinds.has("roof_flat"), "and a roof")
+		check(plan.passed, "a complete structure that passes: %s" % "\n".join(plan.notes))
+		m.apply(plan.op)
+		var again := StructureDesigner.design(m, [], {}, true)
+		check((again.op as Dictionary).is_empty(), "pressing again adds nothing: %s" % again.notes[0])
+
