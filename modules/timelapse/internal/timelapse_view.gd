@@ -206,6 +206,8 @@ func _rebuild() -> void:
 	_place_crane(bounds)
 	site.visible = true
 	site.setup(bus.schedule, bounds)
+	# The site's library tower crane replaces the plain one when the library has it.
+	_crane.visible = site.crane == null
 	_scrub.max_value = bus.total_days()
 	_scrub.step = 0.01
 	_sync_buttons()
@@ -320,7 +322,8 @@ func _process(delta: float) -> void:
 		mesh.material_override = _working_mat if busy else _material(t, false)
 		if busy:
 			working.append((t.aabb as AABB).get_center())
-	_aim_crane(working)
+	if _crane.visible:
+		_aim_crane(working)
 	_turn_sun(day)
 	_update_hud(day)
 

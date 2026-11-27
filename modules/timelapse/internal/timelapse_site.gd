@@ -24,7 +24,7 @@ const A := {
 	"walker": "people.crew.operative_walking", "worker": "people.crew.labourer",
 	"foreman": "people.crew.foreman", "banksman": "people.crew.banksman",
 	"excavator": "plant.excavator.20t", "tipper": "plant.truck.tipper", "dumper": "plant.earthmoving.site_dumper",
-	"mixer": "plant.truck.concrete_mixer", "pump": "plant.truck.concrete_pump",
+	"mixer": "plant.truck.concrete_mixer", "pump": "plant.truck.concrete_pump_deployed",
 	"telehandler": "plant.lifting.telehandler", "scissor": "plant.access.scissor_lift_6",
 	"lorry": "vehicle.lorry.flatbed",
 }
@@ -45,6 +45,11 @@ const DRIVE := 6.0
 const ROAD := 45.0           # lorries appear this far out from the gate
 const DELIVERY_EVERY := 4.0  # days between deliveries while building
 
+const PlantRig := preload("res://modules/timelapse/internal/plant_rig.gd")
+## Tower cranes by size: [id, hook height above ground at rest, reach].
+const TOWERS := [["plant.crane.tower", 30.0, 38.5], ["plant.crane.tower_45", 45.0, 48.5],
+		["plant.crane.tower_60", 60.0, 58.5]]
+
 var tasks: Array = []
 var stages: Dictionary = {}
 var total := 0.0
@@ -60,6 +65,12 @@ var _rows := 0
 var _workers: Array[Dictionary] = []
 var _plant: Dictionary = {}            # name -> {node, ...state}
 var _lorry: Dictionary = {}
+## The tower crane (a library model with a moving slew, trolley and hook), or null when
+## the library has none and the view's own crane is shown instead.
+var crane: Node3D
+var _crane_rig: RefCounted
+var _crane_yaw := 0.0
+var _crane_reach := 20.0
 var _active: Array = []                # tasks running now
 var _stage_now: PackedStringArray = []
 var _scan := 0.0
@@ -96,6 +107,7 @@ func setup(schedule: Dictionary, building: AABB) -> void:
 	_build_scaffold()
 	_build_crew()
 	_build_plant()
+	_build_crane()
 	_last_day = -1.0
 	_next_delivery = _stage_start("foundation")
 
@@ -116,6 +128,8 @@ func tick(day: float, delta: float) -> void:
 	_update_workers(day, delta, cleared)
 	_update_plant(day, delta, cleared)
 	_update_lorry(day, delta, cleared)
+	_update_crane(delta, cleared)
+	_animate(delta)
 	_last_day = day
 
 
@@ -229,11 +243,36 @@ func _build_plant() -> void:
 		var n := _make(k, Vector3.ZERO)
 		n.visible = false
 		_root.add_child(n)
-		_plant[k] = {"node": n, "phase": randf() * TAU, "t": 0.0, "leg": 0}
+		_plant[k] = {"node": n, "phase": randf() * TAU, "t": 0.0, "leg": 0, "rig": PlantRig.new(n)}
 	var lorry := _make("lorry", Vector3.ZERO)
 	lorry.visible = false
 	_root.add_child(lorry)
 	_lorry = {"node": lorry, "state": "away", "t": 0.0}
+
+
+## A tower crane tall enough to clear the building, at the corner behind it.
+func _build_crane() -> void:
+	crane = null
+	var pick: Array = TOWERS[0]
+	for t: Array in TOWERS:
+		pick = t
+		if float(t[1]) >= bounds.end.y + 12.0:
+			break
+	if not AssetLibrary.has(str(pick[0])):
+		return
+	var n := AssetLibrary.make(str(pick[0]))
+	var rig := PlantRig.new(n)
+	if not rig.has_stages(["slew", "trolley", "hook"]):
+		n.free()
+		return
+	n.name = "TowerCrane"
+	n.position = Vector3(bounds.end.x + 4.0, 0.0, bounds.position.z - 4.0)
+	_root.add_child(n)
+	crane = n
+	_crane_rig = rig
+	var local := bounds.get_center() - n.position
+	_crane_yaw = atan2(-local.x, -local.z)
+	_crane_reach = (rig.socket("trolley").z) * -1.0
 
 
 # --- Each frame -----------------------------------------------------------------------
@@ -390,7 +429,7 @@ func _update_plant(day: float, delta: float, cleared: bool) -> void:
 	exn.visible = digging
 	if digging:
 		exn.position = Vector3(bounds.get_center().x - 2.0, 0, bounds.end.z + 4.5)
-		exn.rotation.y = PI + sin(_clock * 0.6 + float(ex.phase)) * 1.1
+		exn.rotation.y = PI
 	var tip: Dictionary = _plant.tipper
 	(tip.node as Node3D).visible = digging
 	if digging:
@@ -423,6 +462,67 @@ func _update_plant(day: float, delta: float, cleared: bool) -> void:
 		var along := (sin(_clock * 0.03 + float(_plant.scissor.phase)) * 0.5 + 0.5) * bounds.size.x
 		sc.position = Vector3(bounds.position.x + along, 0, bounds.end.z + SCAFFOLD_GAP + 3.0)
 		sc.rotation.y = PI / 2.0
+
+
+## The crane slews round to the parts being built and runs its trolley out over them.
+func _update_crane(delta: float, cleared: bool) -> void:
+	if crane == null:
+		return
+	crane.visible = not cleared
+	var rig: RefCounted = _crane_rig
+	var target := Vector3.ZERO
+	var n := 0
+	for t: Dictionary in _active:
+		if t.stage in ["frame", "floor", "envelope", "roof"]:
+			target += (t.aabb as AABB).get_center()
+			n += 1
+	if n == 0:
+		# Nothing to lift: park over the material stacks.
+		target = _stack_point(2)
+	else:
+		target /= n
+	var local := crane.to_local(target)
+	var want_yaw := atan2(-local.x, -local.z)
+	var want_reach := clampf(Vector2(local.x, local.z).length(), -rig.socket("trolley_min").z, -rig.socket("trolley_max").z)
+	_crane_yaw = lerp_angle(_crane_yaw, want_yaw, minf(1.0, delta * 0.6))
+	_crane_reach = move_toward(_crane_reach, want_reach, delta * 2.5)
+	var slew := PlantRig.turn(rig.socket("slew"), Vector3.UP, _crane_yaw)
+	var run := PlantRig.shift(Vector3(0, 0, -_crane_reach - rig.socket("trolley").z))
+	# The hook rises and falls a little as loads go up.
+	var bob := PlantRig.shift(Vector3(0, sin(_clock * 0.4) * 1.5, 0))
+	rig.pose({"slew": slew, "trolley": slew * run, "hook": slew * run * bob})
+
+
+## The working parts: the digger's dig cycle, the mixer drum, the pump boom, the lift.
+func _animate(delta: float) -> void:
+	var ex: Dictionary = _plant.excavator
+	if (ex.node as Node3D).visible:
+		var r: RefCounted = ex.rig
+		var c := _clock * 0.7 + float(ex.phase)
+		var swing := PlantRig.turn(r.socket("slew"), Vector3.UP, sin(c * 0.5) * 1.1)
+		var boom := swing * PlantRig.turn(r.socket("boom_pivot"), Vector3.RIGHT, 0.15 + sin(c) * 0.25)
+		var stick := boom * PlantRig.turn(r.socket("stick_pivot"), Vector3.RIGHT, -0.2 + cos(c) * 0.45)
+		var bucket := stick * PlantRig.turn(r.socket("bucket_pivot"), Vector3.RIGHT, sin(c + 1.0) * 0.8)
+		r.pose({"upper": swing, "boom": boom, "stick": stick, "bucket": bucket})
+		(ex.node as Node3D).rotation.y = PI
+	var mx: Dictionary = _plant.mixer
+	if (mx.node as Node3D).visible:
+		var r: RefCounted = mx.rig
+		var axis: Vector3 = r.socket("drum_axis") - r.socket("drum")
+		if axis.length() > 0.01:
+			r.pose({"drum": PlantRig.turn(r.socket("drum"), axis, _clock * 1.6)})
+	var pm: Dictionary = _plant.pump
+	if (pm.node as Node3D).visible:
+		var r: RefCounted = pm.rig
+		r.pose({"boom": PlantRig.turn(r.socket("slew"), Vector3.UP, sin(_clock * 0.2 + float(pm.phase)) * 0.35)})
+	var sc: Dictionary = _plant.scissor
+	if (sc.node as Node3D).visible:
+		var r: RefCounted = sc.rig
+		var top: float = r.socket("platform").y
+		if top > 1.5:
+			var h := lerpf(1.6, top, 0.5 + 0.5 * sin(_clock * 0.15 + float(sc.phase)))
+			r.pose({"platform": PlantRig.shift(Vector3(0, h - top, 0)),
+					"scissors": PlantRig.stretch_y(0.9, (h - 0.9) / (top - 0.9))})
 
 
 ## Drives `p` from `a` to `b`, waits, and back, over and over, facing where it goes.
