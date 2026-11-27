@@ -8,6 +8,8 @@ extends Node3D
 ## torches on heads, Tools puts the tool they hold in their hand and plays its sounds there.
 ## play_emote() acts out a signal (wave, thumbs up, point...) for EMOTE_TIME with a bubble
 ## over the helmet saying what it means.
+## apply_look() dresses the suit: its colour, the headgear and whether the visor shows (a
+## face hung on the head hides it). See LOOK_DEFAULT.
 
 const HEAD_GROUP := "crew_head"
 const HAND_GROUP := "crew_hand"
@@ -23,6 +25,10 @@ const SHOULDER := Vector3(0.21, -0.3, 0.02)
 const HAND_REST := Vector3(0.24, -0.85, -0.12)
 const ARM_RADIUS := 0.05
 const EMOTE_TIME := 3.0
+## Headgear an avatar can wear.
+const HEADGEAR: Array[String] = ["helmet", "hard_hat", "cap", "none"]
+## A look with nothing changed: {"suit": Color, "headgear": one of HEADGEAR, "visor": bool}.
+const LOOK_DEFAULT := {"suit": SUIT, "headgear": "helmet", "visor": true}
 ## Right hand (and left, for two-handed signals) from the head, in the suit's facing, for
 ## each emote. "wave" also swings side to side.
 const EMOTE_POSE := {
@@ -48,6 +54,9 @@ var _arms: Array[MeshInstance3D] = []
 var _emote := ""
 var _emote_left := 0.0
 var _bubble: Label3D
+var _helmet: MeshInstance3D
+var _visor: MeshInstance3D
+var _look: Dictionary = LOOK_DEFAULT.duplicate()
 
 
 func _ready() -> void:
@@ -57,18 +66,19 @@ func _ready() -> void:
 	head.add_to_group(HEAD_GROUP)
 	head.set_meta("peer_id", peer)
 	add_child(head)
-	var helmet := _mesh(SphereMesh.new(), SUIT.lightened(0.15))
-	(helmet.mesh as SphereMesh).radius = 0.17
-	(helmet.mesh as SphereMesh).height = 0.34
-	head.add_child(helmet)
-	var visor := _mesh(BoxMesh.new(), VISOR)
-	(visor.mesh as BoxMesh).size = Vector3(0.26, 0.12, 0.08)
-	visor.position = Vector3(0, 0.0, -0.14)
-	head.add_child(visor)
+	_helmet = _mesh(_headgear_mesh("helmet"), SUIT.lightened(0.15))
+	_helmet.name = "Headgear"
+	head.add_child(_helmet)
+	_visor = _mesh(BoxMesh.new(), VISOR)
+	_visor.name = "Visor"
+	(_visor.mesh as BoxMesh).size = Vector3(0.26, 0.12, 0.08)
+	_visor.position = Vector3(0, 0.0, -0.14)
+	head.add_child(_visor)
 	var body := _mesh(CapsuleMesh.new(), SUIT)
 	(body.mesh as CapsuleMesh).radius = 0.25
 	(body.mesh as CapsuleMesh).height = 1.4
 	body.position = Vector3(0, 0.75, 0)
+	body.name = "Body"
 	add_child(body)
 	_body = body
 	var tag := Label3D.new()
@@ -111,6 +121,62 @@ func _ready() -> void:
 	_bubble.visible = false
 	head.add_child(_bubble)
 	_rest_hands()
+	apply_look(_look)
+
+
+## Dresses the suit from a look ({"suit", "headgear", "visor"}; missing keys keep LOOK_DEFAULT).
+func apply_look(look: Dictionary) -> void:
+	_look = LOOK_DEFAULT.duplicate()
+	for k in look:
+		if _look.has(k):
+			_look[k] = look[k]
+	if _body == null:
+		return
+	var suit: Color = _look.suit
+	for mi: MeshInstance3D in [_body] + _arms:
+		(mi.material_override as StandardMaterial3D).albedo_color = suit
+	var gear := str(_look.headgear)
+	_helmet.mesh = _headgear_mesh(gear)
+	_helmet.visible = gear != "none"
+	# A hard hat stands out in safety yellow, like the real thing; the rest match the suit.
+	(_helmet.material_override as StandardMaterial3D).albedo_color = Color("f2c230") if gear == "hard_hat" else suit.lightened(0.15)
+	_visor.visible = bool(_look.visor)
+
+
+## The look the suit wears now.
+func look() -> Dictionary:
+	return _look.duplicate()
+
+
+## A head mesh for each HEADGEAR: the round helmet, a hard hat (dome and brim), a cap (dome
+## and a peak at the front, -Z).
+static func _headgear_mesh(gear: String) -> Mesh:
+	match gear:
+		"hard_hat", "cap":
+			var hat := gear == "hard_hat"
+			var st := SurfaceTool.new()
+			st.begin(Mesh.PRIMITIVE_TRIANGLES)
+			var dome := SphereMesh.new()
+			dome.radius = 0.18 if hat else 0.17
+			dome.height = 0.36 if hat else 0.34
+			dome.is_hemisphere = true
+			st.append_from(dome, 0, Transform3D(Basis(), Vector3(0, 0.02 if hat else 0.03, 0)))
+			if hat:
+				var brim := CylinderMesh.new()
+				brim.top_radius = 0.23
+				brim.bottom_radius = 0.23
+				brim.height = 0.02
+				st.append_from(brim, 0, Transform3D(Basis(), Vector3(0, 0.03, -0.01)))
+			else:
+				var peak := BoxMesh.new()
+				peak.size = Vector3(0.2, 0.015, 0.12)
+				st.append_from(peak, 0, Transform3D(Basis(Vector3.RIGHT, 0.12), Vector3(0, 0.04, -0.2)))
+			st.generate_normals()
+			return st.commit()
+	var ball := SphereMesh.new()
+	ball.radius = 0.17
+	ball.height = 0.34
+	return ball
 
 
 ## Acts out an emote for EMOTE_TIME; `text` is what the bubble says ("Wave").

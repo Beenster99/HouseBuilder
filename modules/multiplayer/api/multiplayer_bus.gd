@@ -52,6 +52,8 @@ signal avatar_added(peer_id: int, avatar: Node3D)
 ## "emote": id from EMOTES, "label": what it says ("Need help"), "time": host clock}.
 ## Their avatar acts it out with a bubble over the helmet; see emote().
 signal emote_received(emote: Dictionary)
+## A player's look changed (set_avatar_look); `look` is {} for the default suit.
+signal avatar_look_changed(peer_id: int, look: Dictionary)
 
 const ONLINE_FLAG := "multiplayer.online"
 const DEFAULT_PORT := 24570
@@ -60,6 +62,8 @@ const MAX_CREW := 3
 ## The wrist screen's Crew channel (behind the flag of the same name). Other modules add
 ## dockets to it with HudSlots.register_holo_section(CREW_CHANNEL, ...).
 const CREW_CHANNEL := "multiplayer.crew"
+## Flag for set_avatar_look (a deliberate difference from BSX Ltd, see SOURCES.md).
+const AVATAR_LOOK_FLAG := "multiplayer.avatar_look"
 ## How long a ping marker shows, and how many each player can have showing at once.
 const PING_LIFE := 10.0
 const PINGS_EACH := 5
@@ -101,6 +105,7 @@ func register_module() -> void:
 	_crew.held_changed.connect(held_changed.emit)
 	_crew.avatar_added.connect(avatar_added.emit)
 	_crew.emote_received.connect(emote_received.emit)
+	_crew.look_changed.connect(avatar_look_changed.emit)
 	add_child(_crew)
 	var world: Node = preload("res://modules/multiplayer/internal/world_sync.gd").new()
 	world.name = "World"
@@ -418,6 +423,21 @@ func held(peer_id: int) -> Dictionary:
 ## "help", "stop", "thumbs_down", "cheer"). The host allows one per player every 0.5 s.
 func emote(emote_id: String) -> void:
 	_crew.emote(emote_id)
+
+
+## Dresses a player's avatar for everyone: {"suit": Color, "headgear": "helmet" | "hard_hat" |
+## "cap" | "none", "visor": bool} (hide the visor when a face hangs on the head). Keys left
+## out go back to the default suit; {} undresses. Your own look, or anyone's if you host.
+## Does nothing unless the flag multiplayer.avatar_look is on.
+##   net.set_avatar_look(net.local_peer_id(), {"suit": Color("2b7de8"), "headgear": "cap", "visor": false})
+func set_avatar_look(peer_id: int, look: Dictionary) -> void:
+	if Flags.is_on(AVATAR_LOOK_FLAG):
+		_crew.set_look(peer_id, look)
+
+
+## A player's look as set_avatar_look gave it ({} for the default suit).
+func avatar_look(peer_id: int) -> Dictionary:
+	return _crew.look_of(peer_id)
 
 
 ## The emotes on the wheel, clockwise from the top: [{"id", "label"}].

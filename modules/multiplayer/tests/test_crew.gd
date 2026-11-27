@@ -184,6 +184,26 @@ func _two_players() -> void:
 	var bubble := a.avatar(b_id).find_child("Bubble", true, false) as Label3D
 	check(bubble.visible and bubble.text == "NEED HELP", "a bubble over his helmet says what it means")
 
+	# Looks: Ben dresses himself; Ana (host) sees it, a later joiner too; junk is dropped.
+	b.set_avatar_look(b_id, {"suit": Color("2b7de8"), "headgear": "cap", "visor": false, "junk": 3})
+	check(await _until(func(): return a.avatar_look(b_id).get("headgear") == "cap"), "Ben's look reaches the host")
+	check(a.avatar_look(b_id).keys().size() == 3 and a.avatar_look(b_id).suit.is_equal_approx(Color("2b7de8")),
+			"look keeps suit, headgear and visor only: %s" % str(a.avatar_look(b_id)))
+	var dressed := a.avatar(b_id)
+	check(not (dressed.find_child("Visor", true, false) as Node3D).visible, "the visor hides for a face")
+	check(((dressed.find_child("Body", true, false) as MeshInstance3D).material_override as StandardMaterial3D).albedo_color.is_equal_approx(Color("2b7de8")),
+			"the suit takes the colour")
+	b.set_avatar_look(1, {"headgear": "none"})
+	await _wait_real(0.4)
+	check(a.avatar_look(1).is_empty(), "a joiner can't dress the host")
+	a.set_avatar_look(b_id, {"suit": "e8c02b", "headgear": "hard_hat"})
+	check(await _until(func(): return b.avatar_look(b_id).get("headgear") == "hard_hat"), "the host can dress anyone")
+	check(await _until(func(): return bool((a.avatar(b_id).find_child("Visor", true, false) as Node3D).visible)), "keys left out go back to default")
+	var d := _bus("BusD", "Dee")
+	d.join("127.0.0.1", PORT)
+	check(await _until(func(): return d.avatar_look(b_id).get("headgear") == "hard_hat"), "a later joiner learns the looks")
+	d.leave()
+
 	# The host's time of day is everyone's.
 	Settings.set_value(AlienSky.SECTION, AlienSky.KEY, 21.5)
 	check(await _until(func(): return is_equal_approx(sky.hour_override, 21.5)), "the host's new hour reaches the joiner's sky")

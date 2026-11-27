@@ -24,6 +24,10 @@ Fixes since the copy (worth porting back to BSX Ltd):
 - Graphics.apply_surfaces() no longer sets the surface_detail / surface_normal shader globals,
   which aren't declared here and printed errors.
 - New in core here, not in BSX: ArtStyle and the Graphics "Look" option.
+- Deliberate difference from BSX (not a fix to port): MultiplayerBus.set_avatar_look() /
+  avatar_look() / avatar_look_changed and the crew event "crew.look" (suit colour, headgear,
+  visor), behind flag `multiplayer.avatar_look`, for modules/faces' talking faces. The crew
+  snapshot gains a "looks" section. project.godot turns on audio/driver/enable_input.
 
 ## Design hall (modules/design/internal/hall)
 

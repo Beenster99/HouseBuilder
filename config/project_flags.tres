@@ -24,6 +24,7 @@ flags = {
 "design.furnish_layout": true,
 "multiplayer.crew": true,
 "multiplayer.online": true,
+"multiplayer.avatar_look": true,
 "sandbox": true,
 "timelapse": true,
 "demolition": true,

@@ -13,12 +13,14 @@ signal ping_removed(ping_id: int)
 signal held_changed(peer_id: int, held: Dictionary)
 signal avatar_added(peer_id: int, avatar: Node3D)
 signal emote_received(emote: Dictionary)
+signal look_changed(peer_id: int, look: Dictionary)
 
 const SAY := "crew.say"
 const ACTIVITY := "crew.activity"
 const PING := "crew.ping"
 const HELD := "crew.held"
 const EMOTE := "crew.emote"
+const LOOK := "crew.look"
 const EMOTE_GAP := 0.5  # seconds between one player's emotes, enforced on the host
 ## The emote wheel, clockwise from the top: id and what it says.
 const EMOTES: Array[Dictionary] = [
@@ -57,6 +59,7 @@ var _hand_sources: Array = [null, null]  # what Tools gave set_local_hands(), we
 var _hand_ids: Array[String] = []
 var _held: Dictionary = {}  # peer id -> held state
 var _avatars: Dictionary = {}  # peer id -> avatar node
+var _looks: Dictionary = {}  # peer id -> look {"suit": "rrggbb", "headgear", "visor"}
 var _check := 0.0
 var _pings: Array[Dictionary] = []
 var _last_ping: Dictionary = {}  # peer id -> host clock time of their last ping
@@ -76,6 +79,7 @@ func _ready() -> void:
 	net.register_event(PING, _apply_ping, _validate_ping)
 	net.register_event(HELD, _apply_held, _validate_held)
 	net.register_event(EMOTE, _apply_emote, _validate_emote)
+	net.register_event(LOOK, _apply_look, _validate_look)
 	wheel = WHEEL.new()
 	wheel.emotes = EMOTES
 	add_child(wheel)
@@ -317,7 +321,8 @@ func player_name(peer_id: int) -> String:
 # --- Snapshot --------------------------------------------------------------------------
 
 func get_net_snapshot() -> Dictionary:
-	return {"log": _log.duplicate(true), "activity": _activity.duplicate(), "held": _held.duplicate(true)}
+	return {"log": _log.duplicate(true), "activity": _activity.duplicate(), "held": _held.duplicate(true),
+			"looks": _looks.duplicate(true)}
 
 
 func apply_net_snapshot(data: Dictionary) -> void:
@@ -333,6 +338,70 @@ func apply_net_snapshot(data: Dictionary) -> void:
 	for id in holds:
 		if holds[id] is Dictionary:
 			_held[int(id)] = holds[id]
+	_looks.clear()
+	var looks: Dictionary = data.get("looks", {})
+	for id in looks:
+		var look := clean_look(looks[id])
+		if not look.is_empty():
+			_set_look(int(id), look)
+
+
+# --- Looks -----------------------------------------------------------------------------
+
+## Asks for a player's look (your own, or anyone's if you host). Keys left out are cleared
+## back to the default suit.
+func set_look(peer_id: int, look: Dictionary) -> void:
+	net.request(LOOK, {"peer": peer_id, "look": look})
+
+
+## A player's look as sent ({} for the default suit), with "suit" as a Color.
+func look_of(peer_id: int) -> Dictionary:
+	var look: Dictionary = _looks.get(peer_id, {})
+	var out := look.duplicate()
+	if out.has("suit"):
+		out.suit = Color(str(out.suit))
+	return out
+
+
+## Keeps only what a look can say: "suit" (a Color or "rrggbb"), "headgear" (one of
+## CrewAvatar.HEADGEAR) and "visor" (bool). Gives {} for anything that isn't a look.
+static func clean_look(raw: Variant) -> Dictionary:
+	if not raw is Dictionary:
+		return {}
+	var out := {}
+	var suit: Variant = raw.get("suit")
+	if suit is Color:
+		out.suit = (suit as Color).to_html(false)
+	elif suit is String and Color.html_is_valid(suit):
+		out.suit = Color.html(suit).to_html(false)
+	var gear := str(raw.get("headgear", ""))
+	if gear in AVATAR.HEADGEAR:
+		out.headgear = gear
+	if raw.get("visor") is bool:
+		out.visor = raw.visor
+	return out
+
+
+func _validate_look(sender: int, p: Dictionary) -> Variant:
+	var peer := int(p.get("peer", sender))
+	if peer != sender and sender != 1:
+		return "only the host dresses someone else"
+	return {"peer": peer, "look": clean_look(p.get("look", {}))}
+
+
+func _apply_look(p: Dictionary) -> void:
+	_set_look(int(p.peer), p.look)
+
+
+func _set_look(peer: int, look: Dictionary) -> void:
+	if look.is_empty():
+		_looks.erase(peer)
+	else:
+		_looks[peer] = look
+	var a: Variant = _avatars.get(peer)
+	if is_instance_valid(a):
+		(a as Node).call("apply_look", look_of(peer))
+	look_changed.emit(peer, look_of(peer))
 
 
 # --- Presence --------------------------------------------------------------------------
@@ -424,6 +493,7 @@ func _place_avatars() -> void:
 		a.set("hands_live", bool(held(id).get("hands", false)))
 		a.set("crouch", bool(held(id).get("crouch", false)))
 		world.add_child(a)
+		a.call("apply_look", look_of(id))
 		_avatars[id] = a
 		net.register_mover(head_id(id), a.get_node("Head"))
 		net.register_mover(hand_id(id, true), a.get_node("HandR"))
