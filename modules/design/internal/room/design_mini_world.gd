@@ -26,6 +26,9 @@ var _bounds: DesignBounds
 var _markers: Dictionary = {}  # peer -> Node3D
 
 
+## The ground plane, for the look to change.
+var _ground: MeshInstance3D
+
 func setup(p_session: DesignSession) -> void:
 	session = p_session
 	_bounds = DesignBounds.new(session.model)
@@ -57,6 +60,7 @@ func setup(p_session: DesignSession) -> void:
 	add_child(env)
 	# The site's ground, as in the designer, so the plan reads against it.
 	var ground := MeshInstance3D.new()
+	_ground = ground
 	ground.name = "Ground"
 	var plane := PlaneMesh.new()
 	plane.size = Vector2(1000, 1000)
@@ -64,7 +68,7 @@ func setup(p_session: DesignSession) -> void:
 	ground.material_override = ArtStyle.ground()
 	ground.position.y = -0.02
 	add_child(ground)
-	Graphics.changed.connect(func() -> void: ground.material_override = ArtStyle.ground())
+	Graphics.changed.connect(_on_look_changed)
 	add_child(DesignPlot.new())
 	add_child(DesignSite.new(ground))
 	view = DesignView.new()
@@ -191,3 +195,9 @@ func _marker(colour: Color, label_text: String) -> Node3D:
 	root.add_child(label)
 	add_child(root)
 	return root
+
+
+## The ground takes the new look (a method, not a lambda, so it disconnects when freed).
+func _on_look_changed() -> void:
+	if is_instance_valid(_ground):
+		_ground.material_override = ArtStyle.ground()

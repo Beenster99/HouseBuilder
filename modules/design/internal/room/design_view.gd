@@ -56,6 +56,9 @@ var labels_fixed := true
 var ghost := 0.0
 ## The ghost look's see-through amount.
 const GHOST := 0.8
+## How far parts that would share a face with another (a beam's top with a wall's, a pad's
+## with a slab's, a column's ends) are set back so the two don't flicker (z-fight), m.
+const INSET := 0.005
 ## A room's label fades in as the room grows from LABEL_FADE to twice that many pixels
 ## across on screen.
 const LABEL_FADE := 45.0
@@ -440,12 +443,13 @@ func _part(id: String) -> void:
 			elif str(sec.get("shape", "")) == "pad":
 				var w := float(sec.get("w", 1.0))
 				var d := float(sec.get("d", 0.5))
-				_box(at - Vector3(0, d / 2.0, 0), Vector3(w, d, w), rot, colour)
+				_box(at - Vector3(0, d / 2.0 + INSET, 0), Vector3(w, d, w), rot, colour)
 			else:
 				var h := model.part_height(id)
 				var w := float(sec.get("w", 0.3))
 				var d := float(sec.get("d", w))
-				_box(at + Vector3(0, h / 2.0, 0), Vector3(w, h, d), rot, colour)
+				# Columns stop just short of floor and beam/wall tops, so their caps don't fight.
+				_box(at + Vector3(0, h / 2.0 - INSET, 0), Vector3(w, h - 3.0 * INSET, d), rot, colour)
 		"line":
 			var a := _v3(e.a) + Vector3(0, floor_y, 0)
 			var b := _v3(e.b) + Vector3(0, floor_y, 0)
@@ -457,7 +461,9 @@ func _part(id: String) -> void:
 				var w := float(sec.get("w", 0.2))
 				var d := float(sec.get("d", 0.3))
 				# Beams hang below their line (their top is at a and b).
-				_linear(a - Vector3(0, d / 2.0, 0), b - Vector3(0, d / 2.0, 0), w, d, colour)
+				# (just below, so a top flush with a wall's or slab's doesn't fight it)
+				var along := (b - a).normalized() * INSET
+				_linear(a + along - Vector3(0, d / 2.0 + INSET, 0), b - along - Vector3(0, d / 2.0 + INSET, 0), w, d, colour)
 		"area" when fam == "roof" and RoofShape.form_of(kind) != "":
 			# A pitched roof (gable, hip, mono-pitch): its slopes, ends and underside.
 			var y0 := floor_y + float(e.get("y", 0.0))
@@ -626,7 +632,8 @@ func _room(id: String) -> Label3D:
 	c = _colour(id, c)
 	var y := model.level_elevation(int(e.level))
 	var poly := _outline(e.outline)
-	_prism(poly, y + 0.01, y + 0.04, c)
+	# A tint on the floor: its top only, so its edges can't fight the walls' ends.
+	_flat(poly, y + 0.04, c)
 	if poly.size() < 3:
 		return null
 	var centre := Vector2.ZERO
@@ -749,6 +756,24 @@ func _linear(a: Vector3, b: Vector3, w: float, h: float, c: Variant) -> void:
 	if absf(d.y) > 0.001:
 		basis = basis * Basis(Vector3.BACK, atan2(d.y, plan.length()))
 	_box((a + b) / 2.0, Vector3(d.length(), h, w), basis, c)
+
+
+## A flat face over a polygon at height y, facing up.
+func _flat(poly: PackedVector2Array, y: float, c: Variant) -> void:
+	if poly.size() < 3:
+		return
+	if Geometry2D.is_polygon_clockwise(poly):
+		poly.reverse()
+	var tris := Geometry2D.triangulate_polygon(poly)
+	var verts := PackedVector3Array()
+	var norms := PackedVector3Array()
+	for i in range(0, tris.size(), 3):
+		var p0 := poly[tris[i]]
+		var p1 := poly[tris[i + 1]]
+		var p2 := poly[tris[i + 2]]
+		_tri(verts, norms, Vector3(p0.x, y, p0.y), Vector3(p1.x, y, p1.y), Vector3(p2.x, y, p2.y), Vector3.UP)
+	if not verts.is_empty():
+		_add(c, verts, norms)
 
 
 func _prism(poly: PackedVector2Array, bottom: float, top: float, c: Variant) -> void:

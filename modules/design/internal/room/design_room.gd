@@ -75,6 +75,9 @@ var lent_view := false
 signal leave_requested
 
 
+## The ground plane, for the look to change.
+var _ground: MeshInstance3D
+
 func _ready() -> void:
 	net = Modules.bus("multiplayer") as MultiplayerBus
 	building = Modules.bus("building") as BuildingBus
@@ -280,18 +283,21 @@ func _build_world() -> void:
 	sun.shadow_enabled = true
 	add_child(sun)
 	var ground := MeshInstance3D.new()
+	_ground = ground
 	ground.name = "Ground"
 	var plane := PlaneMesh.new()
 	plane.size = Vector2(PLOT_HALF + 1000.0, PLOT_HALF + 1000.0) * 2.0
 	ground.mesh = plane
 	ground.material_override = ArtStyle.ground()
-	Graphics.changed.connect(func() -> void: ground.material_override = ArtStyle.ground())
+	Graphics.changed.connect(_on_look_changed)
 	ground.position.y = -0.01
 	add_child(ground)
 	# A real site (the sites module), when one is loaded, in place of the plain ground.
-	add_child(DesignSite.new(ground))
 	_grid_mesh = InfiniteGrid.new()
 	add_child(_grid_mesh)
+	var site := DesignSite.new(ground)
+	site.grid = _grid_mesh
+	add_child(site)
 	camera = DesignCamera.new()
 	camera.name = "Camera"
 	camera.limit = PLOT_HALF
@@ -923,3 +929,9 @@ func toggle_plan() -> void:
 		_sun.remove_meta("gfx_no_shadow")
 	view.call("set_cut", PLAN_CUT if cam.plan else INF)
 	hud.call("refresh_bar")
+
+
+## The ground takes the new look (a method, not a lambda, so it disconnects when freed).
+func _on_look_changed() -> void:
+	if is_instance_valid(_ground):
+		_ground.material_override = ArtStyle.ground()

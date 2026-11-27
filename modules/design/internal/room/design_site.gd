@@ -6,6 +6,8 @@ extends Node3D
 ## ground (`ground`) is hidden; it comes back when the site is cleared.
 
 var ground: Node3D
+## The plan's graph paper, hidden with the ground while a real site shows.
+var grid: Node3D
 var view: Node3D
 
 
@@ -38,3 +40,6 @@ func refresh() -> void:
 			add_child(view)
 	if ground:
 		ground.visible = view == null
+	# The graph paper would cut through the terrain's slopes (and flicker on its flats).
+	if grid and is_instance_valid(grid):
+		grid.visible = view == null
