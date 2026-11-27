@@ -229,35 +229,12 @@ func _designer() -> void:
 	check(ServicesDesigner.propose(Samples.house(false)).ops == plan.ops, "same plan every time")
 
 
-## The default catalog plus the run and fitting kinds Route services adds (as the building
-## catalog will have them), so these tests do not wait on it.
-static func _catalog_with_runs() -> BuildingCatalog:
-	var d := BuildingCatalog.default_catalog()
-	var kinds := d.kinds.duplicate(true)
-	var mats := d.materials.duplicate(true)
-	for m in ["copper", "pvc"]:
-		if not mats.has(m):
-			mats[m] = {"label": m.capitalize(), "density": 1000.0, "strength": 1.0, "e": 1.0, "colour": "b87333"}
-	for k: String in ServicesRates.RUN_KINDS.values():
-		if not kinds.has(k):
-			var mat := "pvc" if k == "pipe_waste" else "copper"
-			kinds[k] = {"label": k.capitalize(), "family": "service", "shape": "line", "structural": false,
-				"materials": [mat], "sections": {}, "rates": {mat: ["m", 20.0]}}
-	for k: String in ServicesRates.FITTINGS.values():
-		if not kinds.has(k):
-			kinds[k] = {"label": k.capitalize(), "family": "fixture", "shape": "point", "w": 0.3, "d": 0.1, "h": 0.3,
-				"materials": ["copper"], "sections": {}, "rates": {"copper": ["each", 60.0]}}
-	var fams := Array(d.families)
-	if not "service" in fams:
-		fams.append("service")
-	return BuildingCatalog.from_data({"currency": d.currency, "families": fams, "connection_kinds": Array(d.connection_kinds),
-		"materials": mats, "sections": d.sections.duplicate(true), "kinds": kinds, "room_types": d.room_types.duplicate(true)})
-
-
 func _route_adds_everything() -> void:
-	var cat := _catalog_with_runs()
+	var cat := BuildingCatalog.default_catalog()
+	for k: String in ServicesRates.RUN_KINDS.values() + ServicesRates.FITTINGS.values():
+		check(cat.has_kind(k), "the building catalog has %s" % k)
 	var m := BuildingModel.from_data(Samples.house(false).to_data(), cat)
-	check(m.rooms.size() == 8, "house on the extended catalog")
+	check(m.rooms.size() == 8, "house on the building catalog")
 	var plan := ServicesDesigner.propose(m)
 	var count := {}
 	for op: Dictionary in plan.ops:
