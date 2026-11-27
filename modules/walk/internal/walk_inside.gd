@@ -79,6 +79,13 @@ var _edit_preview: VBoxContainer
 const KIND_LIST_MAX := 150
 ## Shift+R and the wheel turn a part this many degrees (Alt: 1°).
 const FREE_TURN := 15.0
+## Hold R and move the mouse: degrees per pixel, the snap (Alt: none), and how far the mouse
+## moves before it counts as a turn rather than a tap.
+const R_DEG_PER_PX := 0.25
+const R_SNAP := 5.0
+const R_DEAD_PX := 3.0
+var _r_hold := {}
+var _r_turns := 0
 ## The crew walking about in here too: peer id -> {figure, dot, ray}.
 var crew: Dictionary = {}
 var _ghost: Node3D
@@ -503,6 +510,54 @@ func turn(by := 90.0) -> void:
 		sync.edit(op)
 
 
+## R down: a tap (let go without moving the mouse) turns a quarter; held, moving the mouse
+## sideways turns what you hold or aim at, R_DEG_PER_PX, snapped to R_SNAP unless Alt is held
+## (as the designer does). The aimed part's turn is one undo step.
+func r_press() -> void:
+	var id := "" if not holding.is_empty() else aimed_part()
+	var start := float(holding.rot) if not holding.is_empty() else float(model.parts.get(id, {}).get("rot", 0.0))
+	if holding.is_empty() and (id == "" or not model.parts[id].has("at")):
+		_r_hold = {}
+		return
+	_r_turns += 1
+	_r_hold = {"id": id, "start": start, "px": 0.0, "dragged": false, "group": "walk.rturn.%d" % _r_turns}
+
+
+## Mouse moved `dx` px with R held.
+func r_drag(dx: float, free: bool) -> void:
+	if _r_hold.is_empty():
+		return
+	_r_hold.px = float(_r_hold.px) + dx
+	if not bool(_r_hold.dragged) and absf(float(_r_hold.px)) < R_DEAD_PX:
+		return
+	_r_hold.dragged = true
+	var rot := float(_r_hold.start) + float(_r_hold.px) * R_DEG_PER_PX
+	if not free:
+		rot = snappedf(rot, R_SNAP)
+	rot = snappedf(fposmod(rot, 360.0), 0.001)
+	if str(_r_hold.id) == "":
+		if not holding.is_empty():
+			holding.rot = rot
+		return
+	if not model.parts.has(str(_r_hold.id)) or is_equal_approx(float(model.parts[str(_r_hold.id)].get("rot", 0.0)), rot):
+		return
+	sync.edit(WalkEdits.resize(model, str(_r_hold.id), "rot", rot), str(_r_hold.group))
+
+
+## R up: a quarter turn if the mouse didn't move.
+func r_release() -> void:
+	var was := _r_hold
+	_r_hold = {}
+	if was.is_empty() or bool(was.dragged):
+		return
+	turn(90.0)
+
+
+## Whether R is held for a mouse turn (the help bar says so).
+func r_turning() -> bool:
+	return not _r_hold.is_empty() and bool(_r_hold.dragged)
+
+
 ## The free turn step: 15°, or 1° with Alt.
 static func _fine_step(alt: bool) -> float:
 	return 1.0 if alt else FREE_TURN
@@ -603,6 +658,15 @@ func click() -> void:
 # Input and frames
 
 func _input(event: InputEvent) -> void:
+	if event is InputEventKey and (event as InputEventKey).physical_keycode == KEY_R and not (event as InputEventKey).pressed \
+			and not _r_hold.is_empty():
+		r_release()
+		get_viewport().set_input_as_handled()
+		return
+	if event is InputEventMouseMotion and not _r_hold.is_empty():
+		r_drag((event as InputEventMouseMotion).relative.x, Input.is_key_pressed(KEY_ALT) or (event as InputEventMouseMotion).alt_pressed)
+		get_viewport().set_input_as_handled()
+		return
 	if event is InputEventMouseMotion:
 		if not is_palette_open() and (Input.mouse_mode == Input.MOUSE_MODE_CAPTURED or DisplayServer.get_name() == "headless"):
 			look((event as InputEventMouseMotion).relative)
@@ -640,7 +704,10 @@ func _input(event: InputEvent) -> void:
 				else:
 					bus.call("close")
 			KEY_R:
-				turn(_fine_step(k.alt_pressed) if k.shift_pressed else 90.0)
+				if k.shift_pressed:
+					turn(_fine_step(k.alt_pressed))
+				else:
+					r_press()
 			KEY_X, KEY_DELETE:
 				remove_aimed()
 			KEY_F:
@@ -743,13 +810,16 @@ func _process(delta: float) -> void:
 
 
 func _aim_text() -> String:
+	if r_turning():
+		var r := float(holding.rot) if str(_r_hold.id) == "" else float(model.parts.get(str(_r_hold.id), {}).get("rot", 0.0))
+		return "Turning  %.1f°\n[b]Move the mouse[/b] to turn   [b]Alt[/b] free (no 5° snap)   let go of [b]R[/b] to set it" % r
 	if is_palette_open() and edit_id != "":
 		return "Editing %s\n[b]-[/b] [b]+[/b] or type a size and [b]Enter[/b]   pick from [b]Change to[/b] to swap it   [b]Ctrl+Z[/b] undo   [b]Esc[/b] close" % str(model.catalog.kind(str(model.parts.get(edit_id, {}).get("kind", ""))).get("label", "part"))
 	if is_palette_open():
 		return "Parts menu\n[b]Type[/b] to filter   [b]Click[/b] a group to open it, an item to see it, [b]Take[/b] to hold it   [b]Tab[/b] or [b]Esc[/b] close"
 	if not holding.is_empty():
 		var label := str(holding.get("label", model.catalog.kind(str(holding.type)).get("label", holding.type)))
-		return "%s: %s\n[b]Click[/b] put down   [b]R[/b] quarter turn   [b]Wheel[/b] or [b]Shift+R[/b] turn 15° ([b]Alt[/b] 1°, no guides)   [b]Right-click[/b] or [b]Esc[/b] drop" % [label, str(spot.get("why", "Aim at a floor"))]
+		return "%s: %s\n[b]Click[/b] put down   [b]R[/b] quarter turn, hold [b]R[/b] + mouse to turn   [b]Wheel[/b] 15° ([b]Alt[/b] 1°, no guides)   [b]Right-click[/b] or [b]Esc[/b] drop" % [label, str(spot.get("why", "Aim at a floor"))]
 	var a := aim()
 	if a.is_empty():
 		return "Flying\n[b]WASD[/b] move   [b]Space[/b] up   [b]C[/b] down   [b]Q[/b] walk   [b]Tab[/b] parts" if flying else "Walking\n[b]WASD[/b] walk   [b]Shift[/b] run   [b]Space[/b] jump   [b]Q[/b] fly   [b]Tab[/b] parts   [b]Esc[/b] back to the designer"
@@ -766,7 +836,7 @@ func _aim_text() -> String:
 		"wall":
 			return "%s%s\n[b]Wheel[/b] push it away or pull it towards you   [b]F[/b] door here   [b]E[/b] edit   [b]X[/b] remove" % [label2, held]
 		"fixture", "column":
-			return "%s%s\n[b]Click[/b] pick up   [b]R[/b] turn   [b]Shift+wheel[/b] turn 15°   [b]E[/b] edit   [b]X[/b] remove" % [label2, held]
+			return "%s%s\n[b]Click[/b] pick up   [b]R[/b] turn (hold + mouse)   [b]Shift+wheel[/b] 15°   [b]E[/b] edit   [b]X[/b] remove" % [label2, held]
 		"slab", "roof":
 			if (a.normal as Vector3).y < -0.5:
 				return "Ceiling (%.2f m storey)\n[b]Wheel[/b] raise or lower it   [b]E[/b] edit" % model.level_height(maxi(model.level_of(id) - (1 if fam == "slab" else 0), 0))
