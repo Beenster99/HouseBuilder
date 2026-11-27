@@ -25,6 +25,7 @@ const SEND_EVERY := 0.15
 var hall: Node
 var model_root: Node3D
 var view: Node3D
+var layers: DesignLayers
 var turn := 0.0
 var zoom := 1.0
 ## Pan across the table, model metres.
@@ -49,6 +50,9 @@ func setup(p_hall: Node, model: BuildingModel) -> void:
 	view.name = "Building"
 	view.set("labels_fixed", false)
 	model_root.add_child(view)
+	# Other modules' 3D layers (the stress diagram) over the table's model.
+	layers = DesignLayers.new(model)
+	model_root.add_child(layers)
 	view.call("bind", model)
 	view.call("show_level", 1000)
 	var screens: Node = hall.get("screens")
@@ -86,6 +90,7 @@ func _process(delta: float) -> void:
 	model_root.scale = Vector3.ONE * scale_fit * zoom
 	view.position = -_centre - Vector3(pan.x, 0, pan.y)
 	view.position.y = -_centre.y
+	layers.position = view.position
 	_send(delta)
 	_place_figures()
 

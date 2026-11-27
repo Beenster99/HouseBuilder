@@ -83,6 +83,7 @@ func _ready() -> void:
 	view = DesignView.new()
 	view.name = "Building"
 	add_child(view)
+	add_child(DesignLayers.new(building.model))
 	view.bind(building.model)
 	marks = DesignMarks.new()
 	marks.name = "Marks"

@@ -307,6 +307,11 @@ func _input(event: InputEvent) -> void:
 				else:
 					return
 				get_viewport().set_input_as_handled()
+			elif event is InputEventKey and (event as InputEventKey).physical_keycode == KEY_T \
+					and at_table() and not Keys.typing():
+				# T at the table: the 3D layers (the engineer's stress diagram) on or off.
+				if DesignLayers.toggle_all():
+					get_viewport().set_input_as_handled()
 
 
 # --- Pings ---------------------------------------------------------------------------------
@@ -466,7 +471,9 @@ func _process(delta: float) -> void:
 				var view := str((board.get("panels") as Array)[i].view)
 				help.hover("Screen: %s · %s wall" % [HallChannels.title_of(self, view), wall])
 		elif near:
-			help.set_help(HEADS[1], HelpBar.keys_text([[f, "design at the holotable"], ["← →", "turn"], ["↑ ↓", "zoom"],
+			var ls := (Modules.bus("design") as DesignBus).layer_list()
+			var tk: Array = [["T", "%s on/off" % str(ls[0].label).to_lower()]] if not ls.is_empty() else []
+			help.set_help(HEADS[1], HelpBar.keys_text(tk + [[f, "design at the holotable"], ["← →", "turn"], ["↑ ↓", "zoom"],
 					["I J K L", "pan"], ["MMB", "ping (on a ping: clear it)"]]))
 			help.hover("Holotable: the live model everyone shares")
 		else:

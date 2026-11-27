@@ -22,6 +22,8 @@ signal overlays_changed
 signal overlay_changed(id: String)
 ## A side panel was added or removed.
 signal panels_changed
+## 3D layers (register_layer) came or went.
+signal layers_changed
 ## A wall-screen channel came or went (register_channel).
 signal channels_changed
 ## pulse() was called; the open room shares it with every player.
@@ -173,6 +175,36 @@ func panel_list() -> Array[Dictionary]:
 	var out: Array[Dictionary] = []
 	for id: String in panels:
 		var o: Dictionary = panels[id].duplicate()
+		o["id"] = id
+		out.append(o)
+	out.sort_custom(func(x: Dictionary, y: Dictionary) -> bool: return int(x.order) < int(y.order))
+	return out
+
+
+## 3D layers drawn over the design (the structural engineer's stress diagram): id -> {label,
+## make, toggle, is_on, order}.
+var layers: Dictionary = {}
+
+
+## Adds a 3D layer over the design wherever it is shown (the designer's 3D world, its small
+## views, the holotable). make(model) -> Node3D in building coordinates, made once per place;
+## it shows and hides itself. toggle() flips it (share it yourself if it should be shared);
+## is_on() says whether it is on, for the toggles (designer's Layers menu, T at the table).
+func register_layer(id: String, label: String, make: Callable, toggle: Callable, is_on: Callable, order: int = 50) -> void:
+	layers[id] = {"label": label, "make": make, "toggle": toggle, "is_on": is_on, "order": order}
+	layers_changed.emit()
+
+
+func unregister_layer(id: String) -> void:
+	if layers.erase(id):
+		layers_changed.emit()
+
+
+## 3D layers, lowest order first: [{id, label, make, toggle, is_on, order}].
+func layer_list() -> Array[Dictionary]:
+	var out: Array[Dictionary] = []
+	for id: String in layers:
+		var o: Dictionary = layers[id].duplicate()
 		o["id"] = id
 		out.append(o)
 	out.sort_custom(func(x: Dictionary, y: Dictionary) -> bool: return int(x.order) < int(y.order))

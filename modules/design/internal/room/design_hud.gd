@@ -534,9 +534,19 @@ func _build_top() -> void:
 		pop.add_check_item(LAYERS[i][1], i)
 		pop.set_item_checked(i, true)
 	pop.id_pressed.connect(func(i: int) -> void:
+		if i >= LAYER_ID0:
+			# Another module's 3D layer: its own toggle (shared by it if it should be).
+			var l: Dictionary = (Modules.bus("design") as DesignBus).layers.get(str(pop.get_item_metadata(pop.get_item_index(i))), {})
+			if not l.is_empty():
+				(l.toggle as Callable).call()
+				pop.set_item_checked(pop.get_item_index(i), bool((l.is_on as Callable).call()))
+			return
 		var on := not pop.is_item_checked(i)
 		pop.set_item_checked(i, on)
 		set_layer(str(LAYERS[i][0]), on))
+	pop.about_to_popup.connect(refresh_layer_menu)
+	(Modules.bus("design") as DesignBus).layers_changed.connect(refresh_layer_menu)
+	refresh_layer_menu()
 	row2.add_child(layers)
 	_look = CheckButton.new()
 	_look.text = "Realistic"
@@ -774,6 +784,30 @@ func open_contracts() -> void:
 		box.add_child(page as Control)
 	add_child(_contract_pop)
 	_contract_pop.popup_centered()
+
+
+## Menu ids of other modules' 3D layers start here.
+const LAYER_ID0 := 100
+
+
+## Lists other modules' 3D layers (DesignBus.register_layer) under the room's own in the
+## Layers menu, ticked when on.
+func refresh_layer_menu() -> void:
+	var pop := _layers_pop
+	if pop == null:
+		return
+	while pop.item_count > LAYERS.size():
+		pop.remove_item(pop.item_count - 1)
+	var list := (Modules.bus("design") as DesignBus).layer_list()
+	if list.is_empty():
+		return
+	pop.add_separator()
+	for i in list.size():
+		var l: Dictionary = list[i]
+		pop.add_check_item(str(l.label), LAYER_ID0 + i)
+		var idx := pop.item_count - 1
+		pop.set_item_metadata(idx, str(l.id))
+		pop.set_item_checked(idx, bool((l.is_on as Callable).call()) if (l.is_on as Callable).is_valid() else false)
 
 
 ## Flips a layer from outside the menu (the mark-up wheel), keeping the menu's tick in step.

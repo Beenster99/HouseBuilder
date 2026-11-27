@@ -80,6 +80,27 @@ func run_tests() -> void:
 	await frames(2)
 	check(int(hall.call("ping_count")) == pings + 3, "looking down at the table's model and middle-clicking pings it")
 
+	# Other modules' 3D layers (the stress diagram) on the table, in the designer and its views.
+	var made: Array = []
+	var lon := [false]
+	design.register_layer("test.layer", "Test layer", func(_m: BuildingModel) -> Node3D:
+		var n := Node3D.new()
+		made.append(n)
+		return n, func() -> void: lon[0] = not lon[0], func() -> bool: return lon[0])
+	await frames(2)
+	check(made.size() >= 3, "a 3D layer is added to the table, the designer and its small views: %d" % made.size())
+	var tk := InputEventKey.new()
+	tk.physical_keycode = KEY_T
+	tk.pressed = true
+	if bool(hall.call("at_table")):
+		hall.call("_input", tk)
+	else:
+		DesignLayers.toggle_all()
+	check(lon[0], "T at the table turns it on")
+	design.unregister_layer("test.layer")
+	await frames(2)
+	check(made.all(func(n: Variant) -> bool: return not is_instance_valid(n) or (n as Node).is_queued_for_deletion()), "and it goes when unregistered")
+
 	# The designer at the table, and back.
 	hall.call("open_designer")
 	await frames(2)
