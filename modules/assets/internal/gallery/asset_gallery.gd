@@ -1,7 +1,7 @@
 extends Node3D
-## Every asset in the library, laid out in rows by category with its name, to look over in
+## The asset library one category at a time, each asset with its name, to look over in
 ## either look (Graphics > Display > Look). Drag to orbit, wheel to zoom, WASD to move,
-## Esc for the menu.
+## Page Up and Page Down to change category, Esc for the menu.
 
 const GAP := 0.8
 const ROW_WIDTH := 28.0
@@ -13,6 +13,9 @@ var _focus := Vector3.ZERO
 var _yaw := 0.6
 var _pitch := 0.5
 var _dist := 30.0
+var _categories: Array[String] = []
+var _page := 0
+var _caption: Label
 
 
 func _ready() -> void:
@@ -40,9 +43,14 @@ func _ready() -> void:
 	_root = Node3D.new()
 	add_child(_root)
 	camera = Camera3D.new()
-	camera.far = 600.0
+	camera.far = 2000.0
 	add_child(camera)
 	camera.make_current()
+	var layer := CanvasLayer.new()
+	add_child(layer)
+	_caption = Label.new()
+	_caption.position = Vector2(16, 12)
+	layer.add_child(_caption)
 	_lay_out()
 	Graphics.changed.connect(func() -> void:
 		_ground.material_override = ArtStyle.ground()
@@ -50,23 +58,38 @@ func _ready() -> void:
 	_place_camera()
 
 
-## Rows by category; within a row assets stand side by side on their own footprints.
+## One category at a time (the whole library is too big to see at once): rows of assets
+## side by side on their own footprints. Page Up and Page Down change category.
 func _lay_out() -> void:
+	for child in _root.get_children():
+		_root.remove_child(child)
+		child.queue_free()
+	if _categories.is_empty():
+		for id in AssetLibrary.ids():
+			var c := str(AssetLibrary.info(id).category)
+			if not _categories.has(c):
+				_categories.append(c)
+		_categories.sort()
+	if _categories.is_empty():
+		return
+	_page = posmod(_page, _categories.size())
+	var category: String = _categories[_page]
 	var x := 0.0
 	var z := 0.0
 	var row_depth := 0.0
-	var category := ""
+	var count := 0
+	var group := ""
 	for id in AssetLibrary.ids():
 		var e := AssetLibrary.info(id)
+		if str(e.category) != category:
+			continue
 		var b := AssetLibrary.bounds(id)
-		if b.size.x > 20.0 or b.size.z > 20.0:
-			continue  # the tower crane stands on its own, behind
-		if e.category != category or x + b.size.x > ROW_WIDTH:
-			if category != "":
-				z += row_depth + (2.5 if e.category != category else GAP)
+		var g := str(id).get_slice(".", 1)
+		if x > 0.0 and (g != group or x + b.size.x > ROW_WIDTH):
+			z += row_depth + (2.5 if g != group else GAP)
 			x = 0.0
 			row_depth = 0.0
-			category = e.category
+		group = g
 		var node := AssetLibrary.make(id)
 		node.position = Vector3(x - b.position.x, maxf(0.0, -b.position.y), z - b.position.z)
 		_root.add_child(node)
@@ -81,12 +104,15 @@ func _lay_out() -> void:
 		_root.add_child(label)
 		x += b.size.x + GAP
 		row_depth = maxf(row_depth, b.size.z)
-	if AssetLibrary.has("plant.crane.tower"):
-		var crane := AssetLibrary.make("plant.crane.tower")
-		crane.position = Vector3(ROW_WIDTH + 12.0, 0, z / 2.0)
-		_root.add_child(crane)
-	_focus = Vector3(ROW_WIDTH / 2.0, 1.0, (z + row_depth) / 2.0)
-	_dist = maxf(20.0, z * 0.9)
+		count += 1
+	# Start at the first rows; WASD and the wheel move along them.
+	var length := z + row_depth
+	_focus = Vector3(ROW_WIDTH / 2.0, 1.0, minf(8.0, length / 2.0))
+	_dist = 30.0
+	(_ground.mesh as PlaneMesh).size = Vector2(ROW_WIDTH + 400.0, length + 400.0)
+	_ground.position = Vector3(ROW_WIDTH / 2.0, 0.0, length / 2.0)
+	if _caption != null:
+		_caption.text = "%s  (%d of %d categories, %d assets)   Page Up / Page Down: change category" % [category, _page + 1, _categories.size(), count]
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -98,7 +124,11 @@ func _unhandled_input(event: InputEvent) -> void:
 		if event.button_index == MOUSE_BUTTON_WHEEL_UP:
 			_dist = maxf(1.5, _dist * 0.9)
 		elif event.button_index == MOUSE_BUTTON_WHEEL_DOWN:
-			_dist = minf(250.0, _dist * 1.1)
+			_dist = minf(600.0, _dist * 1.1)
+		_place_camera()
+	elif event is InputEventKey and event.pressed and not event.echo and (event.physical_keycode == KEY_PAGEUP or event.physical_keycode == KEY_PAGEDOWN):
+		_page += 1 if event.physical_keycode == KEY_PAGEDOWN else -1
+		_lay_out()
 		_place_camera()
 	elif event.is_action_pressed("ui_cancel"):
 		Menu.open_pause()
