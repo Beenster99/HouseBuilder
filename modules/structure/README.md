@@ -86,3 +86,19 @@ With flag `structure.stress_test` on and the design module loaded, the bus adds 
 part by its worst utilisation over every scenario: green under 70%, amber to 100%, red
 past it. Its side panel (`internal/stress_panel.gd`) shows the verdict, each scenario and
 the notes on what failed and what to try. Every player sees the host's report.
+
+## The engineer designs the structure
+
+`StructureDesigner.design(model)` stress tests a BuildingModel and fixes what fails, round
+after round, only by adding parts or upsizing sections: the next stronger section first,
+then a column (down to a pad footing) under the middle of a beam, a steel beam across the
+middle of an overloaded floor or flat roof, and columns under anything nothing holds up.
+It never touches the model it is given: it returns `{op, notes, before, after, passed,
+added, upsized}`, where `op` is one `BuildingCommands.batch` (one undo for everyone). Since
+it is a dry run, other modules can use it to ask whether a design can be made to stand
+and what that adds.
+
+`StructureBus.design_structure()` (the "Design structure" button on the design room's top
+bar and in the Engineer panel) runs it on the shared building, sends the edit through the
+building sync, asks for a fresh stress test and emits `design_done(notes)`.
+

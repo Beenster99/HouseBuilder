@@ -1,6 +1,7 @@
 extends VBoxContainer
 ## The Engineer view's panel in the design room: the stress test verdict, how each
-## scenario went, what failed and what to try, a colour key and the Stress test button.
+## scenario went, what failed and what to try, a colour key, the Stress test button and
+## Design structure, with what the engineer last changed.
 
 const WIDTH := 320
 
@@ -8,6 +9,7 @@ var _bus: Node
 var _summary: Label
 var _scenarios: Label
 var _notes: Label
+var _said: Label
 
 
 func _init() -> void:
@@ -22,14 +24,25 @@ func _init() -> void:
 	_notes.add_theme_color_override("font_color", BsxTheme.MUTED)
 	add_child(_notes)
 	add_child(_key())
+	var row := HBoxContainer.new()
+	add_child(row)
 	var run := BsxTheme.button("Stress test", func() -> void: _bus.run_stress_test())
 	run.custom_minimum_size = Vector2(150, 36)
-	add_child(run)
+	row.add_child(run)
+	var fix := BsxTheme.button("Design structure", func() -> void: _bus.design_structure())
+	fix.custom_minimum_size = Vector2(150, 36)
+	fix.tooltip_text = "The engineer adds columns, beams and footings and upsizes what fails, as one undoable edit"
+	row.add_child(fix)
+	_said = _wrap_label()
+	add_child(_said)
 
 
 func bind(bus: Node) -> void:
 	_bus = bus
 	bus.report_changed.connect(_show)
+	bus.design_done.connect(func(notes: PackedStringArray) -> void:
+		if is_instance_valid(_said):
+			_said.text = "\n".join(notes))
 	_show(bus.last_report())
 
 

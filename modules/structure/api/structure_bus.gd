@@ -16,12 +16,15 @@ extends Node
 
 ## A stress test finished (or arrived from the host, or came with the join snapshot).
 signal report_changed(report: StructureReport)
+## The engineer finished designing the structure: what it did and what is left (plain words).
+signal design_done(notes: PackedStringArray)
 
 const EVENT_RUN := "structure.run"
 ## The "Stress test" button and the Engineer view in the design room.
 const STRESS_TEST_FLAG := "structure.stress_test"
 const OVERLAY := "structure.stress"
 const ACTION := "structure.stress"
+const DESIGN_ACTION := "structure.design"
 const PANEL_SCRIPT := "res://modules/structure/internal/stress_panel.gd"
 
 ## Overlay colours: green under StructureResult.AMBER, amber up to RED, red past it.
@@ -33,6 +36,9 @@ var _net: Object
 var _provider := Callable()
 var _report: StructureReport
 var _design: Node
+var _model_provider := Callable()
+var _editor := Callable()
+var _plan: Dictionary = {}
 ## part id -> highest utilisation in the last report (built on demand).
 var _part_u: Dictionary = {}
 
@@ -43,12 +49,15 @@ func register_module() -> void:
 	var building := Modules.bus("building") as BuildingBus
 	if building:
 		set_graph_provider(func() -> StructureGraph: return StructureBuilding.graph(building.model))
+		set_model_provider(func() -> BuildingModel: return building.model)
+		set_edit_handler(func(op: Dictionary) -> void: building.sync.edit(op))
 	_hook_design.call_deferred()
 
 
 func unregister_module() -> void:
 	if is_instance_valid(_design):
 		_design.unregister_action(ACTION)
+		_design.unregister_action(DESIGN_ACTION)
 		_design.unregister_overlay(OVERLAY)
 	_design = null
 	if _net:
@@ -80,6 +89,41 @@ func run_stress_test(scenario_ids: PackedStringArray = PackedStringArray()) -> v
 	_net.request(EVENT_RUN, {"scenarios": Array(scenario_ids)})
 
 
+## The building the engineer designs: a Callable returning a BuildingModel (or null).
+## Set at start to the building module's shared model.
+func set_model_provider(provider: Callable) -> void:
+	_model_provider = provider
+
+
+## Where design_structure() sends its edit: a Callable(op). Set at start to the building
+## module's shared sync, so the change is validated, sent to everyone and one undo step.
+func set_edit_handler(handler: Callable) -> void:
+	_editor = handler
+
+
+## The engineer designs the structure: works out what to add and upsize until the
+## building passes (StructureDesigner), sends it as one shared edit, then asks for a
+## fresh stress test. Returns the plan; its notes also go out through design_done.
+func design_structure() -> Dictionary:
+	var model: BuildingModel = _model_provider.call() if _model_provider.is_valid() else null
+	if model == null or model.parts.is_empty():
+		_plan = {"op": {}, "notes": PackedStringArray(["Nothing to design yet: draw some walls and floors first."]), "passed": false}
+		design_done.emit(_plan.notes)
+		return _plan
+	_plan = StructureDesigner.design(model)
+	if not (_plan.op as Dictionary).is_empty() and _editor.is_valid():
+		_editor.call(_plan.op)
+	if _net:
+		run_stress_test()
+	design_done.emit(_plan.notes)
+	return _plan
+
+
+## The last design_structure() plan ({} before the first).
+func last_plan() -> Dictionary:
+	return _plan
+
+
 ## The last stress test, or null before the first one.
 func last_report() -> StructureReport:
 	return _report
@@ -100,6 +144,7 @@ func _hook_design() -> void:
 func hook_design(design: Node) -> void:
 	_design = design
 	design.register_action(ACTION, "Stress test", func(_model: BuildingModel) -> void: run_stress_test(), 40)
+	design.register_action(DESIGN_ACTION, "Design structure", func(_model: BuildingModel) -> void: design_structure(), 54)
 	design.register_overlay(OVERLAY, "Engineer", overlay_tints, make_panel, 40)
 	report_changed.connect(func(_r: StructureReport) -> void: design.refresh_overlay(OVERLAY))
 

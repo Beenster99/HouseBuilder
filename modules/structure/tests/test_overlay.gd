@@ -51,6 +51,7 @@ func _tints_and_panel() -> void:
 	var design := FakeDesign.new()
 	bus.hook_design(design)
 	check(design.actions[StructureBus.ACTION].label == "Stress test", "action registered")
+	check(design.actions[StructureBus.DESIGN_ACTION].label == "Design structure", "Design structure next to it")
 	var tints: Callable = design.overlays[StructureBus.OVERLAY].tints
 	check((tints.call(null) as Dictionary).is_empty(), "no colours before the first test")
 	var panel: Control = (design.overlays[StructureBus.OVERLAY].panel as Callable).call()
