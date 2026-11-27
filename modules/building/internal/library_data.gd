@@ -19,7 +19,8 @@ extends RefCounted
 ## their own catalog kinds; roads, rail, bridges, earthworks, demolition, people and the
 ## neighbouring buildings are the site's, not the design's.
 const CATEGORIES: PackedStringArray = ["furniture", "home", "farm", "animal", "hospital", "school", "office", "police", "hospitality", "retail",
-		"sport", "airport", "services", "industrial", "energy", "water", "street", "landscape", "boundary", "vehicle", "plant"]
+		"sport", "airport", "services", "industrial", "energy", "water", "street", "landscape", "boundary", "vehicle", "plant",
+		"venue", "justice", "station"]
 ## Asset id prefixes that are never placed by hand (the services module draws its own fittings).
 ## Also whole runs and farms of things (a line of pylons, a wind farm) and whole buildings.
 const SKIP: PackedStringArray = ["services.pipe.", "services.duct.", "services.tray.", "energy.line.", "energy.wind.farm_",
@@ -34,6 +35,7 @@ const GROUPS := {
 	"airport": "Airport", "services": "Services", "industrial": "Industrial", "energy": "Energy",
 	"water": "Water", "street": "Street and garden", "landscape": "Landscape", "boundary": "Gates and posts",
 	"vehicle": "Vehicles", "plant": "Site plant",
+	"venue": "Theatre and cinema", "justice": "Courts and prison", "station": "Stations",
 }
 
 const RULES := {
@@ -46,6 +48,18 @@ const RULES := {
 	"landscape.": {"cost": 150.0, "outdoor": true}, "boundary.": {"cost": 250.0, "outdoor": true},
 	"vehicle.": {"loose": true, "outdoor": true}, "plant.": {"loose": true, "outdoor": true},
 	"home.": {"cost": 150.0}, "farm.": {"cost": 800.0, "outdoor": true}, "animal.": {"loose": true, "outdoor": true},
+	"venue.": {"cost": 600.0}, "justice.": {"cost": 1200.0}, "station.": {"cost": 1500.0},
+
+	# Theatre and cinema, courts and prison
+	"venue.seat.row_4": {"cost": 800.0, "cap": {"seats": 4}}, "venue.seat.row_6": {"cost": 1200.0, "cap": {"seats": 6}},
+	"venue.seat.row_8": {"cost": 1600.0, "cap": {"seats": 8}}, "venue.seat.row_12": {"cost": 2400.0, "cap": {"seats": 12}},
+	"venue.seat.block_8x5": {"cost": 8000.0, "cap": {"seats": 40}}, "venue.seat.block_12x8": {"cost": 19000.0, "cap": {"seats": 96}},
+	"venue.seat.cinema_row_8": {"cost": 2400.0, "cap": {"seats": 8}}, "venue.seat.cinema_block_10x6": {"cost": 18000.0, "cap": {"seats": 60}},
+	"venue.cinema.projector": {"cost": 40000.0, "power": 3000, "data": true}, "venue.cinema.cinema_screen": {"cost": 15000.0},
+	"venue.cinema.surround_speaker": {"cost": 800.0, "power": 100},
+	"justice.court.public_bench": {"cost": 900.0, "cap": {"seats": 4}}, "justice.court.jury_box": {"cost": 6000.0, "cap": {"seats": 12}},
+	"justice.prison.bed": {"cost": 600.0, "cap": {"detainees": 1}}, "justice.prison.bunk": {"cost": 900.0, "cap": {"detainees": 2}},
+	"justice.prison.wc_basin": {"cost": 1800.0, "cold": true, "drain": true, "cap": {"wc": 1}},
 
 	# Home
 	"home.art.": {"cost": 120.0}, "home.art.poster": {"cost": 30.0},
