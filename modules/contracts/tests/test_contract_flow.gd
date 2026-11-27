@@ -13,6 +13,7 @@ func run_tests() -> void:
 	_payout()
 	_career()
 	_bus_solo()
+	await _panel()
 	await _bus_two_players()
 
 
@@ -126,6 +127,41 @@ func _bus_solo() -> void:
 	check(other.save_data() == saved, "the contracts section saves and loads")
 	bus.queue_free()
 	other.queue_free()
+
+
+## A stand-in for the design bus's panel registry.
+class FakeDesign extends Node:
+	var panels := {}
+	func register_panel(id: String, title: String, make: Callable, order: int = 50) -> void:
+		panels[id] = {"title": title, "make": make, "order": order}
+	func unregister_panel(id: String) -> void:
+		panels.erase(id)
+
+
+func _panel() -> void:
+	var bus := ContractsBus.new()
+	add_child(bus)
+	bus._deal_board(5)
+	var design := FakeDesign.new()
+	add_child(design)
+	bus.hook_design(design)
+	check(design.panels.is_empty(), "no Contract window without a contract")
+	bus.accept(str(bus.board[0].id))
+	check(design.panels.has(ContractsBus.PANEL_ID), "taking a contract puts the Contract window in the design room")
+	var model := Kit.house()
+	var panel: RichTextLabel = (design.panels[ContractsBus.PANEL_ID].make as Callable).call(model)
+	add_child(panel)
+	check("Requirements 7 / 7" in panel.text and "Three-bedroom" in panel.text, "it shows the brief and how the design measures up")
+	for rid: String in model.rooms.keys():
+		if str(model.rooms[rid].type) == "garage":
+			model.apply(C.retag(rid, "store_room"))
+	await get_tree().create_timer(0.4).timeout
+	check("Requirements 6 / 7" in panel.text and "garage" in panel.text.to_lower(), "an edit refreshes it a moment later")
+	bus.abandon()
+	check(not design.panels.has(ContractsBus.PANEL_ID), "abandoning the contract takes the window away")
+	panel.queue_free()
+	bus.queue_free()
+	design.queue_free()
 
 
 func _bus_two_players() -> void:

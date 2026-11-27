@@ -13,7 +13,10 @@ extends Node
 ##   c.hand_over(days)              # settle: pays out, books the career, deals a new board
 ##   c.abandon()                    # drop the contract (costs reputation)
 ##   c.career                       # ContractCareer: money, reputation, unlocks
-##   signals: board_changed, active_changed, settled(settlement), career.changed
+##   signals: board_changed, active_changed, settled(settlement), report_taken, career.changed
+##
+## While a contract is taken, a live "Contract" window sits in the design room's side column
+## (DesignBus.register_panel, reached by name so contracts does not depend on design).
 ##
 ## Everything that changes shared state is a host-validated event, so all players see the
 ## same board, contract and payout. Save section "contracts".
@@ -23,6 +26,14 @@ signal board_changed
 signal active_changed
 ## A contract was handed over: ContractPayout.settle's result, plus "unlocked": [ids].
 signal settled(settlement: Dictionary)
+## A stress test result was taken in (or cleared).
+signal report_taken
+
+## The design room's live window for the active contract (shown only while one is taken).
+const PANEL_ID := "contracts.brief"
+const PANEL_FLAG := "contracts.panel"
+const PANEL_ORDER := 20
+const PANEL_SCRIPT := preload("res://modules/contracts/internal/contract_panel.gd")
 
 const SAVE_SECTION := "contracts"
 const SAVE_VERSION := 1
@@ -42,6 +53,7 @@ var structure_report: Dictionary = {}
 var last_settlement: Dictionary = {}
 var board_seed := 1
 var net: MultiplayerBus
+var _design: Node
 ## The building's checksum when structure_report was made: a report for an older design is
 ## stale and counts as untested.
 var _report_sum := 0
@@ -58,6 +70,8 @@ func register_module() -> void:
 
 func unregister_module() -> void:
 	Saves.unregister_section(SAVE_SECTION)
+	if is_instance_valid(_design):
+		_design.unregister_panel(PANEL_ID)
 	unbind()
 
 
@@ -65,6 +79,9 @@ func _hook_net() -> void:
 	var bus := Modules.bus("multiplayer") as MultiplayerBus
 	if bus != null:
 		bind(bus)
+	var design := Modules.bus("design")
+	if design != null and design.has_method("register_panel") and Flags.is_on(PANEL_FLAG):
+		hook_design(design)
 	var st := Modules.bus("structure") as StructureBus
 	if st != null and not st.report_changed.is_connected(_on_structure_report):
 		st.report_changed.connect(_on_structure_report)
@@ -80,6 +97,32 @@ func _take_report(report: Dictionary) -> void:
 	structure_report = report.duplicate(true)
 	var m := building()
 	_report_sum = m.checksum() if m != null else 0
+	report_taken.emit()
+
+
+## Shows the Contract window in a design bus (or a stand-in in tests) while a contract is taken.
+func hook_design(design: Node) -> void:
+	_design = design
+	if not active_changed.is_connected(_sync_panel):
+		active_changed.connect(_sync_panel)
+	_sync_panel()
+
+
+func _sync_panel() -> void:
+	if not is_instance_valid(_design):
+		return
+	if active.is_empty():
+		_design.unregister_panel(PANEL_ID)
+	else:
+		_design.register_panel(PANEL_ID, "Contract", make_panel, PANEL_ORDER)
+
+
+## The live Contract window for a building (the design room calls this as it opens).
+func make_panel(model: BuildingModel) -> Control:
+	var p: RichTextLabel = PANEL_SCRIPT.new()
+	p.name = "ContractPanel"
+	p.setup(self, model if model != null else building())
+	return p
 
 
 ## Ties the board and contract to a session (tests bind their own buses).
