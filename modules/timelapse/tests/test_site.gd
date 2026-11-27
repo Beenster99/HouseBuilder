@@ -37,16 +37,34 @@ func run_tests() -> void:
 	st = site.state()
 	check(st.scaffold > 0, "scaffold up while the walls go up: %d bays" % st.scaffold)
 	check("telehandler" in st.plant, "a telehandler moving pallets")
-	# The crew walk about in real time.
+	# The site runs at timelapse pace: frantic while it plays, faster the faster it plays,
+	# and still while paused.
+	var Site: GDScript = site.get_script()
+	check(Site.pace(1.0, false) == 0.0, "paused, the site stands still")
+	check(Site.pace(1.0, true) > 4.0 and Site.pace(10.0, true) > Site.pace(1.0, true)
+			and Site.pace(30.0, true) <= 30.0, "playing, it runs many times real speed, faster at higher speeds")
+	var frozen: Array[Vector3] = []
+	for w: Dictionary in site._workers:
+		frozen.append((w.node as Node3D).position)
+	await get_tree().create_timer(0.5).timeout
+	var still := true
+	for i in site._workers.size():
+		if (site._workers[i].node as Node3D).position.distance_to(frozen[i]) > 0.01:
+			still = false
+	check(still, "nobody moves while paused")
 	var before: Array[Vector3] = []
 	for w: Dictionary in site._workers:
 		before.append((w.node as Node3D).position)
-	await get_tree().create_timer(4.0).timeout
+	bus.request_speed(0.25)
+	bus.request_play(true)
+	await get_tree().create_timer(1.5).timeout
+	bus.request_play(false)
+	await frames(1)
 	var moved := 0
 	for i in site._workers.size():
 		if (site._workers[i].node as Node3D).visible and (site._workers[i].node as Node3D).position.distance_to(before[i]) > 0.5:
 			moved += 1
-	check(moved >= 2, "the crew move about: %d walked" % moved)
+	check(moved >= 2, "the crew hurry about while it plays: %d walked" % moved)
 
 	# A delivery: the lorry comes in through the gate.
 	site._next_delivery = bus.day()

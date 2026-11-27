@@ -112,7 +112,21 @@ func setup(schedule: Dictionary, building: AABB) -> void:
 	_next_delivery = _stage_start("foundation")
 
 
-## Moves everything on for build day `day`; `delta` is real seconds since the last frame.
+## How many times real speed the site runs at for a timelapse speed (days per second): fast
+## enough to look frantic, in true timelapse style, yet still readable. Paused, it stands still.
+## 0.25 d/s -> 4x, 1 -> 8x, 5 -> ~18x, 10 and up -> 24x.
+const PACE_MIN := 4.0
+const PACE_MAX := 24.0
+
+
+static func pace(days_per_second: float, playing: bool) -> float:
+	if not playing:
+		return 0.0
+	return clampf(8.0 * sqrt(maxf(days_per_second, 0.0)), PACE_MIN, PACE_MAX)
+
+
+## Moves everything on for build day `day`; `delta` is site seconds since the last frame
+## (real seconds times `pace`).
 func tick(day: float, delta: float) -> void:
 	if _root == null:
 		return

@@ -377,7 +377,7 @@ func _process(delta: float) -> void:
 	if not bus.is_active():
 		return
 	var day := bus.day()
-	site.tick(day, delta)
+	site.tick(day, delta * SiteScript.pace(bus.speed(), bus.is_playing()))
 	var working: Array[Vector3] = []
 	for id: String in _pieces:
 		var piece: Dictionary = _pieces[id]
