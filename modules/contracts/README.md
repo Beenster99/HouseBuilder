@@ -27,8 +27,9 @@ multiplayer (to share the board and the contract).
 ## Tuning
 
 Budgets are matched to the building catalog's prices (a plain shell with fit-out comes to
-about £900 to £1,200 per m2 of rooms), not to real-world totals, which also include services
-and overheads. Deadlines are a first guess (60 days plus half a day per m2); tune both once the
+about £900 to £1,200 per m2 of rooms) plus an 8% allowance for routed services, not to
+real-world totals, which also include overheads. The hand-written briefs leave room for
+services too (the test house is £151k plus about £12k of services against £180k). Deadlines are a first guess (60 days plus half a day per m2); tune both once the
 timelapse schedule's lengths are known.
 
 ## Tests

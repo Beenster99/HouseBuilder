@@ -18,6 +18,9 @@ const TYPES_SCRIPT := preload("res://modules/contracts/internal/building_types.g
 const TYPES: Dictionary = TYPES_SCRIPT.TYPES
 ## The client pays this much over the budget: building at budget earns this margin.
 const FEE_MARGIN := 0.12
+## Budgets also cover routed services (wiring, plumbing, heating: the services module),
+## which the type rates leave out: about this share of the build on a house.
+const SERVICES_SHARE := 0.08
 
 
 ## Building type ids open at a reputation, in table order.
@@ -81,7 +84,7 @@ static func generate(seed: int, type: String = "", reputation: int = 0) -> Dicti
 	reqs.append({"id": "budget", "kind": "budget"})
 	# Money and time.
 	var slack := rng.randf_range(1.15, 1.45) - minf(reputation, 60) * 0.002
-	var budget := snappedf(area * float(spec.rate) * slack, 1000.0)
+	var budget := snappedf(area * float(spec.rate) * (1.0 + SERVICES_SHARE) * slack, 1000.0)
 	var fee := snappedf(budget * (1.0 + FEE_MARGIN), 1000.0)
 	var deadline := int(snappedf((60.0 + area * 0.5) * rng.randf_range(1.1, 1.4), 5.0))
 	var goals: Array = []
