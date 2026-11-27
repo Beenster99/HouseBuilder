@@ -84,7 +84,12 @@ func _board() -> void:
 	await get_tree().process_frame
 	check(go != null and go.disabled and go.text == "Current", "the picked site's button reads Current")
 	check(_all_text(board).contains("Now building on %s." % pack.title()), "the board says which site is loading")
-	check(HudSlots.infos().any(func(c: Dictionary) -> bool: return c.id == SitesBus.INFO_ID and str(c.title).contains(pack.title())), "the HUD shows the real site")
+	check(not HudSlots.infos().any(func(c: Dictionary) -> bool: return c.id == SitesBus.PANEL_ID), "no floating card over the screen")
+	if design and design.has_method("register_panel"):
+		check(design.panels.has(SitesBus.PANEL_ID) and str(design.panels[SitesBus.PANEL_ID].title).contains(pack.title()), "the site has a window in the designer's side column")
+		var sp: Control = bus.make_site_panel()
+		check(_all_text(sp).contains(pack.plot_size_text()), "saying how big the plot is")
+		sp.free()
 	var plot_view := bus.make_plot_view()
 	check(plot_view != null and plot_view.position.is_equal_approx(-pack.plot_origin()), "the plot view puts the plot centre on the design origin")
 	if plot_view:
@@ -93,7 +98,8 @@ func _board() -> void:
 	bus.clear_site()
 	await get_tree().process_frame
 	check(_all_text(board).contains("No real site yet"), "and says how to start when there is none")
-	check(not HudSlots.infos().any(func(c: Dictionary) -> bool: return c.id == SitesBus.INFO_ID), "and the HUD card goes")
+	if design and design.has_method("register_panel"):
+		check(not design.panels.has(SitesBus.PANEL_ID), "and the site window goes when the site is cleared")
 	board.queue_free()
 
 

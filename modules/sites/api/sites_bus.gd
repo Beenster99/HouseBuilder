@@ -22,7 +22,8 @@ signal site_changed(pack: SitePack)
 const LOAD := "sites.load"
 const BOARD_CHANNEL := "sites.board"
 ## The HUD info card naming the site the crew is building on.
-const INFO_ID := "sites.current"
+## The current site's window in the design room's right-hand column (while one is loaded).
+const PANEL_ID := "sites.current"
 const BOARD_SCRIPT := "res://modules/sites/internal/sites_board.gd"
 const CLEAR := "sites.clear"
 const FLAG := "sites.real_sites"
@@ -52,6 +53,8 @@ func unregister_module() -> void:
 	Menu.unregister_entry(PICKER_SCENE)
 	if is_instance_valid(_design):
 		_design.unregister_channel(BOARD_CHANNEL)
+		if _design.has_method("unregister_panel"):
+			_design.unregister_panel(PANEL_ID)
 	_design = null
 	if _net:
 		_net.unregister_event(LOAD)
@@ -68,6 +71,40 @@ func _hook_design() -> void:
 		return
 	_design = design
 	design.register_channel(BOARD_CHANNEL, "Real-world sites", func(_model: Variant) -> Control: return make_board(), 40)
+	_show_panel()
+
+
+## The site's window in the design room's side column while a site is loaded; none without.
+func _show_panel() -> void:
+	if not is_instance_valid(_design) or not _design.has_method("register_panel"):
+		return
+	if _pack == null:
+		_design.unregister_panel(PANEL_ID)
+		return
+	_design.register_panel(PANEL_ID, "Site: %s" % _pack.title(), func(_model: Variant) -> Control: return make_site_panel(), 25)
+
+
+## The current site in brief, for the side column: where, how big, the ground, difficulty
+## and access.
+func make_site_panel() -> Control:
+	var box := VBoxContainer.new()
+	box.add_theme_constant_override("separation", 2)
+	if _pack == null:
+		return box
+	var lines := PackedStringArray([_pack.location_text(),
+			"Plot %s. Ground: %s." % [_pack.plot_size_text(), _pack.soil().replace("_", " ")],
+			"Difficulty %d of 5, cost × %.2f." % [_pack.rating(), _pack.cost_multiplier_hint()]])
+	var roads := _pack.access()
+	lines.append("Access: %s." % (", ".join(roads.map(func(r: Dictionary) -> String:
+			return str(r.get("name", r.get("road", "road"))))) if not roads.is_empty() else "no road access"))
+	lines.append("The plot is centred on the design's origin; the orange outline is its boundary.")
+	for t in lines:
+		var l := Label.new()
+		l.text = t
+		l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		l.custom_minimum_size = Vector2(300, 0)
+		box.add_child(l)
+	return box
 
 
 ## The wall-screen page: the site pool and the current site (kept up to date).
@@ -157,15 +194,14 @@ func _apply_load(payload: Dictionary) -> void:
 	_payload = payload
 	if _net and _net.has_method("is_host") and _net.is_host():
 		_tell_building(pack)
-	HudSlots.set_info(INFO_ID, "Real site: %s" % pack.title(),
-			"Plot %s, difficulty %d of 5. The plot is centred on the design's origin." % [pack.plot_size_text(), pack.rating()], 20)
+	_show_panel()
 	site_changed.emit(pack)
 
 
 func _apply_clear(_payload: Dictionary) -> void:
 	_pack = null
 	_payload = {}
-	HudSlots.clear_info(INFO_ID)
+	_show_panel()
 	site_changed.emit(null)
 
 
