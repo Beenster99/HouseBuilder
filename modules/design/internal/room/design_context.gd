@@ -1,6 +1,6 @@
 extends Node
 ## Right-click on something in the design: a menu with Edit…, Delete and, for rooms, Remove
-## this corner, Furnish and Save as module…, and anywhere (on something or bare floor) Walk
+## this corner, Furnish and Save as module…, Mirror and Flip (for symmetrical designs), and anywhere (on something or bare floor) Walk
 ## inside from here, which starts walk-inside standing on that spot of the level. Edit opens a small form: a room's type and name,
 ## a part's material (and a fixture's turn). Every change goes through the building's sync, so
 ## everyone sees it and it undoes like any edit.
@@ -19,7 +19,7 @@ var _save_module: PopupPanel
 var _module_name: LineEdit
 var _module_group: LineEdit
 
-enum { EDIT, DELETE, CORNER, FURNISH, SAVE_MODULE, WALK }
+enum { EDIT, DELETE, CORNER, FURNISH, SAVE_MODULE, WALK, MIRROR_X, MIRROR_Z, FLIP_X, FLIP_Z }
 
 const WALK_LABEL := "Walk inside from here"
 
@@ -83,6 +83,11 @@ func open_at(at: Vector3, screen: Vector2) -> bool:
 		var kits := Modules.bus("kits")
 		if kits and kits.has_method("save_room"):
 			menu.add_item("Save as module…", SAVE_MODULE)
+	menu.add_separator()
+	menu.add_item("Mirror copy to the right  (Shift+M)", MIRROR_X)
+	menu.add_item("Mirror copy below  (Ctrl+Shift+M)", MIRROR_Z)
+	menu.add_item("Flip left to right", FLIP_X)
+	menu.add_item("Flip top to bottom", FLIP_Z)
 	if can_walk():
 		menu.add_separator()
 		menu.add_item(WALK_LABEL, WALK)
@@ -110,6 +115,8 @@ func _on_item(id: int) -> void:
 			_module_name.grab_focus()
 		WALK:
 			walk_here(_at)
+		MIRROR_X, MIRROR_Z, FLIP_X, FLIP_Z:
+			session.mirror_selection(0 if id in [MIRROR_X, FLIP_X] else 1, id in [MIRROR_X, MIRROR_Z])
 
 
 ## Whether walk-inside is there to start (the walk module, by name, with its flag on).

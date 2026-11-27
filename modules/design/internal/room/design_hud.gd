@@ -1208,7 +1208,7 @@ func mode_keys() -> Array:
 				if _session.presence.my_selection().is_empty():
 					out = [["LMB", "select"], ["LMB drag", "pan"], ["Shift+drag", "box select"], ["Shift", "add"], ["RMB", "Edit / Delete menu"]]
 				else:
-					out = [["LMB drag", "move"], ["Handles", "reshape"], ["Del", "delete"], ["Shift+drag", "box adds"], ["RMB", "Edit / Delete"], ["Esc", "deselect"]]
+					out = [["LMB drag", "move"], ["Handles", "reshape"], ["Del", "delete"], ["Shift+M", "mirror copy"], ["Shift+drag", "box adds"], ["RMB", "Edit / Delete"], ["Esc", "deselect"]]
 			"room", "slab", "roof", "raft":
 				out = [["LMB drag", "size it"], ["release", "draw it"], ["Esc", "Select"]]
 			"wall", "partition", "beam", "footing", "stair":

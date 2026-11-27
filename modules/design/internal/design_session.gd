@@ -448,8 +448,8 @@ func _start_drag() -> void:
 ## `ids` plus what moves with the rooms among them: the walls on a room's outline (but those it
 ## shares with a room that stays) and the parts standing inside it. Doors and windows ride on
 ## their walls. Without this a room slid along one axis left its walls behind, still lined up
-## with its edges, and looked as if it had not moved.
-func carried(ids: PackedStringArray) -> PackedStringArray:
+## with its edges, and looked as if it had not moved. shared_walls: shared ones too.
+func carried(ids: PackedStringArray, shared_walls := false) -> PackedStringArray:
 	var out := ids.duplicate()
 	var moving: Array = []
 	var staying: Array = []
@@ -470,7 +470,7 @@ func carried(ids: PackedStringArray) -> PackedStringArray:
 			var pa := Vector2(float(e.a[0]), float(e.a[2]))
 			var pb := Vector2(float(e.b[0]), float(e.b[2]))
 			take = moving.any(func(o: PackedVector2Array) -> bool: return _on_outline(pa, pb, o)) \
-					and not staying.any(func(o: PackedVector2Array) -> bool: return _on_outline(pa, pb, o))
+					and (shared_walls or not staying.any(func(o: PackedVector2Array) -> bool: return _on_outline(pa, pb, o)))
 		elif e.has("at"):
 			var q := Vector2(float(e.at[0]), float(e.at[2]))
 			take = moving.any(func(o: PackedVector2Array) -> bool: return Geometry2D.is_point_in_polygon(q, o))
@@ -695,6 +695,171 @@ func retag_selection() -> void:
 
 ## Furnishes the selected rooms: the room type's usual layout, or what `text` describes
 ## ("2 single beds and a desk"). One undo takes it all back.
+## Mirrors the selection (with its rooms' walls and what stands in them) for symmetrical
+## designs, as one undo step. axis 0 mirrors left-right (x), 1 up-down (z). As a copy, the
+## mirror line is the selection's right (or bottom) edge, so the copy sits beside it and the
+## pair is symmetrical; else the selection flips in place about its middle. Walls and parts
+## that land on themselves (on the mirror line) aren't doubled. The copy is selected.
+## Returns how many entries it made or moved.
+func mirror_selection(axis: int, copy: bool) -> int:
+	var sel := PackedStringArray()
+	for id in presence.my_selection():
+		if model.has(id) and presence.may_edit(id):
+			sel.append(id)
+	if sel.is_empty():
+		status.emit("Select something to mirror first", true)
+		return 0
+	# A copy takes every wall round its rooms (a shared one too: the copy needs its own
+	# mirror of it); a flip leaves a shared wall to the room that stays.
+	var ids := carried(sel, copy)
+	var box := _set_out_box(ids)
+	var line := box.end[axis] if copy else box.get_center()[axis]
+	var ops := mirror_ops(model, ids, axis, line, copy, _fresh_ids(ids.size()))
+	if ops.is_empty():
+		return 0
+	sync.edit(C.batch(ops))
+	if copy:
+		var made := PackedStringArray()
+		for op: Dictionary in ops:
+			var nid := str((op.get("entry", {}) as Dictionary).get("id", ""))
+			if nid != "" and model.has(nid) and (model.rooms.has(nid) or not model.parts[nid].has("host")):
+				made.append(nid)
+		if not made.is_empty():
+			presence.select(made)
+	status.emit("Mirrored %s %s" % ["a copy" if copy else "it", "left to right" if axis == 0 else "top to bottom"], false)
+	return ops.size()
+
+
+## The ops that mirror `ids` about the line x = line (axis 0) or z = line (axis 1): adds of
+## mirrored copies with ids from `fresh` (copy), else sets that flip them in place.
+static func mirror_ops(m: BuildingModel, ids: PackedStringArray, axis: int, line: float, copy: bool, fresh: Array) -> Array:
+	var flip2 := func(p: Vector2) -> Vector2:
+		var q := p
+		q[axis] = snappedf(2.0 * line - q[axis], 0.0001)
+		return q
+	var flip3 := func(v: Array) -> Array:
+		var out := v.duplicate()
+		var k := 0 if axis == 0 else 2
+		out[k] = snappedf(2.0 * line - float(out[k]), 0.0001)
+		return out
+	var outline := func(o: Array) -> Array:
+		var out: Array = []
+		for c: Array in o:
+			var q: Vector2 = flip2.call(Vector2(float(c[0]), float(c[1])))
+			out.append([q.x, q.y])
+		out.reverse()  # the same winding after a mirror
+		return out
+	var same := func(a: Array, b: Array) -> bool:
+		return Vector3(float(a[0]), float(a[1]), float(a[2])).is_equal_approx(Vector3(float(b[0]), float(b[1]), float(b[2])))
+	var ops: Array = []
+	var new_id := {}
+	var n := [0]  # (a lambda keeps its own copy of a plain int)
+	var take := func(old: String) -> String:
+		var nid: String = fresh[n[0]] if n[0] < fresh.size() else ""
+		n[0] += 1
+		new_id[old] = nid
+		return nid
+	for id in ids:
+		if not m.rooms.has(id):
+			continue
+		var e: Dictionary = m.rooms[id]
+		var o: Array = outline.call(e.outline)
+		if copy:
+			var r := C.place_room(str(e.type), int(e.level), o, str(e.get("name", "")))
+			var nid := "r" + str(take.call(id)).substr(1)
+			r.entry["id"] = nid
+			ops.append(r)
+		elif not _same_fields(e, {"outline": o}):
+			ops.append(C.set_fields(id, {"outline": o}))
+	for id in ids:
+		if not m.parts.has(id) or m.parts[id].has("host"):
+			continue
+		var e: Dictionary = m.parts[id]
+		var fields := {}
+		if e.has("at"):
+			fields["at"] = flip3.call(e.at)
+			var rot := float(e.get("rot", 0.0))
+			fields["rot"] = fposmod(-rot if axis == 0 else 180.0 - rot, 360.0)
+		elif e.has("a") and e.has("b"):
+			fields["a"] = flip3.call(e.a)
+			fields["b"] = flip3.call(e.b)
+		elif e.has("outline"):
+			fields["outline"] = outline.call(e.outline)
+		else:
+			continue
+		if copy:
+			# On the mirror line it lands on itself: one is enough.
+			if e.has("at") and same.call(fields.at, e.at):
+				continue
+			if e.has("a") and ((same.call(fields.a, e.a) and same.call(fields.b, e.b)) or (same.call(fields.a, e.b) and same.call(fields.b, e.a))):
+				continue
+			var c: Dictionary = e.duplicate(true)
+			c.merge(fields, true)
+			c["id"] = take.call(id)
+			ops.append({"op": "add", "table": "parts", "entry": c})
+		elif not _same_fields(e, fields):
+			ops.append(C.set_fields(id, fields))
+	# Doors and windows: in place they ride on their flipped wall (t is from its a end, which
+	# flipped with it); a copy goes on the copied wall.
+	if copy:
+		for id in m.parts:
+			var e: Dictionary = m.parts[id]
+			if e.has("host") and new_id.has(str(e.host)) and (id in ids or str(e.host) in ids):
+				var c: Dictionary = e.duplicate(true)
+				c["host"] = new_id[str(e.host)]
+				c["id"] = take.call(id)
+				ops.append({"op": "add", "table": "parts", "entry": c})
+	return ops
+
+
+## The plan box round entries as they are set out: room outlines, wall and beam centre lines,
+## the points parts stand on (not their thickness, so a mirror line falls on a wall's line).
+func _set_out_box(ids: PackedStringArray) -> Rect2:
+	var pts: Array[Vector2] = []
+	for id in ids:
+		var e := model.entry(id)
+		for c: Array in e.get("outline", []):
+			pts.append(Vector2(float(c[0]), float(c[1])))
+		for k: String in ["at", "a", "b"]:
+			if e.has(k):
+				pts.append(Vector2(float(e[k][0]), float(e[k][2])))
+	if pts.is_empty():
+		return Rect2()
+	var r := Rect2(pts[0], Vector2.ZERO)
+	for p in pts:
+		r = r.expand(p)
+	return r
+
+
+## Whether an entry already has these values (a set of them would change nothing, and the
+## model refuses a batch with a no-op in it).
+static func _same_fields(e: Dictionary, fields: Dictionary) -> bool:
+	for k: String in fields:
+		if JSON.stringify(C.plain(e.get(k))) != JSON.stringify(C.plain(fields[k])):
+			var a: Variant = e.get(k)
+			var b: Variant = fields[k]
+			if a is Array and b is Array and str(a).replace(".0", "") == str(b).replace(".0", ""):
+				continue
+			if (a is float or a is int) and (b is float or b is int) and is_equal_approx(float(a), float(b)):
+				continue
+			return false
+	return true
+
+
+## `count` part ids not yet in the model ("p..."), so a batch can refer to what it adds.
+func _fresh_ids(count: int) -> Array:
+	var top := 0
+	for t: Dictionary in [model.parts, model.rooms, model.connections]:
+		for id: String in t:
+			top = maxi(top, id.substr(1).to_int())
+	# Peers start apart so two players mirroring at once don't pick the same ids.
+	top += 1 + (net.local_peer_id() % 97) * 7 if net else 1
+	var out: Array = []
+	for i in count * 2 + 4:
+		out.append("p%d" % (top + i))
+	return out
+
+
 func furnish_selection(text: String = "") -> void:
 	var ops: Array = []
 	var placed := 0

@@ -740,6 +740,10 @@ func _key(k: InputEventKey) -> bool:
 		KEY_R:
 			session.rotate()
 			return true
+		KEY_M when k.shift_pressed:
+			# Shift+M: a mirrored copy beside the selection (Ctrl too: below it).
+			session.mirror_selection(1 if ctrl else 0, true)
+			return true
 		KEY_T:
 			session.retag_selection()
 			return true

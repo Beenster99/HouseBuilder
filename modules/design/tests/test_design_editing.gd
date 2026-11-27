@@ -217,6 +217,69 @@ func run_tests() -> void:
 	check(DesignGuides.room_box(model, mv_a).position.is_equal_approx(Vector2(-60, -59)), "and along z alone too: %s" % DesignGuides.room_box(model, mv_a))
 	s.undo()
 	await frames(2)
+	# Mirroring for symmetrical designs: a mirrored copy beside the selection, walls, a turned
+	# column and a door with it (the wall on the mirror line isn't doubled), and a flip in place.
+	var mv_b := ""
+	for r_id in model.rooms_on(s.level):
+		if DesignGuides.room_box(model, r_id).has_point(Vector2(-54, -58.5)):
+			mv_b = r_id
+	s.sync.edit(BuildingCommands.place_part("column", s.level, {"at": [-54.0, 0, -58.0], "rot": 30.0}, "steel"))
+	var top_wall := ""
+	for wid in model.parts_on(s.level):
+		var we: Dictionary = model.parts[wid]
+		if we.has("a") and absf(float(we.a[2]) + 60.0) < 0.01 and absf(float(we.b[2]) + 60.0) < 0.01 \
+				and minf(float(we.a[0]), float(we.b[0])) > -56.1 and maxf(float(we.a[0]), float(we.b[0])) < -51.9:
+			top_wall = wid
+	check(mv_b != "" and top_wall != "", "a second room with its own top wall")
+	s.sync.edit(BuildingCommands.place_opening(s.door_kind, top_wall, 1.0))
+	await frames(2)
+	var rooms_n := model.rooms.size()
+	var parts_n := model.parts.size()
+	s.presence.select(PackedStringArray([mv_b]))
+	check(s.mirror_selection(0, true) > 0, "Shift+M mirrors a copy")
+	await frames(2)
+	var copy_room := ""
+	for r_id in model.rooms_on(s.level):
+		if DesignGuides.room_box(model, r_id).is_equal_approx(Rect2(-52, -60, 4, 3)):
+			copy_room = r_id
+	check(model.rooms.size() == rooms_n + 1 and copy_room != "", "the copy of the room sits beside it, mirrored about its right edge")
+	check(int(walls_at.call(-52.0)) == 1 and int(walls_at.call(-48.0)) == 1, "with its walls, the one on the mirror line not doubled: %d, %d" % [walls_at.call(-52.0), walls_at.call(-48.0)])
+	var mirrored_col := false
+	var copied_door := false
+	for cid in model.parts_on(s.level):
+		var ce: Dictionary = model.parts[cid]
+		if ce.has("at") and Vector2(float(ce.at[0]), float(ce.at[2])).is_equal_approx(Vector2(-50, -58)):
+			mirrored_col = is_equal_approx(float(ce.rot), 330.0)
+	for oid in model.parts:
+		var oe: Dictionary = model.parts[oid]
+		if oe.has("host") and oid != "" and str(oe.host) != top_wall and model.parts.has(str(oe.host)):
+			var hw: Dictionary = model.parts[str(oe.host)]
+			copied_door = copied_door or minf(float(hw.a[0]), float(hw.b[0])) > -52.1
+	check(mirrored_col, "the column mirrored and turned the other way")
+	check(copied_door, "the door copied onto the copied wall")
+	check(copy_room in s.presence.my_selection(), "the copy is selected")
+	s.undo()
+	await frames(2)
+	check(model.rooms.size() == rooms_n and model.parts.size() == parts_n, "one undo takes the whole copy away")
+	s.presence.select(PackedStringArray([mv_b]))
+	var flip_n := s.mirror_selection(1, false)
+	await frames(2)
+	var flipped := false
+	for cid in model.parts_on(s.level):
+		var ce: Dictionary = model.parts[cid]
+		if ce.has("at") and Vector2(float(ce.at[0]), float(ce.at[2])).is_equal_approx(Vector2(-54, -59)):
+			flipped = is_equal_approx(float(ce.rot), 150.0)
+	check(flipped and model.rooms.size() == rooms_n, "Flip top to bottom turns it over in place")
+	s.undo()
+	await frames(2)
+	var ctx_m: Node = room.get("context")
+	ctx_m.call("open_at", Vector3(-54, 0, -59), Vector2(400, 300))
+	var mlabels := []
+	for i in (ctx_m.get("menu") as PopupMenu).item_count:
+		mlabels.append((ctx_m.get("menu") as PopupMenu).get_item_text(i))
+	(ctx_m.get("menu") as PopupMenu).hide()
+	check(mlabels.any(func(t: String) -> bool: return t.begins_with("Mirror copy")) and "Flip top to bottom" in mlabels,
+			"the right-click menu has Mirror and Flip: %s" % str(mlabels))
 	# The docks' cards stretch up and down (a grip between them), and keep their sizes.
 	var lsplit := hud2.find_child("Split_left", true, false) as VSplitContainer
 	check(lsplit != null and lsplit.get_child_count() == 3, "the left dock's cards sit in a splitter")
