@@ -116,9 +116,8 @@ func _build_world() -> void:
 	var plane := PlaneMesh.new()
 	plane.size = Vector2(PLOT_HALF * 2.0, PLOT_HALF * 2.0)
 	ground.mesh = plane
-	var mat := StandardMaterial3D.new()
-	mat.albedo_color = GROUND
-	ground.material_override = mat
+	ground.material_override = ArtStyle.ground()
+	Graphics.changed.connect(func() -> void: ground.material_override = ArtStyle.ground())
 	ground.position.y = -0.01
 	add_child(ground)
 	_grid_mesh = MeshInstance3D.new()

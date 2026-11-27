@@ -26,6 +26,7 @@ func bind(m: BuildingModel) -> void:
 	model.entry_removed.connect(refresh)
 	model.loaded.connect(rebuild)
 	model.levels_changed.connect(rebuild)
+	Graphics.changed.connect(rebuild)
 	rebuild()
 
 
@@ -141,7 +142,9 @@ func _part(root: Node3D, id: String) -> void:
 	var spec := cat.kind(kind)
 	var fam := cat.family_of(kind)
 	var sec := cat.section(str(e.get("section", "")))
-	var colour := _colour(id, Color.html(str(cat.material(str(e.get("material", ""))).get("colour", "cccccc"))))
+	# The game's look (ArtStyle: clean model or realistic), or the highlight when tinted.
+	var colour: Variant = _colour(id, ArtStyle.material(str(e.get("material", "")), fam).albedo_color) \
+			if _tints.has(id) else ArtStyle.material(str(e.get("material", "")), fam)
 	var floor_y := model.level_elevation(model.level_of(id))
 	match cat.shape_of(kind):
 		"point":
@@ -184,12 +187,13 @@ func _part(root: Node3D, id: String) -> void:
 				if model.level_of(id) == level:
 					h = minf(h, maxf(0.05, cut - float(e.get("sill", spec.get("sill", 0.0)))))
 				var glass := str(e.get("material", "")) == "glass" or kind.begins_with("window")
-				var c := _colour(id, GLASS if glass else DOOR)
+				var c: Variant = _colour(id, GLASS if glass else DOOR) if _tints.has(id) \
+						else ArtStyle.material("glass" if glass else "timber", "opening" if glass else "fixture")
 				_linear(root, pts[0] + Vector3(0, h / 2.0, 0), pts[1] + Vector3(0, h / 2.0, 0), 0.06, h, c)
 
 
 ## A wall drawn in pieces around its openings: solid runs, and the pieces under and over each.
-func _wall(root: Node3D, id: String, a: Vector3, b: Vector3, colour: Color) -> void:
+func _wall(root: Node3D, id: String, a: Vector3, b: Vector3, colour: Variant) -> void:
 	var e: Dictionary = model.parts[id]
 	var h := model.part_height(id)
 	if model.level_of(id) == level:
@@ -266,21 +270,23 @@ func _colour(id: String, base: Color) -> Color:
 	return base
 
 
-func _mat(c: Color) -> StandardMaterial3D:
-	var key := c.to_html()
+func _mat(c: Variant) -> Material:
+	if c is Material:
+		return c
+	var key: String = (c as Color).to_html()
 	if _mats.has(key):
 		return _mats[key]
 	var m := StandardMaterial3D.new()
 	m.albedo_color = c
 	m.roughness = 0.85
-	if c.a < 0.99:
+	if (c as Color).a < 0.99:
 		m.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 		m.cull_mode = BaseMaterial3D.CULL_DISABLED
 	_mats[key] = m
 	return m
 
 
-func _box(root: Node3D, centre: Vector3, size: Vector3, basis: Basis, c: Color) -> void:
+func _box(root: Node3D, centre: Vector3, size: Vector3, basis: Basis, c: Variant) -> void:
 	var mi := MeshInstance3D.new()
 	var bm := BoxMesh.new()
 	bm.size = size
@@ -291,7 +297,7 @@ func _box(root: Node3D, centre: Vector3, size: Vector3, basis: Basis, c: Color) 
 
 
 ## A bar from a to b (centre line), w wide and h tall.
-func _linear(root: Node3D, a: Vector3, b: Vector3, w: float, h: float, c: Color) -> void:
+func _linear(root: Node3D, a: Vector3, b: Vector3, w: float, h: float, c: Variant) -> void:
 	var d := b - a
 	var plan := Vector2(d.x, d.z)
 	if d.length() < 0.01:
@@ -302,7 +308,7 @@ func _linear(root: Node3D, a: Vector3, b: Vector3, w: float, h: float, c: Color)
 	_box(root, (a + b) / 2.0, Vector3(d.length(), h, w), basis, c)
 
 
-func _prism(root: Node3D, poly: PackedVector2Array, bottom: float, top: float, c: Color) -> void:
+func _prism(root: Node3D, poly: PackedVector2Array, bottom: float, top: float, c: Variant) -> void:
 	if poly.size() < 3:
 		return
 	if Geometry2D.is_polygon_clockwise(poly):
@@ -329,7 +335,7 @@ func _prism(root: Node3D, poly: PackedVector2Array, bottom: float, top: float, c
 	var mi := MeshInstance3D.new()
 	mi.mesh = st.commit()
 	mi.material_override = _mat(c)
-	if c.a < 0.99:
+	if c is Color and (c as Color).a < 0.99:
 		mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	root.add_child(mi)
 
