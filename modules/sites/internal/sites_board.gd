@@ -124,5 +124,5 @@ func _label(text: String, muted: bool, size: int = TEXT) -> Label:
 	l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	l.add_theme_font_size_override("font_size", size)
 	if muted:
-		l.add_theme_color_override("font_color", BsxTheme.MUTED)
+		l.add_theme_color_override("font_color", BsxTheme.col(self, "MUTED"))
 	return l
