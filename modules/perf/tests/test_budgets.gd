@@ -23,7 +23,7 @@ const KNOWN := {
 	"quantities.terminal": [60.0, "building", "the first full costing (about 50 ms); after it an edit recosts only what it touched (about 19 ms)"],
 	"stress.office": [450.0, "structure", "a cold stress test sits near the 500 ms button budget (the live check is off the main thread and reuses unchanged floors)"],
 	"stress.terminal": [900.0, "structure", "a cold stress test of 4,900 members (off the main thread in game; edits re-check in ~0.6 s)"],
-	"route.terminal": [800.0, "services", "routing 384 rooms (runs on a worker thread since 2026-11-27, so no frame waits on it)"],
+	"route.terminal": [650.0, "services", "routing 384 rooms (runs on a worker thread since 2026-11-27, so no frame waits on it)"],
 	"demolition_physics.office": [40.0, "demolition", "about 800 parts fall at once, each one body until it breaks up (was 110 ms; 22-40 ms alone, 60 with the suite running)"],
 	"demolition_hitch.office": [60.0, "demolition", "the worst physics frame of the collapse (40 ms alone, 60 with the suite running)"],
 }
@@ -83,20 +83,24 @@ func _design_room(size: String) -> void:
 	add_child(room)
 	await frames(2)
 	_judge("design_open.%s" % size, _ms(t0), PerfBudget.OPEN_MS)
-	# The engine's time monitors refresh about once a second: let the opening frame age out.
-	await get_tree().create_timer(1.2).timeout
+	# Idle: the 95th percentile of real frame intervals once the room has settled. (The
+	# engine's TIME_PROCESS monitor lags and lumps in background work, so it isn't used.)
 	# Tests share the CPU with other test processes: take the best of a few windows.
+	await get_tree().create_timer(1.0).timeout
 	var idle := INF
 	for attempt in 3:
 		var samples: Array[float] = []
 		var t1 := Time.get_ticks_usec()
+		var last := t1
 		while _ms(t1) < 1200.0:
 			await get_tree().process_frame
-			samples.append(Performance.get_monitor(Performance.TIME_PROCESS) * 1000.0)
-		idle = minf(idle, _pct(samples, 0.5))
-		if idle <= PerfBudget.SCRIPT_FRAME_MS:
+			var now := Time.get_ticks_usec()
+			samples.append((now - last) / 1000.0)
+			last = now
+		idle = minf(idle, _pct(samples, 0.95))
+		if idle <= PerfBudget.FRAME_MS:
 			break
-	_judge("design_idle.%s" % size, idle, PerfBudget.SCRIPT_FRAME_MS)
+	_judge("design_idle.%s" % size, idle, PerfBudget.FRAME_MS)
 	if _should_measure("design_edit.%s" % size):
 		t0 = Time.get_ticks_usec()
 		building.sync.edit(BuildingCommands.place_part("column", 0, {"at": [1.0, 0.0, 1.0]}, "steel"))

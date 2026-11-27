@@ -46,8 +46,8 @@ var checks_ok := 0
 var last_check_msec := -1
 ## Peers also report matched checks to the host (the benchmark and tests turn this on).
 var report_checks := false
-## Host: peer id -> {ok: matched checks reported, worst_lag: s from the host sending a
-## check to that peer applying it}.
+## Host: peer id -> {ok: matched checks reported, worst_lag and lags (the last 100): s from
+## the host sending a check to that peer applying it}.
 var peer_checks: Dictionary = {}
 var net: MultiplayerBus
 var _digests: Dictionary = {}  # section -> Callable() -> Variant
@@ -311,9 +311,12 @@ func _apply_report(payload: Dictionary) -> void:
 	var peer := int(payload.get("peer", 0))
 	if bool(payload.get("ok", false)):
 		if net.is_host():
-			var c: Dictionary = peer_checks.get(peer, {"ok": 0, "worst_lag": 0.0})
+			var c: Dictionary = peer_checks.get(peer, {"ok": 0, "worst_lag": 0.0, "lags": []})
 			c.ok = int(c.ok) + 1
 			c.worst_lag = maxf(float(c.worst_lag), float(payload.get("lag", 0.0)))
+			(c.lags as Array).append(float(payload.get("lag", 0.0)))
+			if (c.lags as Array).size() > 100:
+				(c.lags as Array).pop_front()
 			peer_checks[peer] = c
 		return
 	if peer == net.local_peer_id():
