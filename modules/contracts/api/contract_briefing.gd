@@ -121,6 +121,12 @@ static func sections(brief: Dictionary, catalog: BuildingCatalog = null) -> Arra
 	var cons := _constraint_lines(brief)
 	if not cons.is_empty():
 		out.append({"title": "Site constraints and what they mean for the design", "lines": cons})
+	var twists := PackedStringArray()
+	for n: Variant in brief.get("twist_notes", []):
+		if n is Dictionary:
+			twists.append("%s. %s The fee is %d%% higher for the trouble." % [str(n.label), str(n.sentence), roundi(float(n.get("uplift", 0.0)) * 100.0)])
+	if not twists.is_empty():
+		out.append({"title": "The awkward bits", "lines": twists})
 	out.append({"title": "Materials", "lines": _material_lines(brief)})
 	var goals := PackedStringArray()
 	for g: Dictionary in brief.get("goals", []):

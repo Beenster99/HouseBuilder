@@ -178,10 +178,24 @@ static func max_site_rating(tier: int) -> int:
 static func generate_on_site(seed: int, type: String = "", tier: int = 1) -> Dictionary:
 	var b := generate(seed, type, tier)
 	var kind := str(TYPES_SCRIPT.SITE_KIND.get(str(b.type), ""))
-	var site_id := SitePool.pick(kind, seed, max_site_rating(tier)) if kind != "" else ""
+	var site_id := pick_free_site(kind, seed, max_site_rating(tier)) if kind != "" else ""
 	if site_id == "":
 		return b
 	return put_on_site(b, site_id)
+
+
+## A pool site for a kind of building chosen by seed, skipping sites that already hold one
+## of the firm's buildings (the town module's occupied_sites(), asked by name). "" if none.
+static func pick_free_site(kind: String, seed: int, max_rating: int) -> String:
+	var taken := PackedStringArray()
+	var town := Modules.bus("town")
+	if town != null and town.has_method("occupied_sites"):
+		taken = town.call("occupied_sites")
+	var fits := SitePool.for_building(kind).filter(func(s: Dictionary) -> bool:
+		return int(s.rating) <= max_rating and not str(s.id) in taken)
+	if fits.is_empty():
+		return ""
+	return str(fits[posmod(seed, fits.size())].id)
 
 
 ## A brief written for a site the crew picked without a contract: a building type the site
@@ -208,7 +222,7 @@ static func for_site(site_id: String, seed: int, tier: int = 1) -> Dictionary:
 	var b := put_on_site(generate(seed, pool[rng.randi_range(0, pool.size() - 1)], tier), site_id)
 	b["id"] = "site-" + str(b.id)
 	b["for_site"] = true
-	return b
+	return ContractTwists.apply(b, tier)
 
 
 ## Puts a brief on a real plot (see generate_on_site); the brief unchanged if the plot
@@ -255,7 +269,8 @@ static func board(seed: int, tier: int, n: int = 5, done: Array = []) -> Array:
 			out.append(b)
 	var i := 0
 	while out.size() < n:
-		out.append(generate_on_site(seed * 31 + i, "", tier) if i % 2 == 1 else generate(seed * 31 + i, "", tier))
+		var b := generate_on_site(seed * 31 + i, "", tier) if i % 2 == 1 else generate(seed * 31 + i, "", tier)
+		out.append(ContractTwists.apply(b, tier))
 		i += 1
 	return out
 

@@ -121,6 +121,14 @@ static func check(req: Dictionary, ctx: Dictionary) -> Dictionary:
 			_foundations(model, out)
 		"within_plot":
 			_within_plot(ctx, out)
+		"raised_floor":
+			_raised_floor(model, v, out)
+		"boundary_gap":
+			_boundary_gap(ctx, v, out)
+		"column_free":
+			_column_free(model, out)
+		"foundation_type":
+			_foundation_type(model, PackedStringArray(req.get("allowed", [])), out)
 		"materials":
 			var allowed := PackedStringArray(req.get("allowed", []))
 			var wrong := {}
@@ -562,6 +570,113 @@ static func _poly(outline: Array) -> PackedVector2Array:
 static func _few(names: Array) -> String:
 	var s := ", ".join(PackedStringArray(names.slice(0, 3)))
 	return s + (" and %d more" % (names.size() - 3) if names.size() > 3 else "")
+
+
+## Every ground-floor room stands on a slab at least `height` above the ground, and none of
+## them is a bedroom.
+static func _raised_floor(model: BuildingModel, height: float, out: Dictionary) -> void:
+	var rids := model.rooms_on(0)
+	if rids.is_empty():
+		out.detail = "No ground-floor rooms yet."
+		out.tip = "Paint the rooms first."
+		return
+	var slabs: Array = []
+	for pid in model.parts_of_family("slab"):
+		if model.level_of(pid) == 0 and model.parts[pid].get("outline") is Array:
+			slabs.append([_poly(model.parts[pid].outline), float(model.parts[pid].get("y", 0.0))])
+	var low: Array = []
+	var beds: Array = []
+	for rid in BuildingModel.sort_ids(rids):
+		var c := _centre(model.rooms[rid].outline)
+		var top := -INF
+		for sl: Array in slabs:
+			if Geometry2D.is_point_in_polygon(c, sl[0]):
+				top = maxf(top, float(sl[1]))
+		if top < height - 0.01:
+			low.append(_room_name(model, rid))
+		if str(model.rooms[rid].type) in ["bedroom", "hotel_bedroom"]:
+			beds.append(_room_name(model, rid))
+	var bad := {}
+	for r: String in low + beds:
+		bad[r] = true
+	var words := PackedStringArray()
+	if not low.is_empty():
+		words.append("too low: %s" % _few(low))
+	if not beds.is_empty():
+		words.append("bedrooms on the ground floor: %s" % _few(beds))
+	_count(out, rids.size() - bad.size(), rids.size(),
+			"The ground floor is raised clear of floods." if bad.is_empty() else "; ".join(words).capitalize() + ".",
+			"Raise the ground-floor slab to %s m (select it and lift it) and move the bedrooms upstairs." % ContractBrief._num(height))
+
+
+## Every part and room point is at least `gap` inside the plot boundary.
+static func _boundary_gap(ctx: Dictionary, gap: float, out: Dictionary) -> void:
+	var model: BuildingModel = ctx.model
+	var site: Variant = (ctx.brief as Dictionary).get("site")
+	var plot: Array = (site as Dictionary).get("plot", []) if site is Dictionary else []
+	if plot.size() < 3:
+		out.ok = true
+		out.progress = 1.0
+		out.detail = "This site has no boundary."
+		return
+	var poly := _poly(plot)
+	var close: Array = []
+	var n := 0
+	for pid in BuildingModel.sort_ids(model.parts.keys()):
+		n += 1
+		for p in model.points_of(pid):
+			var q := Vector2(p.x, p.z)
+			if not Geometry2D.is_point_in_polygon(q, poly) or _near_outline(q, poly, gap - 0.01):
+				close.append(pid)
+				break
+	for rid in BuildingModel.sort_ids(model.rooms.keys()):
+		n += 1
+		for p: Array in model.rooms[rid].outline:
+			var q := Vector2(float(p[0]), float(p[1]))
+			if not Geometry2D.is_point_in_polygon(q, poly) or _near_outline(q, poly, gap - 0.01):
+				close.append(rid)
+				break
+	_count(out, n - close.size(), n, "Everything keeps %s m from the boundary." % ContractBrief._num(gap) if close.is_empty()
+			else "%d things are within %s m of the boundary." % [close.size(), ContractBrief._num(gap)],
+			"Pull the building back from the orange line; the neighbours need the gap.")
+
+
+## No column stands inside a ground-floor room (on its edges, in the walls, is fine).
+static func _column_free(model: BuildingModel, out: Dictionary) -> void:
+	var rids := model.rooms_on(0)
+	var hit := {}
+	for pid in model.parts_on(0):
+		if model.catalog.family_of(str(model.parts[pid].kind)) != "column":
+			continue
+		var at: Array = model.parts[pid].at
+		var c := Vector2(float(at[0]), float(at[2]))
+		for rid in rids:
+			var poly := _poly(model.rooms[rid].outline)
+			if Geometry2D.is_point_in_polygon(c, poly) and not _near_outline(c, poly, 0.4):
+				hit[_room_name(model, rid)] = true
+	var n := maxi(rids.size(), 1)
+	_count(out, n - hit.size(), n, "No columns inside the ground-floor rooms." if hit.is_empty()
+			else "Columns stand inside %s." % _few(hit.keys()),
+			"Move the columns into the walls, or span the floor with deeper beams or trusses.")
+
+
+## Every foundation is one of the allowed kinds, and there is at least one.
+static func _foundation_type(model: BuildingModel, allowed: PackedStringArray, out: Dictionary) -> void:
+	var wrong := 0
+	var n := 0
+	for pid in model.parts_of_family("foundation"):
+		n += 1
+		if not str(model.parts[pid].kind) in allowed:
+			wrong += 1
+	var words := PackedStringArray()
+	for k in allowed:
+		words.append(str(model.catalog.kind(k).get("label", k)).to_lower() + "s")
+	if n == 0:
+		out.detail = "No foundations yet."
+		out.tip = "Use %s." % " or ".join(words)
+		return
+	_count(out, n - wrong, n, "The foundations are all %s." % " or ".join(words) if wrong == 0
+			else "%d foundations are the wrong kind here." % wrong, "Replace them with %s." % " or ".join(words))
 
 
 static func _within_plot(ctx: Dictionary, out: Dictionary) -> void:

@@ -395,6 +395,7 @@ func _apply_accept(p: Dictionary) -> void:
 
 func _apply_handover(p: Dictionary) -> void:
 	var s: Dictionary = (p.get("settlement", {}) as Dictionary).duplicate(true)
+	s["brief"] = active.duplicate(true)
 	var before := career.tier()
 	s["unlocked"] = Array(career.record(s))
 	s["tier_up"] = career.tier() if career.tier() > before else 0

@@ -16,6 +16,7 @@ flags = {
 "contracts": true,
 "contracts.panel": true,
 "contracts.board": true,
+"contracts.twists": true,
 "design": true,
 "design.room": true,
 "design.hall": true,

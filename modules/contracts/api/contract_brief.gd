@@ -132,6 +132,17 @@ static func describe(req: Dictionary, catalog: BuildingCatalog = null) -> String
 			return "A roof over every room and walls round it"
 		"foundations":
 			return "Foundations under every ground-floor wall and column"
+		"raised_floor":
+			return "Ground floor at least %s m above the ground, no bedrooms on it" % _num(v)
+		"boundary_gap":
+			return "Nothing within %s m of the boundary" % _num(v)
+		"column_free":
+			return "No columns inside the ground-floor rooms"
+		"foundation_type":
+			var ws := PackedStringArray()
+			for k: Variant in req.get("allowed", []):
+				ws.append(str(cat.kind(str(k)).get("label", k)).to_lower() + "s")
+			return "Foundations of %s only" % " or ".join(ws)
 		"materials":
 			return "Structure in %s" % material_list(PackedStringArray(req.get("allowed", [])))
 		"budget":
