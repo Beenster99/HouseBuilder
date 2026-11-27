@@ -27,6 +27,14 @@ const EXIT_DOORS: PackedStringArray = ["door_external", "door_double", "door_fir
 ## Rooms that count as a way out on their own floor.
 const EXIT_ROOMS: PackedStringArray = ["fire_exit", "stair_core"]
 ## Rooms the exit distance rule does not apply to (they are the way out).
+## A room edge counts as walled within this distance of a wall's centre line, m.
+const WALL_SNAP := 0.5
+## The share of a room's edges that must be walled (or shared with another room).
+const ENCLOSED_SHARE := 0.9
+## A wall or column counts as on a foundation within this distance of it, m.
+const FOOTING_SNAP := 0.6
+## Grid square for the weathertight check's lookups, m.
+const GRID_CELL := 4.0
 const CIRCULATION: PackedStringArray = ["corridor", "hallway", "fire_exit", "stair_core", "lift_shaft"]
 
 
@@ -107,6 +115,10 @@ static func check(req: Dictionary, ctx: Dictionary) -> Dictionary:
 			for rid in model.rooms_on(0):
 				foot += BuildingModel.outline_area(model.rooms[rid].outline)
 			_limit(out, foot, v, "The ground floor has %.0f m2 of rooms." % foot, "Move some rooms upstairs.")
+		"weathertight":
+			_weathertight(model, out)
+		"foundations":
+			_foundations(model, out)
 		"within_plot":
 			_within_plot(ctx, out)
 		"materials":
@@ -325,6 +337,230 @@ static func _exits(req: Dictionary, model: BuildingModel, cat: BuildingCatalog, 
 	_count(out, rooms.size() - far.size(), rooms.size(),
 			"Every room is within %.0f m of a way out." % limit if far.is_empty() else "%d rooms are too far from a way out: %s." % [far.size(), ", ".join(PackedStringArray(far.slice(0, 4)))],
 			"Add a fire door in the nearest outside wall, or a fire exit or stair on that floor.")
+
+
+## Every room has a roof (or the floor of a storey above) over it, and walls along every
+## edge that faces outside. An edge faces inside when just beyond it is another room, or
+## floor of the same storey with a roof or floor above. Openings sit in walls, so doors and
+## windows count as wall.
+static func _weathertight(model: BuildingModel, out: Dictionary) -> void:
+	var rids := BuildingModel.sort_ids(model.rooms.keys())
+	if rids.is_empty():
+		out.detail = "No rooms yet."
+		out.tip = "Paint the rooms, then put walls round them and a roof over them."
+		return
+	# Everything goes in a grid of GRID_CELL squares per level, so each sample looks only at
+	# what is near it (a terminal has hundreds of rooms and thousands of walls).
+	var covers := {}  # cell -> [[level, outline, is roof], ...]: roofs and slabs
+	var floors := {}  # cell -> [outline, ...]: slabs and rafts
+	var top := 0
+	for fam: String in ["roof", "slab", "foundation"]:
+		for pid in model.parts_of_family(fam):
+			var e: Dictionary = model.parts[pid]
+			if not e.get("outline") is Array or (e.outline as Array).size() < 3:
+				continue
+			var lv := model.level_of(pid)
+			top = maxi(top, lv)
+			var poly := _poly(e.outline)
+			if fam != "foundation":
+				_grid_add(covers, lv, poly, [lv, poly, fam == "roof"])
+			if fam != "roof":
+				_grid_add(floors, lv, poly, poly)
+	var under_cover := func(sp: Vector2, lv: int) -> bool:
+		for clv in range(lv, top + 1):
+			for cv: Array in covers.get(_cell(clv, sp), []):
+				if (int(cv[0]) > lv or bool(cv[2])) and Geometry2D.is_point_in_polygon(sp, cv[1]):
+					return true
+		return false
+	var walls := {}  # cell -> [[a, b], ...]
+	for pid in model.parts_of_family("wall"):
+		var e: Dictionary = model.parts[pid]
+		var a := Vector2(float(e.a[0]), float(e.a[2]))
+		var b := Vector2(float(e.b[0]), float(e.b[2]))
+		_grid_add(walls, model.level_of(pid), PackedVector2Array([a, b]), [a, b], WALL_SNAP)
+	var polys := {}
+	var room_grid := {}  # cell -> [rid, ...]
+	for rid: String in rids:
+		polys[rid] = _poly(model.rooms[rid].outline)
+		_grid_add(room_grid, int(model.rooms[rid].level), polys[rid], rid)
+	var open_roof: Array = []
+	var open_walls: Array = []
+	for rid: String in rids:
+		var lv := int(model.rooms[rid].level)
+		var poly: PackedVector2Array = polys[rid]
+		# Roof: the room's centre and points near each corner must be under a cover.
+		var c := _centre(model.rooms[rid].outline)
+		var samples: Array = [c]
+		for q in poly:
+			samples.append(c.lerp(q, 0.8))
+		var covered := 0
+		for sp: Vector2 in samples:
+			if under_cover.call(sp, lv):
+				covered += 1
+		if covered < samples.size():
+			open_roof.append(_room_name(model, rid))
+		# Walls: sample each edge every half metre; a sample is fine next to a wall, or where
+		# just beyond it is another room or covered floor of the same storey.
+		var ok := 0
+		var n := 0
+		for i in poly.size():
+			var a := poly[i]
+			var b := poly[(i + 1) % poly.size()]
+			var length := a.distance_to(b)
+			if length < 0.01:
+				continue
+			var outward := (b - a).normalized().orthogonal()
+			if Geometry2D.is_point_in_polygon((a + b) * 0.5 + outward * 0.05, poly):
+				outward = -outward
+			var steps := maxi(1, ceili(length / 0.5))
+			for k in steps:
+				var p := a.lerp(b, (k + 0.5) / steps)
+				n += 1
+				var good := false
+				for w: Array in walls.get(_cell(lv, p), []):
+					if p.distance_to(Geometry2D.get_closest_point_to_segment(p, w[0], w[1])) <= WALL_SNAP:
+						good = true
+						break
+				var beyond := p + outward * 0.3
+				if not good:
+					for other: String in room_grid.get(_cell(lv, beyond), []):
+						if other != rid and Geometry2D.is_point_in_polygon(beyond, polys[other]):
+							good = true
+							break
+				if not good:
+					for f: PackedVector2Array in floors.get(_cell(lv, beyond), []):
+						if Geometry2D.is_point_in_polygon(beyond, f) and under_cover.call(beyond, lv):
+							good = true
+							break
+				if good:
+					ok += 1
+		if n > 0 and float(ok) / n < ENCLOSED_SHARE:
+			open_walls.append(_room_name(model, rid))
+	var bad := {}
+	for r: String in open_roof + open_walls:
+		bad[r] = true
+	var parts := PackedStringArray()
+	if not open_roof.is_empty():
+		parts.append("No roof over %s" % _few(open_roof))
+	if not open_walls.is_empty():
+		parts.append("open to the weather on one side or more: %s" % _few(open_walls))
+	_count(out, rids.size() - bad.size(), rids.size(),
+			"Every room has a roof over it and walls round it." if bad.is_empty() else "; ".join(parts) + ".",
+			"Draw a roof (flat or pitched) over the top floor, a floor slab over each lower one, and outside walls along every open edge."
+			if not open_roof.is_empty() else "Draw walls along the open edges; doors and windows go in walls.")
+
+
+## Every load-bearing wall and column on the ground floor stands on a foundation: a strip
+## footing along a wall, a pad or pile under a column, or a raft under either.
+static func _foundations(model: BuildingModel, out: Dictionary) -> void:
+	var cat := model.catalog
+	var strips: Array = []
+	var points: Array = []
+	var rafts: Array = []
+	for pid in model.parts_of_family("foundation"):
+		var e: Dictionary = model.parts[pid]
+		match cat.shape_of(str(e.kind)):
+			"line":
+				strips.append([Vector2(float(e.a[0]), float(e.a[2])), Vector2(float(e.b[0]), float(e.b[2]))])
+			"point":
+				points.append(Vector2(float(e.at[0]), float(e.at[2])))
+			"area":
+				if e.get("outline") is Array and (e.outline as Array).size() >= 3:
+					rafts.append(_poly(e.outline))
+	var on_raft := func(p: Vector2) -> bool:
+		for r: PackedVector2Array in rafts:
+			if Geometry2D.is_point_in_polygon(p, r) or _near_outline(p, r, FOOTING_SNAP):
+				return true
+		return false
+	var carried := 0
+	var loads := 0
+	var bare: Array = []
+	for pid in BuildingModel.sort_ids(model.parts_on(0)):
+		var e: Dictionary = model.parts[pid]
+		var fam := cat.family_of(str(e.kind))
+		if not bool(cat.kind(str(e.kind)).get("structural", false)):
+			continue
+		if fam == "wall":
+			loads += 1
+			var a := Vector2(float(e.a[0]), float(e.a[2]))
+			var b := Vector2(float(e.b[0]), float(e.b[2]))
+			var steps := maxi(1, ceili(a.distance_to(b) / 0.5))
+			var ok := 0
+			for k in steps:
+				var p := a.lerp(b, (k + 0.5) / steps)
+				var good: bool = on_raft.call(p)
+				if not good:
+					for st: Array in strips:
+						if p.distance_to(Geometry2D.get_closest_point_to_segment(p, st[0], st[1])) <= FOOTING_SNAP:
+							good = true
+							break
+				if good:
+					ok += 1
+			if float(ok) / steps >= ENCLOSED_SHARE:
+				carried += 1
+			else:
+				bare.append(pid)
+		elif fam == "column":
+			loads += 1
+			var c := Vector2(float(e.at[0]), float(e.at[2]))
+			var good: bool = on_raft.call(c)
+			for q: Vector2 in points:
+				if c.distance_to(q) <= FOOTING_SNAP:
+					good = true
+			if good:
+				carried += 1
+			else:
+				bare.append(pid)
+	if loads == 0:
+		var any := not (strips.is_empty() and points.is_empty() and rafts.is_empty())
+		out.ok = any and not model.rooms.is_empty()
+		out.progress = 1.0 if out.ok else 0.0
+		out.detail = "Foundations are in." if out.ok else "No foundations yet."
+		out.tip = "" if out.ok else "Put strip footings under the ground-floor walls, pads under columns, or a raft under the whole building."
+		return
+	_count(out, carried, loads,
+			"Every ground-floor wall and column stands on a foundation." if bare.is_empty() else "%d ground-floor walls or columns have nothing under them." % bare.size(),
+			"Put strip footings under the ground-floor walls, pads or piles under columns, or a raft under the whole building.")
+
+
+static func _near_outline(p: Vector2, poly: PackedVector2Array, d: float) -> bool:
+	for i in poly.size():
+		if p.distance_to(Geometry2D.get_closest_point_to_segment(p, poly[i], poly[(i + 1) % poly.size()])) <= d:
+			return true
+	return false
+
+
+static func _cell(lv: int, p: Vector2) -> Vector3i:
+	return Vector3i(lv, floori(p.x / GRID_CELL), floori(p.y / GRID_CELL))
+
+
+## Puts item in every grid cell its points' bounding box (grown by margin) touches.
+static func _grid_add(grid: Dictionary, lv: int, pts: PackedVector2Array, item: Variant, margin: float = 0.0) -> void:
+	var lo := Vector2(INF, INF)
+	var hi := Vector2(-INF, -INF)
+	for q in pts:
+		lo = lo.min(q)
+		hi = hi.max(q)
+	lo -= Vector2(margin, margin)
+	hi += Vector2(margin, margin)
+	for x in range(floori(lo.x / GRID_CELL), floori(hi.x / GRID_CELL) + 1):
+		for z in range(floori(lo.y / GRID_CELL), floori(hi.y / GRID_CELL) + 1):
+			var key := Vector3i(lv, x, z)
+			if not grid.has(key):
+				grid[key] = []
+			(grid[key] as Array).append(item)
+
+
+static func _poly(outline: Array) -> PackedVector2Array:
+	var out := PackedVector2Array()
+	for p: Variant in outline:
+		out.append(Vector2(float(p[0]), float(p[1])))
+	return out
+
+
+static func _few(names: Array) -> String:
+	var s := ", ".join(PackedStringArray(names.slice(0, 3)))
+	return s + (" and %d more" % (names.size() - 3) if names.size() > 3 else "")
 
 
 static func _within_plot(ctx: Dictionary, out: Dictionary) -> void:

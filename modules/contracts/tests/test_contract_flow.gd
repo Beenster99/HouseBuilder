@@ -262,13 +262,13 @@ func _panel() -> void:
 	var model := Kit.house()
 	var panel: RichTextLabel = (design.panels[ContractsBus.PANEL_ID].make as Callable).call(model)
 	add_child(panel)
-	check("Requirements 10 / 10" in panel.text and "Three-bedroom" in panel.text, "it shows the brief and how the design measures up")
+	check("Requirements 12 / 12" in panel.text and "Three-bedroom" in panel.text, "it shows the brief and how the design measures up")
 	check("Plot: 24 x 20 m" in panel.text and "Structure: timber" in panel.text and "bedrooms, 7.5 m2+" in panel.text, "with the plot, the room sizes and the materials")
 	for rid: String in model.rooms.keys():
 		if str(model.rooms[rid].type) == "garage":
 			model.apply(C.retag(rid, "store_room"))
 	await get_tree().create_timer(0.4).timeout
-	check("Requirements 9 / 10" in panel.text and "garage" in panel.text.to_lower(), "an edit refreshes it a moment later")
+	check("Requirements 11 / 12" in panel.text and "garage" in panel.text.to_lower(), "an edit refreshes it a moment later")
 	bus.abandon()
 	check(not design.panels.has(ContractsBus.PANEL_ID), "abandoning the contract takes the window away")
 	panel.queue_free()

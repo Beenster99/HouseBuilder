@@ -22,7 +22,7 @@ func _house() -> void:
 	var a := ContractValidator.assess(brief, m)
 	check(a.ok, "the test house meets the house brief: %s" % a.summary)
 	check(a.cost < 180000.0 and a.cost > 100000.0, "and comes in under its 180k budget (%s)" % ContractValidator.money(a.cost))
-	check(a.passed == a.total and a.total == 10, "all 10 requirements pass")
+	check(a.passed == a.total and a.total == 12, "all 12 requirements pass, the roof, walls and foundations included")
 	var timber_only := brief.duplicate(true)
 	for r: Dictionary in timber_only.requirements:
 		if str(r.kind) == "materials":
@@ -40,8 +40,32 @@ func _house() -> void:
 	check(not a.ok and not item.ok and is_equal_approx(item.progress, 2.0 / 3.0), "two bedrooms of three: two thirds done")
 	check("1 more bedroom to paint" in str(item.detail), "it says one more bedroom is needed: %s" % item.detail)
 	check(_item(a, "study").ok and _item(a, "study").bonus > 0.0, "and the new study earns its bonus goal")
-	check(a.summary.begins_with("9 of 10 requirements met"), "the summary leads with what is left: %s" % a.summary)
+	check(a.summary.begins_with("11 of 12 requirements met"), "the summary leads with what is left: %s" % a.summary)
 	m.apply(C.retag(bed, "bedroom"))
+	# Every brief needs a roof, an enclosed envelope and foundations.
+	var bare := Kit.house()
+	for pid: String in bare.parts.keys():
+		if bare.catalog.family_of(str(bare.parts[pid].kind)) == "roof":
+			bare.apply(C.delete([pid]))
+	var wt := _item(ContractValidator.assess(brief, bare), "weathertight")
+	check(not wt.ok and "No roof over" in str(wt.detail) and "roof" in str(wt.tip), "a building with no roof is never finished: %s" % wt.detail)
+	var open := Kit.house()
+	var side := ""
+	for pid: String in open.parts_on(0):
+		var e: Dictionary = open.parts[pid]
+		if open.catalog.family_of(str(e.kind)) == "wall" and float(e.a[2]) == 8.0 and float(e.b[2]) == 8.0:
+			side = pid
+	open.apply(C.delete([side]))
+	wt = _item(ContractValidator.assess(brief, open), "weathertight")
+	check(not wt.ok and "open to the weather" in str(wt.detail), "nor one with a side wall missing: %s" % wt.detail)
+	var floating := Kit.house()
+	for pid: String in floating.parts.keys():
+		if floating.catalog.family_of(str(floating.parts[pid].kind)) == "foundation":
+			floating.apply(C.delete([pid]))
+	var fd := _item(ContractValidator.assess(brief, floating), "foundations")
+	check(not fd.ok and "nothing under them" in str(fd.detail) and "raft" in str(fd.tip), "nor one with no foundations: %s" % fd.detail)
+	floating.apply(C.place_part("raft", 0, {"outline": C.rect(0, 0, 10, 8)}, "concrete"))
+	check(_item(ContractValidator.assess(brief, floating), "foundations").ok, "a raft under it is enough")
 	# A third storey breaks the height rule.
 	m.apply(C.add_level(3.0))
 	m.apply(C.place_room("bedroom", 2, C.rect(0, 0, 3, 3)))

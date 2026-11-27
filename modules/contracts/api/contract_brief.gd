@@ -49,6 +49,14 @@ static func authored_brief(brief_id: String) -> Dictionary:
 
 
 ## A brief with every field present and numbers as numbers ({} if it is not a brief).
+## Requirements every brief has, added by normalize() where a brief leaves them out: a
+## building with no roof, open sides or no foundations is never finished.
+const BASE_REQUIREMENTS := [
+	{"id": "weathertight", "kind": "weathertight"},
+	{"id": "foundations", "kind": "foundations"},
+]
+
+
 static func normalize(brief: Variant) -> Dictionary:
 	if not brief is Dictionary or str((brief as Dictionary).get("id", "")) == "":
 		return {}
@@ -75,6 +83,17 @@ static func normalize(brief: Variant) -> Dictionary:
 				if str(req.get("id", "")) == "":
 					req["id"] = "%s%d" % [key.left(1), n]
 				out[key].append(req)
+	# Every building needs these, whatever the brief says.
+	var reqs: Array = out.requirements
+	var at := reqs.size()
+	for i in reqs.size():
+		if str(reqs[i].kind) == "budget":
+			at = i
+			break
+	for base: Dictionary in BASE_REQUIREMENTS:
+		if not reqs.any(func(r: Dictionary) -> bool: return str(r.kind) == str(base.kind)):
+			reqs.insert(at, base.duplicate())
+			at += 1
 	return out
 
 
@@ -109,6 +128,10 @@ static func describe(req: Dictionary, catalog: BuildingCatalog = null) -> String
 			return "A ground floor of no more than %s m2" % _num(v)
 		"within_plot":
 			return "Keep inside the plot boundary"
+		"weathertight":
+			return "A roof over every room and walls round it"
+		"foundations":
+			return "Foundations under every ground-floor wall and column"
 		"materials":
 			return "Structure in %s" % material_list(PackedStringArray(req.get("allowed", [])))
 		"budget":

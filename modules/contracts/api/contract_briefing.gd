@@ -273,7 +273,7 @@ static func _judging_lines(brief: Dictionary, cat: BuildingCatalog) -> PackedStr
 	var out := PackedStringArray()
 	out.append("At handover the client checks every one of these. All must pass, or no fee is paid and no XP is earned:")
 	var n := 0
-	for r: Dictionary in brief.get("requirements", []):
+	for r: Dictionary in ContractBrief.normalize(brief).get("requirements", []):
 		n += 1
 		out.append("%d. %s" % [n, ContractBrief.describe(r, cat)])
 	out.append("Each bonus goal met adds its bonus to the fee and to the XP.")

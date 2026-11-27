@@ -67,7 +67,7 @@ static func house() -> BuildingModel:
 	var m := BuildingModel.new("", "Test house")
 	shell(m, 10.0, 8.0, 2, [
 		[0, "living_room", 0, 0, 5, 5], [0, "kitchen", 5, 0, 5, 4], [0, "hallway", 5, 4, 2, 4],
-		[0, "garage", 0, 5, 5, 3.5], [0, "wc_room", 7, 4, 1.5, 1.5], [0, "utility", 7, 5.5, 3, 2.5],
+		[0, "garage", 0, 5, 5, 3], [0, "wc_room", 7, 4, 1.5, 1.5], [0, "utility", 7, 5.5, 3, 2.5],
 		[1, "bedroom", 0, 0, 4, 4], [1, "bedroom", 4, 0, 3.5, 3.5], [1, "bedroom", 0, 4, 3.5, 3],
 		[1, "bathroom", 7.5, 0, 2.5, 2.5], [1, "bathroom", 4, 4, 2.5, 2], [1, "hallway", 6.5, 3.5, 3.5, 2],
 	], {"windows": 2})
