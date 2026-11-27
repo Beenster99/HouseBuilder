@@ -1,7 +1,8 @@
 extends VBoxContainer
 ## The M&E view's panel in the design room: the consultant's verdict, each system's length
 ## and cost, what is wrong and why, and buttons to route the services (placing the plant,
-## fixtures and every run) or ask whether the design is feasible.
+## fixtures and every run) or ask whether the design is feasible, and a switch for the 3D
+## Service runs layer with each system's colour.
 
 const WIDTH := 320
 
@@ -10,6 +11,7 @@ var _summary: Label
 var _systems: Label
 var _notes: Label
 var _said: Label
+var _runs: CheckBox
 
 
 func _init() -> void:
@@ -30,6 +32,19 @@ func _init() -> void:
 	var check := BsxTheme.button("Check feasibility", func() -> void: _bus.review_feasibility())
 	check.custom_minimum_size = Vector2(150, 30)
 	row.add_child(check)
+	_runs = CheckBox.new()
+	_runs.text = "Show runs in 3D"
+	_runs.toggled.connect(func(on: bool) -> void: _bus.set_runs(on))
+	add_child(_runs)
+	var key := HFlowContainer.new()
+	key.add_theme_constant_override("h_separation", 8)
+	for s: String in ServicesRates.SYSTEMS:
+		var l := Label.new()
+		l.text = "■ " + ServicesRates.label(s)
+		l.add_theme_font_size_override("font_size", 11)
+		l.add_theme_color_override("font_color", ServicesRates.colour(s))
+		key.add_child(l)
+	add_child(key)
 	_said = _wrap_label()
 	add_child(_said)
 
@@ -44,6 +59,9 @@ func bind(bus: Node) -> void:
 	bus.report_changed.connect(_show)
 	bus.design_done.connect(func(notes: PackedStringArray) -> void: _said.text = "\n".join(notes))
 	bus.review_done.connect(_show_review)
+	if bus.has_signal("runs_changed"):
+		_runs.set_pressed_no_signal(bool(bus.runs_on))
+		bus.runs_changed.connect(func() -> void: _runs.set_pressed_no_signal(bool(bus.runs_on)))
 	_show(bus.last_report())
 	if not bus.last_review().is_empty():
 		_show_review(bus.last_review())

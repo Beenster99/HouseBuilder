@@ -36,6 +36,10 @@ const RUN_KINDS := {"power": "cable_power", "lighting": "cable_lighting", "cold_
 	"hot_water": "pipe_hot", "heating": "pipe_heating", "waste": "pipe_waste"}
 const FITTINGS := {"power": "socket_double", "lighting": "light_point", "heating": "radiator"}
 ## Parts the consultant added carry this name, so the next Route services replaces them.
+## Each system's colour in the runs layer and the M&E panel's key (the usual trade colours:
+## power red, lighting yellow, cold blue, hot orange, heating purple, waste grey).
+const COLOURS := {"power": Color(0.9, 0.2, 0.2), "lighting": Color(0.98, 0.8, 0.15), "cold_water": Color(0.2, 0.55, 1.0),
+	"hot_water": Color(1.0, 0.5, 0.1), "heating": Color(0.7, 0.35, 0.9), "waste": Color(0.5, 0.5, 0.52)}
 const ADDED_NAME := "M&E"
 ## Room types with no radiator.
 const UNHEATED: PackedStringArray = ["store_room", "lift_shaft", "plant_room", "garage", "vehicle_bay",
@@ -100,3 +104,7 @@ static func is_system(system: String) -> bool:
 
 static func is_wet_room(room_type: String) -> bool:
 	return WET_ROOMS.has(room_type)
+
+
+static func colour(system: String) -> Color:
+	return COLOURS.get(system, Color.WHITE)

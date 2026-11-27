@@ -61,6 +61,13 @@ for everyone and each player's verdict is redone on a worker thread (`review_don
 "Feasibility" window (`design.register_panel`, order 15) with a tick or cross per area:
 structure, services, brief, cost.
 
+**Service runs** (flag `services.runs_layer`, on): a 3D layer (`design.register_layer`, in
+the designer's Layers menu, and "Show runs in 3D" in the M&E panel) draws every route of the
+last report as a thin tube in its system's colour (`ServicesRates.COLOURS`: power red,
+lighting yellow, cold blue, hot orange, heating purple, waste grey), a dot at each point fed
+and a block at each plant unit, over a see-through building. It is a view, so each player
+turns it on for themselves; pressing Route services turns it on.
+
 In the design room (flag `services.consultant`, on): "Route services" and "Check
 feasibility" on the top bar, and an "M&E" view that tints rooms green (served) or red (missing
 something), source units blue, with a side panel of the summary, per-system length and cost,

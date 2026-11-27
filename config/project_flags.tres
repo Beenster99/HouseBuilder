@@ -38,6 +38,7 @@ flags = {
 "services": true,
 "services.consultant": true,
 "services.live": true,
+"services.runs_layer": true,
 "ui.debug_tab": true,
 "ui.pencil": true,
 "ui.sun_slider": false,

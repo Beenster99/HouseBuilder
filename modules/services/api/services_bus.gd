@@ -25,6 +25,8 @@ signal routing_started
 signal design_done(notes: PackedStringArray)
 ## A feasibility review finished (FeasibilityReview), on the player who asked.
 signal review_done(review: Dictionary)
+## This player's Service runs layer was turned on or off (runs_on).
+signal runs_changed
 
 ## A player asks the host to route; the host routes on a worker thread and broadcasts the
 ## result as EVENT_REPORT, so nobody's frame waits on the routing.
@@ -42,6 +44,10 @@ const LIVE_FLAG := "services.live"
 const PANEL_SCRIPT := "res://modules/services/internal/services_panel.gd"
 const FEASIBILITY_PANEL := "services.feasibility"
 const FEASIBILITY_SCRIPT := "res://modules/services/internal/feasibility_panel.gd"
+## "Service runs" in the design room's Layers: every route drawn in 3D in its system's colour.
+const RUNS_FLAG := "services.runs_layer"
+const RUNS_LAYER := "services.runs"
+const RUNS_SCRIPT := "res://modules/services/internal/runs_view.gd"
 
 ## system -> {level, at: [x, z]}: sources the players placed (see ServicesConsultant).
 var sources: Dictionary = {}
@@ -55,6 +61,8 @@ var _watched: BuildingModel
 var _review: Dictionary = {}
 var _design: Node
 var _report: ServicesReport
+## True while this player's Service runs layer is on. A view, so each player has their own.
+var runs_on := false
 
 
 func register_module() -> void:
@@ -171,6 +179,8 @@ func unregister_module() -> void:
 		_design.unregister_overlay(OVERLAY)
 		if _design.has_method("unregister_panel"):
 			_design.unregister_panel(FEASIBILITY_PANEL)
+		if _design.has_method("unregister_layer"):
+			_design.unregister_layer(RUNS_LAYER)
 	_design = null
 	if _net:
 		_net.unregister_event(EVENT_ROUTE)
@@ -209,6 +219,29 @@ func _hook_design() -> void:
 		report_changed.connect(func(_r: ServicesReport) -> void: design.refresh_overlay(OVERLAY))
 	if design.has_method("register_panel") and Flags.is_on(LIVE_FLAG):
 		design.register_panel(FEASIBILITY_PANEL, "Feasibility", make_feasibility_panel, 15)
+	if design.has_method("register_layer") and Flags.is_on(RUNS_FLAG):
+		design.register_layer(RUNS_LAYER, "Service runs", make_runs_layer, toggle_runs,
+				func() -> bool: return runs_on, 50)
+
+
+## Shows or hides this player's Service runs layer.
+func set_runs(on: bool) -> void:
+	if on == runs_on:
+		return
+	runs_on = on
+	runs_changed.emit()
+
+
+func toggle_runs() -> void:
+	set_runs(not runs_on)
+
+
+## A Node3D drawing every route of the last report in building coordinates, in each system's
+## colour; it follows every report and hides itself while the layer is off.
+func make_runs_layer(_model: BuildingModel = null) -> Node3D:
+	var view: Node3D = load(RUNS_SCRIPT).new()
+	view.call("bind", self)
+	return view
 
 
 ## The M&E view's colours: rooms green when fully served, red when something is missing;
@@ -296,6 +329,8 @@ func _finish_design(plan: Dictionary) -> void:
 ## The M&E button: the consultant places what is missing and adds every run (design_services),
 ## then the host routes and reports. One shared edit, one undo step.
 func route_services() -> void:
+	if Flags.is_on(RUNS_FLAG):
+		set_runs(true)
 	design_services()
 
 
