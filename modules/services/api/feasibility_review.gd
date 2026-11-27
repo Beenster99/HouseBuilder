@@ -10,7 +10,8 @@ extends RefCounted
 ##   r.feasible           # true when nothing blocks it
 ##   r.summary            # "Feasible: it stands up, is powered and plumbed, and comes in at ..."
 ##   r.issues             # [{area, text, tip}] worst first; area: structure | services | requirements | budget
-##   r.areas              # {structure: {ok, summary}, services: {...}, requirements: {...}, budget: {...}}
+##   r.areas              # {structure: {ok, summary, worst, failing}, services: {ok, summary, served, total},
+##                        #  requirements: {ok, summary, passed, total}, budget: {ok, summary}}
 ##   r.cost               # {build, services, total, budget, currency}
 ##   r.fixes              # {structure?: {possible, added, upsized, cost, notes}, services?: {...}}
 ##   r.fixable            # Design structure and Design services would make it feasible
@@ -36,7 +37,8 @@ static func review(model: BuildingModel, brief: Dictionary = {}, sources: Dictio
 	var st := StructureBuilding.stress_test(model)
 	out["structure"] = st
 	var st_ok := st.passed()
-	out.areas["structure"] = {"ok": st_ok, "summary": st.summary}
+	out.areas["structure"] = {"ok": st_ok, "summary": st.summary, "worst": snappedf(st.worst_utilisation(), 0.001),
+		"failing": st.failed_parts().size()}
 	if not st_ok:
 		var lines := Array(st.notes)
 		if lines.is_empty():
@@ -49,7 +51,8 @@ static func review(model: BuildingModel, brief: Dictionary = {}, sources: Dictio
 	var sv := ServicesConsultant.route(model, sources)
 	out["services"] = sv
 	var sv_ok := sv.passed()
-	out.areas["services"] = {"ok": sv_ok, "summary": sv.summary}
+	out.areas["services"] = {"ok": sv_ok, "summary": sv.summary, "served": sv.rooms.size() - sv.failures().size(),
+		"total": sv.rooms.size()}
 	if not sv_ok:
 		var n := 0
 		for rid: String in sv.failures():
@@ -84,7 +87,8 @@ static func review(model: BuildingModel, brief: Dictionary = {}, sources: Dictio
 			if n < MAX_ISSUES_PER_AREA:
 				issues.append({"area": "requirements", "text": "%s: %s" % [item.label, item.get("detail", "")], "tip": str(item.get("tip", ""))})
 			n += 1
-		out.areas["requirements"] = {"ok": req_ok, "summary": "%d of %d requirements met." % [int(a.passed), int(a.total)]}
+		out.areas["requirements"] = {"ok": req_ok, "summary": "%d of %d requirements met." % [int(a.passed), int(a.total)],
+			"passed": int(a.passed), "total": int(a.total)}
 		var budget := float(a.budget)
 		out.cost.budget = budget
 		if budget > 0.0:
