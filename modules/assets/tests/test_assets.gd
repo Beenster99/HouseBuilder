@@ -6,7 +6,7 @@ extends ModuleTest
 
 func run_tests() -> void:
 	var ids := AssetLibrary.ids()
-	check(ids.size() >= 900, "the manifest lists the library: %d assets" % ids.size())
+	check(ids.size() >= 1200, "the manifest lists the library: %d assets" % ids.size())
 	var catalog := BuildingCatalog.default_catalog()
 	for kind: String in catalog.kinds_in("opening") + catalog.kinds_in("fixture"):
 		check(AssetLibrary.id_for_kind(kind) != "", "catalog kind %s has an asset" % kind)

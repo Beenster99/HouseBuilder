@@ -250,7 +250,7 @@ def seesaw():
 def sandpit(w=3.0):
 	for a in range(4):
 		c, s = math.cos(a * math.pi / 2), math.sin(a * math.pi / 2)
-		kit.box((w if s == 0 else 0.15, w if c == 0 else 0.15, 0.3)[0:3] if False else ((0.15, w, 0.3) if abs(c) > 0.5 else (w, 0.15, 0.3)), (c * w / 2, s * w / 2, 0.15), "softwood", "edge")
+		kit.box(((0.15, w, 0.3) if abs(c) > 0.5 else (w, 0.15, 0.3)), (c * w / 2, s * w / 2, 0.15), "softwood", "edge")
 	kit.box((w - 0.1, w - 0.1, 0.2), (0, 0, 0.1), "render", "sand")
 
 

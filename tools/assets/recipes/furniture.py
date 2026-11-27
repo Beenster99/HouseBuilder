@@ -359,7 +359,7 @@ def home(what):
 	elif what == "dressing_table":
 		table(1.1, 0.45, 0.76, "paint_white", "paint_white")
 		kit.box((0.6, 0.02, 0.6), (0, -0.2, 1.1), "mirror", "mirror")
-		seat("stool") if False else kit.rounded_box((0.4, 0.3, 0.42), (0, 0.45, 0.21), "fabric_grey", "stool", radius=0.04)
+		kit.rounded_box((0.4, 0.3, 0.42), (0, 0.45, 0.21), "fabric_grey", "stool", radius=0.04)
 	elif what == "rug":
 		kit.box((2.0, 1.4, 0.012), (0, 0, 0.006), "carpet", "rug")
 	elif what == "floor_lamp":

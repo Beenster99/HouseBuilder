@@ -258,8 +258,7 @@ for _sp, _e in ((12, 4.0), (18, 6.0), (24, 6.0), (30, 8.0), (40, 10.0)):
 
 def purlin(what):
 	if what == "z":
-		kit.prism([(-0.06, -0.1), (-0.058, -0.1), (-0.058, 0.098), (0.06, 0.098), (0.06, 0.1), (-0.06, 0.1), (-0.06, -0.098), (-0.0, -0.098)][::-1] if False else
-			[(0.0, -0.1), (0.06, -0.1), (0.06, -0.098), (0.002, -0.098), (0.002, 0.1), (-0.06, 0.1), (-0.06, 0.098), (0.0, 0.098)], 1.0, slot="steel_galvanised", name="purlin")
+		kit.prism([(0.0, -0.1), (0.06, -0.1), (0.06, -0.098), (0.002, -0.098), (0.002, 0.1), (-0.06, 0.1), (-0.06, 0.098), (0.0, 0.098)], 1.0, slot="steel_galvanised", name="purlin")
 	elif what == "timber":
 		kit.box((0.075, 1.0, 0.2), (0, 0, 0), "softwood", "purlin")
 	elif what == "rafter":
@@ -290,7 +289,7 @@ def covering(what):
 					kit.cyl(0.03, 1.0 / n, (-0.375 + k * 0.25, y, 0.045), slot, "roll", axis="y", segs=8)
 			kit.box((1.0, 0.05, 0.025), (0, y + 0.1, 0.0125), "softwood", "batten")
 	elif what == "standing_seam":
-		kit.box((1.0, 1.0, 0.002), (0, 0, 0.001), "lead" if False else "aluminium", "sheet")
+		kit.box((1.0, 1.0, 0.002), (0, 0, 0.001), "aluminium", "sheet")
 		for x in (-0.4, 0.0, 0.4):
 			kit.box((0.004, 1.0, 0.025), (x, 0, 0.0135), "aluminium", "seam")
 	elif what == "felt":
@@ -348,7 +347,7 @@ def outlet():
 
 @asset("roof.rainwater.shoe", "Downpipe shoe", family="roof", tags=("roof", "rainwater"))
 def shoe():
-	kit.sweep(kit.arc((0, 0.05 + 0.08, 0.08), 0.08, 180, 270, 6, plane="yz") if False else [(0, 0.05, 0.25), (0, 0.05, 0.1), (0, 0.08, 0.05), (0, 0.15, 0.03)], kit.circle(0.034, 14), "plastic_black", "shoe", up=(1, 0, 0))
+	kit.sweep([(0, 0.05, 0.25), (0, 0.05, 0.1), (0, 0.08, 0.05), (0, 0.15, 0.03)], kit.circle(0.034, 14), "plastic_black", "shoe", up=(1, 0, 0))
 
 
 @asset("roof.rainwater.hopper", "Rainwater hopper head", family="roof", tags=("roof", "rainwater"))
@@ -385,7 +384,6 @@ for _n, _w, _h in (("550x980", 0.55, 0.98), ("780x1180", 0.78, 1.18), ("1140x118
 
 @asset("roof.rooflight.lantern", "Roof lantern, 2 m by 1 m", family="roof", tags=("roof", "glazing"))
 def lantern(w=2.0, d=1.0, h=0.5):
-	kit.frame(w, d, 0.06, 0.15, at=(0, 0, 0), slot="aluminium", name="kerb") if False else None
 	for s in (-1, 1):
 		kit.box((w, 0.06, 0.15), (0, s * (d / 2 - 0.03), 0.075), "aluminium", "kerb")
 		kit.box((0.06, d, 0.15), (s * (w / 2 - 0.03), 0, 0.075), "aluminium", "kerb")
@@ -399,7 +397,7 @@ def lantern(w=2.0, d=1.0, h=0.5):
 @asset("roof.dormer.pitched", "Pitched dormer window", family="roof", tags=("roof", "glazing"))
 def dormer(w=1.4, h=1.3, d=1.6):
 	for s in (-1, 1):
-		kit.prism([(0, 0), (d, 0), (0, h)][::s] if False else [(-d / 2, 0), (d / 2, 0), (d / 2, h), (-d / 2 + 0.0, h)], 0.1, (s * (w / 2 - 0.05), 0, 0), "softwood", "cheek", axis="x")
+		kit.prism([(-d / 2, 0), (d / 2, 0), (d / 2, h), (-d / 2 + 0.0, h)], 0.1, (s * (w / 2 - 0.05), 0, 0), "softwood", "cheek", axis="x")
 		kit.strut((s * (w / 2 + 0.1), 0.0, h), (0, 0.0, h + 0.55), 0.03, d + 0.2, "clay_tile", "roof_slope")
 	kit.prism([(-w / 2, h), (w / 2, h), (0, h + 0.5)], 0.02, (0, d / 2, 0), "paint_white", "gable")
 	kit.frame(w - 0.3, h - 0.2, 0.06, 0.08, at=(0, d / 2, 0.1), slot="paint_white", name="frame")
@@ -410,7 +408,6 @@ def dormer(w=1.4, h=1.3, d=1.6):
 def roof_kit(what):
 	if what == "solar_panel":
 		kit.box((1.0, 1.7, 0.035), (0, 0, 0.08), "screen", "panel", rot=(0, 0, 0))
-		kit.frame(1.0, 1.7, 0.02, 0.04, at=(0, 0.0, 0.0), slot="aluminium", name="frame") if False else None
 		for x in (-0.3, 0.3):
 			kit.box((0.04, 1.8, 0.04), (x, 0, 0.04), "aluminium", "rail")
 	elif what == "access_hatch":

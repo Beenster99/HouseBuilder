@@ -30,8 +30,9 @@ Stretch assets are 1 m models scaled by `make()`; `info(id).stretch` says how:
 (floors, roof coverings, lawn).
 
 Categories (the first part of the id): structure, opening, roof, circulation, services,
-fixture, furniture, school, office, police, hospital, airport, vehicle, plant, landscape,
-boundary, street, context (neighbouring buildings), demolition, people.
+fixture, furniture, school, office, police, hospital, airport, sport, retail, hospitality,
+industrial, vehicle, plant, landscape, boundary, street, context (neighbouring buildings),
+road, rail, bridge, earthworks, energy, water, demolition, people.
 `AssetLibrary.ids("hospital")` lists by tag: categories, building types (home, school,
 office, police, hospital, airport) and uses (wall, ceiling, outdoor, temporary, debris).
 

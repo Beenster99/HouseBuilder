@@ -81,7 +81,6 @@ def lawn(w=1.0):
 
 
 def raised_bed(w=2.4, d=1.2):
-	kit.frame(w, 0.4, 0.05, d, at=(0, 0, 0), slot="softwood", name="_x") if False else None
 	for s in (-1, 1):
 		kit.box((w, 0.05, 0.4), (0, s * d / 2, 0.2), "softwood", "side")
 		kit.box((0.05, d, 0.4), (s * w / 2, 0, 0.2), "softwood", "end")
@@ -371,7 +370,6 @@ def street(what="lamp", h=8.0):
 		kit.box((0.2, 0.004, 0.12), (0, 0.127, 1.3), "screen", "display")
 		kit.box((0.34, 0.3, 0.05), (0, 0, 1.6), "plastic_blue", "solar_panel", rot=(20, 0, 0))
 	elif what == "tree_grate":
-		kit.frame(1.2, 1.2, 0.05, 0.03, at=(0, 0, 0), slot="cast_iron", name="_f") if False else None
 		kit.grid_bars(1.2, 1.2, (0, 0, 0.01), 12, 0, 0.012, "cast_iron", "grate", plane="xy")
 		kit.cyl(0.02, 1.8, (0.25, 0, 0.9), "softwood", "stake", segs=6)
 	elif what == "parasol":

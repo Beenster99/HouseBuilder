@@ -94,7 +94,7 @@ def body_scanner(arch=False):
 		kit.cyl(0.9, 0.12, (0, 0, 0.06), "plastic_grey", "floor", segs=32)
 		kit.cyl(0.9, 0.2, (0, 0, 2.3), "plastic_grey", "head", segs=32)
 		for s in (-1, 1):
-			kit.sweep(kit.arc((0, 0, 1.2), 0.86, 90 - 55 if s > 0 else 270 - 55, 90 + 55 if s > 0 else 270 + 55, 10, "xy") if False else [(0.86 * math.cos(math.radians(a + (0 if s > 0 else 180))), 0.86 * math.sin(math.radians(a + (0 if s > 0 else 180))), 1.2) for a in range(-55, 56, 11)], kit.rect(0.01, 2.1), "glass", "panel", up=(0, 0, 1))
+			kit.sweep([(0.86 * math.cos(math.radians(a + (0 if s > 0 else 180))), 0.86 * math.sin(math.radians(a + (0 if s > 0 else 180))), 1.2) for a in range(-55, 56, 11)], kit.rect(0.01, 2.1), "glass", "panel", up=(0, 0, 1))
 			kit.box((0.12, 0.2, 2.1), (s * 0.84, 0, 1.2), "plastic_white", "mast")
 
 
@@ -493,7 +493,7 @@ def bowser():
 		kit.box((2.2, 9.5, 0.3), (0, 0, 0.95), "steel_painted", "chassis")
 	kit.box((2.3, 0.02, 0.9), (0, 4.71, 2.2), "glass", "windscreen")
 	with kit.hollow(0.03):
-		kit.lathe([(0.5, 0), (1.15, 0.3), (1.15, 6.4), (0.5, 6.7)], (0, -4.5, 2.25), "steel_stainless", "tank", segs=24, scale=(1.05, 1, 1) if False else (1, 1, 1), rot=(-90, 0, 0))
+		kit.lathe([(0.5, 0), (1.15, 0.3), (1.15, 6.4), (0.5, 6.7)], (0, -4.5, 2.25), "steel_stainless", "tank", segs=24, scale=(1, 1, 1), rot=(-90, 0, 0))
 	for s in (-1, 1):
 		for y in (3.6, -2.5, -3.7):
 			kit.wheel(0.52, 0.32, (s * 1.05, y, 0.52))
