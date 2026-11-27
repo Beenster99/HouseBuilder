@@ -10,3 +10,10 @@
 Changes made on copy: player cap 3 (MultiplayerBus.MAX_CREW), UPnP description, flag set,
 core tests that named BSX-only modules, default player name "Builder". Port fixes between the two games on purpose and
 record them here.
+
+Fixes since the copy (worth porting back to BSX Ltd):
+- NetMovers and CrewChannel no longer error ("previously freed instance") when a scene change
+  frees a registered mover or avatar before it is unregistered.
+- Crew avatars appear only in scenes whose root has meta `crew_avatars` = true (BSX's
+  first-person scenes would set it); FredDibnah's overhead views use cursors instead.
+- New in core here, not in BSX: ArtStyle and the Graphics "Look" option.

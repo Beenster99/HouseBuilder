@@ -48,10 +48,10 @@ func clear(id: String) -> void:
 func outgoing(is_mine: Callable, now: float) -> Dictionary:
 	var out := {}
 	for id in _nodes:
-		var node: Node3D = _nodes[id]
+		var node: Variant = _nodes[id]
 		if not is_instance_valid(node) or not node.is_inside_tree() or not is_mine.call(id):
 			continue
-		var at := node.global_transform
+		var at: Transform3D = node.global_transform
 		var last: Array = _sent.get(id, [])
 		if not last.is_empty() and now - float(last[0]) < KEEPALIVE and (last[1] as Transform3D).is_equal_approx(at):
 			continue
@@ -82,7 +82,7 @@ func receive(t: float, batch: Dictionary, accept: Callable) -> Dictionary:
 ## Moves every mover this peer does not drive to where it was at `render_t`.
 func play_back(render_t: float, is_mine: Callable) -> void:
 	for id in _samples:
-		var node: Node3D = _nodes.get(id)
+		var node: Variant = _nodes.get(id)
 		if not is_instance_valid(node) or not node.is_inside_tree() or is_mine.call(id):
 			continue
 		var at := sample_at(_samples[id], render_t)
@@ -95,7 +95,7 @@ func play_back(render_t: float, is_mine: Callable) -> void:
 func snapshot() -> Dictionary:
 	var out := {}
 	for id in _nodes:
-		var node: Node3D = _nodes[id]
+		var node: Variant = _nodes[id]
 		if is_instance_valid(node) and node.is_inside_tree():
 			out[id] = node.global_transform
 	return out
@@ -105,7 +105,7 @@ func apply_snapshot(data: Dictionary) -> void:
 	for id in data:
 		if not data[id] is Transform3D:
 			continue
-		var node: Node3D = _nodes.get(id)
+		var node: Variant = _nodes.get(id)
 		if is_instance_valid(node) and node.is_inside_tree():
 			node.global_transform = data[id]
 		else:

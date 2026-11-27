@@ -9,6 +9,8 @@ const PORT := 24597
 
 func run_tests() -> void:
 	var net := Modules.bus("multiplayer") as MultiplayerBus
+	# Avatars only appear in scenes that ask for them (first-person ones, not the overhead views).
+	get_tree().current_scene.set_meta("crew_avatars", true)
 	check(not HudSlots.holo_channel(MultiplayerBus.CREW_CHANNEL).is_empty(), "Crew channel on the wrist screen")
 	net.say("  checking in  ")
 	net.say("   ")

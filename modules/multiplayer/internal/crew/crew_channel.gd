@@ -42,6 +42,8 @@ const MAX_ID := 96
 const COLOURS: Array[Color] = [Color("e8792b"), Color("6fc8e8"), Color("7fd47a"), Color("e8c25a")]
 const LOG_SIZE := 100
 const MAX_CHARS := 200
+## Current-scene meta that asks for the other players' avatars (see _place_avatars).
+const AVATAR_META := "crew_avatars"
 const AVATAR := preload("res://modules/multiplayer/internal/crew/crew_avatar.gd")
 const WHEEL := preload("res://modules/multiplayer/internal/crew/emote_wheel.gd")
 
@@ -391,15 +393,29 @@ func _sync_presence() -> void:
 
 
 ## Puts an avatar for each other player in the current 3D scene, making new ones when a
-## scene change took the old ones with it.
+## scene change took the old ones with it. Only scenes that walk the crew round in first
+## person show them (current scene meta "crew_avatars" true); the overhead views (design
+## room, timelapse, demolition) show cursors instead, and an avatar at the other player's
+## orbit camera would sit right in front of yours.
 func _place_avatars() -> void:
 	var scene := get_tree().current_scene if is_inside_tree() else null
-	var world := scene if scene is Node3D else self
+	if scene == null or not bool(scene.get_meta(AVATAR_META, false)):
+		for id: int in _avatars:
+			var gone: Variant = _avatars[id]
+			if is_instance_valid(gone):
+				net.unregister_mover(head_id(id))
+				net.unregister_mover(hand_id(id, true))
+				net.unregister_mover(hand_id(id, false))
+				(gone as Node).queue_free()
+			_avatars[id] = null
+		return
+	var world: Node = scene if scene is Node3D else self
 	for id: int in _avatars:
-		var a: Node3D = _avatars[id]
-		if is_instance_valid(a) and not a.is_queued_for_deletion() and a.get_parent() == world:
+		var old: Variant = _avatars[id]
+		var a: Node3D = old if is_instance_valid(old) else null
+		if a != null and not a.is_queued_for_deletion() and a.get_parent() == world:
 			continue
-		if is_instance_valid(a):
+		if a != null:
 			a.queue_free()
 		a = AVATAR.new()
 		a.name = "Crew_%d" % id
