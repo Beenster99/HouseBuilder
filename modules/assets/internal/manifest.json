@@ -1,0 +1,4453 @@
+{
+	"circulation.lift.passenger": {
+		"aabb": [
+			[
+				-0.965,
+				0.0,
+				-1.015
+			],
+			[
+				0.965,
+				2.8,
+				0.815
+			]
+		],
+		"category": "circulation",
+		"family": "circulation",
+		"file": "models/circulation/circulation.lift.passenger.glb",
+		"kind": "lift",
+		"label": "Passenger lift car and landing doors",
+		"mass": 6699.6,
+		"pieces": [
+			{
+				"mass": 2637.6,
+				"node": "car__steel_painted",
+				"slot": "steel_painted",
+				"stage": "car"
+			},
+			{
+				"mass": 2521.28,
+				"node": "car__steel_stainless",
+				"slot": "steel_stainless",
+				"stage": "car"
+			},
+			{
+				"mass": 919.88,
+				"node": "doors__steel_stainless",
+				"slot": "steel_stainless",
+				"stage": "doors"
+			},
+			{
+				"mass": 0.43,
+				"node": "doors__plastic_black",
+				"slot": "plastic_black",
+				"stage": "doors"
+			},
+			{
+				"mass": 276.95,
+				"node": "gear__steel_galvanised",
+				"slot": "steel_galvanised",
+				"stage": "gear"
+			},
+			{
+				"mass": 343.44,
+				"node": "gear__steel_painted",
+				"slot": "steel_painted",
+				"stage": "gear"
+			}
+		],
+		"sockets": {
+			"landing": [
+				0.0,
+				0.0,
+				-1.0
+			]
+		},
+		"stages": [
+			"car",
+			"doors",
+			"gear"
+		],
+		"stretch": "",
+		"tags": [
+			"circulation",
+			"lift"
+		],
+		"tris": 256
+	},
+	"circulation.stair.concrete": {
+		"aabb": [
+			[
+				-0.5,
+				0.0,
+				-3.75
+			],
+			[
+				0.5,
+				3.7293,
+				-0.0
+			]
+		],
+		"category": "circulation",
+		"family": "circulation",
+		"file": "models/circulation/circulation.stair.concrete.glb",
+		"kind": "stair",
+		"label": "Concrete stair flight",
+		"mass": 2773.2,
+		"pieces": [
+			{
+				"mass": 2587.5,
+				"node": "flight__concrete",
+				"slot": "concrete",
+				"stage": "flight"
+			},
+			{
+				"mass": 185.66,
+				"node": "balustrade__steel_painted",
+				"slot": "steel_painted",
+				"stage": "balustrade"
+			}
+		],
+		"sockets": {
+			"foot": [
+				0.0,
+				0.0,
+				-0.0
+			],
+			"head": [
+				0.0,
+				3.0,
+				-3.75
+			]
+		},
+		"stages": [
+			"flight",
+			"balustrade"
+		],
+		"stretch": "",
+		"tags": [
+			"circulation",
+			"concrete",
+			"stair"
+		],
+		"tris": 836
+	},
+	"circulation.stair.steel": {
+		"aabb": [
+			[
+				-0.624,
+				0.0153,
+				-3.76
+			],
+			[
+				0.624,
+				3.7293,
+				0.1037
+			]
+		],
+		"category": "circulation",
+		"family": "circulation",
+		"file": "models/circulation/circulation.stair.steel.glb",
+		"kind": "stair",
+		"label": "Steel stair flight",
+		"mass": 1667.1,
+		"pieces": [
+			{
+				"mass": 240.29,
+				"node": "flight__steel_painted",
+				"slot": "steel_painted",
+				"stage": "flight"
+			},
+			{
+				"mass": 1241.17,
+				"node": "flight__steel_galvanised",
+				"slot": "steel_galvanised",
+				"stage": "flight"
+			},
+			{
+				"mass": 185.66,
+				"node": "balustrade__steel_painted",
+				"slot": "steel_painted",
+				"stage": "balustrade"
+			}
+		],
+		"sockets": {
+			"foot": [
+				0.0,
+				0.0,
+				-0.0
+			],
+			"head": [
+				0.0,
+				3.0,
+				-3.75
+			]
+		},
+		"stages": [
+			"flight",
+			"balustrade"
+		],
+		"stretch": "",
+		"tags": [
+			"circulation",
+			"stair",
+			"steel"
+		],
+		"tris": 908
+	},
+	"circulation.stair.timber": {
+		"aabb": [
+			[
+				-0.614,
+				0.0,
+				-3.76
+			],
+			[
+				0.614,
+				3.7293,
+				0.1099
+			]
+		],
+		"category": "circulation",
+		"family": "circulation",
+		"file": "models/circulation/circulation.stair.timber.glb",
+		"kind": "stair",
+		"label": "Timber stair flight",
+		"mass": 146.8,
+		"pieces": [
+			{
+				"mass": 45.29,
+				"node": "flight__softwood",
+				"slot": "softwood",
+				"stage": "flight"
+			},
+			{
+				"mass": 84.92,
+				"node": "flight__hardwood",
+				"slot": "hardwood",
+				"stage": "flight"
+			},
+			{
+				"mass": 16.56,
+				"node": "balustrade__hardwood",
+				"slot": "hardwood",
+				"stage": "balustrade"
+			}
+		],
+		"sockets": {
+			"foot": [
+				0.0,
+				0.0,
+				-0.0
+			],
+			"head": [
+				0.0,
+				3.0,
+				-3.75
+			]
+		},
+		"stages": [
+			"flight",
+			"balustrade"
+		],
+		"stretch": "",
+		"tags": [
+			"circulation",
+			"stair",
+			"timber"
+		],
+		"tris": 1088
+	},
+	"demolition.charge.shaped": {
+		"aabb": [
+			[
+				-0.115,
+				-0.06,
+				-0.081
+			],
+			[
+				0.2023,
+				0.3019,
+				0.001
+			]
+		],
+		"category": "demolition",
+		"family": "",
+		"file": "models/demolition/demolition.charge.shaped.glb",
+		"kind": "",
+		"label": "Demolition charge with detonator lead",
+		"mass": 2.7,
+		"pieces": [
+			{
+				"mass": 2.05,
+				"node": "main__hivis_orange",
+				"slot": "hivis_orange",
+				"stage": "main"
+			},
+			{
+				"mass": 0.57,
+				"node": "main__plastic_black",
+				"slot": "plastic_black",
+				"stage": "main"
+			},
+			{
+				"mass": 0.06,
+				"node": "main__steel_stainless",
+				"slot": "steel_stainless",
+				"stage": "main"
+			},
+			{
+				"mass": 0.04,
+				"node": "main__plant_yellow",
+				"slot": "plant_yellow",
+				"stage": "main"
+			}
+		],
+		"sockets": {
+			"surface": [
+				0.0,
+				0.0,
+				-0.0
+			]
+		},
+		"stages": [
+			"main"
+		],
+		"stretch": "",
+		"tags": [
+			"demolition"
+		],
+		"tris": 248
+	},
+	"fixture.basin": {
+		"aabb": [
+			[
+				-0.275,
+				0.0,
+				-0.225
+			],
+			[
+				0.275,
+				0.9509,
+				0.225
+			]
+		],
+		"category": "fixture",
+		"family": "fixture",
+		"file": "models/fixture/fixture.basin.glb",
+		"kind": "basin",
+		"label": "Basin",
+		"mass": 34.3,
+		"pieces": [
+			{
+				"mass": 33.64,
+				"node": "basin__ceramic",
+				"slot": "ceramic",
+				"stage": "basin"
+			},
+			{
+				"mass": 0.33,
+				"node": "basin__enamel",
+				"slot": "enamel",
+				"stage": "basin"
+			},
+			{
+				"mass": 0.33,
+				"node": "taps__steel_stainless",
+				"slot": "steel_stainless",
+				"stage": "taps"
+			}
+		],
+		"sockets": {},
+		"stages": [
+			"basin",
+			"taps"
+		],
+		"stretch": "",
+		"tags": [
+			"fixture"
+		],
+		"tris": 460
+	},
+	"fixture.bath": {
+		"aabb": [
+			[
+				-0.35,
+				0.0,
+				-0.85
+			],
+			[
+				0.35,
+				0.64,
+				0.85
+			]
+		],
+		"category": "fixture",
+		"family": "fixture",
+		"file": "models/fixture/fixture.bath.glb",
+		"kind": "bath",
+		"label": "Bath",
+		"mass": 105.6,
+		"pieces": [
+			{
+				"mass": 103.57,
+				"node": "bath__enamel",
+				"slot": "enamel",
+				"stage": "bath"
+			},
+			{
+				"mass": 1.9,
+				"node": "bath__ceramic",
+				"slot": "ceramic",
+				"stage": "bath"
+			},
+			{
+				"mass": 0.14,
+				"node": "taps__steel_stainless",
+				"slot": "steel_stainless",
+				"stage": "taps"
+			}
+		],
+		"sockets": {},
+		"stages": [
+			"bath",
+			"taps"
+		],
+		"stretch": "",
+		"tags": [
+			"fixture"
+		],
+		"tris": 464
+	},
+	"fixture.bed_double": {
+		"aabb": [
+			[
+				-0.675,
+				0.0,
+				-1.0
+			],
+			[
+				0.675,
+				0.95,
+				1.0
+			]
+		],
+		"category": "fixture",
+		"family": "fixture",
+		"file": "models/fixture/fixture.bed_double.glb",
+		"kind": "bed_double",
+		"label": "Double bed",
+		"mass": 346.0,
+		"pieces": [
+			{
+				"mass": 263.79,
+				"node": "frame__hardwood",
+				"slot": "hardwood",
+				"stage": "frame"
+			},
+			{
+				"mass": 72.6,
+				"node": "soft__fabric_white",
+				"slot": "fabric_white",
+				"stage": "soft"
+			},
+			{
+				"mass": 9.6,
+				"node": "soft__fabric_blue",
+				"slot": "fabric_blue",
+				"stage": "soft"
+			}
+		],
+		"sockets": {},
+		"stages": [
+			"frame",
+			"soft"
+		],
+		"stretch": "",
+		"tags": [
+			"fixture"
+		],
+		"tris": 824
+	},
+	"fixture.bed_single": {
+		"aabb": [
+			[
+				-0.45,
+				0.0,
+				-1.0
+			],
+			[
+				0.45,
+				0.95,
+				1.0
+			]
+		],
+		"category": "fixture",
+		"family": "fixture",
+		"file": "models/fixture/fixture.bed_single.glb",
+		"kind": "bed_single",
+		"label": "Single bed",
+		"mass": 229.3,
+		"pieces": [
+			{
+				"mass": 176.22,
+				"node": "frame__hardwood",
+				"slot": "hardwood",
+				"stage": "frame"
+			},
+			{
+				"mass": 46.69,
+				"node": "soft__fabric_white",
+				"slot": "fabric_white",
+				"stage": "soft"
+			},
+			{
+				"mass": 6.38,
+				"node": "soft__fabric_blue",
+				"slot": "fabric_blue",
+				"stage": "soft"
+			}
+		],
+		"sockets": {},
+		"stages": [
+			"frame",
+			"soft"
+		],
+		"stretch": "",
+		"tags": [
+			"fixture"
+		],
+		"tris": 636
+	},
+	"fixture.boiler": {
+		"aabb": [
+			[
+				-0.225,
+				-0.2,
+				-0.177
+			],
+			[
+				0.225,
+				0.95,
+				0.175
+			]
+		],
+		"category": "fixture",
+		"family": "fixture",
+		"file": "models/fixture/fixture.boiler.glb",
+		"kind": "boiler",
+		"label": "Boiler",
+		"mass": 4.2,
+		"pieces": [
+			{
+				"mass": 3.12,
+				"node": "case__paint_white",
+				"slot": "paint_white",
+				"stage": "case"
+			},
+			{
+				"mass": 0.18,
+				"node": "doors__paint_white",
+				"slot": "paint_white",
+				"stage": "doors"
+			},
+			{
+				"mass": 0.03,
+				"node": "doors__plastic_black",
+				"slot": "plastic_black",
+				"stage": "doors"
+			},
+			{
+				"mass": 0.12,
+				"node": "doors__brass",
+				"slot": "brass",
+				"stage": "doors"
+			},
+			{
+				"mass": 0.76,
+				"node": "doors__steel_stainless",
+				"slot": "steel_stainless",
+				"stage": "doors"
+			}
+		],
+		"sockets": {},
+		"stages": [
+			"case",
+			"doors"
+		],
+		"stretch": "",
+		"tags": [
+			"fixture"
+		],
+		"tris": 240
+	},
+	"fixture.cell_bench": {
+		"aabb": [
+			[
+				-0.4,
+				0.0,
+				-1.0
+			],
+			[
+				0.4,
+				0.53,
+				1.0
+			]
+		],
+		"category": "fixture",
+		"family": "fixture",
+		"file": "models/fixture/fixture.cell_bench.glb",
+		"kind": "cell_bench",
+		"label": "Cell bench",
+		"mass": 1813.2,
+		"pieces": [
+			{
+				"mass": 1800.0,
+				"node": "main__concrete",
+				"slot": "concrete",
+				"stage": "main"
+			},
+			{
+				"mass": 13.21,
+				"node": "main__fabric_blue",
+				"slot": "fabric_blue",
+				"stage": "main"
+			}
+		],
+		"sockets": {},
+		"stages": [
+			"main"
+		],
+		"stretch": "",
+		"tags": [
+			"fixture"
+		],
+		"tris": 200
+	},
+	"fixture.consumer_unit": {
+		"aabb": [
+			[
+				-0.2,
+				0.0,
+				-0.062
+			],
+			[
+				0.2,
+				0.3,
+				0.06
+			]
+		],
+		"category": "fixture",
+		"family": "fixture",
+		"file": "models/fixture/fixture.consumer_unit.glb",
+		"kind": "consumer_unit",
+		"label": "Consumer unit",
+		"mass": 0.9,
+		"pieces": [
+			{
+				"mass": 0.72,
+				"node": "case__plastic_white",
+				"slot": "plastic_white",
+				"stage": "case"
+			},
+			{
+				"mass": 0.13,
+				"node": "doors__plastic_white",
+				"slot": "plastic_white",
+				"stage": "doors"
+			},
+			{
+				"mass": 0.04,
+				"node": "doors__plastic_black",
+				"slot": "plastic_black",
+				"stage": "doors"
+			}
+		],
+		"sockets": {},
+		"stages": [
+			"case",
+			"doors"
+		],
+		"stretch": "",
+		"tags": [
+			"fixture"
+		],
+		"tris": 36
+	},
+	"fixture.desk_office": {
+		"aabb": [
+			[
+				-0.8,
+				0.0,
+				-0.9413
+			],
+			[
+				0.8,
+				1.215,
+				0.4
+			]
+		],
+		"category": "fixture",
+		"family": "fixture",
+		"file": "models/fixture/fixture.desk_office.glb",
+		"kind": "desk_office",
+		"label": "Office desk and chair",
+		"mass": 180.4,
+		"pieces": [
+			{
+				"mass": 22.4,
+				"node": "desk__laminate_white",
+				"slot": "laminate_white",
+				"stage": "desk"
+			},
+			{
+				"mass": 43.76,
+				"node": "desk__steel_painted",
+				"slot": "steel_painted",
+				"stage": "desk"
+			},
+			{
+				"mass": 98.07,
+				"node": "desk__laminate_grey",
+				"slot": "laminate_grey",
+				"stage": "desk"
+			},
+			{
+				"mass": 6.55,
+				"node": "equipment__plastic_black",
+				"slot": "plastic_black",
+				"stage": "equipment"
+			},
+			{
+				"mass": 1.38,
+				"node": "chairs__plastic_black",
+				"slot": "plastic_black",
+				"stage": "chairs"
+			},
+			{
+				"mass": 5.33,
+				"node": "chairs__steel_stainless",
+				"slot": "steel_stainless",
+				"stage": "chairs"
+			},
+			{
+				"mass": 2.88,
+				"node": "chairs__fabric_blue",
+				"slot": "fabric_blue",
+				"stage": "chairs"
+			}
+		],
+		"sockets": {},
+		"stages": [
+			"desk",
+			"equipment",
+			"chairs"
+		],
+		"stretch": "",
+		"tags": [
+			"fixture"
+		],
+		"tris": 896
+	},
+	"fixture.desk_pupil": {
+		"aabb": [
+			[
+				-0.3,
+				0.0,
+				-0.63
+			],
+			[
+				0.3,
+				0.83,
+				0.25
+			]
+		],
+		"category": "fixture",
+		"family": "fixture",
+		"file": "models/fixture/fixture.desk_pupil.glb",
+		"kind": "desk_pupil",
+		"label": "Pupil desk and chair",
+		"mass": 51.1,
+		"pieces": [
+			{
+				"mass": 4.2,
+				"node": "desk__laminate_white",
+				"slot": "laminate_white",
+				"stage": "desk"
+			},
+			{
+				"mass": 31.24,
+				"node": "desk__steel_painted",
+				"slot": "steel_painted",
+				"stage": "desk"
+			},
+			{
+				"mass": 6.34,
+				"node": "chairs__steel_painted",
+				"slot": "steel_painted",
+				"stage": "chairs"
+			},
+			{
+				"mass": 9.28,
+				"node": "chairs__plastic_grey",
+				"slot": "plastic_grey",
+				"stage": "chairs"
+			}
+		],
+		"sockets": {},
+		"stages": [
+			"desk",
+			"chairs"
+		],
+		"stretch": "",
+		"tags": [
+			"fixture"
+		],
+		"tris": 560
+	},
+	"fixture.desk_teacher": {
+		"aabb": [
+			[
+				-0.7,
+				0.0,
+				-0.8913
+			],
+			[
+				0.7,
+				1.0479,
+				0.35
+			]
+		],
+		"category": "fixture",
+		"family": "fixture",
+		"file": "models/fixture/fixture.desk_teacher.glb",
+		"kind": "desk_teacher",
+		"label": "Teacher's desk",
+		"mass": 220.6,
+		"pieces": [
+			{
+				"mass": 24.01,
+				"node": "desk__laminate_white",
+				"slot": "laminate_white",
+				"stage": "desk"
+			},
+			{
+				"mass": 109.96,
+				"node": "desk__steel_painted",
+				"slot": "steel_painted",
+				"stage": "desk"
+			},
+			{
+				"mass": 77.0,
+				"node": "desk__laminate_grey",
+				"slot": "laminate_grey",
+				"stage": "desk"
+			},
+			{
+				"mass": 1.38,
+				"node": "chairs__plastic_black",
+				"slot": "plastic_black",
+				"stage": "chairs"
+			},
+			{
+				"mass": 5.33,
+				"node": "chairs__steel_stainless",
+				"slot": "steel_stainless",
+				"stage": "chairs"
+			},
+			{
+				"mass": 2.88,
+				"node": "chairs__fabric_blue",
+				"slot": "fabric_blue",
+				"stage": "chairs"
+			}
+		],
+		"sockets": {},
+		"stages": [
+			"desk",
+			"chairs"
+		],
+		"stretch": "",
+		"tags": [
+			"fixture"
+		],
+		"tris": 836
+	},
+	"fixture.dining_table": {
+		"aabb": [
+			[
+				-1.13,
+				0.0,
+				-0.78
+			],
+			[
+				1.13,
+				0.88,
+				0.78
+			]
+		],
+		"category": "fixture",
+		"family": "fixture",
+		"file": "models/fixture/fixture.dining_table.glb",
+		"kind": "dining_table",
+		"label": "Dining table and chairs",
+		"mass": 56.4,
+		"pieces": [
+			{
+				"mass": 45.53,
+				"node": "table__hardwood",
+				"slot": "hardwood",
+				"stage": "table"
+			},
+			{
+				"mass": 3.68,
+				"node": "chairs__hardwood",
+				"slot": "hardwood",
+				"stage": "chairs"
+			},
+			{
+				"mass": 7.23,
+				"node": "chairs__fabric_grey",
+				"slot": "fabric_grey",
+				"stage": "chairs"
+			}
+		],
+		"sockets": {},
+		"stages": [
+			"table",
+			"chairs"
+		],
+		"stretch": "",
+		"tags": [
+			"fixture"
+		],
+		"tris": 3012
+	},
+	"fixture.hall_chair": {
+		"aabb": [
+			[
+				-0.22,
+				0.0,
+				-0.22
+			],
+			[
+				0.22,
+				0.87,
+				0.22
+			]
+		],
+		"category": "fixture",
+		"family": "fixture",
+		"file": "models/fixture/fixture.hall_chair.glb",
+		"kind": "hall_chair",
+		"label": "Stacking chair",
+		"mass": 19.9,
+		"pieces": [
+			{
+				"mass": 6.81,
+				"node": "main__steel_stainless",
+				"slot": "steel_stainless",
+				"stage": "main"
+			},
+			{
+				"mass": 13.05,
+				"node": "main__plastic_grey",
+				"slot": "plastic_grey",
+				"stage": "main"
+			}
+		],
+		"sockets": {},
+		"stages": [
+			"main"
+		],
+		"stretch": "",
+		"tags": [
+			"fixture"
+		],
+		"tris": 488
+	},
+	"fixture.hospital_bed": {
+		"aabb": [
+			[
+				-0.512,
+				0.0,
+				-1.1
+			],
+			[
+				0.512,
+				1.05,
+				1.1
+			]
+		],
+		"category": "fixture",
+		"family": "fixture",
+		"file": "models/fixture/fixture.hospital_bed.glb",
+		"kind": "hospital_bed",
+		"label": "Hospital bed",
+		"mass": 2783.8,
+		"pieces": [
+			{
+				"mass": 2685.48,
+				"node": "frame__steel_painted",
+				"slot": "steel_painted",
+				"stage": "frame"
+			},
+			{
+				"mass": 22.52,
+				"node": "frame__steel_stainless",
+				"slot": "steel_stainless",
+				"stage": "frame"
+			},
+			{
+				"mass": 67.94,
+				"node": "soft__fabric_white",
+				"slot": "fabric_white",
+				"stage": "soft"
+			},
+			{
+				"mass": 7.81,
+				"node": "soft__fabric_blue",
+				"slot": "fabric_blue",
+				"stage": "soft"
+			}
+		],
+		"sockets": {},
+		"stages": [
+			"frame",
+			"soft"
+		],
+		"stretch": "",
+		"tags": [
+			"fixture"
+		],
+		"tris": 1000
+	},
+	"fixture.kitchen_unit": {
+		"aabb": [
+			[
+				-0.3,
+				0.0,
+				-0.326
+			],
+			[
+				0.3,
+				0.9,
+				0.3
+			]
+		],
+		"category": "fixture",
+		"family": "fixture",
+		"file": "models/fixture/fixture.kitchen_unit.glb",
+		"kind": "kitchen_unit",
+		"label": "Kitchen unit (600 mm)",
+		"mass": 252.3,
+		"pieces": [
+			{
+				"mass": 22.68,
+				"node": "carcass__laminate_grey",
+				"slot": "laminate_grey",
+				"stage": "carcass"
+			},
+			{
+				"mass": 185.14,
+				"node": "carcass__laminate_white",
+				"slot": "laminate_white",
+				"stage": "carcass"
+			},
+			{
+				"mass": 5.54,
+				"node": "doors__laminate_grey",
+				"slot": "laminate_grey",
+				"stage": "doors"
+			},
+			{
+				"mass": 0.26,
+				"node": "doors__steel_stainless",
+				"slot": "steel_stainless",
+				"stage": "doors"
+			},
+			{
+				"mass": 38.69,
+				"node": "worktop__worktop",
+				"slot": "worktop",
+				"stage": "worktop"
+			}
+		],
+		"sockets": {},
+		"stages": [
+			"carcass",
+			"doors",
+			"worktop"
+		],
+		"stretch": "",
+		"tags": [
+			"fixture"
+		],
+		"tris": 116
+	},
+	"fixture.locker": {
+		"aabb": [
+			[
+				-0.6,
+				0.0,
+				-0.27
+			],
+			[
+				0.6,
+				1.8,
+				0.25
+			]
+		],
+		"category": "fixture",
+		"family": "fixture",
+		"file": "models/fixture/fixture.locker.glb",
+		"kind": "locker",
+		"label": "Locker bank",
+		"mass": 423.3,
+		"pieces": [
+			{
+				"mass": 406.94,
+				"node": "case__steel_painted",
+				"slot": "steel_painted",
+				"stage": "case"
+			},
+			{
+				"mass": 16.21,
+				"node": "doors__steel_painted",
+				"slot": "steel_painted",
+				"stage": "doors"
+			},
+			{
+				"mass": 0.08,
+				"node": "doors__steel_stainless",
+				"slot": "steel_stainless",
+				"stage": "doors"
+			},
+			{
+				"mass": 0.04,
+				"node": "doors__plastic_black",
+				"slot": "plastic_black",
+				"stage": "doors"
+			}
+		],
+		"sockets": {},
+		"stages": [
+			"case",
+			"doors"
+		],
+		"stretch": "",
+		"tags": [
+			"fixture"
+		],
+		"tris": 252
+	},
+	"fixture.reception_desk": {
+		"aabb": [
+			[
+				-1.2,
+				0.0,
+				-0.45
+			],
+			[
+				1.2,
+				1.1,
+				0.9413
+			]
+		],
+		"category": "fixture",
+		"family": "fixture",
+		"file": "models/fixture/fixture.reception_desk.glb",
+		"kind": "reception_desk",
+		"label": "Reception desk",
+		"mass": 223.0,
+		"pieces": [
+			{
+				"mass": 154.63,
+				"node": "desk__laminate_grey",
+				"slot": "laminate_grey",
+				"stage": "desk"
+			},
+			{
+				"mass": 20.16,
+				"node": "desk__hardwood",
+				"slot": "hardwood",
+				"stage": "desk"
+			},
+			{
+				"mass": 38.64,
+				"node": "desk__laminate_white",
+				"slot": "laminate_white",
+				"stage": "desk"
+			},
+			{
+				"mass": 1.38,
+				"node": "chairs__plastic_black",
+				"slot": "plastic_black",
+				"stage": "chairs"
+			},
+			{
+				"mass": 5.33,
+				"node": "chairs__steel_stainless",
+				"slot": "steel_stainless",
+				"stage": "chairs"
+			},
+			{
+				"mass": 2.88,
+				"node": "chairs__fabric_blue",
+				"slot": "fabric_blue",
+				"stage": "chairs"
+			}
+		],
+		"sockets": {},
+		"stages": [
+			"desk",
+			"chairs"
+		],
+		"stretch": "",
+		"tags": [
+			"fixture"
+		],
+		"tris": 800
+	},
+	"fixture.shower": {
+		"aabb": [
+			[
+				-0.46,
+				0.0,
+				-0.465
+			],
+			[
+				0.45,
+				2.061,
+				0.45
+			]
+		],
+		"category": "fixture",
+		"family": "fixture",
+		"file": "models/fixture/fixture.shower.glb",
+		"kind": "shower",
+		"label": "Shower",
+		"mass": 105.9,
+		"pieces": [
+			{
+				"mass": 64.06,
+				"node": "tray__enamel",
+				"slot": "enamel",
+				"stage": "tray"
+			},
+			{
+				"mass": 33.54,
+				"node": "screen__glass",
+				"slot": "glass",
+				"stage": "screen"
+			},
+			{
+				"mass": 1.14,
+				"node": "screen__aluminium",
+				"slot": "aluminium",
+				"stage": "screen"
+			},
+			{
+				"mass": 0.59,
+				"node": "screen__steel_stainless",
+				"slot": "steel_stainless",
+				"stage": "screen"
+			},
+			{
+				"mass": 6.59,
+				"node": "taps__steel_stainless",
+				"slot": "steel_stainless",
+				"stage": "taps"
+			}
+		],
+		"sockets": {},
+		"stages": [
+			"tray",
+			"screen",
+			"taps"
+		],
+		"stretch": "",
+		"tags": [
+			"fixture"
+		],
+		"tris": 444
+	},
+	"fixture.sofa": {
+		"aabb": [
+			[
+				-1.0,
+				0.0,
+				-0.45
+			],
+			[
+				1.0,
+				0.8007,
+				0.45
+			]
+		],
+		"category": "fixture",
+		"family": "fixture",
+		"file": "models/fixture/fixture.sofa.glb",
+		"kind": "sofa",
+		"label": "Sofa",
+		"mass": 125.5,
+		"pieces": [
+			{
+				"mass": 97.49,
+				"node": "frame__fabric_grey",
+				"slot": "fabric_grey",
+				"stage": "frame"
+			},
+			{
+				"mass": 0.7,
+				"node": "frame__hardwood",
+				"slot": "hardwood",
+				"stage": "frame"
+			},
+			{
+				"mass": 27.35,
+				"node": "soft__fabric_grey",
+				"slot": "fabric_grey",
+				"stage": "soft"
+			}
+		],
+		"sockets": {},
+		"stages": [
+			"frame",
+			"soft"
+		],
+		"stretch": "",
+		"tags": [
+			"fixture"
+		],
+		"tris": 1928
+	},
+	"fixture.soil_stack": {
+		"aabb": [
+			[
+				-0.062,
+				0.0,
+				-0.1749
+			],
+			[
+				0.062,
+				3.0,
+				0.063
+			]
+		],
+		"category": "fixture",
+		"family": "fixture",
+		"file": "models/fixture/fixture.soil_stack.glb",
+		"kind": "soil_stack",
+		"label": "Soil stack",
+		"mass": 8.0,
+		"pieces": [
+			{
+				"mass": 7.99,
+				"node": "main__plastic_grey",
+				"slot": "plastic_grey",
+				"stage": "main"
+			}
+		],
+		"sockets": {},
+		"stages": [
+			"main"
+		],
+		"stretch": "",
+		"tags": [
+			"fixture"
+		],
+		"tris": 332
+	},
+	"fixture.water_main": {
+		"aabb": [
+			[
+				-0.04,
+				0.0,
+				-0.086
+			],
+			[
+				0.04,
+				0.3,
+				0.035
+			]
+		],
+		"category": "fixture",
+		"family": "fixture",
+		"file": "models/fixture/fixture.water_main.glb",
+		"kind": "water_main",
+		"label": "Incoming water main (stopcock)",
+		"mass": 2.2,
+		"pieces": [
+			{
+				"mass": 0.28,
+				"node": "main__plastic_grey",
+				"slot": "plastic_grey",
+				"stage": "main"
+			},
+			{
+				"mass": 1.33,
+				"node": "main__brass",
+				"slot": "brass",
+				"stage": "main"
+			},
+			{
+				"mass": 0.15,
+				"node": "main__hazard_red",
+				"slot": "hazard_red",
+				"stage": "main"
+			},
+			{
+				"mass": 0.45,
+				"node": "main__plastic_black",
+				"slot": "plastic_black",
+				"stage": "main"
+			}
+		],
+		"sockets": {},
+		"stages": [
+			"main"
+		],
+		"stretch": "",
+		"tags": [
+			"fixture"
+		],
+		"tris": 196
+	},
+	"fixture.wc": {
+		"aabb": [
+			[
+				-0.2,
+				0.0,
+				-0.34
+			],
+			[
+				0.2,
+				0.812,
+				0.35
+			]
+		],
+		"category": "fixture",
+		"family": "fixture",
+		"file": "models/fixture/fixture.wc.glb",
+		"kind": "wc",
+		"label": "WC",
+		"mass": 45.3,
+		"pieces": [
+			{
+				"mass": 44.11,
+				"node": "pan__ceramic",
+				"slot": "ceramic",
+				"stage": "pan"
+			},
+			{
+				"mass": 1.11,
+				"node": "pan__plastic_white",
+				"slot": "plastic_white",
+				"stage": "pan"
+			},
+			{
+				"mass": 0.04,
+				"node": "pan__steel_stainless",
+				"slot": "steel_stainless",
+				"stage": "pan"
+			}
+		],
+		"sockets": {},
+		"stages": [
+			"pan"
+		],
+		"stretch": "",
+		"tags": [
+			"fixture"
+		],
+		"tris": 532
+	},
+	"opening.door.accessible": {
+		"aabb": [
+			[
+				-0.5,
+				0.0,
+				-0.074
+			],
+			[
+				0.5,
+				2.1,
+				0.074
+			]
+		],
+		"category": "opening",
+		"family": "opening",
+		"file": "models/opening/opening.door.accessible.glb",
+		"kind": "door_accessible",
+		"label": "Accessible door",
+		"mass": 80.4,
+		"pieces": [
+			{
+				"mass": 11.83,
+				"node": "frame__paint_white",
+				"slot": "paint_white",
+				"stage": "frame"
+			},
+			{
+				"mass": 50.2,
+				"node": "leaf__paint_white",
+				"slot": "paint_white",
+				"stage": "leaf"
+			},
+			{
+				"mass": 15.0,
+				"node": "leaf__glass",
+				"slot": "glass",
+				"stage": "leaf"
+			},
+			{
+				"mass": 1.22,
+				"node": "ironmongery__steel_stainless",
+				"slot": "steel_stainless",
+				"stage": "ironmongery"
+			},
+			{
+				"mass": 2.11,
+				"node": "ironmongery__aluminium",
+				"slot": "aluminium",
+				"stage": "ironmongery"
+			}
+		],
+		"sockets": {
+			"wall": [
+				0.0,
+				0.0,
+				-0.0
+			]
+		},
+		"stages": [
+			"frame",
+			"leaf",
+			"ironmongery"
+		],
+		"stretch": "",
+		"tags": [
+			"door",
+			"opening"
+		],
+		"tris": 452
+	},
+	"opening.door.double": {
+		"aabb": [
+			[
+				-0.9,
+				0.0,
+				-0.074
+			],
+			[
+				0.9,
+				2.1,
+				0.074
+			]
+		],
+		"category": "opening",
+		"family": "opening",
+		"file": "models/opening/opening.door.double.glb",
+		"kind": "door_double",
+		"label": "Double doors",
+		"mass": 171.9,
+		"pieces": [
+			{
+				"mass": 13.68,
+				"node": "frame__paint_white",
+				"slot": "paint_white",
+				"stage": "frame"
+			},
+			{
+				"mass": 155.8,
+				"node": "leaf__paint_white",
+				"slot": "paint_white",
+				"stage": "leaf"
+			},
+			{
+				"mass": 2.43,
+				"node": "ironmongery__steel_stainless",
+				"slot": "steel_stainless",
+				"stage": "ironmongery"
+			}
+		],
+		"sockets": {
+			"wall": [
+				0.0,
+				0.0,
+				-0.0
+			]
+		},
+		"stages": [
+			"frame",
+			"leaf",
+			"ironmongery"
+		],
+		"stretch": "",
+		"tags": [
+			"door",
+			"opening"
+		],
+		"tris": 868
+	},
+	"opening.door.double_glass": {
+		"aabb": [
+			[
+				-0.9,
+				0.0,
+				-0.074
+			],
+			[
+				0.9,
+				2.1,
+				0.074
+			]
+		],
+		"category": "opening",
+		"family": "opening",
+		"file": "models/opening/opening.door.double_glass.glb",
+		"kind": "door_double",
+		"label": "Double doors (glazed)",
+		"mass": 209.7,
+		"pieces": [
+			{
+				"mass": 13.68,
+				"node": "frame__paint_white",
+				"slot": "paint_white",
+				"stage": "frame"
+			},
+			{
+				"mass": 117.06,
+				"node": "leaf__aluminium",
+				"slot": "aluminium",
+				"stage": "leaf"
+			},
+			{
+				"mass": 76.51,
+				"node": "leaf__glass",
+				"slot": "glass",
+				"stage": "leaf"
+			},
+			{
+				"mass": 2.43,
+				"node": "ironmongery__steel_stainless",
+				"slot": "steel_stainless",
+				"stage": "ironmongery"
+			}
+		],
+		"sockets": {
+			"wall": [
+				0.0,
+				0.0,
+				-0.0
+			]
+		},
+		"stages": [
+			"frame",
+			"leaf",
+			"ironmongery"
+		],
+		"stretch": "",
+		"tags": [
+			"door",
+			"opening"
+		],
+		"tris": 916
+	},
+	"opening.door.external": {
+		"aabb": [
+			[
+				-0.457,
+				0.0,
+				-0.074
+			],
+			[
+				0.457,
+				2.1,
+				0.074
+			]
+		],
+		"category": "opening",
+		"family": "opening",
+		"file": "models/opening/opening.door.external.glb",
+		"kind": "door_external",
+		"label": "External door",
+		"mass": 105.2,
+		"pieces": [
+			{
+				"mass": 11.63,
+				"node": "frame__paint_white",
+				"slot": "paint_white",
+				"stage": "frame"
+			},
+			{
+				"mass": 4.13,
+				"node": "frame__aluminium",
+				"slot": "aluminium",
+				"stage": "frame"
+			},
+			{
+				"mass": 88.23,
+				"node": "leaf__hardwood",
+				"slot": "hardwood",
+				"stage": "leaf"
+			},
+			{
+				"mass": 1.22,
+				"node": "ironmongery__steel_stainless",
+				"slot": "steel_stainless",
+				"stage": "ironmongery"
+			}
+		],
+		"sockets": {
+			"wall": [
+				0.0,
+				0.0,
+				-0.0
+			]
+		},
+		"stages": [
+			"frame",
+			"leaf",
+			"ironmongery"
+		],
+		"stretch": "",
+		"tags": [
+			"door",
+			"opening"
+		],
+		"tris": 464
+	},
+	"opening.door.fire": {
+		"aabb": [
+			[
+				-0.463,
+				0.0,
+				-0.074
+			],
+			[
+				0.463,
+				2.04,
+				0.074
+			]
+		],
+		"category": "opening",
+		"family": "opening",
+		"file": "models/opening/opening.door.fire.glb",
+		"kind": "door_fire",
+		"label": "Fire door (FD30)",
+		"mass": 74.6,
+		"pieces": [
+			{
+				"mass": 11.39,
+				"node": "frame__paint_white",
+				"slot": "paint_white",
+				"stage": "frame"
+			},
+			{
+				"mass": 44.84,
+				"node": "leaf__paint_white",
+				"slot": "paint_white",
+				"stage": "leaf"
+			},
+			{
+				"mass": 15.0,
+				"node": "leaf__glass",
+				"slot": "glass",
+				"stage": "leaf"
+			},
+			{
+				"mass": 1.22,
+				"node": "ironmongery__steel_stainless",
+				"slot": "steel_stainless",
+				"stage": "ironmongery"
+			},
+			{
+				"mass": 2.11,
+				"node": "ironmongery__aluminium",
+				"slot": "aluminium",
+				"stage": "ironmongery"
+			}
+		],
+		"sockets": {
+			"wall": [
+				0.0,
+				0.0,
+				-0.0
+			]
+		},
+		"stages": [
+			"frame",
+			"leaf",
+			"ironmongery"
+		],
+		"stretch": "",
+		"tags": [
+			"door",
+			"opening"
+		],
+		"tris": 452
+	},
+	"opening.door.internal": {
+		"aabb": [
+			[
+				-0.419,
+				0.0,
+				-0.074
+			],
+			[
+				0.419,
+				1.981,
+				0.074
+			]
+		],
+		"category": "opening",
+		"family": "opening",
+		"file": "models/opening/opening.door.internal.glb",
+		"kind": "door_internal",
+		"label": "Internal door",
+		"mass": 75.6,
+		"pieces": [
+			{
+				"mass": 10.91,
+				"node": "frame__paint_white",
+				"slot": "paint_white",
+				"stage": "frame"
+			},
+			{
+				"mass": 63.5,
+				"node": "leaf__paint_white",
+				"slot": "paint_white",
+				"stage": "leaf"
+			},
+			{
+				"mass": 1.22,
+				"node": "ironmongery__steel_stainless",
+				"slot": "steel_stainless",
+				"stage": "ironmongery"
+			}
+		],
+		"sockets": {
+			"wall": [
+				0.0,
+				0.0,
+				-0.0
+			]
+		},
+		"stages": [
+			"frame",
+			"leaf",
+			"ironmongery"
+		],
+		"stretch": "",
+		"tags": [
+			"door",
+			"opening"
+		],
+		"tris": 452
+	},
+	"opening.door.secure": {
+		"aabb": [
+			[
+				-0.463,
+				0.0,
+				-0.074
+			],
+			[
+				0.463,
+				2.1,
+				0.074
+			]
+		],
+		"category": "opening",
+		"family": "opening",
+		"file": "models/opening/opening.door.secure.glb",
+		"kind": "door_secure",
+		"label": "Secure door",
+		"mass": 790.0,
+		"pieces": [
+			{
+				"mass": 152.59,
+				"node": "frame__steel_painted",
+				"slot": "steel_painted",
+				"stage": "frame"
+			},
+			{
+				"mass": 4.19,
+				"node": "frame__aluminium",
+				"slot": "aluminium",
+				"stage": "frame"
+			},
+			{
+				"mass": 604.21,
+				"node": "leaf__steel_painted",
+				"slot": "steel_painted",
+				"stage": "leaf"
+			},
+			{
+				"mass": 7.81,
+				"node": "leaf__glass",
+				"slot": "glass",
+				"stage": "leaf"
+			},
+			{
+				"mass": 20.02,
+				"node": "leaf__steel_galvanised",
+				"slot": "steel_galvanised",
+				"stage": "leaf"
+			},
+			{
+				"mass": 1.22,
+				"node": "ironmongery__steel_stainless",
+				"slot": "steel_stainless",
+				"stage": "ironmongery"
+			}
+		],
+		"sockets": {
+			"wall": [
+				0.0,
+				0.0,
+				-0.0
+			]
+		},
+		"stages": [
+			"frame",
+			"leaf",
+			"ironmongery"
+		],
+		"stretch": "",
+		"tags": [
+			"door",
+			"opening"
+		],
+		"tris": 464
+	},
+	"opening.door.vehicle": {
+		"aabb": [
+			[
+				-1.5,
+				0.0,
+				-0.04
+			],
+			[
+				1.5,
+				3.0,
+				0.32
+			]
+		],
+		"category": "opening",
+		"family": "opening",
+		"file": "models/opening/opening.door.vehicle.glb",
+		"kind": "door_vehicle",
+		"label": "Vehicle door",
+		"mass": 393.2,
+		"pieces": [
+			{
+				"mass": 267.9,
+				"node": "frame__steel_galvanised",
+				"slot": "steel_galvanised",
+				"stage": "frame"
+			},
+			{
+				"mass": 118.23,
+				"node": "leaf__steel_galvanised",
+				"slot": "steel_galvanised",
+				"stage": "leaf"
+			},
+			{
+				"mass": 7.03,
+				"node": "leaf__plant_yellow",
+				"slot": "plant_yellow",
+				"stage": "leaf"
+			}
+		],
+		"sockets": {
+			"wall": [
+				0.0,
+				0.0,
+				-0.0
+			]
+		},
+		"stages": [
+			"frame",
+			"leaf"
+		],
+		"stretch": "",
+		"tags": [
+			"door",
+			"opening"
+		],
+		"tris": 444
+	},
+	"opening.window.large": {
+		"aabb": [
+			[
+				-0.95,
+				-0.03,
+				-0.14
+			],
+			[
+				0.95,
+				1.5,
+				0.06
+			]
+		],
+		"category": "opening",
+		"family": "opening",
+		"file": "models/opening/opening.window.large.glb",
+		"kind": "window_large",
+		"label": "Large window",
+		"mass": 158.4,
+		"pieces": [
+			{
+				"mass": 60.51,
+				"node": "frame__paint_white",
+				"slot": "paint_white",
+				"stage": "frame"
+			},
+			{
+				"mass": 96.77,
+				"node": "glazing__glass",
+				"slot": "glass",
+				"stage": "glazing"
+			},
+			{
+				"mass": 1.14,
+				"node": "ironmongery__steel_stainless",
+				"slot": "steel_stainless",
+				"stage": "ironmongery"
+			}
+		],
+		"sockets": {
+			"wall": [
+				0.0,
+				0.0,
+				-0.0
+			]
+		},
+		"stages": [
+			"frame",
+			"glazing",
+			"ironmongery"
+		],
+		"stretch": "",
+		"tags": [
+			"opening",
+			"window"
+		],
+		"tris": 288
+	},
+	"opening.window.medium": {
+		"aabb": [
+			[
+				-0.65,
+				-0.03,
+				-0.14
+			],
+			[
+				0.65,
+				1.2,
+				0.06
+			]
+		],
+		"category": "opening",
+		"family": "opening",
+		"file": "models/opening/opening.window.medium.glb",
+		"kind": "window_medium",
+		"label": "Window",
+		"mass": 85.9,
+		"pieces": [
+			{
+				"mass": 37.0,
+				"node": "frame__paint_white",
+				"slot": "paint_white",
+				"stage": "frame"
+			},
+			{
+				"mass": 47.72,
+				"node": "glazing__glass",
+				"slot": "glass",
+				"stage": "glazing"
+			},
+			{
+				"mass": 1.14,
+				"node": "ironmongery__steel_stainless",
+				"slot": "steel_stainless",
+				"stage": "ironmongery"
+			}
+		],
+		"sockets": {
+			"wall": [
+				0.0,
+				0.0,
+				-0.0
+			]
+		},
+		"stages": [
+			"frame",
+			"glazing",
+			"ironmongery"
+		],
+		"stretch": "",
+		"tags": [
+			"opening",
+			"window"
+		],
+		"tris": 216
+	},
+	"opening.window.small": {
+		"aabb": [
+			[
+				-0.35,
+				-0.03,
+				-0.14
+			],
+			[
+				0.35,
+				0.9,
+				0.06
+			]
+		],
+		"category": "opening",
+		"family": "opening",
+		"file": "models/opening/opening.window.small.glb",
+		"kind": "window_small",
+		"label": "Small window",
+		"mass": 33.0,
+		"pieces": [
+			{
+				"mass": 17.6,
+				"node": "frame__paint_white",
+				"slot": "paint_white",
+				"stage": "frame"
+			},
+			{
+				"mass": 14.87,
+				"node": "glazing__glass",
+				"slot": "glass",
+				"stage": "glazing"
+			},
+			{
+				"mass": 0.57,
+				"node": "ironmongery__steel_stainless",
+				"slot": "steel_stainless",
+				"stage": "ironmongery"
+			}
+		],
+		"sockets": {
+			"wall": [
+				0.0,
+				0.0,
+				-0.0
+			]
+		},
+		"stages": [
+			"frame",
+			"glazing",
+			"ironmongery"
+		],
+		"stretch": "",
+		"tags": [
+			"opening",
+			"window"
+		],
+		"tris": 132
+	},
+	"plant.cabin.site_office": {
+		"aabb": [
+			[
+				-3.03,
+				0.0,
+				-1.23
+			],
+			[
+				3.03,
+				2.55,
+				1.23
+			]
+		],
+		"category": "plant",
+		"family": "",
+		"file": "models/plant/plant.cabin.site_office.glb",
+		"kind": "",
+		"label": "Site cabin, 6 m",
+		"mass": 3268.8,
+		"pieces": [
+			{
+				"mass": 3119.9,
+				"node": "shell__steel_painted",
+				"slot": "steel_painted",
+				"stage": "shell"
+			},
+			{
+				"mass": 142.69,
+				"node": "shell__steel_galvanised",
+				"slot": "steel_galvanised",
+				"stage": "shell"
+			},
+			{
+				"mass": 5.09,
+				"node": "openings__plant_yellow",
+				"slot": "plant_yellow",
+				"stage": "openings"
+			},
+			{
+				"mass": 0.11,
+				"node": "openings__paint_white",
+				"slot": "paint_white",
+				"stage": "openings"
+			},
+			{
+				"mass": 1.0,
+				"node": "openings__glass",
+				"slot": "glass",
+				"stage": "openings"
+			}
+		],
+		"sockets": {},
+		"stages": [
+			"shell",
+			"openings"
+		],
+		"stretch": "",
+		"tags": [
+			"plant",
+			"temporary"
+		],
+		"tris": 204
+	},
+	"plant.crane.mast_section": {
+		"aabb": [
+			[
+				-0.8,
+				-0.0211,
+				-0.8
+			],
+			[
+				0.8,
+				3.03,
+				0.8
+			]
+		],
+		"category": "plant",
+		"family": "",
+		"file": "models/plant/plant.crane.mast_section.glb",
+		"kind": "",
+		"label": "Tower crane mast section, 3 m",
+		"mass": 2167.5,
+		"pieces": [
+			{
+				"mass": 2167.48,
+				"node": "main__plant_yellow",
+				"slot": "plant_yellow",
+				"stage": "main"
+			}
+		],
+		"sockets": {
+			"top": [
+				0.0,
+				3.0,
+				-0.0
+			]
+		},
+		"stages": [
+			"main"
+		],
+		"stretch": "",
+		"tags": [
+			"crane",
+			"plant"
+		],
+		"tris": 240
+	},
+	"plant.crane.tower": {
+		"aabb": [
+			[
+				-3.0,
+				0.0,
+				-40.825
+			],
+			[
+				3.0,
+				37.325,
+				12.8148
+			]
+		],
+		"category": "plant",
+		"family": "",
+		"file": "models/plant/plant.crane.tower.glb",
+		"kind": "",
+		"label": "Tower crane, 30 m mast, 40 m jib",
+		"mass": 160619.9,
+		"pieces": [
+			{
+				"mass": 72000.0,
+				"node": "base__concrete",
+				"slot": "concrete",
+				"stage": "base"
+			},
+			{
+				"mass": 21391.54,
+				"node": "mast__plant_yellow",
+				"slot": "plant_yellow",
+				"stage": "mast"
+			},
+			{
+				"mass": 20433.67,
+				"node": "slew__plant_yellow",
+				"slot": "plant_yellow",
+				"stage": "slew"
+			},
+			{
+				"mass": 2688.0,
+				"node": "slew__paint_white",
+				"slot": "paint_white",
+				"stage": "slew"
+			},
+			{
+				"mass": 71.5,
+				"node": "slew__glass",
+				"slot": "glass",
+				"stage": "slew"
+			},
+			{
+				"mass": 24156.16,
+				"node": "jib__plant_yellow",
+				"slot": "plant_yellow",
+				"stage": "jib"
+			},
+			{
+				"mass": 15120.01,
+				"node": "jib__concrete",
+				"slot": "concrete",
+				"stage": "jib"
+			},
+			{
+				"mass": 1429.43,
+				"node": "jib__steel_galvanised",
+				"slot": "steel_galvanised",
+				"stage": "jib"
+			},
+			{
+				"mass": 2825.99,
+				"node": "hook__plant_yellow",
+				"slot": "plant_yellow",
+				"stage": "hook"
+			},
+			{
+				"mass": 32.6,
+				"node": "hook__steel_galvanised",
+				"slot": "steel_galvanised",
+				"stage": "hook"
+			},
+			{
+				"mass": 471.0,
+				"node": "hook__hazard_red",
+				"slot": "hazard_red",
+				"stage": "hook"
+			}
+		],
+		"sockets": {
+			"cab": [
+				1.3,
+				31.8,
+				-0.2
+			],
+			"hook": [
+				0.0,
+				19.8,
+				-24.0
+			]
+		},
+		"stages": [
+			"base",
+			"mast",
+			"slew",
+			"jib",
+			"hook"
+		],
+		"stretch": "",
+		"tags": [
+			"crane",
+			"plant"
+		],
+		"tris": 6020
+	},
+	"plant.crane.wrecking_ball": {
+		"aabb": [
+			[
+				-0.42,
+				0.0,
+				-0.42
+			],
+			[
+				0.42,
+				1.02,
+				0.42
+			]
+		],
+		"category": "plant",
+		"family": "",
+		"file": "models/plant/plant.crane.wrecking_ball.glb",
+		"kind": "",
+		"label": "Wrecking ball, 2.5 t",
+		"mass": 2209.1,
+		"pieces": [
+			{
+				"mass": 2209.13,
+				"node": "main__cast_iron",
+				"slot": "cast_iron",
+				"stage": "main"
+			}
+		],
+		"sockets": {
+			"cable": [
+				0.0,
+				1.02,
+				-0.0
+			]
+		},
+		"stages": [
+			"main"
+		],
+		"stretch": "",
+		"tags": [
+			"demolition",
+			"plant"
+		],
+		"tris": 772
+	},
+	"plant.fence.heras": {
+		"aabb": [
+			[
+				-1.86,
+				0.0,
+				-0.3
+			],
+			[
+				1.86,
+				2.019,
+				0.3
+			]
+		],
+		"category": "plant",
+		"family": "",
+		"file": "models/plant/plant.fence.heras.glb",
+		"kind": "",
+		"label": "Temporary fence panel, 3.5 m",
+		"mass": 190.7,
+		"pieces": [
+			{
+				"mass": 100.13,
+				"node": "main__steel_galvanised",
+				"slot": "steel_galvanised",
+				"stage": "main"
+			},
+			{
+				"mass": 90.55,
+				"node": "main__concrete",
+				"slot": "concrete",
+				"stage": "main"
+			}
+		],
+		"sockets": {
+			"next": [
+				3.5,
+				0.0,
+				-0.0
+			]
+		},
+		"stages": [
+			"main"
+		],
+		"stretch": "",
+		"tags": [
+			"plant",
+			"temporary"
+		],
+		"tris": 888
+	},
+	"plant.scaffold.bay": {
+		"aabb": [
+			[
+				-1.3,
+				0.0,
+				-0.75
+			],
+			[
+				1.3,
+				3.1,
+				0.75
+			]
+		],
+		"category": "plant",
+		"family": "",
+		"file": "models/plant/plant.scaffold.bay.glb",
+		"kind": "",
+		"label": "Scaffold bay, 2.4 m by 1.3 m, one 2 m lift",
+		"mass": 448.8,
+		"pieces": [
+			{
+				"mass": 325.38,
+				"node": "frame__steel_galvanised",
+				"slot": "steel_galvanised",
+				"stage": "frame"
+			},
+			{
+				"mass": 52.91,
+				"node": "boards__softwood",
+				"slot": "softwood",
+				"stage": "boards"
+			},
+			{
+				"mass": 70.54,
+				"node": "guardrail__steel_galvanised",
+				"slot": "steel_galvanised",
+				"stage": "guardrail"
+			}
+		],
+		"sockets": {
+			"next": [
+				2.4,
+				0.0,
+				-0.0
+			],
+			"up": [
+				0.0,
+				2.0,
+				-0.0
+			]
+		},
+		"stages": [
+			"frame",
+			"boards",
+			"guardrail"
+		],
+		"stretch": "",
+		"tags": [
+			"plant",
+			"temporary"
+		],
+		"tris": 604
+	},
+	"plant.skip.builders": {
+		"aabb": [
+			[
+				-0.91,
+				0.0,
+				-1.53
+			],
+			[
+				0.91,
+				1.23,
+				1.53
+			]
+		],
+		"category": "plant",
+		"family": "",
+		"file": "models/plant/plant.skip.builders.glb",
+		"kind": "",
+		"label": "Builder's skip, 6 yd",
+		"mass": 1279.0,
+		"pieces": [
+			{
+				"mass": 1278.01,
+				"node": "main__plant_yellow",
+				"slot": "plant_yellow",
+				"stage": "main"
+			},
+			{
+				"mass": 0.95,
+				"node": "main__steel_painted",
+				"slot": "steel_painted",
+				"stage": "main"
+			}
+		],
+		"sockets": {},
+		"stages": [
+			"main"
+		],
+		"stretch": "",
+		"tags": [
+			"plant",
+			"waste"
+		],
+		"tris": 72
+	},
+	"structure.connection.baseplate": {
+		"aabb": [
+			[
+				-0.2,
+				0.0,
+				-0.2
+			],
+			[
+				0.2,
+				0.09,
+				0.2
+			]
+		],
+		"category": "structure",
+		"family": "column",
+		"file": "models/structure/structure.connection.baseplate.glb",
+		"kind": "",
+		"label": "Column base plate, 4 bolts",
+		"mass": 33.4,
+		"pieces": [
+			{
+				"mass": 31.4,
+				"node": "main__steel_painted",
+				"slot": "steel_painted",
+				"stage": "main"
+			},
+			{
+				"mass": 1.98,
+				"node": "main__steel_galvanised",
+				"slot": "steel_galvanised",
+				"stage": "main"
+			}
+		],
+		"sockets": {
+			"column": [
+				0.0,
+				0.025,
+				-0.0
+			]
+		},
+		"stages": [
+			"main"
+		],
+		"stretch": "",
+		"tags": [
+			"connection",
+			"steel",
+			"structure"
+		],
+		"tris": 236
+	},
+	"structure.connection.endplate": {
+		"aabb": [
+			[
+				-0.1,
+				-0.21,
+				-0.03
+			],
+			[
+				0.1,
+				0.21,
+				0.0
+			]
+		],
+		"category": "structure",
+		"family": "beam",
+		"file": "models/structure/structure.connection.endplate.glb",
+		"kind": "",
+		"label": "Beam end plate, 6 bolts",
+		"mass": 11.1,
+		"pieces": [
+			{
+				"mass": 9.89,
+				"node": "main__steel_painted",
+				"slot": "steel_painted",
+				"stage": "main"
+			},
+			{
+				"mass": 1.19,
+				"node": "main__steel_galvanised",
+				"slot": "steel_galvanised",
+				"stage": "main"
+			}
+		],
+		"sockets": {
+			"beam": [
+				0.0,
+				0.0,
+				-0.0
+			]
+		},
+		"stages": [
+			"main"
+		],
+		"stretch": "",
+		"tags": [
+			"connection",
+			"steel",
+			"structure"
+		],
+		"tris": 132
+	},
+	"structure.foundation.pad_1000": {
+		"aabb": [
+			[
+				-0.5,
+				-0.5,
+				-0.5
+			],
+			[
+				0.5,
+				0.0,
+				0.5
+			]
+		],
+		"category": "structure",
+		"family": "foundation",
+		"file": "models/structure/structure.foundation.pad_1000.glb",
+		"kind": "pad_1000",
+		"label": "1.0 m pad, 500 deep",
+		"mass": 1250.0,
+		"pieces": [
+			{
+				"mass": 1250.0,
+				"node": "main__concrete",
+				"slot": "concrete",
+				"stage": "main"
+			}
+		],
+		"sockets": {
+			"top": [
+				0.0,
+				0.0,
+				-0.0
+			]
+		},
+		"stages": [
+			"main"
+		],
+		"stretch": "",
+		"tags": [
+			"concrete",
+			"structure"
+		],
+		"tris": 12
+	},
+	"structure.foundation.pad_1500": {
+		"aabb": [
+			[
+				-0.75,
+				-0.6,
+				-0.75
+			],
+			[
+				0.75,
+				0.0,
+				0.75
+			]
+		],
+		"category": "structure",
+		"family": "foundation",
+		"file": "models/structure/structure.foundation.pad_1500.glb",
+		"kind": "pad_1500",
+		"label": "1.5 m pad, 600 deep",
+		"mass": 3375.0,
+		"pieces": [
+			{
+				"mass": 3375.0,
+				"node": "main__concrete",
+				"slot": "concrete",
+				"stage": "main"
+			}
+		],
+		"sockets": {
+			"top": [
+				0.0,
+				0.0,
+				-0.0
+			]
+		},
+		"stages": [
+			"main"
+		],
+		"stretch": "",
+		"tags": [
+			"concrete",
+			"structure"
+		],
+		"tris": 12
+	},
+	"structure.foundation.pad_2000": {
+		"aabb": [
+			[
+				-1.0,
+				-0.7,
+				-1.0
+			],
+			[
+				1.0,
+				0.0,
+				1.0
+			]
+		],
+		"category": "structure",
+		"family": "foundation",
+		"file": "models/structure/structure.foundation.pad_2000.glb",
+		"kind": "pad_2000",
+		"label": "2.0 m pad, 700 deep",
+		"mass": 7000.0,
+		"pieces": [
+			{
+				"mass": 7000.0,
+				"node": "main__concrete",
+				"slot": "concrete",
+				"stage": "main"
+			}
+		],
+		"sockets": {
+			"top": [
+				0.0,
+				0.0,
+				-0.0
+			]
+		},
+		"stages": [
+			"main"
+		],
+		"stretch": "",
+		"tags": [
+			"concrete",
+			"structure"
+		],
+		"tris": 12
+	},
+	"structure.foundation.pad_3000": {
+		"aabb": [
+			[
+				-1.5,
+				-0.9,
+				-1.5
+			],
+			[
+				1.5,
+				0.0,
+				1.5
+			]
+		],
+		"category": "structure",
+		"family": "foundation",
+		"file": "models/structure/structure.foundation.pad_3000.glb",
+		"kind": "pad_3000",
+		"label": "3.0 m pad, 900 deep",
+		"mass": 20250.0,
+		"pieces": [
+			{
+				"mass": 20250.0,
+				"node": "main__concrete",
+				"slot": "concrete",
+				"stage": "main"
+			}
+		],
+		"sockets": {
+			"top": [
+				0.0,
+				0.0,
+				-0.0
+			]
+		},
+		"stages": [
+			"main"
+		],
+		"stretch": "",
+		"tags": [
+			"concrete",
+			"structure"
+		],
+		"tris": 12
+	},
+	"structure.foundation.pile_300": {
+		"aabb": [
+			[
+				-0.15,
+				-1.0,
+				-0.15
+			],
+			[
+				0.15,
+				0.0,
+				0.15
+			]
+		],
+		"category": "structure",
+		"family": "foundation",
+		"file": "models/structure/structure.foundation.pile_300.glb",
+		"kind": "pile_300",
+		"label": "300 mm bored pile",
+		"mass": 174.7,
+		"pieces": [
+			{
+				"mass": 174.7,
+				"node": "main__concrete",
+				"slot": "concrete",
+				"stage": "main"
+			}
+		],
+		"sockets": {
+			"top": [
+				0.0,
+				0.0,
+				-0.0
+			]
+		},
+		"stages": [
+			"main"
+		],
+		"stretch": "y",
+		"tags": [
+			"concrete",
+			"structure"
+		],
+		"tris": 92
+	},
+	"structure.foundation.pile_450": {
+		"aabb": [
+			[
+				-0.225,
+				-1.0,
+				-0.225
+			],
+			[
+				0.225,
+				0.0,
+				0.225
+			]
+		],
+		"category": "structure",
+		"family": "foundation",
+		"file": "models/structure/structure.foundation.pile_450.glb",
+		"kind": "pile_450",
+		"label": "450 mm bored pile",
+		"mass": 393.1,
+		"pieces": [
+			{
+				"mass": 393.08,
+				"node": "main__concrete",
+				"slot": "concrete",
+				"stage": "main"
+			}
+		],
+		"sockets": {
+			"top": [
+				0.0,
+				0.0,
+				-0.0
+			]
+		},
+		"stages": [
+			"main"
+		],
+		"stretch": "y",
+		"tags": [
+			"concrete",
+			"structure"
+		],
+		"tris": 92
+	},
+	"structure.foundation.pile_600": {
+		"aabb": [
+			[
+				-0.3,
+				-1.0,
+				-0.3
+			],
+			[
+				0.3,
+				0.0,
+				0.3
+			]
+		],
+		"category": "structure",
+		"family": "foundation",
+		"file": "models/structure/structure.foundation.pile_600.glb",
+		"kind": "pile_600",
+		"label": "600 mm bored pile",
+		"mass": 698.8,
+		"pieces": [
+			{
+				"mass": 698.81,
+				"node": "main__concrete",
+				"slot": "concrete",
+				"stage": "main"
+			}
+		],
+		"sockets": {
+			"top": [
+				0.0,
+				0.0,
+				-0.0
+			]
+		},
+		"stages": [
+			"main"
+		],
+		"stretch": "y",
+		"tags": [
+			"concrete",
+			"structure"
+		],
+		"tris": 92
+	},
+	"structure.foundation.pile_750": {
+		"aabb": [
+			[
+				-0.375,
+				-1.0,
+				-0.375
+			],
+			[
+				0.375,
+				0.0,
+				0.375
+			]
+		],
+		"category": "structure",
+		"family": "foundation",
+		"file": "models/structure/structure.foundation.pile_750.glb",
+		"kind": "pile_750",
+		"label": "750 mm bored pile",
+		"mass": 1091.9,
+		"pieces": [
+			{
+				"mass": 1091.89,
+				"node": "main__concrete",
+				"slot": "concrete",
+				"stage": "main"
+			}
+		],
+		"sockets": {
+			"top": [
+				0.0,
+				0.0,
+				-0.0
+			]
+		},
+		"stages": [
+			"main"
+		],
+		"stretch": "y",
+		"tags": [
+			"concrete",
+			"structure"
+		],
+		"tris": 92
+	},
+	"structure.section.chs_114x6": {
+		"aabb": [
+			[
+				-0.0571,
+				-0.0572,
+				-0.5
+			],
+			[
+				0.0571,
+				0.0572,
+				0.5
+			]
+		],
+		"category": "structure",
+		"family": "beam",
+		"file": "models/structure/structure.section.chs_114x6.glb",
+		"kind": "chs_114x6",
+		"label": "CHS 114.3 x 6.3",
+		"mass": 15.8,
+		"pieces": [
+			{
+				"mass": 15.76,
+				"node": "main__steel_painted",
+				"slot": "steel_painted",
+				"stage": "main"
+			}
+		],
+		"sockets": {
+			"end": [
+				0.0,
+				0.0,
+				-0.5
+			],
+			"start": [
+				0.0,
+				0.0,
+				0.5
+			]
+		},
+		"stages": [
+			"main"
+		],
+		"stretch": "z",
+		"tags": [
+			"steel_painted",
+			"structure"
+		],
+		"tris": 160
+	},
+	"structure.section.chs_89x5": {
+		"aabb": [
+			[
+				-0.0444,
+				-0.0445,
+				-0.5
+			],
+			[
+				0.0444,
+				0.0445,
+				0.5
+			]
+		],
+		"category": "structure",
+		"family": "beam",
+		"file": "models/structure/structure.section.chs_89x5.glb",
+		"kind": "chs_89x5",
+		"label": "CHS 88.9 x 5.0",
+		"mass": 12.1,
+		"pieces": [
+			{
+				"mass": 12.07,
+				"node": "main__steel_painted",
+				"slot": "steel_painted",
+				"stage": "main"
+			}
+		],
+		"sockets": {
+			"end": [
+				0.0,
+				0.0,
+				-0.5
+			],
+			"start": [
+				0.0,
+				0.0,
+				0.5
+			]
+		},
+		"stages": [
+			"main"
+		],
+		"stretch": "z",
+		"tags": [
+			"steel_painted",
+			"structure"
+		],
+		"tris": 160
+	},
+	"structure.section.gl_115x360": {
+		"aabb": [
+			[
+				-0.0575,
+				-0.18,
+				-0.5
+			],
+			[
+				0.0575,
+				0.18,
+				0.5
+			]
+		],
+		"category": "structure",
+		"family": "beam",
+		"file": "models/structure/structure.section.gl_115x360.glb",
+		"kind": "gl_115x360",
+		"label": "115 x 360 glulam",
+		"mass": 19.0,
+		"pieces": [
+			{
+				"mass": 19.04,
+				"node": "main__glulam",
+				"slot": "glulam",
+				"stage": "main"
+			}
+		],
+		"sockets": {
+			"end": [
+				0.0,
+				0.0,
+				-0.5
+			],
+			"start": [
+				0.0,
+				0.0,
+				0.5
+			]
+		},
+		"stages": [
+			"main"
+		],
+		"stretch": "z",
+		"tags": [
+			"glulam",
+			"structure"
+		],
+		"tris": 12
+	},
+	"structure.section.gl_140x450": {
+		"aabb": [
+			[
+				-0.07,
+				-0.225,
+				-0.5
+			],
+			[
+				0.07,
+				0.225,
+				0.5
+			]
+		],
+		"category": "structure",
+		"family": "beam",
+		"file": "models/structure/structure.section.gl_140x450.glb",
+		"kind": "gl_140x450",
+		"label": "140 x 450 glulam",
+		"mass": 29.0,
+		"pieces": [
+			{
+				"mass": 28.98,
+				"node": "main__glulam",
+				"slot": "glulam",
+				"stage": "main"
+			}
+		],
+		"sockets": {
+			"end": [
+				0.0,
+				0.0,
+				-0.5
+			],
+			"start": [
+				0.0,
+				0.0,
+				0.5
+			]
+		},
+		"stages": [
+			"main"
+		],
+		"stretch": "z",
+		"tags": [
+			"glulam",
+			"structure"
+		],
+		"tris": 12
+	},
+	"structure.section.gl_200x630": {
+		"aabb": [
+			[
+				-0.1,
+				-0.315,
+				-0.5
+			],
+			[
+				0.1,
+				0.315,
+				0.5
+			]
+		],
+		"category": "structure",
+		"family": "beam",
+		"file": "models/structure/structure.section.gl_200x630.glb",
+		"kind": "gl_200x630",
+		"label": "200 x 630 glulam",
+		"mass": 58.0,
+		"pieces": [
+			{
+				"mass": 57.96,
+				"node": "main__glulam",
+				"slot": "glulam",
+				"stage": "main"
+			}
+		],
+		"sockets": {
+			"end": [
+				0.0,
+				0.0,
+				-0.5
+			],
+			"start": [
+				0.0,
+				0.0,
+				0.5
+			]
+		},
+		"stages": [
+			"main"
+		],
+		"stretch": "z",
+		"tags": [
+			"glulam",
+			"structure"
+		],
+		"tris": 12
+	},
+	"structure.section.gl_90x270": {
+		"aabb": [
+			[
+				-0.045,
+				-0.135,
+				-0.5
+			],
+			[
+				0.045,
+				0.135,
+				0.5
+			]
+		],
+		"category": "structure",
+		"family": "beam",
+		"file": "models/structure/structure.section.gl_90x270.glb",
+		"kind": "gl_90x270",
+		"label": "90 x 270 glulam",
+		"mass": 11.2,
+		"pieces": [
+			{
+				"mass": 11.18,
+				"node": "main__glulam",
+				"slot": "glulam",
+				"stage": "main"
+			}
+		],
+		"sockets": {
+			"end": [
+				0.0,
+				0.0,
+				-0.5
+			],
+			"start": [
+				0.0,
+				0.0,
+				0.5
+			]
+		},
+		"stages": [
+			"main"
+		],
+		"stretch": "z",
+		"tags": [
+			"glulam",
+			"structure"
+		],
+		"tris": 12
+	},
+	"structure.section.rc_300x300": {
+		"aabb": [
+			[
+				-0.15,
+				-0.15,
+				-0.5
+			],
+			[
+				0.15,
+				0.15,
+				0.5
+			]
+		],
+		"category": "structure",
+		"family": "beam",
+		"file": "models/structure/structure.section.rc_300x300.glb",
+		"kind": "rc_300x300",
+		"label": "300 x 300 RC",
+		"mass": 225.0,
+		"pieces": [
+			{
+				"mass": 225.0,
+				"node": "main__concrete",
+				"slot": "concrete",
+				"stage": "main"
+			}
+		],
+		"sockets": {
+			"end": [
+				0.0,
+				0.0,
+				-0.5
+			],
+			"start": [
+				0.0,
+				0.0,
+				0.5
+			]
+		},
+		"stages": [
+			"main"
+		],
+		"stretch": "z",
+		"tags": [
+			"concrete",
+			"structure"
+		],
+		"tris": 12
+	},
+	"structure.section.rc_300x450": {
+		"aabb": [
+			[
+				-0.15,
+				-0.225,
+				-0.5
+			],
+			[
+				0.15,
+				0.225,
+				0.5
+			]
+		],
+		"category": "structure",
+		"family": "beam",
+		"file": "models/structure/structure.section.rc_300x450.glb",
+		"kind": "rc_300x450",
+		"label": "300 x 450 RC beam",
+		"mass": 337.5,
+		"pieces": [
+			{
+				"mass": 337.5,
+				"node": "main__concrete",
+				"slot": "concrete",
+				"stage": "main"
+			}
+		],
+		"sockets": {
+			"end": [
+				0.0,
+				0.0,
+				-0.5
+			],
+			"start": [
+				0.0,
+				0.0,
+				0.5
+			]
+		},
+		"stages": [
+			"main"
+		],
+		"stretch": "z",
+		"tags": [
+			"concrete",
+			"structure"
+		],
+		"tris": 12
+	},
+	"structure.section.rc_300x600": {
+		"aabb": [
+			[
+				-0.15,
+				-0.3,
+				-0.5
+			],
+			[
+				0.15,
+				0.3,
+				0.5
+			]
+		],
+		"category": "structure",
+		"family": "beam",
+		"file": "models/structure/structure.section.rc_300x600.glb",
+		"kind": "rc_300x600",
+		"label": "300 x 600 RC beam",
+		"mass": 450.0,
+		"pieces": [
+			{
+				"mass": 450.0,
+				"node": "main__concrete",
+				"slot": "concrete",
+				"stage": "main"
+			}
+		],
+		"sockets": {
+			"end": [
+				0.0,
+				0.0,
+				-0.5
+			],
+			"start": [
+				0.0,
+				0.0,
+				0.5
+			]
+		},
+		"stages": [
+			"main"
+		],
+		"stretch": "z",
+		"tags": [
+			"concrete",
+			"structure"
+		],
+		"tris": 12
+	},
+	"structure.section.rc_400x400": {
+		"aabb": [
+			[
+				-0.2,
+				-0.2,
+				-0.5
+			],
+			[
+				0.2,
+				0.2,
+				0.5
+			]
+		],
+		"category": "structure",
+		"family": "beam",
+		"file": "models/structure/structure.section.rc_400x400.glb",
+		"kind": "rc_400x400",
+		"label": "400 x 400 RC",
+		"mass": 400.0,
+		"pieces": [
+			{
+				"mass": 400.0,
+				"node": "main__concrete",
+				"slot": "concrete",
+				"stage": "main"
+			}
+		],
+		"sockets": {
+			"end": [
+				0.0,
+				0.0,
+				-0.5
+			],
+			"start": [
+				0.0,
+				0.0,
+				0.5
+			]
+		},
+		"stages": [
+			"main"
+		],
+		"stretch": "z",
+		"tags": [
+			"concrete",
+			"structure"
+		],
+		"tris": 12
+	},
+	"structure.section.rc_400x750": {
+		"aabb": [
+			[
+				-0.2,
+				-0.375,
+				-0.5
+			],
+			[
+				0.2,
+				0.375,
+				0.5
+			]
+		],
+		"category": "structure",
+		"family": "beam",
+		"file": "models/structure/structure.section.rc_400x750.glb",
+		"kind": "rc_400x750",
+		"label": "400 x 750 RC beam",
+		"mass": 750.0,
+		"pieces": [
+			{
+				"mass": 750.0,
+				"node": "main__concrete",
+				"slot": "concrete",
+				"stage": "main"
+			}
+		],
+		"sockets": {
+			"end": [
+				0.0,
+				0.0,
+				-0.5
+			],
+			"start": [
+				0.0,
+				0.0,
+				0.5
+			]
+		},
+		"stages": [
+			"main"
+		],
+		"stretch": "z",
+		"tags": [
+			"concrete",
+			"structure"
+		],
+		"tris": 12
+	},
+	"structure.section.rc_500x500": {
+		"aabb": [
+			[
+				-0.25,
+				-0.25,
+				-0.5
+			],
+			[
+				0.25,
+				0.25,
+				0.5
+			]
+		],
+		"category": "structure",
+		"family": "beam",
+		"file": "models/structure/structure.section.rc_500x500.glb",
+		"kind": "rc_500x500",
+		"label": "500 x 500 RC",
+		"mass": 625.0,
+		"pieces": [
+			{
+				"mass": 625.0,
+				"node": "main__concrete",
+				"slot": "concrete",
+				"stage": "main"
+			}
+		],
+		"sockets": {
+			"end": [
+				0.0,
+				0.0,
+				-0.5
+			],
+			"start": [
+				0.0,
+				0.0,
+				0.5
+			]
+		},
+		"stages": [
+			"main"
+		],
+		"stretch": "z",
+		"tags": [
+			"concrete",
+			"structure"
+		],
+		"tris": 12
+	},
+	"structure.section.rc_600x600": {
+		"aabb": [
+			[
+				-0.3,
+				-0.3,
+				-0.5
+			],
+			[
+				0.3,
+				0.3,
+				0.5
+			]
+		],
+		"category": "structure",
+		"family": "beam",
+		"file": "models/structure/structure.section.rc_600x600.glb",
+		"kind": "rc_600x600",
+		"label": "600 x 600 RC",
+		"mass": 900.0,
+		"pieces": [
+			{
+				"mass": 900.0,
+				"node": "main__concrete",
+				"slot": "concrete",
+				"stage": "main"
+			}
+		],
+		"sockets": {
+			"end": [
+				0.0,
+				0.0,
+				-0.5
+			],
+			"start": [
+				0.0,
+				0.0,
+				0.5
+			]
+		},
+		"stages": [
+			"main"
+		],
+		"stretch": "z",
+		"tags": [
+			"concrete",
+			"structure"
+		],
+		"tris": 12
+	},
+	"structure.section.t_100x100": {
+		"aabb": [
+			[
+				-0.05,
+				-0.05,
+				-0.5
+			],
+			[
+				0.05,
+				0.05,
+				0.5
+			]
+		],
+		"category": "structure",
+		"family": "beam",
+		"file": "models/structure/structure.section.t_100x100.glb",
+		"kind": "t_100x100",
+		"label": "100 x 100 timber post",
+		"mass": 4.2,
+		"pieces": [
+			{
+				"mass": 4.2,
+				"node": "main__softwood",
+				"slot": "softwood",
+				"stage": "main"
+			}
+		],
+		"sockets": {
+			"end": [
+				0.0,
+				0.0,
+				-0.5
+			],
+			"start": [
+				0.0,
+				0.0,
+				0.5
+			]
+		},
+		"stages": [
+			"main"
+		],
+		"stretch": "z",
+		"tags": [
+			"softwood",
+			"structure"
+		],
+		"tris": 12
+	},
+	"structure.section.t_150x150": {
+		"aabb": [
+			[
+				-0.075,
+				-0.075,
+				-0.5
+			],
+			[
+				0.075,
+				0.075,
+				0.5
+			]
+		],
+		"category": "structure",
+		"family": "beam",
+		"file": "models/structure/structure.section.t_150x150.glb",
+		"kind": "t_150x150",
+		"label": "150 x 150 timber post",
+		"mass": 9.4,
+		"pieces": [
+			{
+				"mass": 9.45,
+				"node": "main__softwood",
+				"slot": "softwood",
+				"stage": "main"
+			}
+		],
+		"sockets": {
+			"end": [
+				0.0,
+				0.0,
+				-0.5
+			],
+			"start": [
+				0.0,
+				0.0,
+				0.5
+			]
+		},
+		"stages": [
+			"main"
+		],
+		"stretch": "z",
+		"tags": [
+			"softwood",
+			"structure"
+		],
+		"tris": 12
+	},
+	"structure.section.t_200x200": {
+		"aabb": [
+			[
+				-0.1,
+				-0.1,
+				-0.5
+			],
+			[
+				0.1,
+				0.1,
+				0.5
+			]
+		],
+		"category": "structure",
+		"family": "beam",
+		"file": "models/structure/structure.section.t_200x200.glb",
+		"kind": "t_200x200",
+		"label": "200 x 200 timber post",
+		"mass": 16.8,
+		"pieces": [
+			{
+				"mass": 16.8,
+				"node": "main__softwood",
+				"slot": "softwood",
+				"stage": "main"
+			}
+		],
+		"sockets": {
+			"end": [
+				0.0,
+				0.0,
+				-0.5
+			],
+			"start": [
+				0.0,
+				0.0,
+				0.5
+			]
+		},
+		"stages": [
+			"main"
+		],
+		"stretch": "z",
+		"tags": [
+			"softwood",
+			"structure"
+		],
+		"tris": 12
+	},
+	"structure.section.t_47x150": {
+		"aabb": [
+			[
+				-0.0235,
+				-0.075,
+				-0.5
+			],
+			[
+				0.0235,
+				0.075,
+				0.5
+			]
+		],
+		"category": "structure",
+		"family": "beam",
+		"file": "models/structure/structure.section.t_47x150.glb",
+		"kind": "t_47x150",
+		"label": "47 x 150 timber",
+		"mass": 3.0,
+		"pieces": [
+			{
+				"mass": 2.96,
+				"node": "main__softwood",
+				"slot": "softwood",
+				"stage": "main"
+			}
+		],
+		"sockets": {
+			"end": [
+				0.0,
+				0.0,
+				-0.5
+			],
+			"start": [
+				0.0,
+				0.0,
+				0.5
+			]
+		},
+		"stages": [
+			"main"
+		],
+		"stretch": "z",
+		"tags": [
+			"softwood",
+			"structure"
+		],
+		"tris": 12
+	},
+	"structure.section.t_47x200": {
+		"aabb": [
+			[
+				-0.0235,
+				-0.1,
+				-0.5
+			],
+			[
+				0.0235,
+				0.1,
+				0.5
+			]
+		],
+		"category": "structure",
+		"family": "beam",
+		"file": "models/structure/structure.section.t_47x200.glb",
+		"kind": "t_47x200",
+		"label": "47 x 200 timber",
+		"mass": 4.0,
+		"pieces": [
+			{
+				"mass": 3.95,
+				"node": "main__softwood",
+				"slot": "softwood",
+				"stage": "main"
+			}
+		],
+		"sockets": {
+			"end": [
+				0.0,
+				0.0,
+				-0.5
+			],
+			"start": [
+				0.0,
+				0.0,
+				0.5
+			]
+		},
+		"stages": [
+			"main"
+		],
+		"stretch": "z",
+		"tags": [
+			"softwood",
+			"structure"
+		],
+		"tris": 12
+	},
+	"structure.section.t_47x225": {
+		"aabb": [
+			[
+				-0.0235,
+				-0.1125,
+				-0.5
+			],
+			[
+				0.0235,
+				0.1125,
+				0.5
+			]
+		],
+		"category": "structure",
+		"family": "beam",
+		"file": "models/structure/structure.section.t_47x225.glb",
+		"kind": "t_47x225",
+		"label": "47 x 225 timber",
+		"mass": 4.4,
+		"pieces": [
+			{
+				"mass": 4.44,
+				"node": "main__softwood",
+				"slot": "softwood",
+				"stage": "main"
+			}
+		],
+		"sockets": {
+			"end": [
+				0.0,
+				0.0,
+				-0.5
+			],
+			"start": [
+				0.0,
+				0.0,
+				0.5
+			]
+		},
+		"stages": [
+			"main"
+		],
+		"stretch": "z",
+		"tags": [
+			"softwood",
+			"structure"
+		],
+		"tris": 12
+	},
+	"structure.section.t_75x225": {
+		"aabb": [
+			[
+				-0.0375,
+				-0.1125,
+				-0.5
+			],
+			[
+				0.0375,
+				0.1125,
+				0.5
+			]
+		],
+		"category": "structure",
+		"family": "beam",
+		"file": "models/structure/structure.section.t_75x225.glb",
+		"kind": "t_75x225",
+		"label": "75 x 225 timber",
+		"mass": 7.1,
+		"pieces": [
+			{
+				"mass": 7.09,
+				"node": "main__softwood",
+				"slot": "softwood",
+				"stage": "main"
+			}
+		],
+		"sockets": {
+			"end": [
+				0.0,
+				0.0,
+				-0.5
+			],
+			"start": [
+				0.0,
+				0.0,
+				0.5
+			]
+		},
+		"stages": [
+			"main"
+		],
+		"stretch": "z",
+		"tags": [
+			"softwood",
+			"structure"
+		],
+		"tris": 12
+	},
+	"structure.section.ub_203x133x25": {
+		"aabb": [
+			[
+				-0.0666,
+				-0.1016,
+				-0.5
+			],
+			[
+				0.0666,
+				0.1016,
+				0.5
+			]
+		],
+		"category": "structure",
+		"family": "beam",
+		"file": "models/structure/structure.section.ub_203x133x25.glb",
+		"kind": "ub_203x133x25",
+		"label": "UB 203 x 133 x 25",
+		"mass": 25.1,
+		"pieces": [
+			{
+				"mass": 25.12,
+				"node": "main__steel_painted",
+				"slot": "steel_painted",
+				"stage": "main"
+			}
+		],
+		"sockets": {
+			"end": [
+				0.0,
+				0.0,
+				-0.5
+			],
+			"start": [
+				0.0,
+				0.0,
+				0.5
+			]
+		},
+		"stages": [
+			"main"
+		],
+		"stretch": "z",
+		"tags": [
+			"steel_painted",
+			"structure"
+		],
+		"tris": 44
+	},
+	"structure.section.ub_254x146x31": {
+		"aabb": [
+			[
+				-0.073,
+				-0.1257,
+				-0.5
+			],
+			[
+				0.073,
+				0.1257,
+				0.5
+			]
+		],
+		"category": "structure",
+		"family": "beam",
+		"file": "models/structure/structure.section.ub_254x146x31.glb",
+		"kind": "ub_254x146x31",
+		"label": "UB 254 x 146 x 31",
+		"mass": 31.2,
+		"pieces": [
+			{
+				"mass": 31.16,
+				"node": "main__steel_painted",
+				"slot": "steel_painted",
+				"stage": "main"
+			}
+		],
+		"sockets": {
+			"end": [
+				0.0,
+				0.0,
+				-0.5
+			],
+			"start": [
+				0.0,
+				0.0,
+				0.5
+			]
+		},
+		"stages": [
+			"main"
+		],
+		"stretch": "z",
+		"tags": [
+			"steel_painted",
+			"structure"
+		],
+		"tris": 44
+	},
+	"structure.section.ub_305x165x40": {
+		"aabb": [
+			[
+				-0.0825,
+				-0.1517,
+				-0.5
+			],
+			[
+				0.0825,
+				0.1517,
+				0.5
+			]
+		],
+		"category": "structure",
+		"family": "beam",
+		"file": "models/structure/structure.section.ub_305x165x40.glb",
+		"kind": "ub_305x165x40",
+		"label": "UB 305 x 165 x 40",
+		"mass": 40.3,
+		"pieces": [
+			{
+				"mass": 40.27,
+				"node": "main__steel_painted",
+				"slot": "steel_painted",
+				"stage": "main"
+			}
+		],
+		"sockets": {
+			"end": [
+				0.0,
+				0.0,
+				-0.5
+			],
+			"start": [
+				0.0,
+				0.0,
+				0.5
+			]
+		},
+		"stages": [
+			"main"
+		],
+		"stretch": "z",
+		"tags": [
+			"steel_painted",
+			"structure"
+		],
+		"tris": 44
+	},
+	"structure.section.ub_406x178x60": {
+		"aabb": [
+			[
+				-0.089,
+				-0.2032,
+				-0.5
+			],
+			[
+				0.089,
+				0.2032,
+				0.5
+			]
+		],
+		"category": "structure",
+		"family": "beam",
+		"file": "models/structure/structure.section.ub_406x178x60.glb",
+		"kind": "ub_406x178x60",
+		"label": "UB 406 x 178 x 60",
+		"mass": 60.0,
+		"pieces": [
+			{
+				"mass": 60.05,
+				"node": "main__steel_painted",
+				"slot": "steel_painted",
+				"stage": "main"
+			}
+		],
+		"sockets": {
+			"end": [
+				0.0,
+				0.0,
+				-0.5
+			],
+			"start": [
+				0.0,
+				0.0,
+				0.5
+			]
+		},
+		"stages": [
+			"main"
+		],
+		"stretch": "z",
+		"tags": [
+			"steel_painted",
+			"structure"
+		],
+		"tris": 44
+	},
+	"structure.section.ub_533x210x92": {
+		"aabb": [
+			[
+				-0.1046,
+				-0.2666,
+				-0.5
+			],
+			[
+				0.1046,
+				0.2666,
+				0.5
+			]
+		],
+		"category": "structure",
+		"family": "beam",
+		"file": "models/structure/structure.section.ub_533x210x92.glb",
+		"kind": "ub_533x210x92",
+		"label": "UB 533 x 210 x 92",
+		"mass": 91.8,
+		"pieces": [
+			{
+				"mass": 91.84,
+				"node": "main__steel_painted",
+				"slot": "steel_painted",
+				"stage": "main"
+			}
+		],
+		"sockets": {
+			"end": [
+				0.0,
+				0.0,
+				-0.5
+			],
+			"start": [
+				0.0,
+				0.0,
+				0.5
+			]
+		},
+		"stages": [
+			"main"
+		],
+		"stretch": "z",
+		"tags": [
+			"steel_painted",
+			"structure"
+		],
+		"tris": 44
+	},
+	"structure.section.uc_152x152x23": {
+		"aabb": [
+			[
+				-0.0761,
+				-0.0762,
+				-0.5
+			],
+			[
+				0.0761,
+				0.0762,
+				0.5
+			]
+		],
+		"category": "structure",
+		"family": "beam",
+		"file": "models/structure/structure.section.uc_152x152x23.glb",
+		"kind": "uc_152x152x23",
+		"label": "UC 152 x 152 x 23",
+		"mass": 22.9,
+		"pieces": [
+			{
+				"mass": 22.92,
+				"node": "main__steel_painted",
+				"slot": "steel_painted",
+				"stage": "main"
+			}
+		],
+		"sockets": {
+			"end": [
+				0.0,
+				0.0,
+				-0.5
+			],
+			"start": [
+				0.0,
+				0.0,
+				0.5
+			]
+		},
+		"stages": [
+			"main"
+		],
+		"stretch": "z",
+		"tags": [
+			"steel_painted",
+			"structure"
+		],
+		"tris": 44
+	},
+	"structure.section.uc_203x203x46": {
+		"aabb": [
+			[
+				-0.1018,
+				-0.1016,
+				-0.5
+			],
+			[
+				0.1018,
+				0.1016,
+				0.5
+			]
+		],
+		"category": "structure",
+		"family": "beam",
+		"file": "models/structure/structure.section.uc_203x203x46.glb",
+		"kind": "uc_203x203x46",
+		"label": "UC 203 x 203 x 46",
+		"mass": 46.1,
+		"pieces": [
+			{
+				"mass": 46.08,
+				"node": "main__steel_painted",
+				"slot": "steel_painted",
+				"stage": "main"
+			}
+		],
+		"sockets": {
+			"end": [
+				0.0,
+				0.0,
+				-0.5
+			],
+			"start": [
+				0.0,
+				0.0,
+				0.5
+			]
+		},
+		"stages": [
+			"main"
+		],
+		"stretch": "z",
+		"tags": [
+			"steel_painted",
+			"structure"
+		],
+		"tris": 44
+	},
+	"structure.section.uc_254x254x73": {
+		"aabb": [
+			[
+				-0.1273,
+				-0.127,
+				-0.5
+			],
+			[
+				0.1273,
+				0.127,
+				0.5
+			]
+		],
+		"category": "structure",
+		"family": "beam",
+		"file": "models/structure/structure.section.uc_254x254x73.glb",
+		"kind": "uc_254x254x73",
+		"label": "UC 254 x 254 x 73",
+		"mass": 73.1,
+		"pieces": [
+			{
+				"mass": 73.08,
+				"node": "main__steel_painted",
+				"slot": "steel_painted",
+				"stage": "main"
+			}
+		],
+		"sockets": {
+			"end": [
+				0.0,
+				0.0,
+				-0.5
+			],
+			"start": [
+				0.0,
+				0.0,
+				0.5
+			]
+		},
+		"stages": [
+			"main"
+		],
+		"stretch": "z",
+		"tags": [
+			"steel_painted",
+			"structure"
+		],
+		"tris": 44
+	},
+	"structure.section.uc_305x305x97": {
+		"aabb": [
+			[
+				-0.1526,
+				-0.154,
+				-0.5
+			],
+			[
+				0.1526,
+				0.154,
+				0.5
+			]
+		],
+		"category": "structure",
+		"family": "beam",
+		"file": "models/structure/structure.section.uc_305x305x97.glb",
+		"kind": "uc_305x305x97",
+		"label": "UC 305 x 305 x 97",
+		"mass": 96.6,
+		"pieces": [
+			{
+				"mass": 96.56,
+				"node": "main__steel_painted",
+				"slot": "steel_painted",
+				"stage": "main"
+			}
+		],
+		"sockets": {
+			"end": [
+				0.0,
+				0.0,
+				-0.5
+			],
+			"start": [
+				0.0,
+				0.0,
+				0.5
+			]
+		},
+		"stages": [
+			"main"
+		],
+		"stretch": "z",
+		"tags": [
+			"steel_painted",
+			"structure"
+		],
+		"tris": 44
+	}
+}

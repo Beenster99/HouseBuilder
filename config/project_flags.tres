@@ -8,6 +8,8 @@ flags = {
 "core": true,
 "ui": true,
 "multiplayer": true,
+"assets": true,
+"assets.gallery": true,
 "building": true,
 "contracts": true,
 "contracts.panel": true,
