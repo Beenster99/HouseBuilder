@@ -250,6 +250,13 @@ func all_part_tags() -> Dictionary:
 	return out
 
 
+## The add ops that put a copy of `clip` (see clipboard) on `level` with its middle at plan
+## point `at`, turned `rot` degrees; new ids from `fresh` (unused ids, one per item). One
+## sync.edit(BuildingCommands.batch(ops)) places it as one undo step.
+func paste_ops(clip: Dictionary, level: int, at: Vector3, rot: float, fresh: Array) -> Array:
+	return (load("res://modules/design/internal/design_session.gd") as GDScript).call("paste_ops", clip, level, at, rot, fresh)
+
+
 ## Takes this player to a part: selects it, goes to its level, frames the designer on it and
 ## flashes it (a part a note names, say). False if there is no designer open or no such part.
 func focus_part(id: String) -> bool:

@@ -339,6 +339,8 @@ func run_tests() -> void:
 	check((dbus.clipboard.get("items", []) as Array).size() >= 6, "Ctrl+C copies the room, its walls, door and column: %d" % (dbus.clipboard.get("items", []) as Array).size())
 	ckey.call(KEY_V)
 	check(bool(room.call("stamping")) and room.find_child("PasteGhost", true, false) != null, "Ctrl+V puts a see-through copy in hand")
+	var bus_ops: Array = dbus.paste_ops(dbus.clipboard, 0, Vector3(100, 0, 100), 90.0, ["p9001", "p9002", "p9003", "p9004", "p9005", "p9006", "p9007", "p9008", "p9009"])
+	check(bus_ops.size() >= 6 and str((bus_ops[0] as Dictionary).op) == "add", "DesignBus.paste_ops gives the same ops for walk-inside: %d" % bus_ops.size())
 	var rooms_before := model.rooms.size()
 	var parts_before := model.parts.size()
 	await frames(1)
