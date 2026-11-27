@@ -52,6 +52,45 @@ func run_tests() -> void:
 	_view()
 	_solo_bus()
 	_peers()
+	await _board()
+
+
+func _board() -> void:
+	var bus := Modules.bus("sites") as SitesBus
+	var design := Modules.bus("design")
+	await get_tree().process_frame
+	if design and design.has_method("register_channel"):
+		check(design.channels.has(SitesBus.BOARD_CHANNEL), "the wall screens have a Real-world sites channel")
+		check(str(design.channels[SitesBus.BOARD_CHANNEL].title) == "Real-world sites", "titled for the hall")
+	var pack := SitePool.open(BATH)
+	check(pack.location_text().contains("°") and pack.plot_size_text().contains("m²"), "location and plot size: %s, %s" % [pack.location_text(), pack.plot_size_text()])
+	var s: Dictionary = SitePool.summary(BATH)
+	check(s.has("constraints") and s.has("location") and s.has("plot_size"), "the pool lists where, how big and what's hard")
+	var board := bus.make_board()
+	add_child(board)
+	await get_tree().process_frame
+	var text := _all_text(board)
+	check(text.contains(pack.title()), "the board lists the sites")
+	check(text.contains("Build here"), "with a way to start on one")
+	bus.load_site(BATH)
+	await get_tree().process_frame
+	check(_all_text(board).contains("Current site") and _all_text(board).contains(pack.plot_size_text()), "and shows the current site")
+	bus.clear_site()
+	await get_tree().process_frame
+	check(_all_text(board).contains("No real site yet"), "and says how to start when there is none")
+	board.queue_free()
+
+
+func _all_text(n: Node) -> String:
+	var out := ""
+	if n is Label:
+		out += (n as Label).text + "\n"
+	elif n is Button:
+		out += (n as Button).text + "\n"
+	for c in n.get_children():
+		if not c.is_queued_for_deletion():
+			out += _all_text(c)
+	return out
 
 
 func _plot_frame() -> void:

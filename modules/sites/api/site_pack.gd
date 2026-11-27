@@ -209,6 +209,45 @@ func ground_at_local(x: float, z: float) -> float:
 	return height_at(x + o.x, z + o.z)
 
 
+## Where on Earth: {"lat", "lon", "elevation_m"} of the pack's origin.
+func location() -> Dictionary:
+	return data.get("origin", {})
+
+
+## "51.3812° N, 2.3590° W" for boards and menus ("" when the pack has no origin).
+func location_text() -> String:
+	var o := location()
+	if not o.has("lat") or not o.has("lon"):
+		return ""
+	var lat := float(o.lat)
+	var lon := float(o.lon)
+	return "%.4f° %s, %.4f° %s" % [absf(lat), "N" if lat >= 0.0 else "S", absf(lon), "E" if lon >= 0.0 else "W"]
+
+
+## "1,240 m², about 42 × 30 m" from the plot's area and bounding rectangle.
+func plot_size_text() -> String:
+	var area := float(plot().get("area_m2", plot_area()))
+	var rect: Dictionary = plot().get("bounding_rect", {})
+	var out := "%s m²" % _thousands(roundi(area))
+	if rect.has("width_m") and rect.has("depth_m"):
+		out += ", about %d × %d m" % [roundi(float(rect.width_m)), roundi(float(rect.depth_m))]
+	return out
+
+
+## Vehicle roads that front the plot, longest frontage first (empty: no road access).
+func access() -> Array:
+	return plot().get("access", [])
+
+
+static func _thousands(n: int) -> String:
+	var s := str(absi(n))
+	var out := ""
+	while s.length() > 3:
+		out = "," + s.right(3) + out
+		s = s.left(s.length() - 3)
+	return ("-" if n < 0 else "") + s + out
+
+
 func ground() -> Dictionary:
 	return plot().get("ground", {})
 

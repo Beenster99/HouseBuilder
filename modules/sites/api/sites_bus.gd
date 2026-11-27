@@ -20,6 +20,8 @@ extends Node
 signal site_changed(pack: SitePack)
 
 const LOAD := "sites.load"
+const BOARD_CHANNEL := "sites.board"
+const BOARD_SCRIPT := "res://modules/sites/internal/sites_board.gd"
 const CLEAR := "sites.clear"
 const FLAG := "sites.real_sites"
 const PICKER_SCENE := "sites.picker"
@@ -28,6 +30,7 @@ const SiteView := preload("res://modules/sites/internal/site_view.gd")
 
 var _net: Object
 var _pack: SitePack
+var _design: Node
 var _payload: Dictionary = {}
 
 
@@ -40,15 +43,36 @@ func register_module() -> void:
 		Menu.register_entry(PICKER_SCENE, "Real sites", PICKER_SCENE, 20)
 		Shots.register("sites_picker", PICKER_SCENE)
 		Shots.register("sites_bath", VIEW_SCENE, func(_scene: Node) -> void: load_site("bath-hillside-garages"), 60)
+		_hook_design.call_deferred()
 
 
 func unregister_module() -> void:
 	Menu.unregister_entry(PICKER_SCENE)
+	if is_instance_valid(_design):
+		_design.unregister_channel(BOARD_CHANNEL)
+	_design = null
 	if _net:
 		_net.unregister_event(LOAD)
 		_net.unregister_event(CLEAR)
 		_net.unregister_snapshot_provider("sites")
 	_net = null
+
+
+## The "Real-world sites" page on the design hall's wall screens, when the design module is
+## loaded (found by name, so sites does not depend on it).
+func _hook_design() -> void:
+	var design := Modules.bus("design")
+	if design == null or not design.has_method("register_channel"):
+		return
+	_design = design
+	design.register_channel(BOARD_CHANNEL, "Real-world sites", func(_model: Variant) -> Control: return make_board(), 40)
+
+
+## The wall-screen page: the site pool and the current site (kept up to date).
+func make_board() -> Control:
+	var board: Control = load(BOARD_SCRIPT).new()
+	board.call("bind", self)
+	return board
 
 
 ## Hooks the bus to a session (the multiplayer bus, or a stand-in with the same calls).

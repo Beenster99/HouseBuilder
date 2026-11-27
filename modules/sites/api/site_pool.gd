@@ -3,7 +3,8 @@ extends RefCounted
 ## The curated pool of real sites: every *.sitepack.json in DIRS. Contracts draw a plot for
 ## a building type from here; the picker lists them all.
 ##
-##   SitePool.list()                       # [{id, name, description, suited_to, rating, path, preview}]
+##   SitePool.list()                       # [{id, name, description, suited_to, rating, location,
+##                                         #   plot_size, area_m2, constraints, soil, path, preview...}]
 ##   SitePool.for_building("school")       # the ones curated for schools
 ##   SitePool.pick("house", 42)            # one of them, the same for the same seed
 ##   SitePool.open("bath-hillside-garages")
@@ -30,6 +31,9 @@ static func list() -> Array:
 				_summaries.append({"id": pack.id(), "name": pack.title(), "description": pack.description(),
 						"suited_to": Array(pack.suited_to()), "rating": pack.rating(),
 						"cost_multiplier_hint": pack.cost_multiplier_hint(), "soil": pack.soil(),
+						"location": pack.location_text(), "plot_size": pack.plot_size_text(),
+						"area_m2": pack.plot_area(), "access": pack.access().size(),
+						"constraints": pack.factors().map(func(f: Dictionary) -> String: return str(f.get("label", f.get("id", "")))),
 						"path": path, "preview": preview if FileAccess.file_exists(preview) else ""})
 		_summaries.sort_custom(func(a: Dictionary, b: Dictionary) -> bool: return a.id < b.id)
 	return _summaries.duplicate(true)
