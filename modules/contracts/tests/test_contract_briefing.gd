@@ -9,9 +9,45 @@ const SITE := "bath-hillside-garages"
 
 
 func run_tests() -> void:
+	_types()
 	_document()
 	_for_site()
 	await _site_picked()
+
+
+## Every building type has what a brief needs: rooms the catalog knows, a client, materials,
+## a kind of plot, a plot ratio and a client story; every tier offers something.
+func _types() -> void:
+	var cat := BuildingCatalog.default_catalog()
+	var types := ContractGenerator.TYPES_SCRIPT
+	var bad := PackedStringArray()
+	for t: String in ContractGenerator.TYPES:
+		var spec: Dictionary = ContractGenerator.TYPES[t]
+		var c := str(spec.category)
+		for p: Array in spec.program:
+			if not cat.has_room_type(str(p[0])):
+				bad.append("%s: room %s" % [t, p[0]])
+		for g: Array in spec.goals:
+			if not cat.has_room_type(str(g[0])):
+				bad.append("%s: goal %s" % [t, g[0]])
+		if not types.SITE_KIND.has(t) or not types.CLIENTS.has(c) or not types.MATERIALS.has(c) \
+				or not ContractGenerator.PLOT_RATIO.has(c) or not ContractBriefing.STORIES.has(c):
+			bad.append("%s: category %s is missing a table entry" % [t, c])
+		var b := ContractGenerator.generate(11, t, int(spec.tier))
+		var text := ContractBriefing.text(b)
+		if str(b.type) != t or not text.contains(str(spec.label).to_lower()) or text.contains("{"):
+			bad.append("%s: brief reads wrong" % t)
+		for r: Dictionary in ContractBrief.normalize(b).requirements:
+			if ContractBrief.describe(r, cat) == str(r.kind):
+				bad.append("%s: %s has no words" % [t, r.kind])
+	check(bad.is_empty(), "every building type is complete: %s" % [bad])
+	check(ContractGenerator.TYPES.size() >= 39, "the person's list is in: %d building types" % ContractGenerator.TYPES.size())
+	for tier in range(1, ContractTiers.top() + 1):
+		check(ContractGenerator.types_of_tier(tier).size() >= 3, "tier %d offers at least three types" % tier)
+	var prison := ContractGenerator.generate(4, "prison", 7)
+	check(ContractBrief.normalize(prison).requirements.any(func(r: Dictionary) -> bool:
+			return str(r.kind) == "secure_cells" and ContractBrief.describe(r, cat).contains("prison cell")),
+			"a prison wants a secure door on every prison cell")
 
 
 func _document() -> void:

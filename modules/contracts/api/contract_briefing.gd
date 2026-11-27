@@ -37,6 +37,24 @@ const STORIES := {
 	"health": [
 		"{client} need a {type} on {site} to bring care closer to patients. Wide doors, level access and short routes matter more here than anywhere else.",
 	],
+	"housing": [
+		"{client} {are} building homes for local people who cannot find anywhere to live. They want a {type} on {site}: every home a decent size, with its own front door or a safe, short way to it.",
+	],
+	"retail": [
+		"{client} {are} opening a {type} on {site}. Shoppers have to find their way in easily, deliveries have to get to the stockrooms, and the shop floors must be big enough to trade from.",
+	],
+	"hospitality": [
+		"{client} {are} betting on visitors and want a {type} on {site} that guests will come back to. Comfortable rooms, a kitchen that can keep up, and a warm welcome at the door.",
+	],
+	"leisure": [
+		"{client} {are} bringing culture back to town with a {type} on {site}. Hundreds of people will arrive at once and leave at once, so the foyer, the exits and the sight lines all matter.",
+	],
+	"justice": [
+		"{client} need a {type} on {site}. Security comes first: the public, staff and people in custody must never meet where they should not, and every cell needs a secure door.",
+	],
+	"industrial": [
+		"{client} {are} expanding and need a {type} on {site}: a big, clear floor, wide doors for lorries and somewhere sensible for the office staff. Cheap to build counts.",
+	],
 	"transport": [
 		"{client} are expanding with a new {type} on {site}. Passenger numbers are growing every year; the building must move people through quickly and stand up to heavy use.",
 	],
@@ -76,7 +94,9 @@ static func story(brief: Dictionary) -> String:
 	var options: Array = STORIES.get(cat, STORIES.domestic)
 	var seed := int(brief.get("seed", 0))
 	var tpl := str(options[absi(seed) % options.size()])
-	var text := tpl.format({"client": str(brief.get("client", "The client")), "type": label, "site": where})
+	var client := str(brief.get("client", "The client"))
+	var plural := client.begins_with("The ") and (client.ends_with("family") or client.ends_with("s")) or client.begins_with("Mr and")
+	var text := tpl.format({"client": client, "type": label, "site": where, "are": "are" if plural else "is"})
 	var pack := _pack_of(brief)
 	if pack != null and pack.description() != "":
 		text += " About the site: " + pack.description()

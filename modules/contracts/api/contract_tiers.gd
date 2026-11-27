@@ -15,19 +15,19 @@ extends RefCounted
 
 const TIERS := [
 	{"tier": 1, "xp": 0, "name": "Small works", "award": 250,
-		"blurb": "Garden studios, garages and sports pavilions: one storey, a handful of rooms."},
+		"blurb": "Garden studios, garages, corner shops and sports pavilions: one storey, a handful of rooms."},
 	{"tier": 2, "xp": 1000, "name": "Homes", "award": 500,
-		"blurb": "Bungalows, terraces and semi-detached houses."},
+		"blurb": "Bungalows, terraces, semi-detached houses and holiday lodges."},
 	{"tier": 3, "xp": 3000, "name": "Family homes and community", "award": 1000,
-		"blurb": "Detached houses, community halls and day nurseries. Structural steel and trusses."},
+		"blurb": "Detached houses, rows of houses, guest houses, pubs, industrial units, community halls and day nurseries. Structural steel and trusses."},
 	{"tier": 4, "xp": 7000, "name": "Public buildings", "award": 2000,
-		"blurb": "Primary schools, branch libraries and fire stations. Piles and glulam."},
+		"blurb": "Primary schools, branch libraries, fire stations, bus stations, shopping parades and retreats. Piles and glulam."},
 	{"tier": 5, "xp": 15000, "name": "Civic and commercial", "award": 3500,
-		"blurb": "Police stations, office blocks and secondary schools. Curtain walling and rafts."},
-	{"tier": 6, "xp": 30000, "name": "Healthcare", "award": 6000,
-		"blurb": "Health clinics and care homes."},
+		"blurb": "Police stations, office blocks, secondary schools, apartment buildings, council offices, business centres, hotels and cinemas. Curtain walling and rafts."},
+	{"tier": 6, "xp": 30000, "name": "Healthcare and landmarks", "award": 6000,
+		"blurb": "Health clinics, care homes, theatres, law courts, mansion houses and retail parks."},
 	{"tier": 7, "xp": 60000, "name": "Major projects", "award": 12000,
-		"blurb": "Hospital wings and airport terminals."},
+		"blurb": "Hospital wings, airport terminals, train stations and prisons."},
 ]
 const MAX_XP := 60000
 

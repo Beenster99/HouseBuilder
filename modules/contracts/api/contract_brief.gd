@@ -144,7 +144,7 @@ static func describe(req: Dictionary, catalog: BuildingCatalog = null) -> String
 		"vehicle_access":
 			return "A vehicle door into the building"
 		"secure_cells":
-			return "A secure door on every custody cell"
+			return "A secure door on every %s" % room_label(str(req.get("type", "custody_cell")), cat, 1)
 		"near":
 			return "Every %s within %.0f m of the %s" % [room_label(str(req.a), cat, 1), v, room_label(str(req.b), cat, 1)]
 		"exit_distance":

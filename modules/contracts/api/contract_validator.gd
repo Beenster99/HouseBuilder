@@ -162,14 +162,15 @@ static func check(req: Dictionary, ctx: Dictionary) -> Dictionary:
 			_count(out, n, 1, "No vehicle door yet." if n == 0 else "A vehicle door is in place.",
 					"Put a vehicle door in an outside wall of the garage or vehicle bay.")
 		"secure_cells":
-			var cells := _rooms_of(model, "custody_cell").size()
+			var cell_type := str(req.get("type", "custody_cell"))
+			var cells := _rooms_of(model, cell_type).size()
 			var doors := 0
 			for pid: String in model.parts:
 				if str(model.parts[pid].kind) == "door_secure":
 					doors += 1
 			if cells == 0:
-				out.detail = "There are no custody cells yet."
-				out.tip = "Paint the custody cells first."
+				out.detail = "There are no %s yet." % ContractBrief.room_label(cell_type, cat, 2)
+				out.tip = "Paint the %s first." % ContractBrief.room_label(cell_type, cat, 2)
 			else:
 				_count(out, doors, cells, "%d secure doors for %d cells." % [doors, cells], "Give every cell a secure door.")
 		"near":

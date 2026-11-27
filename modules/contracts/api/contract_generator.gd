@@ -27,7 +27,8 @@ const SERVICES_SHARE := 0.08
 const PLANNING_STOREY_M := 3.5
 const PLANNING_ROOF_M := 3.0
 ## Plot area per m2 of ground floor, by category (gardens, parking, playgrounds).
-const PLOT_RATIO := {"domestic": 3.0, "education": 3.0, "civic": 2.5, "police": 2.5, "office": 1.8, "health": 2.5, "transport": 2.0}
+const PLOT_RATIO := {"domestic": 3.0, "education": 3.0, "civic": 2.5, "police": 2.5, "office": 1.8, "health": 2.5, "transport": 2.0,
+		"housing": 2.5, "retail": 2.0, "hospitality": 2.5, "leisure": 2.0, "justice": 2.5, "industrial": 2.0}
 
 
 ## Share of briefs for the firm's own tier (the rest are from the tiers below).
