@@ -78,7 +78,11 @@ standing on a slab with nothing under it is unsupported (put a beam under it), n
 walls count only through the floor finishes allowance. A stiffness-matrix solver can replace
 `internal/load_path_solver.gd` behind the same api and data.
 
-## Still to come
+## In the design room
 
-- The stress test button and utilisation overlay in the design room (flag
-  `structure.stress_test`, off), once the design room is on main.
+With flag `structure.stress_test` on and the design module loaded, the bus adds a
+"Stress test" button to the room's top bar and an "Engineer" view to its View picker
+(found by name, so structure does not depend on design). The view colours each building
+part by its worst utilisation over every scenario: green under 70%, amber to 100%, red
+past it. Its side panel (`internal/stress_panel.gd`) shows the verdict, each scenario and
+the notes on what failed and what to try. Every player sees the host's report.

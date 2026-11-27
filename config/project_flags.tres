@@ -22,7 +22,7 @@ flags = {
 "sites": true,
 "sites.real_sites": true,
 "structure": true,
-"structure.stress_test": false,
+"structure.stress_test": true,
 "services": true,
 "services.consultant": true,
 "ui.debug_tab": true,

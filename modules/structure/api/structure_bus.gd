@@ -18,12 +18,23 @@ extends Node
 signal report_changed(report: StructureReport)
 
 const EVENT_RUN := "structure.run"
-## The stress test button and the utilisation overlay in the design room (not built yet).
+## The "Stress test" button and the Engineer view in the design room.
 const STRESS_TEST_FLAG := "structure.stress_test"
+const OVERLAY := "structure.stress"
+const ACTION := "structure.stress"
+const PANEL_SCRIPT := "res://modules/structure/internal/stress_panel.gd"
+
+## Overlay colours: green under StructureResult.AMBER, amber up to RED, red past it.
+const GREEN := Color(0.3, 0.78, 0.42)
+const AMBER := Color(0.98, 0.7, 0.2)
+const RED := Color(0.93, 0.25, 0.22)
 
 var _net: Object
 var _provider := Callable()
 var _report: StructureReport
+var _design: Node
+## part id -> highest utilisation in the last report (built on demand).
+var _part_u: Dictionary = {}
 
 
 func register_module() -> void:
@@ -32,9 +43,14 @@ func register_module() -> void:
 	var building := Modules.bus("building") as BuildingBus
 	if building:
 		set_graph_provider(func() -> StructureGraph: return StructureBuilding.graph(building.model))
+	_hook_design.call_deferred()
 
 
 func unregister_module() -> void:
+	if is_instance_valid(_design):
+		_design.unregister_action(ACTION)
+		_design.unregister_overlay(OVERLAY)
+	_design = null
 	if _net:
 		_net.unregister_event(EVENT_RUN)
 		_net.unregister_snapshot_provider("structure")
@@ -69,6 +85,64 @@ func last_report() -> StructureReport:
 	return _report
 
 
+## "Stress test" on the design room's top bar and the Engineer view, when the design
+## module is loaded (optional, found by name so structure does not depend on it).
+func _hook_design() -> void:
+	if not Flags.is_on(STRESS_TEST_FLAG):
+		return
+	var design := Modules.bus("design")
+	if design == null or not design.has_method("register_overlay"):
+		return
+	hook_design(design)
+
+
+## Registers the action and the overlay with a design bus (or a stand-in in tests).
+func hook_design(design: Node) -> void:
+	_design = design
+	design.register_action(ACTION, "Stress test", func(_model: BuildingModel) -> void: run_stress_test(), 40)
+	design.register_overlay(OVERLAY, "Engineer", overlay_tints, make_panel, 40)
+	report_changed.connect(func(_r: StructureReport) -> void: design.refresh_overlay(OVERLAY))
+
+
+## The Engineer view's colours: each building part by the worst utilisation of any of its
+## members or foundations over every scenario. Parts the test did not reach stay untinted.
+func overlay_tints(_model: BuildingModel = null) -> Dictionary:
+	var out := {}
+	for id: String in part_utilisation():
+		out[id] = colour_for(float(_part_u[id]))
+	return out
+
+
+## part id -> highest utilisation in the last report ({} before the first test).
+func part_utilisation() -> Dictionary:
+	if _report == null:
+		return {}
+	if _part_u.is_empty():
+		for r in _report.results:
+			for dict: Dictionary in [r.members, r.anchors]:
+				for id: String in dict:
+					var part := str(dict[id].get("part", ""))
+					if part != "":
+						_part_u[part] = maxf(float(_part_u.get(part, 0.0)), float(dict[id].u))
+	return _part_u
+
+
+static func colour_for(u: float) -> Color:
+	match StructureResult.status_for(u):
+		StructureResult.RED_STATUS:
+			return RED
+		StructureResult.AMBER_STATUS:
+			return AMBER
+	return GREEN
+
+
+## The Engineer view's side panel: the verdict, each scenario, the notes and the button.
+func make_panel() -> Control:
+	var panel: Control = load(PANEL_SCRIPT).new()
+	panel.call("bind", self)
+	return panel
+
+
 func _validate_run(_sender: int, payload: Dictionary) -> Variant:
 	if not _provider.is_valid():
 		return "Nothing to test yet"
@@ -90,8 +164,7 @@ func _apply_run(payload: Dictionary) -> void:
 	var report := StructureReport.from_dict(payload.get("report", {}))
 	if payload.has("digest") and report.digest() != str(payload.digest):
 		push_warning("structure: stress test report changed on the way (%s)" % payload.digest)
-	_report = report
-	report_changed.emit(report)
+	_set_report(report)
 
 
 func get_net_snapshot() -> Dictionary:
@@ -100,5 +173,10 @@ func get_net_snapshot() -> Dictionary:
 
 func apply_net_snapshot(data: Dictionary) -> void:
 	if data.has("report"):
-		_report = StructureReport.from_dict(data.report)
-		report_changed.emit(_report)
+		_set_report(StructureReport.from_dict(data.report))
+
+
+func _set_report(report: StructureReport) -> void:
+	_report = report
+	_part_u = {}
+	report_changed.emit(report)
