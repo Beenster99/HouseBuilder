@@ -25,9 +25,7 @@ const KNOWN := {
 	"design_edit.office": [1050.0, "design", "an edit recosts the whole building and redraws every slab"],
 	"design_edit.terminal": [16000.0, "design", "an edit recosts the whole building and redraws every slab"],
 	"demolition_chunks.terminal": [10559.0, "demolition", "up to 24 chunks per part, each a RigidBody3D"],
-	"demolition_physics.office": [110.0, "demolition", "2,600 chunks awake at once after the ground-floor columns go"],
-	"demolition_hitch.office": [110.0, "demolition", "the physics frames of the collapse"],
-	"demolition_awake.office": [2650.0, "demolition", "every chunk of every released part wakes together"],
+	"demolition_physics.office": [22.0, "demolition", "about 800 parts fall at once, each one body until it breaks up (was 110 ms)"],
 	"demolition_bytes.office": [4000000.0, "demolition", "every awake chunk is a mover streamed 20 times a second"],
 }
 

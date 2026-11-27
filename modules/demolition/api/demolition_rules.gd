@@ -10,6 +10,9 @@ extends RefCounted
 ## Longest side of a chunk, m. Parts split into pieces this size when they fall.
 const CHUNK := 2.6
 const MAX_CHUNKS_PER_PART := 24
+## A whole building is cut into at most this many chunks (PerfBudget.MAX_BODIES is 6000):
+## big buildings get bigger chunks (chunk_size).
+const MAX_CHUNKS := 4000
 ## Impact energy, J, a standing part takes before it breaks loose. Foundations never do.
 const STRENGTH := {
 	"column": 90000.0, "wall": 60000.0, "beam": 70000.0, "brace": 30000.0, "truss": 50000.0,
@@ -67,11 +70,24 @@ static func unsupported(parts: Array, removed: Dictionary) -> PackedStringArray:
 	return out
 
 
-## A part's chunks, local boxes in world space, deterministic.
-static func chunks(part: Dictionary) -> Array[AABB]:
+## The chunk length for a building so the whole of it stays within MAX_CHUNKS, m.
+static func chunk_size(parts: Array, budget: int = MAX_CHUNKS) -> float:
+	var size := CHUNK
+	for attempt in 12:
+		var total := 0
+		for p: Dictionary in parts:
+			total += chunks(p, size).size()
+		if total <= budget:
+			return size
+		size *= 1.25
+	return size
+
+
+## A part's chunks, local boxes in world space, deterministic. `size` from chunk_size().
+static func chunks(part: Dictionary, size: float = CHUNK) -> Array[AABB]:
 	var box: AABB = part.aabb
-	var n := Vector3i(maxi(1, ceili(box.size.x / CHUNK)), maxi(1, ceili(box.size.y / CHUNK)),
-			maxi(1, ceili(box.size.z / CHUNK)))
+	var n := Vector3i(maxi(1, ceili(box.size.x / size)), maxi(1, ceili(box.size.y / size)),
+			maxi(1, ceili(box.size.z / size)))
 	while n.x * n.y * n.z > MAX_CHUNKS_PER_PART:
 		if n.x >= n.y and n.x >= n.z:
 			n.x -= 1

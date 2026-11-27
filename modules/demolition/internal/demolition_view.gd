@@ -1,9 +1,12 @@
 extends Node3D
-## The demolition site. The building stands as frozen Jolt chunks (DemolitionRules.chunks).
-## When the host's bus releases a part, its chunks come alive: on the host they are dynamic
-## bodies, on everyone else frozen copies that follow the host's stream (movers
-## "demo:<part>#<n>"). Falling chunks that hit standing parts hard enough knock them loose
-## too (host only), so a collapse spreads on its own.
+## The demolition site. The building stands as frozen Jolt chunks (DemolitionRules.chunks,
+## sized so the building has at most DemolitionRules.MAX_CHUNKS). When the host's bus
+## releases a part, its chunks are welded into one falling body; when that hits something
+## hard it breaks back into its chunks (bus.host_fracture, while fewer than AWAKE_CAP bodies
+## are moving). Debris that comes to rest is frozen where it lies. On the host the bodies
+## are dynamic, on everyone else frozen copies following the host's packed mover group
+## (GROUP: the chunk's index, or past the last chunk a part's whole). Falling bodies that hit
+## standing parts hard enough knock them loose too (host only), so a collapse spreads.
 ##
 ## Plan: hover a part and left click to place a charge at the current delay (click again to
 ## remove it, [ and ] change the delay), P previews what will come down, F fires (3 s
@@ -21,6 +24,17 @@ const COLOURS := {
 const CHARGE_COLOUR := Color(0.95, 0.15, 0.1)
 const PREVIEW_COLOUR := Color(1.0, 0.5, 0.1)
 const NEIGHBOUR_COLOUR := Color(0.55, 0.62, 0.72)
+## The packed mover group the debris streams in.
+const GROUP := "demolition"
+## A falling part breaks up when it hits something at this speed, m/s...
+const FRACTURE_SPEED := 3.0
+## ...while fewer bodies than this are moving, at most FRACTURES_PER_FRAME parts a frame.
+const AWAKE_CAP := 900
+const FRACTURES_PER_FRAME := 24
+## Debris slower than this (m/s, rad/s) for STILL_TIME s is frozen where it lies.
+const STILL_SPEED := 0.25
+const STILL_SPIN := 0.5
+const STILL_TIME := 0.75
 const BLAST_RADIUS := 5.0
 const BLAST_IMPULSE := 900.0
 const SETTLE_SPEED := 0.4
@@ -38,7 +52,12 @@ const ZOOM_STEP := 1.12
 var bus: DemolitionBus
 var net: MultiplayerBus
 var camera: Camera3D
-var _chunks: Dictionary = {}  # part id -> Array[RigidBody3D]
+var _chunks: Dictionary = {}  # part id -> Array[RigidBody3D] (one welded whole while falling)
+var _chunk_size := DemolitionRules.CHUNK
+var _first_index: Dictionary = {}  # part id -> group index of its first chunk
+var _whole_index: Dictionary = {}  # part id -> group index of its welded whole
+var _fracture_queue: PackedStringArray = []
+var _still_tick := 0
 var _materials: Dictionary = {}
 var _ground: MeshInstance3D
 var _damage: Dictionary = {}  # part id -> J taken
@@ -83,6 +102,7 @@ func _ready() -> void:
 	_build_hud()
 	bus.started.connect(func(_t: String) -> void: _rebuild())
 	bus.reset.connect(_rebuild)
+	bus.fractured.connect(_on_fractured)
 	Graphics.changed.connect(func() -> void:
 		_ground.material_override = ArtStyle.ground()
 		_refresh_preview())
@@ -164,19 +184,30 @@ func _rebuild() -> void:
 	_pending.clear()
 	_neighbour_hits.clear()
 	_charge_marks.clear()
+	_first_index.clear()
+	_whole_index.clear()
+	_fracture_queue.clear()
 	_watching = false
 	if not bus.is_active():
 		return
 	var bounds := AABB()
 	var first := true
+	_chunk_size = DemolitionRules.chunk_size(bus.parts)
+	var next := 0
 	for p: Dictionary in bus.parts:
 		bounds = p.aabb if first else bounds.merge(p.aabb)
 		first = false
 		var list: Array[RigidBody3D] = []
-		var parts_chunks := DemolitionRules.chunks(p)
+		var parts_chunks := DemolitionRules.chunks(p, _chunk_size)
+		_first_index[p.id] = next
 		for i in parts_chunks.size():
 			list.append(_make_chunk(p, i, parts_chunks[i]))
+		next += parts_chunks.size()
 		_chunks[p.id] = list
+	for p: Dictionary in bus.parts:
+		_whole_index[p.id] = next
+		next += 1
+	net.register_mover_group(GROUP, bounds.get_center())
 	_build_zone()
 	for n: Variant in bus.neighbours:
 		_build_neighbour(n as AABB)
@@ -296,27 +327,185 @@ func _build_neighbour(box: AABB) -> void:
 # --- Releases and blasts ---------------------------------------------------------------
 
 func _on_released(ids: PackedStringArray) -> void:
-	var host := net.is_host()
 	for id in ids:
-		for body: RigidBody3D in _chunks.get(id, []):
-			if not is_instance_valid(body):
-				continue
-			var mid := _mover_id(body)
-			if host:
-				body.freeze = false
-				body.contact_monitor = true
-				body.max_contacts_reported = 4
-				body.can_sleep = true
-				if not body.body_entered.is_connected(_on_chunk_hit):
-					body.body_entered.connect(_on_chunk_hit.bind(body))
-			else:
-				body.freeze_mode = RigidBody3D.FREEZE_MODE_KINEMATIC
-			net.register_mover(mid, body)
+		var list: Array = _chunks.get(id, [])
+		if bus.fractured_ids.has(id) or list.size() <= 1:
+			# One chunk (or a joiner arriving after it broke up): its chunks fall as they are.
+			for body: RigidBody3D in list:
+				if is_instance_valid(body):
+					_activate(body, int(_first_index[id]) + int(body.get_meta("index")))
+		else:
+			_weld(id)
 		var mark: Node3D = _charge_marks.get(id)
 		if mark:
 			mark.queue_free()
 			_charge_marks.erase(id)
 	_start_watch()
+
+
+## A body joins the falling debris: dynamic on the host, following the stream elsewhere.
+func _activate(body: RigidBody3D, index: int) -> void:
+	body.set_meta("group_index", index)
+	if net.is_host():
+		body.freeze = false
+		# Contact reports cost: only welded wholes (and single-chunk parts) report hits; the
+		# chunks a whole breaks into just tumble.
+		var reports := body.has_meta("whole") or not bus.fractured_ids.has(str(body.get_meta("part")))
+		body.contact_monitor = reports
+		body.max_contacts_reported = 2 if reports else 0
+		body.can_sleep = true
+		if not body.body_entered.is_connected(_on_chunk_hit):
+			body.body_entered.connect(_on_chunk_hit.bind(body))
+	else:
+		body.freeze_mode = RigidBody3D.FREEZE_MODE_KINEMATIC
+	net.set_group_node(GROUP, index, body)
+
+
+## A released part's chunks become one falling body: their meshes move into it, and it
+## collides as one box (the chunks' boxes wait aside until it breaks: many small shapes in
+## one body cost the physics far more than one).
+func _weld(id: String) -> void:
+	var list: Array = _chunks.get(id, [])
+	var whole := RigidBody3D.new()
+	whole.name = "whole_%s" % id.replace(":", "_")
+	whole.set_meta("part", id)
+	whole.set_meta("whole", true)
+	var centre := Vector3.ZERO
+	var mass := 0.0
+	for body: RigidBody3D in list:
+		centre += body.global_position * body.mass
+		mass += body.mass
+	centre /= maxf(mass, 0.001)
+	whole.mass = maxf(mass, 5.0)
+	whole.position = centre
+	var masses: Array[float] = []
+	var shapes: Array[Node] = []
+	var meshes: Array[Node] = []
+	var box := AABB()
+	for body: RigidBody3D in list:
+		masses.append(body.mass)
+		for child in body.get_children():
+			var local: Transform3D = Transform3D(Basis(), body.global_position - centre) * (child as Node3D).transform
+			body.remove_child(child)
+			child.transform = local
+			if child is CollisionShape3D:
+				var half: Vector3 = ((child as CollisionShape3D).shape as BoxShape3D).size * 0.5
+				var b := AABB(local.origin - half, half * 2.0)
+				box = b if shapes.is_empty() else box.merge(b)
+				shapes.append(child)
+			else:
+				meshes.append(child)
+				whole.add_child(child)
+		body.free()
+	var one := CollisionShape3D.new()
+	var bs := BoxShape3D.new()
+	bs.size = box.size
+	one.shape = bs
+	one.position = box.get_center()
+	one.name = "Whole"
+	whole.add_child(one)
+	whole.move_child(one, 0)
+	whole.set_meta("masses", masses)
+	whole.set_meta("shapes", shapes)
+	whole.set_meta("meshes", meshes)
+	whole.tree_exiting.connect(func() -> void:
+		for sh: Node in shapes:
+			if is_instance_valid(sh) and sh.get_parent() == null:
+				sh.queue_free())
+	_building_root.add_child(whole)
+	_chunks[id] = [whole]
+	_activate(whole, int(_whole_index[id]))
+
+
+func _on_fractured(ids: PackedStringArray) -> void:
+	for id in ids:
+		_fracture(id)
+
+
+## A welded part breaks back into its chunks where it is, each moving as it was.
+func _fracture(id: String) -> void:
+	var list: Array = _chunks.get(id, [])
+	if list.size() != 1 or not is_instance_valid(list[0]) or not (list[0] as Node).has_meta("whole"):
+		return
+	var whole: RigidBody3D = list[0]
+	var xf := whole.global_transform
+	var v := whole.linear_velocity
+	var w := whole.angular_velocity
+	var masses: Array = whole.get_meta("masses", [])
+	var shapes: Array = whole.get_meta("shapes", [])
+	var meshes: Array = whole.get_meta("meshes", [])
+	var out: Array[RigidBody3D] = []
+	for i in mini(shapes.size(), meshes.size()):
+		var shape := shapes[i] as Node3D
+		var mesh := meshes[i] as Node3D
+		var body := RigidBody3D.new()
+		body.name = "%s_%d" % [id.replace(":", "_"), i]
+		body.set_meta("part", id)
+		body.set_meta("index", i)
+		body.mass = float(masses[i]) if i < masses.size() else 5.0
+		var at := xf * Transform3D(Basis(), shape.position)
+		whole.remove_child(mesh)
+		shape.transform = Transform3D()
+		mesh.transform = Transform3D()
+		body.add_child(shape)
+		body.add_child(mesh)
+		body.freeze_mode = RigidBody3D.FREEZE_MODE_STATIC
+		body.freeze = true
+		_building_root.add_child(body)
+		body.global_transform = at
+		_activate(body, int(_first_index[id]) + i)
+		if net.is_host():
+			body.linear_velocity = v + w.cross(at.origin - xf.origin)
+			body.angular_velocity = w
+		out.append(body)
+	net.erase_group_node(GROUP, int(_whole_index[id]))
+	whole.queue_free()
+	_chunks[id] = out
+
+
+## Host: falling bodies moving now (not frozen, not asleep).
+func awake_count() -> int:
+	var n := 0
+	for id: String in bus.released_ids:
+		for body: RigidBody3D in _chunks.get(id, []):
+			if is_instance_valid(body) and not body.freeze and not body.sleeping:
+				n += 1
+	return n
+
+
+## Host, each physics frame: break up the parts that hit hard (as many as the budget allows)
+## and, every few frames, freeze debris that has come to rest.
+func _host_debris() -> void:
+	if not _fracture_queue.is_empty():
+		var room := mini(FRACTURES_PER_FRAME, AWAKE_CAP - awake_count())
+		var go := PackedStringArray()
+		while room > 0 and not _fracture_queue.is_empty():
+			var id := _fracture_queue[0]
+			_fracture_queue.remove_at(0)
+			if bus.fractured_ids.has(id):
+				continue
+			go.append(id)
+			room -= maxi(1, DemolitionRules.chunks(bus.by_id[id], _chunk_size).size() - 1)
+		if not go.is_empty():
+			bus.host_fracture(go)
+	_still_tick += 1
+	if _still_tick % 10 != 0:
+		return
+	var now := Time.get_ticks_msec() / 1000.0
+	for id: String in bus.released_ids:
+		for body: RigidBody3D in _chunks.get(id, []):
+			if not is_instance_valid(body) or body.freeze:
+				continue
+			if body.linear_velocity.length() > STILL_SPEED or body.angular_velocity.length() > STILL_SPIN:
+				body.set_meta("still_since", -1.0)
+				continue
+			var since := float(body.get_meta("still_since", -1.0))
+			if since < 0.0:
+				body.set_meta("still_since", now)
+			elif now - since >= STILL_TIME:
+				body.contact_monitor = false
+				body.freeze_mode = RigidBody3D.FREEZE_MODE_STATIC
+				body.freeze = true
 
 
 func _on_blasted(id: String) -> void:
@@ -379,6 +568,10 @@ func _on_chunk_hit(other: Node, body: RigidBody3D) -> void:
 	if not is_instance_valid(body):
 		return
 	_hit(other, 0.5 * body.mass * body.linear_velocity.length_squared())
+	if body.has_meta("whole") and body.linear_velocity.length() >= FRACTURE_SPEED:
+		var id := str(body.get_meta("part"))
+		if not _fracture_queue.has(id) and not bus.fractured_ids.has(id):
+			_fracture_queue.append(id)
 
 
 func _hit(other: Node, energy: float) -> void:
@@ -396,17 +589,10 @@ func _hit(other: Node, energy: float) -> void:
 		_pending.append(pid)
 
 
-func _mover_id(body: RigidBody3D) -> String:
-	return "demo:%s#%d" % [body.get_meta("part"), body.get_meta("index")]
-
-
 func _unregister_all() -> void:
 	if net == null:
 		return
-	for id: String in _chunks:
-		for body: RigidBody3D in _chunks[id]:
-			if is_instance_valid(body):
-				net.unregister_mover(_mover_id(body))
+	net.unregister_mover_group(GROUP)
 	for mid in [CRANE_ID, CABLE_ID, BALL_ID]:
 		net.unregister_mover(mid)
 
@@ -470,8 +656,11 @@ func _refresh_preview() -> void:
 	for id: String in _chunks:
 		var mat: BaseMaterial3D = hot if doomed.has(id) else _part_material(bus.by_id[id])
 		for body: RigidBody3D in _chunks[id]:
-			if is_instance_valid(body):
-				(body.get_child(1) as MeshInstance3D).material_override = mat
+			if not is_instance_valid(body):
+				continue
+			for c in body.get_children():
+				if c is MeshInstance3D:
+					(c as MeshInstance3D).material_override = mat
 
 
 ## The part under the mouse, or "".
@@ -606,7 +795,11 @@ func _crane_controls(delta: float) -> void:
 
 ## Host: the ball hangs on an inextensible cable from the moving tip (a pendulum).
 func _physics_process(_delta: float) -> void:
-	if _ball == null or not net.is_host():
+	if not net.is_host():
+		return
+	if bus.is_active():
+		_host_debris()
+	if _ball == null:
 		return
 	var top := _tip.global_position
 	var d := _ball.global_position - top
@@ -656,7 +849,7 @@ func _watch_settle() -> void:
 	var moving := false
 	for id: String in bus.released_ids:
 		for body: RigidBody3D in _chunks.get(id, []):
-			if is_instance_valid(body) and not body.sleeping and body.linear_velocity.length() > SETTLE_SPEED:
+			if is_instance_valid(body) and not body.freeze and not body.sleeping and body.linear_velocity.length() > SETTLE_SPEED:
 				moving = true
 				break
 		if moving:
@@ -688,15 +881,18 @@ func assess() -> Dictionary:
 		for body: RigidBody3D in _chunks.get(p.id, []):
 			if not is_instance_valid(body):
 				continue
-			var v := ((body.get_child(0) as CollisionShape3D).shape as BoxShape3D).size
-			var vol := v.x * v.y * v.z
-			if bus.released_ids.has(p.id):
-				debris_total += vol
-				var at := body.global_position
-				if bus.zone.has_point(Vector2(at.x, at.z)):
-					debris_in += vol
-			else:
-				standing += vol
+			for c in body.get_children():
+				if not c is CollisionShape3D:
+					continue
+				var v := ((c as CollisionShape3D).shape as BoxShape3D).size
+				var vol := v.x * v.y * v.z
+				if bus.released_ids.has(p.id):
+					debris_total += vol
+					var at := (c as Node3D).global_position
+					if bus.zone.has_point(Vector2(at.x, at.z)):
+						debris_in += vol
+				else:
+					standing += vol
 	return DemolitionRules.score(debris_in, debris_total, standing, bus.total_volume(),
 			_neighbour_hits.size(), bus.charges.size())
 

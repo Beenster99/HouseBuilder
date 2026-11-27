@@ -18,6 +18,8 @@ signal charges_changed
 signal fired(at: float)
 signal blasted(part_id: String)
 signal released(part_ids: PackedStringArray)
+## Falling parts that broke up on impact (each fell as one piece until then).
+signal fractured(part_ids: PackedStringArray)
 signal reset
 signal result_changed(result: Dictionary)
 
@@ -29,6 +31,7 @@ const BLAST := "demolition.blast"
 const RELEASE := "demolition.release"
 const RESET := "demolition.reset"
 const RESULT := "demolition.result"
+const FRACTURE := "demolition.fracture"
 const DEMO_FLAG := "demolition.demo"
 const MAX_CHARGES := 40
 const MAX_DELAY := 10.0
@@ -46,6 +49,7 @@ var charges: Dictionary = {}  # part id -> delay, s
 var fire_at := -1.0
 var blasted_ids: Dictionary = {}
 var released_ids: Dictionary = {}
+var fractured_ids: Dictionary = {}
 var result: Dictionary = {}
 var net: MultiplayerBus
 ## The host's copy of the model a "Demolish" started from: what falls then comes from the
@@ -66,6 +70,7 @@ func register_module() -> void:
 	net.register_event(RELEASE, _apply_release, _host_only)
 	net.register_event(RESET, _apply_reset, _validate_reset)
 	net.register_event(RESULT, _apply_result, _host_only)
+	net.register_event(FRACTURE, _apply_fracture, _host_only)
 	net.register_snapshot_provider("demolition", self)
 	net.session_ended.connect(func(_reason: String) -> void: _clear())
 	_hook_design.call_deferred()
@@ -74,7 +79,7 @@ func register_module() -> void:
 func unregister_module() -> void:
 	Menu.unregister_entry(DEMO_FLAG)
 	if net:
-		for e in [START, CHARGE, FIRE, BLAST, RELEASE, RESET, RESULT]:
+		for e in [START, CHARGE, FIRE, BLAST, RELEASE, RESET, RESULT, FRACTURE]:
 			net.unregister_event(e)
 		net.unregister_snapshot_provider("demolition")
 
@@ -129,6 +134,12 @@ func host_release(part_ids: PackedStringArray) -> void:
 		return
 	fresh.append_array(_falls(gone))
 	net.host_emit(RELEASE, {"ids": fresh})
+
+
+## The host's view reports falling parts that broke up when they hit something.
+func host_fracture(part_ids: PackedStringArray) -> void:
+	if net.is_host() and not part_ids.is_empty():
+		net.host_emit(FRACTURE, {"ids": part_ids})
 
 
 func host_result(r: Dictionary) -> void:
@@ -238,6 +249,7 @@ func _apply_start(p: Dictionary) -> void:
 	fire_at = float(p.get("fire_at", -1.0))
 	blasted_ids = (p.get("blasted", {}) as Dictionary).duplicate()
 	released_ids = (p.get("released", {}) as Dictionary).duplicate()
+	fractured_ids = (p.get("fractured", {}) as Dictionary).duplicate()
 	result = p.get("result", {})
 	model = null
 	if bool(p.get("from_model", false)) and net.is_host():
@@ -311,6 +323,16 @@ func _apply_release(p: Dictionary) -> void:
 		released.emit(fresh)
 
 
+func _apply_fracture(p: Dictionary) -> void:
+	var fresh := PackedStringArray()
+	for id: Variant in p.get("ids", []):
+		if released_ids.has(str(id)) and not fractured_ids.has(str(id)):
+			fractured_ids[str(id)] = true
+			fresh.append(str(id))
+	if not fresh.is_empty():
+		fractured.emit(fresh)
+
+
 func _validate_reset(_sender: int, _p: Dictionary) -> Variant:
 	return {} if is_active() else "nothing to reset"
 
@@ -319,6 +341,7 @@ func _apply_reset(_p: Dictionary) -> void:
 	fire_at = -1.0
 	blasted_ids.clear()
 	released_ids.clear()
+	fractured_ids.clear()
 	result = {}
 	reset.emit()
 
@@ -330,6 +353,7 @@ func _apply_result(p: Dictionary) -> void:
 
 func _clear() -> void:
 	model = null
+	fractured_ids.clear()
 	parts = []
 	by_id.clear()
 	charges.clear()
@@ -344,7 +368,7 @@ func get_net_snapshot() -> Dictionary:
 		return {}
 	return {"parts": parts, "title": title, "zone": zone, "neighbours": neighbours,
 			"charges": charges.duplicate(), "fire_at": fire_at, "blasted": blasted_ids.duplicate(),
-			"released": released_ids.duplicate(), "result": result.duplicate(), "open": false}
+			"released": released_ids.duplicate(), "fractured": fractured_ids.duplicate(), "result": result.duplicate(), "open": false}
 
 
 func apply_net_snapshot(data: Dictionary) -> void:
