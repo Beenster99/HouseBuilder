@@ -47,7 +47,7 @@ terminal it takes about 50 ms the first time and about 19 ms after an edit (head
 
 ## Library assets as parts
 
-With flag `building.library` on, `BuildingCatalog.default_catalog()` also holds the 3D
+With flag `building.library` (on since 2026-11-27), `BuildingCatalog.default_catalog()` also holds the 3D
 library's placeable assets (about 730: furniture, equipment, services plant, street and
 garden objects, vehicles, site plant) as `fixture` kinds whose id is the asset id
 (`"office.desk.bench_4"`). Each spec adds `asset`, `group` (palette heading), `category`,
