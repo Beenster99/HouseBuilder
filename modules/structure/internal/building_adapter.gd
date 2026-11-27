@@ -488,7 +488,7 @@ func _share_all(infos: Array) -> void:
 ## max_live}. Depends only on its arguments (see _plate_key).
 func _share_plate(outline: Array, weight: float, dead: float, snow: float, roof: bool, supports: Array, live_rooms: Array) -> Dictionary:
 	var area := BuildingModel.outline_area(outline)
-	var cell := maxf(0.5, sqrt(area / 400.0))
+	var cell := maxf(0.5, sqrt(area / 1000.0))
 	var bb := _bounds(outline)
 	var got := {}  # member id -> {case: kN}
 	var span := 0.0
