@@ -121,6 +121,10 @@ var help: HelpBar
 var _status: Label
 var _plan: Label
 var _result: Label
+## A demolition contract's checklist and hand-over button, under the result.
+var _job: VBoxContainer
+var _job_items: VBoxContainer
+var _hand_over: Button
 
 
 func _ready() -> void:
@@ -783,6 +787,44 @@ func _refresh_preview() -> void:
 							(mi as MeshInstance3D).material_override = hot
 
 
+## Whether a demolition contract is on with a result in (the hand-over button shows).
+func job_ready() -> bool:
+	var contracts := _career()
+	if contracts == null or bus.result.is_empty() or not "active" in contracts:
+		return false
+	var active: Variant = contracts.get("active")
+	return active is Dictionary and str((active as Dictionary).get("mode", "")) == "demolish"
+
+
+## Hands the cleared site over to the client (contracts judges and pays).
+func hand_over() -> void:
+	var contracts := _career()
+	if job_ready() and contracts.has_method("hand_over"):
+		contracts.call("hand_over", 0)
+
+
+func _show_job() -> void:
+	if _job == null:
+		return
+	_job.visible = job_ready()
+	for c in _job_items.get_children():
+		c.queue_free()
+	if not _job.visible:
+		return
+	var contracts := _career()
+	var verdict: Dictionary = contracts.call("assess") if contracts.has_method("assess") else {}
+	for it: Dictionary in verdict.get("items", []):
+		var line := BsxTheme.hud_label("%s  %s%s" % ["✓" if bool(it.get("ok", false)) else "✗", str(it.get("label", "")),
+				"" if bool(it.get("hard", true)) else "  (goal)"], 14)
+		line.modulate = Color(0.7, 1.0, 0.7) if bool(it.get("ok", false)) else Color(1.0, 0.7, 0.6)
+		line.tooltip_text = str(it.get("detail", "")) + ("" if str(it.get("tip", "")) == "" else "\n" + str(it.tip))
+		line.mouse_filter = Control.MOUSE_FILTER_PASS
+		_job_items.add_child(line)
+	if verdict.has("summary"):
+		var sum := BsxTheme.hud_label(str(verdict.summary), 14)
+		_job_items.add_child(sum)
+
+
 ## Where the debris preview says fragments will land: [{part, centre (ground), radius,
 ## outside (share of the ring off the plot, 0..1)}], shown while previewing with a blast
 ## consultant. Empty otherwise.
@@ -1166,6 +1208,18 @@ func _build_hud() -> void:
 	_result = BsxTheme.hud_label("", 22)
 	_result.name = "Result"
 	col.add_child(_result)
+	_job = VBoxContainer.new()
+	_job.name = "Job"
+	_job.visible = false
+	col.add_child(_job)
+	_job_items = VBoxContainer.new()
+	_job.add_child(_job_items)
+	_hand_over = Button.new()
+	_hand_over.name = "HandOver"
+	_hand_over.text = "Hand over the cleared site"
+	_hand_over.tooltip_text = "Finish the job: the client judges it on how the building came down"
+	_hand_over.pressed.connect(hand_over)
+	_job.add_child(_hand_over)
 	help = HelpBar.new()
 	add_child(help)
 	_build_panel(layer)
@@ -1531,6 +1585,8 @@ func _update_hud() -> void:
 
 func _show_result() -> void:
 	var r := bus.result
+	# Contracts judges the job from the same result: let it see it first.
+	_show_job.call_deferred()
 	if r.is_empty():
 		_result.text = ""
 		return

@@ -99,6 +99,15 @@ func run_tests() -> void:
 	check(zones.size() == bus.charges.size() and zones.size() > 0 and float(zones[0].radius) > 1.0,
 			"the blast consultant shows each charge's debris zone: %s" % str(zones.slice(0, 1)))
 	check(DemolitionRules.throw_reach(1.6, 1.0) > DemolitionRules.throw_reach(0.6, 1.0), "heavier charges throw further")
+	# A demolition contract: once a result is in, its checklist and a hand-over button show.
+	check(not view.job_ready(), "no hand-over without a demolition job")
+	career.active = {"mode": "demolish"}
+	bus.result = {"collapsed": 1.0}
+	view._show_job()
+	check(view.job_ready() and view.find_child("Job", true, false).visible, "the job's checklist shows when the dust settles")
+	(view.find_child("HandOver", true, false) as Button).pressed.emit()
+	check(career.handed == 1, "the button hands the cleared site over")
+	bus.result = {}
 	view.career = null
 	view._set_size(0)
 	bus.request_plan({})
@@ -111,6 +120,14 @@ func run_tests() -> void:
 
 class _Career:
 	var consultant := false
+	var active := {}
+	var handed := 0
+
+	func assess() -> Dictionary:
+		return {"items": [{"label": "Bring it all down", "ok": true, "hard": true}], "summary": "Everything the client asked for."}
+
+	func hand_over(_days: int) -> void:
+		handed += 1
 
 	func locked_tier(id: String) -> int:
 		return {"gear:charge_heavy": 4, "gear:delay_presets": 3}.get(id, 0)
