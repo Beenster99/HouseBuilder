@@ -47,12 +47,13 @@ func run_tests() -> void:
 
 
 func _scale() -> void:
-	check(StructureDiagram.colour(0.0).b > 0.8, "idle is blue")
-	check(StructureDiagram.colour(0.4).g > 0.7, "working is green")
-	var amber := StructureDiagram.colour(0.7)
-	check(amber.r > 0.9 and amber.g > 0.6 and amber.b < 0.3, "near the limit is amber")
+	check(StructureDiagram.colour(0.0).b > 0.4 and StructureDiagram.colour(0.0).r < 0.1, "least is blue")
+	check(StructureDiagram.colour(0.5).g > 0.9, "half way is green")
+	var yellow := StructureDiagram.colour(0.7)
+	check(yellow.r > 0.6 and yellow.g > 0.6 and yellow.b < 0.2, "higher is yellow")
 	var red := StructureDiagram.colour(1.0)
-	check(red.r > 0.9 and red.g < 0.3, "at the limit is red")
+	check(red.r > 0.5 and red.g < 0.1 and red.b < 0.1, "the top of the legend is red")
+	check(StructureDiagram.colour(0.51, 2.0) == StructureDiagram.colour(0.52, 2.0), "in bands, like a contour plot")
 	check(StructureDiagram.profile("bending", 0.5, false, 0.0, 0.0) > StructureDiagram.profile("bending", 0.0, false, 0.0, 0.0),
 			"a beam bends most at mid-span")
 	check(StructureDiagram.profile("bending", 0.0, true, 0.0, 0.0) > StructureDiagram.profile("bending", 1.0, true, 0.0, 0.0),
@@ -100,15 +101,17 @@ func _build() -> void:
 	var peak := 0
 	for b in d.pan_u:
 		peak = maxi(peak, b)
-	check(peak >= 100, "and the floor it held turns red")
+	check(peak >= 100, "and the floor it held goes over capacity")
 	var view := View.new()
 	add_child(view)
 	view.show_diagram(d)
-	check(view.drawn.cells > 0 and view.drawn.bars > 0 and view.drawn.marks == (d.hot_p as PackedVector3Array).size(),
-			"drawn in 3D: %s" % [view.drawn])
-	check(view.get_node("Stress").mesh != null and view.get_node("Glass").mesh != null, "the hot parts solid, the rest see-through")
+	check(view.drawn.cells > 0 and view.drawn.bars > 0, "drawn in 3D: %s" % [view.drawn])
+	check(view.drawn.tags == (d.hot_p as PackedVector3Array).size() + 1, "tagged Max and Min")
+	check(view.drawn.legend == StructureDiagram.BANDS, "with a legend")
+	check(view.get_node("Stress").mesh != null and view.get_node("Mesh").mesh != null, "solid parts with element lines")
+	check(float(d.top) >= float(d.hot_u[0]) - 0.01 and float(d.top) <= 2.55, "the legend reaches the worst value (%.2f)" % float(d.top))
 	view.show_diagram({})
-	check(view.get_node("Stress").mesh == null and view.get_node("Glass").mesh == null, "and cleared")
+	check(view.get_node("Stress").mesh == null and view.get_node("Mesh").mesh == null, "and cleared")
 	view.free()
 
 

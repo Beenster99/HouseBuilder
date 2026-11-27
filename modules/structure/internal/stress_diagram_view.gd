@@ -1,56 +1,107 @@
 extends Node3D
-## Draws the stress diagram (StructureDiagram) in building coordinates: walls and floors as
-## colour-graded sheets on both faces, beams, columns and foundations as graded boxes, and a
-## pulsing marker with its utilisation over each of the worst spots. Lay it over the
-## building's own view at the same transform; it hides itself while the diagram is off.
+## Draws the stress diagram (StructureDiagram) in building coordinates the way FE software
+## plots results: solid, lit parts meshed into elements and contoured in banded rainbow
+## colours, thin element lines over them, a colour legend beside the model, and Max and Min
+## tags on leader lines. Lay it over the building's own view at the same transform; it
+## hides itself while the diagram is off.
 
-const PULSE_SPEED := 3.0
-const MARK_SIZE := 0.35
-## Faces working at least this hard are drawn solid; the rest see-through, so the trouble
-## inside a building (a floor, a beam) shows through its walls.
-const SOLID_FROM := 0.6
-const SEE_THROUGH := 0.38
+## Contours: the value rides in UV.x, so bands come out crisp whatever the element size.
+const CONTOUR_SHADER := """
+shader_type spatial;
+render_mode cull_disabled;
+uniform float top = 1.0;
+uniform float bands = 12.0;
+uniform float cut_y = 10000.0;
+varying float u;
+varying vec3 local;
+vec3 jet(float t) {
+	t = clamp(t, 0.0, 1.0);
+	return clamp(vec3(1.5 - abs(4.0 * t - 3.0), 1.5 - abs(4.0 * t - 2.0), 1.5 - abs(4.0 * t - 1.0)), 0.0, 1.0);
+}
+void vertex() {
+	u = UV.x;
+	local = VERTEX;
+}
+void fragment() {
+	if (local.y > cut_y) {
+		discard;
+	}
+	float t = clamp(u / top, 0.0, 1.0);
+	float b = (min(floor(t * bands), bands - 1.0) + 0.5) / bands;
+	vec3 c = jet(b);
+	ALBEDO = c;
+	ROUGHNESS = 0.6;
+	SPECULAR = 0.3;
+}
+"""
+
+const LINE_SHADER := """
+shader_type spatial;
+render_mode unshaded, cull_disabled;
+uniform float cut_y = 10000.0;
+uniform vec4 ink : source_color = vec4(0.05, 0.05, 0.08, 0.22);
+varying vec3 local;
+void vertex() {
+	local = VERTEX;
+}
+void fragment() {
+	if (local.y > cut_y) {
+		discard;
+	}
+	ALBEDO = ink.rgb;
+	ALPHA = ink.a;
+}
+"""
+
+## Element lines sit just off the faces.
+const LINE_LIFT := 0.006
+const TAG_INK := Color(0.04, 0.04, 0.06)
 
 var bus: Node
 var _mesh: MeshInstance3D
-var _glass: MeshInstance3D
-var _glass_mat: StandardMaterial3D
-var _solid: SurfaceTool
-var _clear: SurfaceTool
-var _marks: Node3D
-var _mat: StandardMaterial3D
-var _mark_mat: StandardMaterial3D
-var _age := 0.0
-## What is drawn now (tests): {"bars", "panels", "cells", "marks"}.
-var drawn := {"bars": 0, "panels": 0, "cells": 0, "marks": 0}
+var _lines: MeshInstance3D
+var _tags: Node3D
+var _legend: Node3D
+var _mat: ShaderMaterial
+var _line_mat: ShaderMaterial
+var _centre := Vector3.ZERO
+var _radius := 1.0
+var _tag_mat: StandardMaterial3D
+var _faces: SurfaceTool
+var _edges: SurfaceTool
+## What is drawn now (tests): {"bars", "panels", "cells", "tags", "legend"}.
+var drawn := {"bars": 0, "panels": 0, "cells": 0, "tags": 0, "legend": 0}
 
 
 func _init() -> void:
 	name = "StressDiagram"
-	_mat = StandardMaterial3D.new()
-	_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	_mat.vertex_color_use_as_albedo = true
-	_mat.cull_mode = BaseMaterial3D.CULL_DISABLED
+	var shader := Shader.new()
+	shader.code = CONTOUR_SHADER
+	_mat = ShaderMaterial.new()
+	_mat.shader = shader
+	_mat.set_shader_parameter("bands", float(StructureDiagram.BANDS))
 	_mesh = MeshInstance3D.new()
 	_mesh.name = "Stress"
-	_mesh.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	add_child(_mesh)
-	_glass_mat = _mat.duplicate() as StandardMaterial3D
-	_glass_mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-	_glass_mat.depth_draw_mode = BaseMaterial3D.DEPTH_DRAW_DISABLED
-	_glass = MeshInstance3D.new()
-	_glass.name = "Glass"
-	_glass.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-	add_child(_glass)
-	_mark_mat = StandardMaterial3D.new()
-	_mark_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	_mark_mat.albedo_color = Color(1.0, 0.1, 0.35, 0.55)
-	_mark_mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-	_mark_mat.no_depth_test = true
-	_mark_mat.render_priority = 2
-	_marks = Node3D.new()
-	_marks.name = "Worst"
-	add_child(_marks)
+	var line_shader := Shader.new()
+	line_shader.code = LINE_SHADER
+	_line_mat = ShaderMaterial.new()
+	_line_mat.shader = line_shader
+	_lines = MeshInstance3D.new()
+	_lines.name = "Mesh"
+	_lines.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	add_child(_lines)
+	_tag_mat = StandardMaterial3D.new()
+	_tag_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	_tag_mat.albedo_color = TAG_INK
+	_tag_mat.no_depth_test = true
+	_tag_mat.render_priority = 2
+	_tags = Node3D.new()
+	_tags.name = "Tags"
+	add_child(_tags)
+	_legend = Node3D.new()
+	_legend.name = "Legend"
+	add_child(_legend)
 
 
 ## bus: the structure bus (or a stand-in with diagram_on, last_report(), report_changed and
@@ -72,48 +123,72 @@ func redraw() -> void:
 
 ## Draws one diagram (StructureDiagram.build's result); {} clears it.
 func show_diagram(d: Dictionary) -> void:
-	for c in _marks.get_children():
-		c.queue_free()
-	drawn = {"bars": 0, "panels": 0, "cells": 0, "marks": 0}
+	for n: Node3D in [_tags, _legend]:
+		for c in n.get_children():
+			n.remove_child(c)
+			c.queue_free()
+	drawn = {"bars": 0, "panels": 0, "cells": 0, "tags": 0, "legend": 0}
 	_mesh.mesh = null
-	_glass.mesh = null
+	_lines.mesh = null
 	if d.is_empty():
 		return
-	_solid = SurfaceTool.new()
-	_solid.begin(Mesh.PRIMITIVE_TRIANGLES)
-	_clear = SurfaceTool.new()
-	_clear.begin(Mesh.PRIMITIVE_TRIANGLES)
+	var top := float(d.get("top", 1.0))
+	_mat.set_shader_parameter("top", top)
+	var cut := float(d.get("cut_y", StructureDiagram.NO_CUT))
+	_mat.set_shader_parameter("cut_y", cut)
+	_line_mat.set_shader_parameter("cut_y", cut)
+	_faces = SurfaceTool.new()
+	_faces.begin(Mesh.PRIMITIVE_TRIANGLES)
+	_edges = SurfaceTool.new()
+	_edges.begin(Mesh.PRIMITIVE_LINES)
 	_add_bars(d)
 	_add_panels(d)
-	_mesh.mesh = _finish(_solid, _mat)
-	_glass.mesh = _finish(_clear, _glass_mat)
-	_solid = null
-	_clear = null
+	if drawn.bars + drawn.cells > 0:
+		_faces.set_material(_mat)
+		_mesh.mesh = _faces.commit()
+		_edges.set_material(_line_mat)
+		_lines.mesh = _edges.commit()
+	_faces = null
+	_edges = null
+	var lo: Vector3 = d.get("box_lo", Vector3.ZERO)
+	var hi: Vector3 = d.get("box_hi", Vector3.ZERO)
+	var reach := maxf((hi - lo).length() * 0.12, 1.0)
+	var centre := (lo + hi) * 0.5
 	var hot_p: PackedVector3Array = d.get("hot_p", PackedVector3Array())
 	var hot_u: PackedFloat32Array = d.get("hot_u", PackedFloat32Array())
 	var hot_t: PackedStringArray = d.get("hot_t", PackedStringArray())
 	for i in hot_p.size():
-		_mark(hot_p[i], hot_u[i], hot_t[i] if i < hot_t.size() else "", i == 0)
-	drawn.marks = hot_p.size()
+		var what := hot_t[i] if i < hot_t.size() else ""
+		var head := "MAX %s" % _pct(hot_u[i]) if i == 0 else _pct(hot_u[i])
+		_tag(hot_p[i], "%s\n%s" % [head, what] if what != "" else head, centre, reach * (1.0 + 0.35 * i), i == 0)
+	if hot_p.size() > 0 and d.has("min_p"):
+		_tag(d.min_p, "MIN %s" % _pct(float(d.min_u)), centre, reach * 0.8, false)
+	_build_legend(top, lo, hi)
 
 
-func _process(delta: float) -> void:
-	if not visible or _marks.get_child_count() == 0:
+func _process(_delta: float) -> void:
+	if not visible or _legend.get_child_count() == 0:
 		return
-	_age += delta
-	var s := 1.0 + 0.25 * sin(_age * PULSE_SPEED)
-	for m in _marks.get_children():
-		var ball := m.get_node_or_null("Ball") as Node3D
-		if ball:
-			ball.scale = Vector3.ONE * s
+	var cam := get_viewport().get_camera_3d() if is_inside_tree() else null
+	if cam == null:
+		return
+	# Stand the legend to the viewer's right of the model, facing them, upright and at the
+	# model's scale.
+	var cam_local := global_transform.affine_inverse() * cam.global_position
+	var to_cam := cam_local - _centre
+	to_cam.y = 0.0
+	if to_cam.length_squared() < 1e-6:
+		return
+	var right := Vector3.UP.cross(to_cam.normalized())
+	_legend.position = Vector3(_centre.x, _legend.position.y, _centre.z) + right * _radius
+	var s := _legend.global_basis.get_scale()
+	to_cam = cam.global_position - _legend.global_position
+	to_cam.y = 0.0
+	_legend.global_basis = Basis.looking_at(-to_cam.normalized(), Vector3.UP).scaled(s)
 
 
-func _finish(st: SurfaceTool, mat: Material) -> ArrayMesh:
-	var arrays := st.commit_to_arrays()
-	if arrays.is_empty() or arrays[Mesh.ARRAY_VERTEX] == null or (arrays[Mesh.ARRAY_VERTEX] as PackedVector3Array).is_empty():
-		return null
-	st.set_material(mat)
-	return st.commit()
+static func _pct(u: float) -> String:
+	return "no support" if u >= 2.5 else "%d%%" % roundi(u * 100.0)
 
 
 func _add_bars(d: Dictionary) -> void:
@@ -121,6 +196,8 @@ func _add_bars(d: Dictionary) -> void:
 	var sizes: PackedFloat32Array = d.get("bar_d", PackedFloat32Array())
 	var us: PackedByteArray = d.get("bar_u", PackedByteArray())
 	var n := StructureDiagram.SAMPLES
+	if us.size() != bars.size() / 2 * n:
+		return
 	for i in bars.size() / 2:
 		var a := bars[i * 2]
 		var b := bars[i * 2 + 1]
@@ -133,26 +210,25 @@ func _add_bars(d: Dictionary) -> void:
 			side = dir.cross(Vector3.RIGHT)
 		side = side.normalized() * sizes[i] * 0.5
 		var up := side.cross(dir).normalized() * sizes[i] * 0.5
-		var corners := [side + up, -side + up, -side - up, side - up]
-		for k in n - 1:
-			var f0 := float(k) / float(n - 1)
-			var f1 := float(k + 1) / float(n - 1)
+		var corners: Array[Vector3] = [side + up, -side + up, -side - up, side - up]
+		for k in n:
+			var p := a.lerp(b, float(k) / float(n - 1))
+			for q in 4:
+				_line(p + corners[q], p + corners[(q + 1) % 4], corners[q] + corners[(q + 1) % 4])
+			if k == n - 1:
+				break
+			var p1 := a.lerp(b, float(k + 1) / float(n - 1))
 			var u0 := StructureDiagram.from_byte(us[i * n + k])
 			var u1 := StructureDiagram.from_byte(us[i * n + k + 1])
-			var c0 := StructureDiagram.colour(u0)
-			var c1 := StructureDiagram.colour(u1)
-			var hot := maxf(u0, u1) >= SOLID_FROM
-			var p0 := a.lerp(b, f0)
-			var p1 := a.lerp(b, f1)
 			for q in 4:
-				var e0: Vector3 = corners[q]
-				var e1: Vector3 = corners[(q + 1) % 4]
-				_quad(hot, p0 + e0, p0 + e1, p1 + e1, p1 + e0, c0, c0, c1, c1)
+				var e0 := corners[q]
+				var e1 := corners[(q + 1) % 4]
+				_quad(p + e0, p + e1, p1 + e1, p1 + e0, u0, u0, u1, u1)
+				_line(p + e0, p1 + e0, e0)
 		for end in 2:
 			var p := a if end == 0 else b
 			var ue := StructureDiagram.from_byte(us[i * n + (0 if end == 0 else n - 1)])
-			var c := StructureDiagram.colour(ue)
-			_quad(ue >= SOLID_FROM, p + corners[0], p + corners[1], p + corners[2], p + corners[3], c, c, c, c)
+			_quad(p + corners[0], p + corners[1], p + corners[2], p + corners[3], ue, ue, ue, ue)
 		drawn.bars += 1
 
 
@@ -169,69 +245,170 @@ func _add_panels(d: Dictionary) -> void:
 	for p in o.size():
 		var cols := cr[p * 2]
 		var rows := cr[p * 2 + 1]
-		var colours: Array[Color] = []
-		colours.resize(cols * rows)
-		for k in cols * rows:
-			colours[k] = StructureDiagram.colour(StructureDiagram.from_byte(us[ui + k]))
-		for face in [1.0, -1.0]:
-			var base: Vector3 = o[p] + ns[p] * face
-			for j in rows - 1:
-				for i in cols - 1:
-					if ms[mi + j * (cols - 1) + i] == 0:
+		var at := func(i: int, j: int, face: float) -> Vector3:
+			return o[p] + xs[p] * (float(i) / (cols - 1)) + ys[p] * (float(j) / (rows - 1)) + ns[p] * face
+		var val := func(i: int, j: int) -> float:
+			return StructureDiagram.from_byte(us[ui + j * cols + i])
+		var has := func(i: int, j: int) -> bool:
+			return i >= 0 and j >= 0 and i < cols - 1 and j < rows - 1 and ms[mi + j * (cols - 1) + i] == 1
+		var lift := ns[p].normalized() * LINE_LIFT
+		for j in rows - 1:
+			for i in cols - 1:
+				if not has.call(i, j):
+					continue
+				var u00: float = val.call(i, j)
+				var u10: float = val.call(i + 1, j)
+				var u11: float = val.call(i + 1, j + 1)
+				var u01: float = val.call(i, j + 1)
+				for face in [1.0, -1.0]:
+					var q00: Vector3 = at.call(i, j, face)
+					var q10: Vector3 = at.call(i + 1, j, face)
+					var q11: Vector3 = at.call(i + 1, j + 1, face)
+					var q01: Vector3 = at.call(i, j + 1, face)
+					_quad(q00, q10, q11, q01, u00, u10, u11, u01)
+					var off: Vector3 = lift * face
+					_line(q00, q10, off)
+					_line(q00, q01, off)
+					if not has.call(i + 1, j):
+						_line(q10, q11, off)
+					if not has.call(i, j + 1):
+						_line(q01, q11, off)
+				# Close the solid where the panel ends: its edges, ends and opening reveals.
+				for side: Array in [[0, -1, 0, 0, 1, 0], [1, 0, 1, 0, 1, 1], [0, 1, 0, 1, 1, 1], [-1, 0, 0, 0, 0, 1]]:
+					if has.call(i + int(side[0]), j + int(side[1])):
 						continue
-					var p00 := base + xs[p] * (float(i) / (cols - 1)) + ys[p] * (float(j) / (rows - 1))
-					var p10 := base + xs[p] * (float(i + 1) / (cols - 1)) + ys[p] * (float(j) / (rows - 1))
-					var p11 := base + xs[p] * (float(i + 1) / (cols - 1)) + ys[p] * (float(j + 1) / (rows - 1))
-					var p01 := base + xs[p] * (float(i) / (cols - 1)) + ys[p] * (float(j + 1) / (rows - 1))
-					var top := maxi(maxi(us[ui + j * cols + i], us[ui + j * cols + i + 1]),
-							maxi(us[ui + (j + 1) * cols + i + 1], us[ui + (j + 1) * cols + i]))
-					_quad(StructureDiagram.from_byte(top) >= SOLID_FROM, p00, p10, p11, p01, colours[j * cols + i], colours[j * cols + i + 1],
-							colours[(j + 1) * cols + i + 1], colours[(j + 1) * cols + i])
-					if face > 0.0:
-						drawn.cells += 1
+					var i0: int = i + int(side[2])
+					var j0: int = j + int(side[3])
+					var i1: int = i + int(side[4])
+					var j1: int = j + int(side[5])
+					var v0: float = val.call(i0, j0)
+					var v1: float = val.call(i1, j1)
+					var f0: Vector3 = at.call(i0, j0, 1.0)
+					var f1: Vector3 = at.call(i1, j1, 1.0)
+					var b0: Vector3 = at.call(i0, j0, -1.0)
+					var b1: Vector3 = at.call(i1, j1, -1.0)
+					_quad(f0, f1, b1, b0, v0, v1, v1, v0)
+					_line(f0, b0, Vector3.ZERO)
+				drawn.cells += 1
 		ui += cols * rows
 		mi += (cols - 1) * (rows - 1)
 		drawn.panels += 1
 
 
-func _quad(solid: bool, a: Vector3, b: Vector3, c: Vector3, e: Vector3,
-		ca: Color, cb: Color, cc: Color, ce: Color) -> void:
-	var st := _solid if solid else _clear
-	for v: Array in [[a, ca], [b, cb], [c, cc], [a, ca], [c, cc], [e, ce]]:
-		var col: Color = v[1]
-		if not solid:
-			col.a = SEE_THROUGH
-		st.set_color(col)
-		st.add_vertex(v[0])
+func _quad(a: Vector3, b: Vector3, c: Vector3, e: Vector3, ua: float, ub: float, uc: float, ue: float) -> void:
+	var nrm := (b - a).cross(e - a)
+	if nrm.length_squared() < 1e-12:
+		nrm = (c - b).cross(e - b)
+	nrm = nrm.normalized()
+	for v: Array in [[a, ua], [b, ub], [c, uc], [a, ua], [c, uc], [e, ue]]:
+		_faces.set_normal(nrm)
+		_faces.set_uv(Vector2(float(v[1]), 0.0))
+		_faces.add_vertex(v[0])
 
 
-func _mark(p: Vector3, u: float, text: String, worst: bool) -> void:
-	var m := Node3D.new()
-	m.position = p
-	_marks.add_child(m)
-	var ball := MeshInstance3D.new()
-	ball.name = "Ball"
-	var sphere := SphereMesh.new()
-	sphere.radius = MARK_SIZE * (1.4 if worst else 1.0)
-	sphere.height = sphere.radius * 2.0
-	sphere.radial_segments = 16
-	sphere.rings = 8
-	ball.mesh = sphere
-	ball.material_override = _mark_mat
-	ball.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-	m.add_child(ball)
+func _line(a: Vector3, b: Vector3, lift: Vector3) -> void:
+	var off := lift.normalized() * LINE_LIFT if lift.length_squared() > 1e-12 else Vector3.ZERO
+	_edges.add_vertex(a + off)
+	_edges.add_vertex(b + off)
+
+
+## A tag on a leader line: a small dot at the point, a line up and out, the text at its end.
+func _tag(p: Vector3, text: String, centre: Vector3, reach: float, worst: bool) -> void:
+	var out := Vector3(p.x - centre.x, 0.0, p.z - centre.z)
+	out = out.normalized() if out.length_squared() > 1e-6 else Vector3.RIGHT
+	var end := p + Vector3(0, reach, 0) + out * reach * 0.6
+	var tag := Node3D.new()
+	_tags.add_child(tag)
+	var dot := MeshInstance3D.new()
+	var ball := SphereMesh.new()
+	ball.radius = 0.07 * reach
+	ball.height = ball.radius * 2.0
+	ball.radial_segments = 10
+	ball.rings = 5
+	dot.mesh = ball
+	dot.material_override = _tag_mat
+	dot.position = p
+	tag.add_child(dot)
+	var im := ImmediateMesh.new()
+	im.surface_begin(Mesh.PRIMITIVE_LINES, _tag_mat)
+	im.surface_add_vertex(p)
+	im.surface_add_vertex(end)
+	im.surface_end()
+	var lead := MeshInstance3D.new()
+	lead.mesh = im
+	tag.add_child(lead)
 	var label := Label3D.new()
-	label.name = "Label"
-	var amount := "no support" if u >= StructureResult.UNSUPPORTED else "%d%%" % roundi(u * 100.0)
-	label.text = "%s  %s" % [amount, text] if text != "" else amount
+	label.text = text
+	label.position = end
 	label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
 	label.no_depth_test = true
 	label.fixed_size = true
-	label.pixel_size = 0.0012
-	label.font_size = 28 if worst else 22
-	label.outline_size = 8
-	label.modulate = Color(1.0, 0.92, 0.9)
-	label.outline_modulate = Color(0.25, 0.0, 0.05)
+	label.pixel_size = 0.0011
+	label.font_size = 30 if worst else 24
+	label.outline_size = 14
+	label.modulate = TAG_INK
+	label.outline_modulate = Color(1, 1, 1)
+	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
+	label.vertical_alignment = VERTICAL_ALIGNMENT_BOTTOM
 	label.render_priority = 3
-	label.position = Vector3(0, MARK_SIZE * 2.2, 0)
-	m.add_child(label)
+	label.outline_render_priority = 2
+	tag.add_child(label)
+	drawn.tags += 1
+
+
+## The colour legend: BANDS blocks from 0 to top, values beside them, standing beside the
+## model and turning to face whoever looks.
+func _build_legend(top: float, lo: Vector3, hi: Vector3) -> void:
+	var size := hi - lo
+	var height := maxf(size.y, 3.0)
+	var width := height * 0.09
+	_centre = (lo + hi) * 0.5
+	_radius = Vector2(size.x, size.z).length() * 0.5 + width * 2.0
+	_legend.position = Vector3(hi.x + width * 2.0, lo.y, _centre.z)
+	var st := SurfaceTool.new()
+	st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	var bands := StructureDiagram.BANDS
+	var step := height / bands
+	for k in bands:
+		var c := StructureDiagram.jet((float(k) + 0.5) / bands)
+		var y0 := k * step
+		var y1 := (k + 1) * step
+		for v: Vector3 in [Vector3(0, y0, 0), Vector3(width, y0, 0), Vector3(width, y1, 0),
+				Vector3(0, y0, 0), Vector3(width, y1, 0), Vector3(0, y1, 0)]:
+			st.set_color(c)
+			st.add_vertex(v)
+	var bar_mat := StandardMaterial3D.new()
+	bar_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	bar_mat.vertex_color_use_as_albedo = true
+	bar_mat.cull_mode = BaseMaterial3D.CULL_DISABLED
+	st.set_material(bar_mat)
+	var bar := MeshInstance3D.new()
+	bar.name = "Bar"
+	bar.mesh = st.commit()
+	bar.position.x = -width * 0.5
+	_legend.add_child(bar)
+	var text_px := height * 0.0009
+	for k in range(0, bands + 1, 2):
+		_legend_label("%d%%" % roundi(top * 100.0 * k / bands), Vector3(width * 0.7, k * step, 0), text_px, 40)
+	if top > 1.0:
+		var y := height / top
+		_legend_label("◀ capacity", Vector3(width * 0.7, y, 0), text_px, 34, Color(0.55, 0.0, 0.0))
+	var title := _legend_label("Utilisation\n% of capacity", Vector3(-width * 0.5, height + step * 0.8, 0), text_px, 44)
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
+	title.vertical_alignment = VERTICAL_ALIGNMENT_BOTTOM
+	drawn.legend = bands
+
+
+func _legend_label(text: String, at: Vector3, px: float, size: int, colour: Color = TAG_INK) -> Label3D:
+	var l := Label3D.new()
+	l.text = text
+	l.position = at
+	l.pixel_size = px
+	l.font_size = size
+	l.outline_size = 14
+	l.modulate = colour
+	l.outline_modulate = Color(1, 1, 1)
+	l.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
+	l.double_sided = true
+	_legend.add_child(l)
+	return l
