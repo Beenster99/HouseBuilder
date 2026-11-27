@@ -16,6 +16,7 @@ func run_tests() -> void:
 	_tiers()
 	_bus_solo()
 	_debug_xp()
+	await _board_in_window()
 	await _panel()
 	await _bus_two_players()
 
@@ -283,6 +284,25 @@ func _texts(root: Node) -> String:
 		elif n is RichTextLabel:
 			out += (n as RichTextLabel).get_parsed_text() + "\n"
 	return out
+
+
+## The designer's "Contracts..." step shows the page in a scrolling window: the lists must
+## still have height there.
+func _board_in_window() -> void:
+	var bus := Modules.bus("contracts") as ContractsBus
+	check(bus != null and bus.board.size() == ContractsBus.BOARD_SIZE, "the running game's contracts bus has a board dealt")
+	var scroll := ScrollContainer.new()
+	scroll.size = Vector2(980, 620)
+	add_child(scroll)
+	var page := bus.make_board(null)
+	page.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	scroll.add_child(page)
+	await frames(3)
+	var offers := page.find_children("Offer_*", "", true, false)
+	var lists := page.find_children("ColumnScroll", "ScrollContainer", true, false)
+	check(offers.size() == ContractsBus.BOARD_SIZE and lists.all(func(c: Control) -> bool: return c.size.y > 200.0),
+			"in a scrolling window the offers have room to show")
+	scroll.queue_free()
 
 
 func _debug_xp() -> void:

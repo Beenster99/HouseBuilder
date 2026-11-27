@@ -6,6 +6,9 @@ extends MarginContainer
 ## ContractsBus.make_board(model); it refreshes itself on the bus's signals.
 
 const BASE := 12
+## The lists' height on a wall screen (the page fills its slot), and in a scrolling window.
+const MIN_LIST_H := BASE * 16
+const TALL_LIST_H := BASE * 42
 
 var bus: Node
 var model: BuildingModel
@@ -87,7 +90,11 @@ func _column(parent: Control, title: String, ratio: float) -> VBoxContainer:
 	parent.add_child(col)
 	col.add_child(_label(title, int(BASE * 1.2)))
 	var scroll := ScrollContainer.new()
+	scroll.name = "ColumnScroll"
 	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	# A scroll box has no height of its own: give it some, so the page still shows its lists
+	# when it sits in something that does not hand it a height (a scrolling window).
+	scroll.custom_minimum_size = Vector2(0, MIN_LIST_H)
 	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	col.add_child(scroll)
 	var inner := VBoxContainer.new()
@@ -110,6 +117,10 @@ func _poke() -> void:
 ## they are set again once it is in place.
 func _notification(what: int) -> void:
 	if what == NOTIFICATION_ENTER_TREE and is_instance_valid(bus):
+		# In a scrolling window (the designer's Contracts... step) the lists get a tall page.
+		var tall := get_parent() is ScrollContainer
+		for sc in find_children("ColumnScroll", "ScrollContainer", true, false):
+			(sc as Control).custom_minimum_size.y = TALL_LIST_H if tall else MIN_LIST_H
 		refresh()
 
 
