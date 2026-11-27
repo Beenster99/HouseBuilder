@@ -14,12 +14,16 @@ extends Node
 ##   c.abandon()                    # drop the contract (costs some XP, never a tier)
 ##   c.career                       # ContractCareer: money, XP and tier, unlocks
 ##   c.set_xp(ContractTiers.MAX_XP) # testing: jump the firm's XP (Settings > Debug)
+##   c.site_offer()                 # the brief written for the real site the crew is on
+##   ContractBriefing.bbcode(brief) # any brief as the client's full briefing document
 ##   signals: board_changed, active_changed, settled(settlement), report_taken, career.changed
 ##
 ## While a contract is taken, a live "Contract" window sits in the design room's side column
 ## (DesignBus.register_panel). The "Contracts" wall-screen channel (DesignBus.register_channel,
 ## id "contracts.board") shows the firm's tier and XP, the board, the active brief and the
-## next tier. Both are reached by name, so contracts does not depend on design. Settings >
+## next tier, with the full briefing document of the contract taken or the offer being read.
+## Picking a real site with no contract taken deals a brief written for that site to the top
+## of the board (site_offer), and the Contract window offers it. Both are reached by name, so contracts does not depend on design. Settings >
 ## Debug gets "Contracts: firm XP" (Max XP, next tier, reset).
 ##
 ## Everything that changes shared state is a host-validated event, so all players see the
@@ -55,6 +59,7 @@ const EV_HANDOVER := "contracts.handover"
 const EV_ABANDON := "contracts.abandon"
 const EV_REPORT := "contracts.structure_report"
 const EV_SET_XP := "contracts.set_xp"
+const EV_SITE_BRIEF := "contracts.site_brief"
 
 var career := ContractCareer.new()
 var board: Array = []
@@ -64,6 +69,9 @@ var structure_report: Dictionary = {}
 ## The last handover's settlement ({} before the first).
 var last_settlement: Dictionary = {}
 var board_seed := 1
+## The contract whose briefing document the design room should open next ("" for none): set
+## when a contract is taken, cleared by the window that shows it.
+var briefing_pending := ""
 var net: MultiplayerBus
 var _design: Node
 ## The building's checksum when structure_report was made: a report for an older design is
@@ -106,6 +114,38 @@ func _hook_net() -> void:
 	var st := Modules.bus("structure") as StructureBus
 	if st != null and not st.report_changed.is_connected(_on_structure_report):
 		st.report_changed.connect(_on_structure_report)
+	var sites := Modules.bus("sites") as SitesBus
+	if sites != null and not sites.site_changed.is_connected(_on_site_changed):
+		sites.site_changed.connect(_on_site_changed)
+
+
+## The crew moved to a real site: with no contract taken, the host deals a brief for it.
+func _on_site_changed(pack: SitePack) -> void:
+	_sync_panel()
+	if pack == null or not active.is_empty() or (net != null and not net.is_host()):
+		return
+	if not site_offer(pack.id()).is_empty():
+		return
+	_request.call_deferred(EV_SITE_BRIEF, {"site": pack.id()})
+
+
+## The brief on the board written for a site (the current one by default), {} for none.
+func site_offer(site_id: String = "") -> Dictionary:
+	if site_id == "":
+		var sites := Modules.bus("sites") as SitesBus
+		var cur := sites.current() if sites != null else null
+		if cur == null:
+			return {}
+		site_id = cur.id()
+	for b: Dictionary in board:
+		if bool(b.get("for_site", false)) and str((b.get("site", {}) as Dictionary).get("id", "")) == site_id:
+			return b
+	return {}
+
+
+## Deals a brief written for a real site to the top of the board (what picking a site does).
+func deal_site_brief(site_id: String) -> void:
+	_request(EV_SITE_BRIEF, {"site": site_id})
 
 
 ## The structure module's stress test finished (it fires on every peer with the host's report).
@@ -135,7 +175,7 @@ func hook_design(design: Node) -> void:
 func _sync_panel() -> void:
 	if not is_instance_valid(_design) or not Flags.is_on(PANEL_FLAG):
 		return
-	if active.is_empty():
+	if active.is_empty() and site_offer().is_empty():
 		_design.unregister_panel(PANEL_ID)
 	else:
 		_design.register_panel(PANEL_ID, "Contract", make_panel, PANEL_ORDER)
@@ -200,13 +240,14 @@ func bind(bus: MultiplayerBus) -> void:
 	net.register_event(EV_ABANDON, _apply_abandon, _validate_abandon)
 	net.register_event(EV_REPORT, _apply_report, _validate_report)
 	net.register_event(EV_SET_XP, _apply_set_xp, _validate_set_xp)
+	net.register_event(EV_SITE_BRIEF, _apply_site_brief, _validate_site_brief)
 	net.register_snapshot_provider(SAVE_SECTION, self)
 
 
 func unbind() -> void:
 	if net == null:
 		return
-	for e: String in [EV_ACCEPT, EV_HANDOVER, EV_ABANDON, EV_REPORT, EV_SET_XP]:
+	for e: String in [EV_ACCEPT, EV_HANDOVER, EV_ABANDON, EV_REPORT, EV_SET_XP, EV_SITE_BRIEF]:
 		net.unregister_event(e)
 	net.unregister_snapshot_provider(SAVE_SECTION)
 	net = null
@@ -278,6 +319,8 @@ func _request(ev: String, payload: Dictionary) -> void:
 		return
 	# No session at all (tools, some tests): validate and apply here.
 	var out: Variant = call("_validate_" + ev.get_slice(".", 1), 1, payload)
+	if out is String:
+		push_warning("contracts: %s refused: %s" % [ev, out])
 	if out is Dictionary:
 		call("_apply_" + ev.get_slice(".", 1), out)
 
@@ -322,10 +365,21 @@ func _validate_set_xp(_sender: int, p: Dictionary) -> Variant:
 	return {"xp": clampi(int(p.get("xp", 0)), 0, ContractTiers.MAX_XP * 10), "seed": board_seed + 1}
 
 
+func _validate_site_brief(_sender: int, p: Dictionary) -> Variant:
+	if not active.is_empty():
+		return "a contract is already taken"
+	var site_id := str(p.get("site", ""))
+	var b := ContractGenerator.for_site(site_id, board_seed * 7919 + site_id.hash() % 100000, career.tier())
+	if b.is_empty():
+		return "cannot read site %s" % site_id
+	return {"brief": b}
+
+
 # Every peer
 
 func _apply_accept(p: Dictionary) -> void:
 	active = (p.get("brief", {}) as Dictionary).duplicate(true)
+	briefing_pending = str(active.get("id", ""))
 	# A contract on a real plot puts that site in play for the crew (the host asks once).
 	var site_id := str((active.get("site", {}) as Dictionary).get("id", "")) if active.get("site") is Dictionary else ""
 	var sites := Modules.bus("sites") as SitesBus
@@ -365,6 +419,17 @@ func _apply_abandon(p: Dictionary) -> void:
 
 func _apply_report(p: Dictionary) -> void:
 	_take_report(p.get("report", {}))
+
+
+func _apply_site_brief(p: Dictionary) -> void:
+	var b: Dictionary = (p.get("brief", {}) as Dictionary).duplicate(true)
+	if b.is_empty():
+		return
+	board = board.filter(func(o: Dictionary) -> bool: return not bool(o.get("for_site", false)))
+	board.insert(0, b)
+	board.resize(mini(board.size(), BOARD_SIZE))
+	board_changed.emit()
+	_sync_panel()
 
 
 func _apply_set_xp(p: Dictionary) -> void:

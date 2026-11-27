@@ -180,8 +180,41 @@ static func generate_on_site(seed: int, type: String = "", tier: int = 1) -> Dic
 	var site_id := SitePool.pick(kind, seed, max_site_rating(tier)) if kind != "" else ""
 	if site_id == "":
 		return b
+	return put_on_site(b, site_id)
+
+
+## A brief written for a site the crew picked without a contract: a building type the site
+## suits and the firm's tier offers (any type the tier offers if none suits), on that plot.
+## {} if the site cannot be read.
+static func for_site(site_id: String, seed: int, tier: int = 1) -> Dictionary:
 	var pack := SitePool.open(site_id)
-	if not pack.ok() or pack.plot_outline_local().size() < 3:
+	if pack == null or not pack.ok() or pack.plot_outline_local().size() < 3:
+		return {}
+	tier = clampi(tier, 1, ContractTiers.top())
+	var suited := pack.suited_to()
+	var fits := PackedStringArray()
+	var own := PackedStringArray()
+	for t in types_open(tier):
+		if str(TYPES_SCRIPT.SITE_KIND.get(t, "")) in suited:
+			fits.append(t)
+			if int(TYPES[t].tier) == tier:
+				own.append(t)
+	var pool := own if not own.is_empty() else fits
+	if pool.is_empty():
+		pool = types_open(tier)
+	var rng := RandomNumberGenerator.new()
+	rng.seed = seed
+	var b := put_on_site(generate(seed, pool[rng.randi_range(0, pool.size() - 1)], tier), site_id)
+	b["id"] = "site-" + str(b.id)
+	b["for_site"] = true
+	return b
+
+
+## Puts a brief on a real plot (see generate_on_site); the brief unchanged if the plot
+## cannot be read.
+static func put_on_site(b: Dictionary, site_id: String) -> Dictionary:
+	var pack := SitePool.open(site_id)
+	if pack == null or not pack.ok() or pack.plot_outline_local().size() < 3:
 		return b
 	var mult := maxf(1.0, pack.cost_multiplier_hint())
 	var labels := PackedStringArray()

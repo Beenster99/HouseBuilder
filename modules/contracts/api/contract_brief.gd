@@ -104,9 +104,9 @@ static func describe(req: Dictionary, catalog: BuildingCatalog = null) -> String
 		"max_storeys":
 			return "No more than %d storeys" % int(v) if int(v) != 1 else "A single storey"
 		"max_height":
-			return "No taller than %.0f m" % v
+			return "No taller than %s m" % _num(v)
 		"max_footprint":
-			return "A ground floor of no more than %.0f m2" % v
+			return "A ground floor of no more than %s m2" % _num(v)
 		"within_plot":
 			return "Keep inside the plot boundary"
 		"materials":
@@ -205,7 +205,11 @@ static func _num(v: float) -> String:
 
 ## "a" or "an" for a word.
 static func article(word: String) -> String:
-	return "an" if word.left(1).to_lower() in ["a", "e", "i", "o", "u"] else "a"
+	var w := word.to_lower()
+	for c: String in ["uni", "uti", "use", "usu", "eu", "one"]:
+		if w.begins_with(c):
+			return "a"
+	return "an" if w.left(1) in ["a", "e", "i", "o", "u"] else "a"
 
 
 ## A room type's name, lower case, made plural for n other than 1.

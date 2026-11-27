@@ -54,3 +54,22 @@ timelapse schedule's lengths are known.
 `tools/run_tests.sh contracts`: the three briefs against test buildings (tests/building_kit.gd),
 each kind of failure and its wording, the generator's range and determinism, payout, career,
 and the board and contract shared by two players.
+
+## Briefing documents
+
+`ContractBriefing` turns any brief into the client's briefing document: the client and why
+they are building, what to build (type, storeys, height, floor area), every room and its
+size, the budget, fee, deadline and XP, the site's facts and each of its problems with what
+it means for the design (`SITE_ADVICE`, by site pack factor id), the materials, the bonus
+goals and the numbered requirements the handover is judged on. `bbcode(brief)` for screens,
+`text(brief)` for tests.
+
+It is shown on the Contracts wall screen (the right-hand "Brief" column: the contract taken,
+else the offer picked with Read, else the site's brief, else the first offer), in a window
+from the designer's Contract window ("Read the full brief"), and once automatically when a
+contract is taken.
+
+Picking a real site with no contract taken makes the host deal a brief written for that site
+(`ContractGenerator.for_site`: a type the site suits and the firm's tier offers) to the top of
+the board, event `contracts.site_brief`. `ContractsBus.site_offer()` finds it; the designer's
+Contract window offers it (read it, accept it) while no contract is taken.

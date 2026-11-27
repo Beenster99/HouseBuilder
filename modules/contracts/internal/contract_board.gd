@@ -1,7 +1,8 @@
 extends MarginContainer
 ## The "Contracts" big-screen page (the design hall's wall screens, channel contracts.board).
-## It shows the firm's tier and XP bar, the contracts on offer with an Accept button each,
-## the contract being worked on with its live requirements, and what the next tier opens.
+## It shows the firm's tier and XP bar, the contracts on offer (Read and Accept on each) and
+## what the next tier opens, beside the full briefing document of the contract being worked
+## on (with its live requirements) or of the offer being read (the site's own brief first).
 ## Text is sized for about 12 px at its own size; the hall scales the page up. Made by
 ## ContractsBus.make_board(model); it refreshes itself on the bus's signals.
 
@@ -19,6 +20,10 @@ var _bar_text: Label
 var _offers: VBoxContainer
 var _active_box: VBoxContainer
 var _next: RichTextLabel
+var _doc: RichTextLabel
+var _doc_row: HBoxContainer
+## The offer whose brief is shown while no contract is taken ("" for the first).
+var selected := ""
 var _dirty := false
 
 
@@ -62,11 +67,7 @@ func setup(contracts: Node, building: BuildingModel) -> void:
 	_offers.add_theme_constant_override("separation", BASE / 2)
 	_offers.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	left.add_child(_offers)
-	var right := _column(cols, "Current contract", 1.0)
-	_active_box = VBoxContainer.new()
-	_active_box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	right.add_child(_active_box)
-	right.add_child(HSeparator.new())
+	left.add_child(HSeparator.new())
 	_next = RichTextLabel.new()
 	_next.bbcode_enabled = true
 	_next.fit_content = true
@@ -74,7 +75,23 @@ func setup(contracts: Node, building: BuildingModel) -> void:
 	_next.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_next.add_theme_font_size_override("normal_font_size", BASE - 1)
 	_next.add_theme_font_size_override("bold_font_size", BASE)
-	right.add_child(_next)
+	left.add_child(_next)
+	var right := _column(cols, "Brief", 1.3)
+	_active_box = VBoxContainer.new()
+	_active_box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	right.add_child(_active_box)
+	_doc_row = HBoxContainer.new()
+	_doc_row.add_theme_constant_override("separation", BASE / 2)
+	right.add_child(_doc_row)
+	_doc = RichTextLabel.new()
+	_doc.name = "Briefing"
+	_doc.bbcode_enabled = true
+	_doc.fit_content = true
+	_doc.scroll_active = false
+	_doc.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_doc.add_theme_font_size_override("normal_font_size", BASE - 1)
+	_doc.add_theme_font_size_override("bold_font_size", BASE)
+	right.add_child(_doc)
 	bus.board_changed.connect(_poke)
 	bus.active_changed.connect(_poke)
 	bus.career.changed.connect(_poke)
@@ -140,7 +157,38 @@ func refresh() -> void:
 		_bar_text.text = "%s · top tier" % ContractTiers.xp_text(int(p.xp))
 	_fill_offers()
 	_fill_active()
+	_fill_doc()
 	_fill_next(p)
+
+
+## The brief shown: the contract taken, else the offer picked with Read, else the brief for
+## the site the crew is on, else the first offer.
+func shown_brief() -> Dictionary:
+	if not (bus.active as Dictionary).is_empty():
+		return bus.active
+	for b: Dictionary in bus.board:
+		if str(b.id) == selected:
+			return b
+	var site: Dictionary = bus.site_offer()
+	if not site.is_empty():
+		return site
+	return bus.board[0] if not (bus.board as Array).is_empty() else {}
+
+
+func _fill_doc() -> void:
+	for c in _doc_row.get_children():
+		c.get_parent().remove_child(c)
+		c.queue_free()
+	var b := shown_brief()
+	_doc.text = ContractBriefing.bbcode(b, BsxTheme.col(self, "MUTED").to_html(), model.catalog if model != null else null, int(BASE * 1.5)) \
+			if not b.is_empty() else ""
+	if b.is_empty() or not (bus.active as Dictionary).is_empty():
+		return
+	var accept := _button("AcceptBrief", "Accept this contract", func() -> void: bus.accept(str(b.id)))
+	accept.disabled = int(b.get("tier", 1)) > bus.career.tier()
+	_doc_row.add_child(accept)
+	if accept.disabled:
+		_doc_row.add_child(_label("Needs a tier %d firm." % int(b.get("tier", 1)), BASE - 2, true))
 
 
 func _fill_offers() -> void:
@@ -158,13 +206,16 @@ func _fill_offers() -> void:
 		title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		title.tooltip_text = str(b.get("summary", ""))
 		row.add_child(title)
-		var accept := Button.new()
-		accept.name = "Accept"
-		accept.text = "Accept"
-		accept.disabled = busy or int(b.get("tier", 1)) > bus.career.tier()
-		accept.add_theme_font_size_override("font_size", BASE - 2)
 		var bid := str(b.id)
-		accept.pressed.connect(func() -> void: bus.accept(bid))
+		if bid == str(shown_brief().get("id", "")) and busy == false:
+			title.text = "▸ " + title.text
+		var read := _button("Read", "Read", func() -> void:
+			selected = bid
+			_poke())
+		read.disabled = busy
+		row.add_child(read)
+		var accept := _button("Accept", "Accept", func() -> void: bus.accept(bid))
+		accept.disabled = busy or int(b.get("tier", 1)) > bus.career.tier()
 		row.add_child(accept)
 		card.add_child(_label("Tier %d · fee %s · %d days · +%s · %s" % [int(b.get("tier", 1)),
 				ContractValidator.money(float(b.get("fee", 0.0))), int(b.get("deadline_days", 0)),
@@ -177,9 +228,12 @@ func _fill_active() -> void:
 		c.get_parent().remove_child(c)
 		c.queue_free()
 	if (bus.active as Dictionary).is_empty():
-		_active_box.add_child(_wrapped("None taken. Accept one of the contracts on offer to start designing.", BASE - 1, true))
+		_active_box.add_child(_wrapped("No contract taken yet. Read a brief, then accept it to start designing.", BASE - 1, true))
 		return
 	var panel: Control = bus.make_panel(model)
+	# The full brief is shown below it.
+	panel.set("auto_brief", false)
+	panel.set("show_spec", false)
 	panel.custom_minimum_size = Vector2.ZERO
 	panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	panel.add_theme_font_size_override("normal_font_size", BASE - 1)
@@ -194,6 +248,7 @@ func _fill_active() -> void:
 	abandon.pressed.connect(func() -> void: bus.abandon())
 	row.add_child(abandon)
 	_active_box.add_child(row)
+	_active_box.add_child(HSeparator.new())
 
 
 func _fill_next(p: Dictionary) -> void:
@@ -207,6 +262,18 @@ func _fill_next(p: Dictionary) -> void:
 		opens.append(str(u.label).to_lower())
 	_next.text = "[b]Next: tier %d, %s[/b]\n%s\nAt %s. Opens %s." % [t + 1, str(nxt.name), str(nxt.blurb),
 			ContractTiers.xp_text(int(nxt.xp)), ", ".join(opens) if not opens.is_empty() else "nothing new"]
+
+
+## A small button that acts on the press (on a wall screen the pointer follows the view, and
+## a hand that drifts off the button before letting go would otherwise cancel the click).
+func _button(id: String, text: String, press: Callable) -> Button:
+	var b := Button.new()
+	b.name = id
+	b.text = text
+	b.action_mode = BaseButton.ACTION_MODE_BUTTON_PRESS
+	b.add_theme_font_size_override("font_size", BASE - 2)
+	b.pressed.connect(press)
+	return b
 
 
 ## A label; wrap: word wrapping (else one line, cut short with "..." if it is too long).
