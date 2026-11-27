@@ -95,6 +95,12 @@ static func style_setting() -> String:
 ## Turns the pencil look on or off: the palette, every helper here and in TerminalKit, and
 ## Godot's default theme. Controls already built keep their look until rebuilt.
 static func set_pencil(on: bool) -> void:
+	_set_palette(on)
+	_theme = null
+	apply_everywhere()
+
+
+static func _set_palette(on: bool) -> void:
 	_pencil = on
 	var c: Dictionary = PENCIL_COLOURS if on else CLASSIC_COLOURS
 	BG = c.BG
@@ -108,8 +114,85 @@ static func set_pencil(on: bool) -> void:
 	LIVE = c.LIVE
 	STATUS = c.STATUS
 	TerminalKit.use_pencil(on)
+
+
+# --- Screens in the world keep the Classic look -------------------------------------------
+# The hall's TV screens show BSX's classic screen look whatever the menu style. Mark a
+# screen's root with meta SCREEN_META = true, give it screen_theme(), and build its contents
+# inside as_screen(); code that picks a colour later uses col(self, "MUTED"):
+#
+#   root.set_meta(BsxTheme.SCREEN_META, true)
+#   root.theme = BsxTheme.screen_theme()
+#   BsxTheme.as_screen(func() -> void: _build())       # helpers here and in TerminalKit: Classic
+#   label.modulate = BsxTheme.col(self, "MUTED")         # Classic on a screen, current style elsewhere
+#   panel.add_theme_stylebox_override("panel", BsxTheme.panel_style_for(self))
+
+const SCREEN_META := "screen_look"
+static var _screen_theme: Theme
+
+
+## Whether `node` is on a screen in the world (it or an ancestor has meta SCREEN_META).
+static func on_screen(node: Node) -> bool:
+	var n := node
+	while n != null:
+		if n.has_meta(SCREEN_META) and bool(n.get_meta(SCREEN_META)):
+			return true
+		n = n.get_parent()
+	return false
+
+
+## The palette for `node`: Classic on a screen, the current style elsewhere. Names as the
+## static colours here (BG, ACCENT, PANEL, TEXT, MUTED, HUD, HUD_DIM, WARN, LIVE, STATUS).
+static func palette_for(node: Node) -> Dictionary:
+	if on_screen(node):
+		return CLASSIC_COLOURS
+	return PENCIL_COLOURS if _pencil else CLASSIC_COLOURS
+
+
+static func col(node: Node, colour_name: String) -> Color:
+	return palette_for(node)[colour_name]
+
+
+## Runs `build` with the Classic look in force (palette, helpers here and in TerminalKit),
+## then puts the current style back. Returns what `build` returns.
+static func as_screen(build: Callable) -> Variant:
+	if not _pencil:
+		return build.call()
+	var saved := _theme
+	_set_palette(false)
 	_theme = null
-	apply_everywhere()
+	var out: Variant = build.call()
+	_set_palette(true)
+	_theme = saved
+	return out
+
+
+## A complete Classic theme for a screen's root, Godot's own defaults included, so nothing
+## under it falls back to the pencil default theme. Built once.
+static func screen_theme() -> Theme:
+	if _screen_theme:
+		return _screen_theme
+	var t := Theme.new()
+	var base := _base_saved if _base_saved else ThemeDB.get_default_theme()
+	if base and not base.has_meta("pencil"):
+		t.merge_with(base)
+		t.default_font = base.default_font
+		t.default_font_size = base.default_font_size
+	elif _base_saved == null:
+		push_warning("BsxTheme.screen_theme: Godot's own theme is already pencil; screens may fall back to it")
+	as_screen(func() -> void:
+		_theme = null
+		t.merge_with(get_theme()))
+	_screen_theme = t
+	return t
+
+
+static func panel_style_for(node: Node, margin: int = 20) -> StyleBox:
+	return as_screen(func() -> StyleBox: return panel_style(margin)) if on_screen(node) else panel_style(margin)
+
+
+static func card_style_for(node: Node, margin := 10.0, alpha := 0.92) -> StyleBox:
+	return as_screen(func() -> StyleBox: return card_style(margin, alpha)) if on_screen(node) else card_style(margin, alpha)
 
 
 ## A face from FACES. Loaded once: fresh fonts draw as blocks for a frame.

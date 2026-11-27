@@ -110,6 +110,15 @@ static func pencil() -> bool:
 	return BsxTheme.pencil()
 
 
+## A kit colour for `node`: Classic on a screen in the world (BsxTheme.on_screen), the
+## current style elsewhere. Names as the static colours here (PLATE, TEXT, DIM, ORANGE...).
+## The kit's helpers build Classic inside BsxTheme.as_screen().
+static func col(node: Node, colour_name: String) -> Color:
+	if BsxTheme.on_screen(node) or not pencil():
+		return CLASSIC_COLOURS[colour_name]
+	return PENCIL_COLOURS[colour_name]
+
+
 ## The chosen text scale (Compact by default).
 static func text_scale() -> float:
 	var v: Variant = Settings.get_value(TEXT_SECTION, TEXT_KEY)
