@@ -45,6 +45,18 @@ room's result on the model and recosts only what an edit touched: on the 4,000-p
 terminal it takes about 50 ms the first time and about 19 ms after an edit (headless).
 `checksum()` hashes everything (about 35 ms on the terminal): compare `revision` first.
 
+## Library assets as parts
+
+With flag `building.library` on, `BuildingCatalog.default_catalog()` also holds the 3D
+library's placeable assets (about 730: furniture, equipment, services plant, street and
+garden objects, vehicles, site plant) as `fixture` kinds whose id is the asset id
+(`"office.desk.bench_4"`). Each spec adds `asset`, `group` (palette heading), `category`,
+`tags`, `loose` (vehicles, site plant, luggage: not part of the build, cost 0) and `outdoor`.
+`cat.services_of(kind)` gives `{power_w, cold, hot, drain, gas, data, heating, heat_w, gen_w}`
+for every fixture, `cat.group_of(kind)` the palette group, `cat.library_kinds()` the list.
+Prices, services and capacities are in `internal/library_data.gd` (rules by id prefix).
+Placing, costing, saving and syncing need nothing new: they are ordinary point parts.
+
 ## Ops
 
 See the header of `api/building_model.gd`. `apply(op)` returns `{}` (refused) or

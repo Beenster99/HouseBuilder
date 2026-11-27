@@ -1,0 +1,345 @@
+extends RefCounted
+## What the building catalog needs to know about the 3D library's assets (modules/assets) to
+## make them placeable parts: which ones can be placed, what each costs, what services it
+## needs, and how many people or uses it counts for in a room. BuildingCatalog reads this with
+## the asset manifest. Plain data; approximate UK prices (supply and fit, GBP, 2026).
+##
+## A rule is keyed by an asset id prefix ("furniture.seat.sofa", "services.light."); every
+## rule whose prefix starts the id applies, shorter prefixes first, so a longer one overrides.
+## Fields (all optional):
+##   cost   GBP each, installed
+##   power  W of electrical load          cold, hot, drain, gas, data  needs that service
+##   heat   W of heat it gives (radiators, boilers); heating: on the wet heating circuit
+##   gen    W it generates (solar, generators)
+##   cap    {capacity key: n}: counts toward a room's occupants (the room types' keys)
+##   loose  true: not part of the build (vehicles, site plant, luggage); costs nothing
+##   outdoor true: belongs outside, on the plot
+
+## Asset categories that can be placed as parts. Structure, openings, roofs and stairs have
+## their own catalog kinds; roads, rail, bridges, earthworks, demolition, people and the
+## neighbouring buildings are the site's, not the design's.
+const CATEGORIES: PackedStringArray = ["furniture", "hospital", "school", "office", "police", "hospitality", "retail",
+		"sport", "airport", "services", "industrial", "energy", "water", "street", "landscape", "boundary", "vehicle", "plant"]
+## Asset id prefixes that are never placed by hand (the services module draws its own fittings).
+const SKIP: PackedStringArray = ["services.pipe.", "services.duct.", "services.tray."]
+
+## The palette group each category goes in.
+const GROUPS := {
+	"furniture": "Furniture", "hospital": "Healthcare", "school": "Education", "office": "Office",
+	"police": "Police", "hospitality": "Catering and hotel", "retail": "Retail", "sport": "Sport",
+	"airport": "Airport", "services": "Services", "industrial": "Industrial", "energy": "Energy",
+	"water": "Water", "street": "Street and garden", "landscape": "Landscape", "boundary": "Gates and posts",
+	"vehicle": "Vehicles", "plant": "Site plant",
+}
+
+const RULES := {
+	# Category defaults
+	"furniture.": {"cost": 250.0}, "hospital.": {"cost": 1500.0}, "school.": {"cost": 300.0},
+	"office.": {"cost": 400.0}, "police.": {"cost": 1500.0}, "hospitality.": {"cost": 1200.0},
+	"retail.": {"cost": 900.0}, "sport.": {"cost": 900.0}, "airport.": {"cost": 5000.0},
+	"services.": {"cost": 150.0}, "industrial.": {"cost": 8000.0}, "energy.": {"cost": 20000.0},
+	"water.": {"cost": 30000.0}, "street.": {"cost": 900.0, "outdoor": true},
+	"landscape.": {"cost": 150.0, "outdoor": true}, "boundary.": {"cost": 250.0, "outdoor": true},
+	"vehicle.": {"loose": true, "outdoor": true}, "plant.": {"loose": true, "outdoor": true},
+
+	# Furniture: appliances
+	"furniture.appliance.dishwasher": {"cost": 450.0, "power": 2000, "cold": true, "drain": true},
+	"furniture.appliance.fridge_freezer": {"cost": 600.0, "power": 150},
+	"furniture.appliance.kettle": {"cost": 40.0, "power": 3000},
+	"furniture.appliance.microwave": {"cost": 150.0, "power": 1000},
+	"furniture.appliance.photocopier": {"cost": 3500.0, "power": 1500, "data": true},
+	"furniture.appliance.range_cooker": {"cost": 2500.0, "power": 11000},
+	"furniture.appliance.tumble_dryer": {"cost": 450.0, "power": 2500},
+	"furniture.appliance.tv_55": {"cost": 600.0, "power": 120, "data": true},
+	"furniture.appliance.vending_machine": {"cost": 3000.0, "power": 400},
+	"furniture.appliance.washing_machine": {"cost": 500.0, "power": 2200, "cold": true, "drain": true},
+	"furniture.appliance.water_cooler": {"cost": 400.0, "power": 100, "cold": true, "drain": true},
+	# Furniture: home
+	"furniture.home.accessible_wc": {"cost": 1800.0, "cold": true, "drain": true, "cap": {"wc": 1}},
+	"furniture.home.urinal": {"cost": 600.0, "cold": true, "drain": true, "cap": {"wc": 1}},
+	"furniture.home.bidet": {"cost": 400.0, "cold": true, "hot": true, "drain": true},
+	"furniture.home.vanity": {"cost": 700.0, "cold": true, "hot": true, "drain": true, "cap": {"basin": 1}},
+	"furniture.home.bathroom_radiator_shelf": {"cost": 350.0, "heat": 500, "heating": true},
+	"furniture.home.bunk_bed": {"cost": 450.0, "cap": {"sleeps": 2}},
+	"furniture.home.cot": {"cost": 200.0, "cap": {"sleeps": 1}},
+	"furniture.home.car_charger": {"cost": 1000.0, "power": 7400, "outdoor": true},
+	"furniture.home.fireplace": {"cost": 2500.0, "gas": true, "heat": 5000},
+	"furniture.home.wood_stove": {"cost": 2500.0, "heat": 6000},
+	"furniture.home.desk_lamp": {"cost": 40.0, "power": 10}, "furniture.home.floor_lamp": {"cost": 90.0, "power": 20},
+	"furniture.home.piano": {"cost": 4000.0}, "furniture.home.garden_shed": {"cost": 1500.0, "outdoor": true},
+	"furniture.home.bbq": {"cost": 300.0, "outdoor": true}, "furniture.home.garden_bench": {"cost": 250.0, "outdoor": true},
+	"furniture.home.washing_line": {"cost": 80.0, "outdoor": true}, "furniture.home.wheelie_bin": {"cost": 60.0, "outdoor": true},
+	"furniture.home.bicycle": {"loose": true},
+	"furniture.home.rug": {"cost": 200.0}, "furniture.home.curtains": {"cost": 250.0}, "furniture.home.blind": {"cost": 150.0},
+	# Furniture: kitchen (a unit counts as 600 mm of kitchen)
+	"furniture.kitchen.": {"cost": 450.0, "cap": {"kitchen_units": 1}},
+	"furniture.kitchen.base_300": {"cost": 300.0, "cap": {"kitchen_units": 1}},
+	"furniture.kitchen.base_1000": {"cost": 600.0, "cap": {"kitchen_units": 2}},
+	"furniture.kitchen.island_1800": {"cost": 2500.0, "cap": {"kitchen_units": 3}, "power": 3000},
+	"furniture.kitchen.sink_1000": {"cost": 800.0, "cold": true, "hot": true, "drain": true, "cap": {"kitchen_units": 2}},
+	"furniture.kitchen.hob_600": {"cost": 500.0, "power": 7000},
+	"furniture.kitchen.oven_600": {"cost": 600.0, "power": 3000},
+	"furniture.kitchen.extractor": {"cost": 350.0, "power": 200, "cap": {}},
+	"furniture.kitchen.wall_": {"cost": 250.0, "cap": {}},
+	# Furniture: seats and tables
+	"furniture.seat.": {"cost": 150.0, "cap": {"seats": 1}},
+	"furniture.seat.armchair": {"cost": 500.0}, "furniture.seat.sofa_2": {"cost": 700.0, "cap": {"seats": 2}},
+	"furniture.seat.corner_sofa": {"cost": 1400.0, "cap": {"seats": 5}},
+	"furniture.seat.beam_2": {"cost": 400.0, "cap": {"seats": 2}}, "furniture.seat.beam_3": {"cost": 550.0, "cap": {"seats": 3}},
+	"furniture.seat.beam_4": {"cost": 700.0, "cap": {"seats": 4}}, "furniture.seat.beam_5": {"cost": 850.0, "cap": {"seats": 5}},
+	"furniture.seat.bench_3": {"cost": 300.0, "cap": {"seats": 3}}, "furniture.seat.bench_4": {"cost": 350.0, "cap": {"seats": 4}},
+	"furniture.seat.pew": {"cost": 900.0, "cap": {"seats": 5}}, "furniture.seat.stacking_chair": {"cost": 45.0},
+	"furniture.seat.task_chair": {"cost": 250.0}, "furniture.seat.wheelchair": {"loose": true, "cap": {}},
+	"furniture.table.": {"cost": 300.0},
+	"furniture.table.boardroom_14": {"cost": 4500.0, "cap": {"seats": 14}},
+	"furniture.table.meeting_4": {"cost": 600.0, "cap": {"seats": 4}}, "furniture.table.meeting_8": {"cost": 1500.0, "cap": {"seats": 8}},
+	"furniture.table.canteen": {"cost": 900.0, "cap": {"seats": 8}}, "furniture.table.picnic": {"cost": 350.0, "cap": {"seats": 6}, "outdoor": true},
+	"furniture.table.lab_bench": {"cost": 2500.0, "cold": true, "drain": true, "power": 500},
+	"furniture.table.interview": {"cost": 400.0}, "furniture.table.workbench": {"cost": 600.0},
+	"furniture.storage.": {"cost": 300.0}, "furniture.storage.evidence_locker": {"cost": 1500.0, "cap": {"lockers": 6}},
+	"furniture.wardrobe.": {"cost": 400.0},
+
+	# Healthcare
+	"hospital.bed.": {"cost": 800.0}, "hospital.bed.curtain": {"cost": 300.0}, "hospital.bed.screen": {"cost": 250.0},
+	"hospital.bed.hoist": {"cost": 6000.0, "power": 200}, "hospital.bed.incubator": {"cost": 25000.0, "power": 400},
+	"hospital.bed.locker": {"cost": 400.0, "cap": {"lockers": 1}}, "hospital.bed.trunking": {"cost": 1500.0, "power": 500, "data": true},
+	"hospital.bed.visitor_chair": {"cost": 250.0, "cap": {"seats": 1}},
+	"hospital.dental.chair": {"cost": 25000.0, "power": 1000, "cold": true, "drain": true},
+	"hospital.imaging.ct": {"cost": 900000.0, "power": 80000, "data": true},
+	"hospital.imaging.mri": {"cost": 1500000.0, "power": 60000, "data": true, "cold": true},
+	"hospital.imaging.xray": {"cost": 150000.0, "power": 30000, "data": true},
+	"hospital.lab.": {"cost": 4000.0, "power": 500}, "hospital.lab.microscope": {"cost": 3000.0, "power": 50},
+	"hospital.mortuary.": {"cost": 20000.0, "power": 1500},
+	"hospital.theatre.": {"cost": 20000.0, "power": 500},
+	"hospital.theatre.autoclave": {"cost": 30000.0, "power": 6000, "cold": true, "drain": true},
+	"hospital.theatre.light_twin": {"cost": 30000.0, "power": 400},
+	"hospital.theatre.scrub_sink": {"cost": 3000.0, "cold": true, "hot": true, "drain": true, "power": 0, "cap": {"basin": 1}},
+	"hospital.theatre.scrub_sink_3": {"cost": 6000.0, "cap": {"basin": 3}},
+	"hospital.ward.": {"cost": 300.0}, "hospital.ward.monitor": {"cost": 6000.0, "power": 100, "data": true},
+	"hospital.ward.crash_cart": {"cost": 3000.0}, "hospital.ward.defib_cabinet": {"cost": 1500.0, "power": 20},
+	"hospital.ward.nurse_station": {"cost": 8000.0, "power": 500, "data": true, "cap": {"counters": 1}},
+	"hospital.ward.nurse_station_long": {"cost": 14000.0, "power": 800, "cap": {"counters": 2}},
+	"hospital.ward.grab_rail": {"cost": 80.0}, "hospital.ward.gel_dispenser": {"cost": 40.0},
+	"hospital.ward.sharps_bin": {"cost": 20.0}, "hospital.ward.general_bin": {"cost": 60.0}, "hospital.ward.clinical_bin": {"cost": 80.0},
+
+	# Education
+	"school.desk.": {"cost": 150.0, "cap": {"pupils": 1}},
+	"school.desk.set_double": {"cost": 250.0, "cap": {"pupils": 2}}, "school.desk.table_double": {"cost": 180.0, "cap": {"pupils": 2}},
+	"school.desk.set_group": {"cost": 700.0, "cap": {"pupils": 6}}, "school.desk.nursery": {"cost": 300.0, "cap": {"pupils": 4}},
+	"school.av.projector": {"cost": 1200.0, "power": 300, "data": true},
+	"school.board.": {"cost": 250.0}, "school.board.smartboard": {"cost": 3500.0, "power": 200, "data": true},
+	"school.canteen.servery": {"cost": 9000.0, "power": 3000, "cap": {"counters": 1}},
+	"school.hall.tiered_seating": {"cost": 25000.0, "cap": {"seats": 30}},
+	"school.lab.bench": {"cost": 3000.0, "cold": true, "drain": true, "gas": true, "power": 500},
+	"school.lab.fume_cupboard": {"cost": 12000.0, "power": 500},
+	"school.misc.drinking_fountain": {"cost": 900.0, "cold": true, "drain": true},
+	"school.misc.clock": {"cost": 40.0}, "school.misc.globe": {"cost": 60.0},
+	"school.play.": {"cost": 3000.0, "outdoor": true}, "school.play.cycle_shelter": {"cost": 4000.0, "outdoor": true},
+
+	# Office
+	"office.desk.bench_4": {"cost": 2400.0, "power": 400, "data": true, "cap": {"workstations": 4}},
+	"office.desk.bench_6": {"cost": 3500.0, "power": 600, "data": true, "cap": {"workstations": 6}},
+	"office.desk.bench_8": {"cost": 4600.0, "power": 800, "data": true, "cap": {"workstations": 8}},
+	"office.desk.sit_stand": {"cost": 700.0, "power": 100, "data": true, "cap": {"workstations": 1}},
+	"office.desk.pedestal": {"cost": 200.0},
+	"office.entrance.speed_gate": {"cost": 12000.0, "power": 200, "data": true},
+	"office.entrance.reception_sofa": {"cost": 1500.0, "cap": {"seats": 3}},
+	"office.it.": {"cost": 300.0, "power": 60, "data": true},
+	"office.it.pc_tower": {"cost": 900.0, "power": 200}, "office.it.printer": {"cost": 1500.0, "power": 500},
+	"office.it.monitor_32": {"power": 40}, "office.it.projection_screen": {"cost": 600.0, "power": 0, "data": false},
+	"office.it.shredder": {"cost": 400.0, "power": 300, "data": false},
+	"office.kitchen.tea_point": {"cost": 4000.0, "power": 3000, "cold": true, "hot": true, "drain": true, "cap": {"kitchen_units": 2}},
+	"office.misc.safe": {"cost": 1500.0}, "office.misc.post_trolley": {"cost": 300.0},
+	"office.planter.": {"cost": 350.0}, "office.waste.": {"cost": 150.0},
+	"office.pod.meeting": {"cost": 15000.0, "power": 300, "data": true, "cap": {"seats": 4}},
+	"office.pod.phone_booth": {"cost": 8000.0, "power": 150, "data": true, "cap": {"seats": 1}},
+	"office.screen.": {"cost": 350.0},
+
+	# Police
+	"police.cell.bars": {"cost": 6000.0}, "police.cell.door": {"cost": 5000.0},
+	"police.cell.bed": {"cost": 900.0, "cap": {"detainees": 1}},
+	"police.cell.wc": {"cost": 2500.0, "cold": true, "drain": true, "cap": {"wc": 1}},
+	"police.control.cctv_wall": {"cost": 40000.0, "power": 2000, "data": true},
+	"police.control.cctv_wall_small": {"cost": 15000.0, "power": 800},
+	"police.control.desk": {"cost": 6000.0, "power": 500, "data": true, "cap": {"workstations": 2}},
+	"police.custody.desk": {"cost": 12000.0, "power": 300, "data": true, "cap": {"counters": 1}},
+	"police.id.": {"cost": 3000.0, "power": 100, "data": true}, "police.id.height_chart": {"cost": 150.0, "power": 0, "data": false},
+	"police.id.parade_window": {"cost": 8000.0, "power": 0, "data": false},
+	"police.store.": {"cost": 2500.0}, "police.yard.kennel": {"cost": 2500.0, "outdoor": true},
+	"police.yard.radio_mast": {"cost": 30000.0, "power": 500, "outdoor": true},
+
+	# Catering and hotel
+	"hospitality.dining.": {"cost": 400.0},
+	"hospitality.dining.bar": {"cost": 8000.0, "power": 1000, "cold": true, "drain": true, "cap": {"counters": 1}},
+	"hospitality.dining.bar_stool": {"cost": 120.0, "cap": {"seats": 1}},
+	"hospitality.dining.booth": {"cost": 1500.0, "cap": {"seats": 4}},
+	"hospitality.dining.high_table": {"cost": 500.0, "cap": {"seats": 4}},
+	"hospitality.dining.round_table": {"cost": 700.0, "cap": {"seats": 6}},
+	"hospitality.dining.table_2": {"cost": 300.0, "cap": {"seats": 2}}, "hospitality.dining.table_4": {"cost": 500.0, "cap": {"seats": 4}},
+	"hospitality.dining.table_6": {"cost": 700.0, "cap": {"seats": 6}},
+	"hospitality.kitchen.": {"cost": 4000.0, "power": 3000},
+	"hospitality.kitchen.combi_oven": {"cost": 12000.0, "power": 11000, "cold": true, "drain": true},
+	"hospitality.kitchen.dishwasher": {"cost": 6000.0, "power": 9000, "cold": true, "hot": true, "drain": true},
+	"hospitality.kitchen.extract_hood": {"cost": 8000.0, "power": 1500},
+	"hospitality.kitchen.fryer": {"cost": 3000.0, "power": 9000}, "hospitality.kitchen.griddle": {"cost": 2500.0, "power": 6000},
+	"hospitality.kitchen.range": {"cost": 6000.0, "power": 500, "gas": true},
+	"hospitality.kitchen.sink_unit": {"cost": 1500.0, "power": 0, "cold": true, "hot": true, "drain": true},
+	"hospitality.kitchen.pass": {"cost": 3000.0, "power": 1500}, "hospitality.kitchen.prep_table": {"cost": 900.0, "power": 0},
+	"hospitality.kitchen.walk_in": {"cost": 15000.0, "power": 2000},
+	"hospitality.room.hotel_bed": {"cost": 900.0, "cap": {"sleeps": 2}},
+	"hospitality.room.cinema_seats": {"cost": 1500.0, "cap": {"seats": 4}},
+	"hospitality.room.minibar": {"cost": 300.0, "power": 80}, "hospitality.room.piano_grand": {"cost": 40000.0},
+	"hospitality.room.housekeeping_cart": {"loose": true}, "hospitality.room.luggage_rack": {"cost": 120.0},
+
+	# Retail
+	"retail.shop.atm": {"cost": 20000.0, "power": 300, "data": true},
+	"retail.shop.checkout": {"cost": 5000.0, "power": 300, "data": true, "cap": {"counters": 1}},
+	"retail.shop.self_checkout": {"cost": 15000.0, "power": 400, "data": true, "cap": {"counters": 1}},
+	"retail.shop.chest_freezer": {"cost": 1500.0, "power": 400},
+	"retail.shop.chiller": {"cost": 6000.0, "power": 1500}, "retail.shop.freezer": {"cost": 6000.0, "power": 1500},
+	"retail.shop.kiosk": {"cost": 8000.0, "power": 1000}, "retail.shop.parcel_locker": {"cost": 8000.0, "power": 200, "data": true},
+	"retail.shop.basket_stack": {"loose": true}, "retail.shop.trolley": {"loose": true}, "retail.shop.mannequin": {"cost": 200.0},
+
+	# Sport
+	"sport.gym.treadmill": {"cost": 5000.0, "power": 2000}, "sport.gym.bike": {"cost": 1500.0, "power": 100},
+	"sport.gym.cross_trainer": {"cost": 3000.0, "power": 100}, "sport.gym.dumbbells": {"cost": 600.0},
+	"sport.pitch.": {"outdoor": true}, "sport.pitch.floodlight": {"cost": 15000.0, "power": 2000, "outdoor": true},
+	"sport.pitch.scoreboard": {"cost": 20000.0, "power": 3000, "outdoor": true},
+	"sport.pitch.stand": {"cost": 60000.0, "cap": {"seats": 100}, "outdoor": true},
+	"sport.pitch.dugout": {"cost": 4000.0, "cap": {"seats": 8}, "outdoor": true},
+	"sport.pitch.pool_table": {"cost": 2500.0, "outdoor": false}, "sport.pitch.table_tennis": {"cost": 600.0, "outdoor": false},
+	"sport.pitch.diving_board": {"cost": 8000.0, "outdoor": false}, "sport.pitch.pool_ladder": {"cost": 800.0, "outdoor": false},
+	"sport.pitch.lifeguard_chair": {"cost": 1500.0, "outdoor": false}, "sport.pitch.starting_block": {"cost": 900.0, "outdoor": false},
+	"sport.pitch.boxing_ring": {"cost": 9000.0, "outdoor": false},
+
+	# Airport
+	"airport.aircraft.": {"loose": true, "outdoor": true}, "airport.bags.": {"loose": true},
+	"airport.airside.": {"cost": 5000.0, "outdoor": true},
+	"airport.airside.airbridge": {"cost": 1200000.0, "power": 50000, "outdoor": true},
+	"airport.airside.baggage_cart": {"loose": true}, "airport.airside.baggage_tug": {"loose": true},
+	"airport.airside.belt_loader": {"loose": true}, "airport.airside.container_dolly": {"loose": true},
+	"airport.airside.fuel_bowser": {"loose": true}, "airport.airside.pushback_tractor": {"loose": true},
+	"airport.airside.steps": {"loose": true}, "airport.airside.chocks": {"loose": true}, "airport.airside.cone": {"loose": true},
+	"airport.airside.gpu": {"cost": 60000.0, "power": 90000, "outdoor": true},
+	"airport.airside.edge_light": {"cost": 800.0, "power": 100}, "airport.airside.runway_light": {"cost": 1200.0, "power": 150},
+	"airport.airside.flood_mast": {"cost": 40000.0, "power": 4000}, "airport.airside.stand_guidance": {"cost": 60000.0, "power": 500, "data": true},
+	"airport.gate.desk": {"cost": 8000.0, "power": 500, "data": true, "cap": {"counters": 1}},
+	"airport.gate.charging_station": {"cost": 1500.0, "power": 1000},
+	"airport.gate.seat_row_4": {"cost": 900.0, "cap": {"seats": 4}}, "airport.gate.seat_row_6": {"cost": 1300.0, "cap": {"seats": 6}},
+	"airport.landside.bag_drop": {"cost": 60000.0, "power": 1500, "data": true, "cap": {"counters": 1}},
+	"airport.landside.checkin_desk": {"cost": 25000.0, "power": 1500, "data": true, "cap": {"counters": 1}},
+	"airport.landside.checkin_pair": {"cost": 45000.0, "power": 3000, "data": true, "cap": {"counters": 2}},
+	"airport.landside.info_desk": {"cost": 12000.0, "power": 500, "data": true, "cap": {"counters": 1}},
+	"airport.landside.kiosk": {"cost": 8000.0, "power": 500, "data": true}, "airport.landside.totem": {"cost": 6000.0, "power": 300, "data": true},
+	"airport.landside.trolley": {"loose": true}, "airport.landside.smoking_shelter": {"cost": 6000.0, "outdoor": true},
+	"airport.move.escalator_4000": {"cost": 150000.0, "power": 15000}, "airport.move.escalator_6000": {"cost": 200000.0, "power": 22000},
+	"airport.move.travelator_end": {"cost": 120000.0, "power": 15000},
+	"airport.queue.": {"cost": 300.0},
+	"airport.reclaim.carousel": {"cost": 350000.0, "power": 10000}, "airport.reclaim.carousel_large": {"cost": 500000.0, "power": 15000},
+	"airport.retail.": {"cost": 6000.0, "power": 1000}, "airport.retail.cafe_counter": {"cost": 20000.0, "power": 5000, "cold": true, "drain": true, "cap": {"counters": 1}},
+	"airport.security.": {"cost": 80000.0, "power": 3000, "data": true},
+	"airport.security.body_scanner": {"cost": 150000.0, "power": 2000}, "airport.security.egate": {"cost": 60000.0, "power": 500},
+	"airport.security.metal_arch": {"cost": 15000.0, "power": 300}, "airport.security.passport_booth": {"cost": 25000.0, "power": 500},
+	"airport.sign.": {"cost": 2000.0, "power": 100}, "airport.sign.fids_3": {"cost": 6000.0, "power": 400, "data": true},
+	"airport.sign.fids_6": {"cost": 12000.0, "power": 800, "data": true}, "airport.sign.fids_floor": {"cost": 5000.0, "power": 300, "data": true},
+
+	# Services equipment
+	"services.device.": {"cost": 120.0, "power": 5}, "services.device.access_reader": {"cost": 600.0, "power": 10, "data": true},
+	"services.device.cctv": {"cost": 500.0, "power": 15, "data": true}, "services.device.wifi": {"cost": 400.0, "power": 15, "data": true},
+	"services.device.extract_fan": {"cost": 200.0, "power": 30}, "services.device.extinguisher": {"cost": 60.0, "power": 0},
+	"services.device.hose_reel": {"cost": 900.0, "power": 0, "cold": true}, "services.device.sprinkler": {"cost": 150.0, "power": 0, "cold": true},
+	"services.drainage.": {"cost": 400.0, "drain": true}, "services.drainage.manhole": {"cost": 2500.0, "drain": true, "outdoor": true},
+	"services.drainage.inspection": {"cost": 900.0, "drain": true, "outdoor": true},
+	"services.grille.": {"cost": 150.0}, "services.grille.louvre_1200x900": {"cost": 900.0},
+	"services.heating.underfloor_manifold": {"cost": 1500.0, "power": 100, "heating": true},
+	"services.light.": {"cost": 120.0, "power": 20}, "services.light.batten": {"power": 36}, "services.light.panel": {"cost": 150.0, "power": 36},
+	"services.light.downlight": {"cost": 80.0, "power": 8}, "services.light.pendant": {"power": 40},
+	"services.light.emergency": {"cost": 150.0, "power": 5}, "services.light.exit_sign": {"cost": 150.0, "power": 5},
+	"services.light.floodlight": {"cost": 400.0, "power": 100}, "services.light.highbay": {"cost": 450.0, "power": 150},
+	"services.plant.": {"cost": 5000.0, "power": 1000},
+	"services.plant.ahu_large": {"cost": 120000.0, "power": 15000}, "services.plant.ahu_medium": {"cost": 60000.0, "power": 7000},
+	"services.plant.ahu_small": {"cost": 25000.0, "power": 3000},
+	"services.plant.boiler_commercial": {"cost": 25000.0, "power": 300, "gas": true, "cold": true, "heat": 100000, "heating": true, "cap": {"heat_sources": 1}},
+	"services.plant.heat_pump": {"cost": 12000.0, "power": 4000, "heat": 12000, "heating": true, "outdoor": true, "cap": {"heat_sources": 1}},
+	"services.plant.cassette_ac": {"cost": 3000.0, "power": 3000, "drain": true},
+	"services.plant.chiller": {"cost": 150000.0, "power": 60000, "outdoor": true},
+	"services.plant.condenser_single": {"cost": 3000.0, "power": 3000, "outdoor": true},
+	"services.plant.condenser_twin": {"cost": 5500.0, "power": 6000, "outdoor": true},
+	"services.plant.control_panel": {"cost": 6000.0, "power": 200, "data": true},
+	"services.plant.cylinder_": {"cost": 1500.0, "power": 3000, "cold": true, "hot": true, "heating": true},
+	"services.plant.cylinder_500": {"cost": 4000.0}, "services.plant.cylinder_1000": {"cost": 7000.0, "power": 6000},
+	"services.plant.distribution_board": {"cost": 3000.0, "power": 0, "cap": {"circuits": 24}},
+	"services.plant.switchgear_panel": {"cost": 40000.0, "power": 0, "cap": {"circuits": 96}},
+	"services.plant.fan_coil": {"cost": 1500.0, "power": 200, "heating": true, "drain": true},
+	"services.plant.generator": {"cost": 60000.0, "power": 0, "gen": 250000},
+	"services.plant.meter_gas": {"cost": 1500.0, "power": 0, "gas": true},
+	"services.plant.pump_set": {"cost": 8000.0, "power": 2000, "cold": true},
+	"services.plant.roof_fan": {"cost": 4000.0, "power": 1500, "outdoor": true},
+	"services.plant.server_rack": {"cost": 15000.0, "power": 5000, "data": true},
+	"services.plant.tank_": {"cost": 5000.0, "power": 0, "cold": true, "cap": {"water_supply": 1}},
+	"services.plant.tank_sectional_18000": {"cost": 30000.0},
+	"services.plant.transformer": {"cost": 80000.0, "power": 0, "outdoor": true},
+	"services.plant.ups": {"cost": 20000.0, "power": 1000},
+	"services.point.": {"cost": 90.0, "power": 0}, "services.point.data": {"data": true},
+	"services.point.cooker": {"cost": 150.0}, "services.point.thermostat": {"cost": 150.0, "heating": true},
+	"services.radiator.": {"cost": 250.0, "heat": 700, "heating": true},
+	"services.radiator.single_600": {"cost": 150.0, "heat": 400}, "services.radiator.single_1400": {"cost": 300.0, "heat": 1000},
+	"services.radiator.single_1800": {"cost": 380.0, "heat": 1300}, "services.radiator.double_600": {"cost": 220.0, "heat": 750},
+	"services.radiator.double_1000": {"cost": 330.0, "heat": 1300}, "services.radiator.double_1400": {"cost": 450.0, "heat": 1800},
+	"services.radiator.double_1800": {"cost": 560.0, "heat": 2300}, "services.radiator.low_2000": {"cost": 700.0, "heat": 1500},
+	"services.radiator.towel_rail": {"cost": 250.0, "heat": 400},
+
+	# Industrial
+	"industrial.handling.column_guard": {"cost": 150.0}, "industrial.handling.conveyor_leg": {"cost": 2000.0, "power": 500},
+	"industrial.handling.dock_leveller": {"cost": 9000.0, "power": 1500},
+	"industrial.handling.gantry_crane": {"cost": 80000.0, "power": 20000}, "industrial.handling.jib_crane": {"cost": 9000.0, "power": 3000},
+	"industrial.handling.mezzanine": {"cost": 40000.0}, "industrial.handling.pallet_truck": {"loose": true},
+	"industrial.handling.weighbridge": {"cost": 40000.0, "power": 200, "outdoor": true},
+	"industrial.machine.": {"cost": 15000.0, "power": 4000},
+	"industrial.machine.cnc": {"cost": 120000.0, "power": 15000}, "industrial.machine.injection_moulder": {"cost": 150000.0, "power": 30000},
+	"industrial.machine.paint_booth": {"cost": 60000.0, "power": 8000}, "industrial.machine.press": {"cost": 80000.0, "power": 15000},
+	"industrial.machine.pillar_drill": {"cost": 1500.0, "power": 750}, "industrial.machine.workbench": {"cost": 600.0, "power": 0},
+	"industrial.process.": {"cost": 20000.0, "outdoor": true}, "industrial.process.drums": {"loose": true}, "industrial.process.ibc": {"loose": true},
+	"industrial.racking.": {"cost": 1200.0}, "industrial.racking.high_bay": {"cost": 6000.0},
+
+	# Energy and water
+	"energy.plant.battery": {"cost": 200000.0, "power": 0}, "energy.plant.ev_hub": {"cost": 150000.0, "power": 50000},
+	"energy.plant.fuel_pump": {"cost": 30000.0, "power": 500}, "energy.plant.forecourt_canopy": {"cost": 60000.0, "power": 1000},
+	"energy.plant.mast_telecom": {"cost": 80000.0, "power": 3000, "data": true},
+	"energy.plant.solar_roof": {"cost": 6000.0, "gen": 4000}, "energy.plant.solar_ground": {"cost": 60000.0, "gen": 50000},
+	"energy.plant.substation": {"cost": 250000.0}, "energy.plant.transformer": {"cost": 80000.0},
+	"energy.plant.turbine": {"cost": 1500000.0, "gen": 2000000},
+	"water.plant.manhole_chamber": {"cost": 3000.0, "drain": true}, "water.plant.pump_station": {"cost": 60000.0, "power": 7500},
+
+	# Street and garden
+	"street.bollard.": {"cost": 300.0}, "street.bollard.lit": {"cost": 600.0, "power": 20},
+	"street.furniture.bus_shelter": {"cost": 8000.0, "power": 100}, "street.furniture.fountain": {"cost": 25000.0, "power": 500, "cold": true, "drain": true},
+	"street.furniture.statue": {"cost": 30000.0}, "street.furniture.phone_box": {"cost": 6000.0, "power": 50},
+	"street.garden.garage": {"cost": 12000.0}, "street.garden.greenhouse": {"cost": 2500.0, "cold": true},
+	"street.garden.oil_tank": {"cost": 2500.0}, "street.light.": {"cost": 2500.0, "power": 100},
+	"street.light.column_5m": {"cost": 1500.0, "power": 50}, "street.light.column_12m": {"cost": 4000.0, "power": 200},
+	"street.light.twin_10m": {"cost": 5000.0, "power": 200}, "street.light.heritage": {"cost": 4000.0, "power": 60},
+	"street.traffic.billboard": {"cost": 15000.0, "power": 500}, "street.traffic.signal": {"cost": 15000.0, "power": 200, "data": true},
+	"street.traffic.parking_meter": {"cost": 3000.0, "power": 20, "data": true},
+	"street.utility.": {"cost": 2000.0}, "street.utility.pylon": {"cost": 200000.0}, "street.utility.cabinet": {"cost": 3000.0, "power": 200, "data": true},
+
+	# Landscape
+	"landscape.tree.": {"cost": 400.0}, "landscape.tree.oak_large": {"cost": 2500.0}, "landscape.tree.lime_large": {"cost": 2000.0},
+	"landscape.tree.pine_large": {"cost": 1800.0}, "landscape.tree.cypress_large": {"cost": 1500.0}, "landscape.tree.winter_large": {"cost": 1500.0},
+	"landscape.tree.sapling": {"cost": 60.0}, "landscape.shrub.": {"cost": 40.0}, "landscape.rock.": {"cost": 300.0},
+	"landscape.water.pond": {"cost": 3000.0, "cold": true},
+
+	# Gates and posts
+	"boundary.gate.barrier_arm": {"cost": 6000.0, "power": 300}, "boundary.gate.sliding": {"cost": 9000.0, "power": 500},
+	"boundary.gate.driveway": {"cost": 1500.0},
+}
+
+## Services and capacity for the catalog's own fixture kinds (which have no asset rule).
+const KIND_SERVICES := {
+	"wc": {"cold": true, "drain": true}, "basin": {"cold": true, "hot": true, "drain": true},
+	"bath": {"cold": true, "hot": true, "drain": true}, "shower": {"cold": true, "hot": true, "drain": true, "power": 0},
+	"kitchen_unit": {}, "hospital_bed": {"power": 200}, "desk_office": {"power": 150, "data": true},
+	"reception_desk": {"power": 300, "data": true}, "consumer_unit": {}, "water_main": {"cold": true},
+	"boiler": {"gas": true, "cold": true, "hot": true, "heat": 24000, "heating": true, "power": 150},
+	"soil_stack": {"drain": true},
+}

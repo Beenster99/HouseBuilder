@@ -94,6 +94,9 @@ func is_unlocked(unlock_id: String) -> bool:
 func is_kind_unlocked(kind: String, catalog: BuildingCatalog) -> bool:
 	if _is_lockable("kind:" + kind) and not is_unlocked("kind:" + kind):
 		return false
+	# Furniture and equipment are never held back by a structural material.
+	if catalog.family_of(kind) == "fixture":
+		return true
 	for m in catalog.materials_for(kind):
 		if is_material_unlocked(m):
 			return true

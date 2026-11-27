@@ -14,8 +14,21 @@ extends RefCounted
 ## rates: {material: [unit, rate]}} plus, per family, w/h/sill (openings), w/d/h and
 ## capacity (fixtures), pitch (pitched roofs), length (piles).
 ## Families: FAMILIES below. Shapes: "point", "line", "area", "opening" (BuildingModel).
+##
+## The 3D library's placeable assets (modules/assets: furniture, equipment, plant, street
+## and garden objects) are kinds too, family "fixture", with the asset id as the kind id:
+##   cat.library_kinds()                       # every one, in manifest order
+##   cat.kind("office.desk.bench_4")           # {..., asset, group, category, tags, loose, outdoor}
+##   cat.services_of("furniture.kitchen.sink_1000")  # {power_w, cold, hot, drain, gas, data, heating, heat_w, gen_w}
+##   cat.group_of(kind)                        # palette group: "Furniture", "Healthcare"...
+## Costs, services and capacities come from internal/library_data.gd. loose: true marks things
+## that are not part of the build (vehicles, site plant, luggage): they cost nothing.
 
 const DATA_SCRIPT := preload("res://modules/building/internal/catalog_data.gd")
+const LIBRARY_SCRIPT := preload("res://modules/building/internal/library_data.gd")
+## Every key services_of() returns.
+const SERVICE_KEYS := {"power_w": 0, "cold": false, "hot": false, "drain": false, "gas": false, "data": false,
+		"heating": false, "heat_w": 0, "gen_w": 0}
 const SHAPES: PackedStringArray = ["point", "line", "area", "opening"]
 const RATE_UNITS: PackedStringArray = ["m3", "m2", "m", "t", "each"]
 
@@ -35,11 +48,133 @@ var room_types: Dictionary = {}
 static var _default: BuildingCatalog
 
 
-## The shared default catalog (built once).
+## Flag: the default catalog includes the 3D library's placeable assets.
+const LIBRARY_FLAG := "building.library"
+
+
+## The shared default catalog (built once), with the 3D library's placeable assets while the
+## building.library flag is on.
 static func default_catalog() -> BuildingCatalog:
 	if _default == null:
 		_default = from_data(DATA_SCRIPT.DATA)
+		if Flags.is_on(LIBRARY_FLAG):
+			_default.add_library(AssetLibrary.manifest())
 	return _default
+
+
+## Drops the shared catalog so the next default_catalog() builds it again (tests that flip
+## building.library). Models already made keep the catalog they were given.
+static func reset_default() -> void:
+	_default = null
+
+
+## Adds the placeable assets of an asset manifest (AssetLibrary.manifest()) as fixture kinds.
+## Assets that already draw a catalog kind, stretch to length, or are not placeable
+## (library_data.gd CATEGORIES and SKIP) are left out. Returns how many were added.
+func add_library(manifest: Dictionary) -> int:
+	var n := 0
+	for id: String in manifest:
+		var e: Dictionary = manifest[id]
+		var category := str(e.get("category", ""))
+		if not category in LIBRARY_SCRIPT.CATEGORIES or str(e.get("kind", "")) != "" or str(e.get("stretch", "")) != "" \
+				or kinds.has(id) or _skipped(id):
+			continue
+		var rule := library_rule(id)
+		var loose := bool(rule.get("loose", false))
+		var mat := _material_of(e.get("pieces", []))
+		var box: Array = e.get("aabb", [[0, 0, 0], [0, 0, 0]])
+		var lo: Array = box[0]
+		var hi: Array = box[1]
+		kinds[id] = {"label": str(e.get("label", id)), "family": "fixture", "shape": "point", "structural": false,
+			"w": snappedf(float(hi[0]) - float(lo[0]), 0.01), "d": snappedf(float(hi[2]) - float(lo[2]), 0.01),
+			"h": snappedf(float(hi[1]) - float(lo[1]), 0.01),
+			"materials": [mat], "sections": {}, "rates": {mat: ["each", 0.0 if loose else float(rule.get("cost", 0.0))]},
+			"mass": {mat: float(e.get("mass", 0.0))}, "capacity": (rule.get("cap", {}) as Dictionary).duplicate(),
+			"asset": id, "category": category, "group": str(LIBRARY_SCRIPT.GROUPS.get(category, category.capitalize())),
+			"tags": PackedStringArray(e.get("tags", [])), "loose": loose, "outdoor": bool(rule.get("outdoor", false)),
+			"services": _services(rule)}
+		n += 1
+	return n
+
+
+## The merged library rule for an asset id: every RULES prefix of it, shortest first.
+static func library_rule(asset_id: String) -> Dictionary:
+	var hits: Array = []
+	for prefix: String in LIBRARY_SCRIPT.RULES:
+		if asset_id.begins_with(prefix):
+			hits.append(prefix)
+	hits.sort_custom(func(a: String, b: String) -> bool: return a.length() < b.length())
+	var out := {}
+	for prefix: String in hits:
+		out.merge(LIBRARY_SCRIPT.RULES[prefix], true)
+	return out
+
+
+static func _skipped(asset_id: String) -> bool:
+	for prefix: String in LIBRARY_SCRIPT.SKIP:
+		if asset_id.begins_with(prefix):
+			return true
+	return false
+
+
+static func _services(rule: Dictionary) -> Dictionary:
+	var out := SERVICE_KEYS.duplicate()
+	out.power_w = int(rule.get("power", 0))
+	out.heat_w = int(rule.get("heat", 0))
+	out.gen_w = int(rule.get("gen", 0))
+	for k: String in ["cold", "hot", "drain", "gas", "data", "heating"]:
+		out[k] = bool(rule.get(k, false))
+	return out
+
+
+## The catalog material for an asset: the one most of its mass is made of.
+static func _material_of(pieces: Array) -> String:
+	var by := {}
+	for p: Variant in pieces:
+		if p is Dictionary:
+			var m := _slot_material(str(p.get("slot", "")))
+			by[m] = float(by.get(m, 0.0)) + float(p.get("mass", 0.0))
+	var best := "steel"
+	var most := -1.0
+	for m: String in by:
+		if float(by[m]) > most:
+			most = float(by[m])
+			best = m
+	return best
+
+
+static func _slot_material(slot: String) -> String:
+	for pair: Array in [[["wood", "timber", "oak", "pine", "ply", "softwood", "hardwood", "glulam", "laminate", "worktop", "fabric", "leather", "carpet", "bark", "foliage", "soil", "denim"], "timber"],
+			[["glass", "mirror", "screen"], "glass"], [["ceramic", "enamel", "clay"], "ceramic"],
+			[["concrete", "render", "paving", "asphalt"], "concrete"], [["brick", "block", "stone", "slate"], "masonry"]]:
+		for word: String in pair[0]:
+			if word in slot:
+				return str(pair[1])
+	return "steel"
+
+
+## Every library kind id (the placeable 3D assets), in manifest order.
+func library_kinds() -> PackedStringArray:
+	var out := PackedStringArray()
+	for k: String in kinds:
+		if (kinds[k] as Dictionary).has("asset"):
+			out.append(k)
+	return out
+
+
+## What a kind needs from the building's services: SERVICE_KEYS, all present. Library kinds
+## carry their own; the catalog's fixtures have theirs in library_data.gd KIND_SERVICES.
+func services_of(kind_id: String) -> Dictionary:
+	var spec := kind(kind_id)
+	if spec.get("services") is Dictionary:
+		return (spec.services as Dictionary).duplicate()
+	return _services(LIBRARY_SCRIPT.KIND_SERVICES.get(kind_id, {}))
+
+
+## The palette group of a fixture kind ("Furniture", "Healthcare"...): library kinds name
+## theirs; the catalog's own fixtures are "Fittings".
+func group_of(kind_id: String) -> String:
+	return str(kind(kind_id).get("group", "Fittings" if family_of(kind_id) == "fixture" else family_of(kind_id).capitalize()))
 
 
 ## A catalog from plain data shaped like internal/catalog_data.gd (a deep copy is kept).

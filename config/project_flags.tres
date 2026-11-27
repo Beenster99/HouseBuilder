@@ -11,6 +11,7 @@ flags = {
 "assets": true,
 "assets.gallery": true,
 "building": true,
+"building.library": false,
 "contracts": true,
 "contracts.panel": true,
 "contracts.board": true,
