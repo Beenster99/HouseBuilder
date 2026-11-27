@@ -1,9 +1,10 @@
 extends RefCounted
 ## Turns any picture a player picks into the design office's vista: an equirectangular
 ## panorama the hall's sky draws, so it shows through the window wall from every angle.
+## The sky draws a panorama's left and right edges (u = 0) straight out of the window (-Z), so
+## every picture is turned half way round to put its middle there and its join behind the room.
 ## A picture already about 2:1 is taken as a full 360 degree panorama. Any other photo is laid
-## across the view out of the window (its middle straight ahead, -Z), mirrored round the back
-## so the seams meet, with its top and bottom edges carried up into the sky and down to the
+## across the view out of the window, mirrored round the back so the seams meet, with its top and bottom edges carried up into the sky and down to the
 ## ground. Everything here is Image calls (no per-pixel loops), so it is quick enough to run on
 ## a worker thread.
 
@@ -40,7 +41,7 @@ static func to_panorama(src: Image, width := WIDTH) -> Image:
 	var h := width / 2
 	if is_panorama(img):
 		img.resize(width, h, Image.INTERPOLATE_LANCZOS)
-		return img
+		return facing_window(img)
 	var out := Image.create_empty(width, h, false, Image.FORMAT_RGB8)
 	# The photo's size in the panorama: PHOTO_SPAN_DEG tall, as wide as its shape says, at most
 	# all the way round.
@@ -62,6 +63,18 @@ static func to_panorama(src: Image, width := WIDTH) -> Image:
 		out.blit_rect(piece, Rect2i(Vector2i.ZERO, Vector2i(pw, ph)), Vector2i(cx + k * pw, top))
 	_extend(out, top, true)
 	_extend(out, top + ph, false)
+	return facing_window(out)
+
+
+## The panorama turned half way round: its middle (u = 0.5) to the sky's u = 0, straight out of
+## the window, and its left and right edges (the join) to straight behind.
+static func facing_window(pano: Image) -> Image:
+	var w := pano.get_width()
+	var h := pano.get_height()
+	var out := Image.create_empty(w, h, false, pano.get_format())
+	var half := w / 2
+	out.blit_rect(pano, Rect2i(half, 0, w - half, h), Vector2i.ZERO)
+	out.blit_rect(pano, Rect2i(0, 0, half, h), Vector2i(w - half, 0))
 	return out
 
 

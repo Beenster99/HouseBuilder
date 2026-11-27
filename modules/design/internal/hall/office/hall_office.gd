@@ -25,18 +25,20 @@ const CONSOLE_AT := Vector3(0.0, 0.0, -7.4)
 const CONSOLE_REACH := 2.2
 ## Furniture: [asset ids to try, best first], where, turn (radians, 0 faces the window).
 const PIECES := [
-	[["furniture.home.rug"], Vector3(-8.0, 0, -5.0), 0.0, Vector3(2.2, 1, 2.2)],
-	[["furniture.statement.curved_sofa", "furniture.seat.corner_sofa"], Vector3(-6.4, 0, -4.0), 0.0, Vector3.ONE],
-	[["furniture.statement.coffee_table", "furniture.table.coffee"], Vector3(-8.6, 0, -5.3), 0.0, Vector3.ONE],
-	[["furniture.seat.armchair"], Vector3(-10.6, 0, -5.4), -PI / 2.0, Vector3.ONE],
-	[["furniture.light.arc_floor_lamp", "furniture.home.floor_lamp"], Vector3(-10.8, 0, -3.5), 0.0, Vector3.ONE],
+	[["furniture.home.rug"], Vector3(-7.5, 0, -5.4), 0.0, Vector3(2.4, 1, 2.0)],
+	# The curved sofa's seats face its +Z (the inside of the arc): turned round to the view.
+	[["furniture.statement.curved_sofa"], Vector3(-7.5, 0, -3.6), PI, Vector3.ONE],
+	[["furniture.statement.coffee_table", "furniture.table.coffee"], Vector3(-7.4, 0, -5.6), 0.0, Vector3.ONE],
+	[["furniture.seat.armchair"], Vector3(-10.4, 0, -6.2), -PI / 3.0, Vector3.ONE],
+	# The arc lamp's arm reaches over the sofa's end.
+	[["furniture.light.arc_floor_lamp", "furniture.home.floor_lamp"], Vector3(-10.4, 0, -3.4), -PI / 2.0, Vector3.ONE],
 	[["office.planter.round"], Vector3(-11.3, 0, -8.3), 0.0, Vector3(1.3, 1.3, 1.3)],
 	[["office.planter.round"], Vector3(-3.4, 0, -8.3), 0.0, Vector3.ONE],
 	[["furniture.home.rug"], Vector3(7.6, 0, -5.8), 0.0, Vector3(1.6, 1, 1.6)],
 	[["furniture.statement.lounge_chair", "furniture.seat.armchair"], Vector3(6.6, 0, -5.4), 0.35, Vector3.ONE],
 	[["furniture.seat.sofa_2"], Vector3(8.9, 0, -4.4), -0.25, Vector3.ONE],
 	[["furniture.table.coffee"], Vector3(7.9, 0, -6.4), 0.0, Vector3(0.8, 1, 0.8)],
-	[["furniture.light.arc_floor_lamp", "furniture.home.floor_lamp"], Vector3(5.3, 0, -4.4), 0.0, Vector3.ONE],
+	[["furniture.light.arc_floor_lamp", "furniture.home.floor_lamp"], Vector3(5.0, 0, -5.0), -PI / 2.0, Vector3.ONE],
 	[["office.planter.round"], Vector3(11.3, 0, -8.3), 0.0, Vector3(1.3, 1.3, 1.3)],
 	[["office.planter.round"], Vector3(3.4, 0, -8.3), 0.0, Vector3.ONE],
 ]
@@ -311,8 +313,10 @@ func _build_furniture() -> void:
 		add_child(node)
 		placed.append({"id": id, "node": node})
 		if id.contains("lamp"):
-			var top := AssetLibrary.bounds(id).end.y
-			_lamp("LoungeLamp", (p[1] as Vector3) + Vector3(0, top - 0.25, 0), Color(1.0, 0.78, 0.52), 0.9, 4.5)
+			# The light sits under the shade: at the end of an arc lamp's arm (its -Z), else on top.
+			var lb := AssetLibrary.bounds(id)
+			var shade := Vector3(0, lb.end.y - 0.3, lb.position.z + 0.2 if id.contains("arc") else 0.0)
+			_lamp("LoungeLamp", node.transform * shade, Color(1.0, 0.78, 0.52), 0.9, 4.5)
 		if id.contains("rug"):
 			continue
 		# Something to bump into (rugs aside).
