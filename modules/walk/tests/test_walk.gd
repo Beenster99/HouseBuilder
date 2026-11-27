@@ -135,7 +135,7 @@ func run_tests() -> void:
 	await _physics(2)
 	check(v.spot.has("at") and bool(v.spot.ok), "it fits where you aim: %s" % v.spot)
 	await frames(1)
-	check(v.help_text().begins_with("SOFA: FITS") and v.help_text().contains("R turn"),
+	check(v.help_text().begins_with("SOFA: FITS") and v.help_text().contains("R quarter turn"),
 			"the help bar at the bottom says what you hold and its keys: %s" % v.help_text())
 	var bar: Control = v.help.get_node("Bar")
 	check(v.help is HelpBar and is_equal_approx(bar.position.y + bar.size.y, bar.get_viewport_rect().size.y - HelpBar.MARGIN),
@@ -152,6 +152,24 @@ func run_tests() -> void:
 	v.turn()
 	v.turn()
 	v.turn()
+	# Free turning: the wheel turns what you hold 15°, Alt 1°, Shift+R 15°.
+	var wheel := InputEventMouseButton.new()
+	wheel.button_index = MOUSE_BUTTON_WHEEL_UP
+	wheel.pressed = true
+	v._input(wheel)
+	check(is_equal_approx(float(v.holding.rot), 15.0), "the wheel turns it 15°: %s" % v.holding.rot)
+	wheel.alt_pressed = true
+	v._input(wheel)
+	check(is_equal_approx(float(v.holding.rot), 16.0), "with Alt, 1°: %s" % v.holding.rot)
+	var shift_r := InputEventKey.new()
+	shift_r.physical_keycode = KEY_R
+	shift_r.pressed = true
+	shift_r.shift_pressed = true
+	v._input(shift_r)
+	await _settle()
+	check(is_equal_approx(float(v.holding.rot), 31.0) and is_equal_approx(v._ghost.rotation.y, deg_to_rad(31.0)) or not v.spot.has("at"),
+			"Shift+R 15° more, and the ghost turns with it: %s" % v.holding.rot)
+	v.turn(-31.0)
 	var aim_was := v._pitch
 	v.look(Vector2(0, -2000))
 	v.toggle_fly()
@@ -270,6 +288,11 @@ func run_tests() -> void:
 	check(is_equal_approx(float(model.parts[sofa].get("w", 0.0)), 2.4) and bld.node_of(sofa) != null,
 			"typed 2.4 m, the sofa is 2.4 m wide: %s" % model.parts[sofa])
 	check(v.help_text().begins_with("EDITING"), "the help bar says how: %s" % v.help_text())
+	b.sync.undo()
+	await frames(1)
+	(v._palette.find_child("Dim_rot", true, false).find_child("Value", true, false) as SpinBox).value = 37.5
+	await frames(1)
+	check(is_equal_approx(float(model.parts[sofa].rot), 37.5), "a typed angle turns it to 37.5°: %s" % model.parts[sofa].rot)
 	b.sync.undo()
 	v.toggle_palette()
 	await frames(1)

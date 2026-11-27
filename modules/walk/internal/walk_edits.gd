@@ -60,11 +60,19 @@ static func move_to(model: BuildingModel, id: String, at: Vector3, rot: float, o
 
 
 ## A part turned a quarter.
-static func turn(model: BuildingModel, id: String) -> Dictionary:
+static func turn(model: BuildingModel, id: String, by := 90.0) -> Dictionary:
 	var e: Dictionary = model.parts.get(id, {})
 	if e.is_empty() or not e.has("at"):
 		return {}
-	return C.set_fields(id, {"rot": fposmod(float(e.get("rot", 0.0)) + 90.0, 360.0)})
+	return C.set_fields(id, {"rot": snappedf(fposmod(float(e.get("rot", 0.0)) + by, 360.0), 0.001)})
+
+
+## Half the plan box (x, z) of a w by d footprint turned rot degrees: what it takes up.
+static func turned_half(w: float, d: float, rot: float) -> Vector2:
+	var r := deg_to_rad(rot)
+	var c := absf(cos(r))
+	var s := absf(sin(r))
+	return Vector2(c * w + s * d, s * w + c * d) * 0.5
 
 
 ## A door or window of `kind` in a wall where world point `at` is, centred on the nearest
@@ -294,6 +302,8 @@ static func dims(model: BuildingModel, id: String) -> Array:
 				{"field": "height", "label": "Height", "value": model.part_height(id)}]
 	elif str(e.kind) == "stair":
 		out = [{"field": "w", "label": "Width", "value": model.stair_width(id)}]
+	if e.has("at"):
+		out.append({"field": "rot", "label": "Angle", "value": float(e.get("rot", 0.0)), "unit": "°", "step": 15.0})
 	for d: Dictionary in out:
 		d.value = snappedf(float(d.value), 0.001)
 	return out
@@ -303,7 +313,11 @@ static func dims(model: BuildingModel, id: String) -> Array:
 ## end along the wall. {} if the value can't be.
 static func resize(model: BuildingModel, id: String, field: String, value: float) -> Dictionary:
 	var e: Dictionary = model.parts.get(id, {})
-	if e.is_empty() or value < (0.0 if field == "sill" else 0.05) or value > 200.0:
+	if e.is_empty():
+		return {}
+	if field == "rot":
+		return C.set_fields(id, {"rot": snappedf(fposmod(value, 360.0), 0.001)}) if e.has("at") else {}
+	if value < (0.0 if field == "sill" else 0.05) or value > 200.0:
 		return {}
 	if field == "length":
 		var a := Vector3(float(e.a[0]), float(e.a[1]), float(e.a[2]))

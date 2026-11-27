@@ -77,6 +77,8 @@ var _kind_list: VBoxContainer
 var _edit_preview: VBoxContainer
 ## Kinds shown in the CHANGE TO list at once; type to narrow a longer one.
 const KIND_LIST_MAX := 150
+## Shift+R and the wheel turn a part this many degrees (Alt: 1°).
+const FREE_TURN := 15.0
 ## The crew walking about in here too: peer id -> {figure, dot, ray}.
 var crew: Dictionary = {}
 var _ghost: Node3D
@@ -490,14 +492,20 @@ func put_down() -> bool:
 	return true
 
 
-## R: turns the part in your hands, else the one you aim at.
-func turn() -> void:
+## R: turns the part in your hands, else the one you aim at, a quarter (or `by` degrees:
+## Shift+R and the wheel 15°, with Alt 1°).
+func turn(by := 90.0) -> void:
 	if not holding.is_empty():
-		holding.rot = fposmod(float(holding.rot) + 90.0, 360.0)
+		holding.rot = snappedf(fposmod(float(holding.rot) + by, 360.0), 0.001)
 		return
-	var op := WalkEdits.turn(model, aimed_part())
+	var op := WalkEdits.turn(model, aimed_part(), by)
 	if not op.is_empty():
 		sync.edit(op)
+
+
+## The free turn step: 15°, or 1° with Alt.
+static func _fine_step(alt: bool) -> float:
+	return 1.0 if alt else FREE_TURN
 
 
 ## X: removes the part you aim at.
@@ -609,10 +617,13 @@ func _input(event: InputEvent) -> void:
 				click()
 			MOUSE_BUTTON_RIGHT:
 				_drop_holding()
-			MOUSE_BUTTON_WHEEL_UP:
-				push(1)
-			MOUSE_BUTTON_WHEEL_DOWN:
-				push(-1)
+			MOUSE_BUTTON_WHEEL_UP, MOUSE_BUTTON_WHEEL_DOWN:
+				var up := (event as InputEventMouseButton).button_index == MOUSE_BUTTON_WHEEL_UP
+				# Holding a part, or Shift on one you aim at: the wheel turns it.
+				if (not holding.is_empty() and not bool(holding.opening)) or (event as InputEventMouseButton).shift_pressed:
+					turn(_fine_step((event as InputEventMouseButton).alt_pressed) * (1.0 if up else -1.0))
+				else:
+					push(1 if up else -1)
 		get_viewport().set_input_as_handled()
 	elif event is InputEventKey and (event as InputEventKey).pressed and not (event as InputEventKey).echo and not Keys.typing():
 		var k := event as InputEventKey
@@ -629,7 +640,7 @@ func _input(event: InputEvent) -> void:
 				else:
 					bus.call("close")
 			KEY_R:
-				turn()
+				turn(_fine_step(k.alt_pressed) if k.shift_pressed else 90.0)
 			KEY_X, KEY_DELETE:
 				remove_aimed()
 			KEY_F:
@@ -738,7 +749,7 @@ func _aim_text() -> String:
 		return "Parts menu\n[b]Type[/b] to filter   [b]Click[/b] a group to open it, an item to see it, [b]Take[/b] to hold it   [b]Tab[/b] or [b]Esc[/b] close"
 	if not holding.is_empty():
 		var label := str(holding.get("label", model.catalog.kind(str(holding.type)).get("label", holding.type)))
-		return "%s: %s\n[b]Click[/b] put down   [b]R[/b] turn (the arrow shows its front)   [b]Alt[/b] no guides   [b]Right-click[/b] or [b]Esc[/b] drop" % [label, str(spot.get("why", "Aim at a floor"))]
+		return "%s: %s\n[b]Click[/b] put down   [b]R[/b] quarter turn   [b]Wheel[/b] or [b]Shift+R[/b] turn 15° ([b]Alt[/b] 1°, no guides)   [b]Right-click[/b] or [b]Esc[/b] drop" % [label, str(spot.get("why", "Aim at a floor"))]
 	var a := aim()
 	if a.is_empty():
 		return "Flying\n[b]WASD[/b] move   [b]Space[/b] up   [b]C[/b] down   [b]Q[/b] walk   [b]Tab[/b] parts" if flying else "Walking\n[b]WASD[/b] walk   [b]Shift[/b] run   [b]Space[/b] jump   [b]Q[/b] fly   [b]Tab[/b] parts   [b]Esc[/b] back to the designer"
@@ -755,7 +766,7 @@ func _aim_text() -> String:
 		"wall":
 			return "%s%s\n[b]Wheel[/b] push it away or pull it towards you   [b]F[/b] door here   [b]E[/b] edit   [b]X[/b] remove" % [label2, held]
 		"fixture", "column":
-			return "%s%s\n[b]Click[/b] pick up   [b]R[/b] turn   [b]E[/b] edit   [b]X[/b] remove" % [label2, held]
+			return "%s%s\n[b]Click[/b] pick up   [b]R[/b] turn   [b]Shift+wheel[/b] turn 15°   [b]E[/b] edit   [b]X[/b] remove" % [label2, held]
 		"slab", "roof":
 			if (a.normal as Vector3).y < -0.5:
 				return "Ceiling (%.2f m storey)\n[b]Wheel[/b] raise or lower it   [b]E[/b] edit" % model.level_height(maxi(model.level_of(id) - (1 if fam == "slab" else 0), 0))
@@ -821,10 +832,9 @@ func _update_spot() -> void:
 	var held_size := WalkEdits.size_of(model, str(holding.type), model.parts.get(str(holding.id), {}))
 	var hw := held_size.x * 0.5
 	var hd := held_size.z * 0.5
-	if int(fposmod(float(holding.rot), 180.0)) == 90:
-		var tmp := hw
-		hw = hd
-		hd = tmp
+	var half := WalkEdits.turned_half(hw * 2.0, hd * 2.0, float(holding.rot))
+	hw = half.x
+	hd = half.y
 	var level := WalkEdits.level_at(model, at.y)
 	# Smart guides (BSX): edges and middles line up with the parts and walls round it.
 	if not Input.is_key_pressed(KEY_ALT):
@@ -1425,22 +1435,24 @@ func _dim_row(id: String, d: Dictionary) -> HBoxContainer:
 	var name_l := T.label(str(d.label).to_upper(), "mono_bold", 14, T.TEXT)
 	name_l.custom_minimum_size.x = 80
 	row.add_child(name_l)
-	var step := maxf(WalkEdits.grid(model), 0.05)
+	var angle := str(d.get("unit", "m")) == "°"
+	var step := float(d.get("step", maxf(WalkEdits.grid(model), 0.05)))
 	var box := SpinBox.new()
 	box.name = "Value"
-	box.min_value = 0.0 if str(d.field) == "sill" else 0.05
-	box.max_value = 200.0
-	box.step = 0.01
-	box.suffix = "m"
+	box.min_value = -360.0 if angle else (0.0 if str(d.field) == "sill" else 0.05)
+	box.max_value = 360.0 if angle else 200.0
+	box.step = 0.1 if angle else 0.01
+	box.suffix = str(d.get("unit", "m"))
 	box.custom_arrow_step = step
 	box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	box.set_value_no_signal(float(d.value))
-	box.tooltip_text = "Type a size and press Enter, or step it %.2f m at a time" % step
+	box.tooltip_text = ("Type an angle and press Enter, or turn it %d° at a time" % int(step)) if angle \
+			else "Type a size and press Enter, or step it %.2f m at a time" % step
 	var field := str(d.field)
 	var apply := func(v: float) -> void:
 		var op := WalkEdits.resize(model, id, field, v)
 		if op.is_empty():
-			_status("%s can't be %.2f m" % [str(d.label), v])
+			_status("%s can't be %.2f %s" % [str(d.label), v, str(d.get("unit", "m"))])
 		else:
 			sync.edit(op)
 	box.value_changed.connect(apply)
@@ -1611,7 +1623,7 @@ func _fill_edit() -> void:
 	_palette_list.add_child(T.label(str(spec.get("label", kind)).to_upper(), "display_bold", 18, T.ORANGE))
 	var dims := WalkEdits.dims(model, edit_id)
 	if not dims.is_empty():
-		_palette_list.add_child(T.label("SIZE", "mono_bold", 14, T.DIM))
+		_palette_list.add_child(T.label("SIZE AND ANGLE", "mono_bold", 14, T.DIM))
 		for d: Dictionary in dims:
 			_palette_list.add_child(_dim_row(edit_id, d))
 	var rows: Array = []
