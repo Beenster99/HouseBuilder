@@ -234,6 +234,8 @@ func _build_world() -> void:
 	Graphics.changed.connect(func() -> void: ground.material_override = ArtStyle.ground())
 	ground.position.y = -0.01
 	add_child(ground)
+	# A real site (the sites module), when one is loaded, in place of the plain ground.
+	add_child(DesignSite.new(ground))
 	_grid_mesh = MeshInstance3D.new()
 	_grid_mesh.name = "Grid"
 	_grid_mesh.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
