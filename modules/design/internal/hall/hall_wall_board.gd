@@ -25,7 +25,7 @@ func setup(p_hall: Node, id: String, layout: Array, density: float) -> void:
 	wall_id = id
 	px_per_m = density
 	name = "Wall_" + id
-	add_theme_stylebox_override("panel", T.box(Color(0.02, 0.05, 0.09), Color(0.2, 0.45, 0.65, 0.6), 2, 0.0))
+	add_theme_stylebox_override("panel", T.box(BsxTheme.PANEL, Color(T.EDGE, 0.7), 2, 0.0))
 	_row = HBoxContainer.new()
 	_row.add_theme_constant_override("separation", int(px_per_m * 0.12))
 	add_child(_row)
@@ -114,7 +114,7 @@ func _fill(i: int) -> void:
 	var view := str(panels[i].view)
 	var font := int(px_per_m * 0.16)
 	var head := PanelContainer.new()
-	head.add_theme_stylebox_override("panel", T.box(Color(0.06, 0.13, 0.2), Color.TRANSPARENT, 0, px_per_m * 0.04))
+	head.add_theme_stylebox_override("panel", T.box(Color(BsxTheme.ACCENT, 0.16), Color.TRANSPARENT, 0, px_per_m * 0.04))
 	var bar := HBoxContainer.new()
 	bar.add_theme_constant_override("separation", int(px_per_m * 0.08))
 	head.add_child(bar)

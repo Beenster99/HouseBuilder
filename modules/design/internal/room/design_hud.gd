@@ -30,6 +30,9 @@ var _cost: RichTextLabel
 var _status: Label
 var _options: VBoxContainer
 var _actions: HBoxContainer
+## The top bar's right end: the Walk inside button (from the walk module's action).
+var _walk_slot: HBoxContainer
+const TOP_RIGHT_ACTIONS := ["walk.inside"]
 var _views: OptionButton
 var _overlay_slot: VBoxContainer
 var _side_slot: VBoxContainer
@@ -286,7 +289,7 @@ func refresh_banner() -> void:
 		head = "PLACING"
 		how = "click to place · R turns · Esc stops"
 	elif _session.tool == "select":
-		colour = Color(0.45, 1.0, 0.55)
+		colour = Color(0.12, 0.55, 0.25) if BsxTheme.pencil() else Color(0.45, 1.0, 0.55)
 		head = "SELECT MODE"
 		if sel.is_empty():
 			how = "click a room or part · drag empty floor to pan · Shift adds"
@@ -313,7 +316,7 @@ func refresh_banner() -> void:
 						how = str(d.hint)
 		how += " · [b]1[/b] or [b]Esc[/b]: back to Select"
 	var sb := StyleBoxFlat.new()
-	sb.bg_color = Color(0.03, 0.05, 0.08, 0.88)
+	sb.bg_color = Color(BsxTheme.PANEL, 0.94)
 	sb.border_color = colour
 	sb.set_border_width_all(2)
 	sb.set_corner_radius_all(6)
@@ -423,6 +426,9 @@ func _build_top() -> void:
 	row2.add_child(_section_toggle)
 	_actions = HBoxContainer.new()
 	row2.add_child(_actions)
+	# Walking inside sits top right, on its own, where it's easy to find.
+	_walk_slot = HBoxContainer.new()
+	row.add_child(_walk_slot)
 	row.add_child(_button("Menu", Menu.open_pause, "Pause menu (Esc)"))
 
 
@@ -443,10 +449,19 @@ func _on_graphics_changed() -> void:
 func _build_actions() -> void:
 	for c in _actions.get_children():
 		c.queue_free()
+	for c in _walk_slot.get_children():
+		c.queue_free()
 	var design := Modules.bus("design") as DesignBus
 	for a: Dictionary in design.action_list():
 		var press: Callable = a.press
-		_actions.add_child(_button(str(a.label), func() -> void: press.call(_model)))
+		var b := _button(str(a.label), func() -> void: press.call(_model))
+		if str(a.get("id", "")) in TOP_RIGHT_ACTIONS:
+			b.text = str(a.label).to_upper()
+			b.add_theme_color_override("font_color", BsxTheme.ACCENT)
+			b.tooltip_text = "Walk round inside the design, first person"
+			_walk_slot.add_child(b)
+		else:
+			_actions.add_child(b)
 
 
 ## Flips a layer from outside the menu (the mark-up wheel), keeping the menu's tick in step.
@@ -555,13 +570,13 @@ func _build_tools() -> void:
 		# The armed tool stands out: filled in its colour (Select green, the rest amber).
 		var on := StyleBoxFlat.new()
 		on.bg_color = Color(0.45, 1.0, 0.55, 0.3) if t.id == "select" else Color(BsxTheme.LIVE, 0.28)
-		on.border_color = Color(0.45, 1.0, 0.55) if t.id == "select" else BsxTheme.LIVE
+		on.border_color = (Color(0.12, 0.55, 0.25) if BsxTheme.pencil() else Color(0.45, 1.0, 0.55)) if t.id == "select" else BsxTheme.LIVE
 		on.set_border_width_all(2)
 		on.set_corner_radius_all(3)
 		on.content_margin_left = 6
 		b.add_theme_stylebox_override("pressed", on)
 		b.add_theme_stylebox_override("hover_pressed", on)
-		b.add_theme_color_override("font_pressed_color", Color.WHITE)
+		b.add_theme_color_override("font_pressed_color", BsxTheme.TEXT)
 		b.size_flags_horizontal = SIZE_EXPAND_FILL
 		b.alignment = HORIZONTAL_ALIGNMENT_LEFT
 		grid.add_child(b)

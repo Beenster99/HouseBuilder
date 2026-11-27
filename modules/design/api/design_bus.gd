@@ -214,9 +214,19 @@ func palette_groups(kind: String) -> Array[Dictionary]:
 		var by_id := {}
 		for g: Array in OBJECT_GROUPS:
 			by_id[g[0]] = {"id": g[0], "title": g[1], "items": [] as Array[Dictionary]}
+		var library_groups: Array[String] = []
 		for k: String in cat.kinds_in("fixture"):
-			var gid := str(FIXTURE_GROUP.get(k, "other"))
+			var gid := str(FIXTURE_GROUP.get(k, ""))
+			if gid == "":
+				# Library assets name their own group ("Furniture", "Healthcare"...).
+				var title := cat.group_of(k) if cat.has_method("group_of") else "Other fittings"
+				gid = "other" if title == "Fittings" or title == "" else "lib:" + title.to_lower().replace(" ", "_")
+				if gid != "other" and not by_id.has(gid):
+					by_id[gid] = {"id": gid, "title": title, "items": [] as Array[Dictionary]}
+					library_groups.append(gid)
 			var tags := PackedStringArray(["fixture", gid, k])
+			for t: Variant in cat.kind(k).get("tags", []):
+				tags.append(str(t))
 			var asset := AssetLibrary.id_for_kind(k)
 			if asset != "":
 				for t: Variant in AssetLibrary.info(asset).get("tags", []):
@@ -226,11 +236,17 @@ func palette_groups(kind: String) -> Array[Dictionary]:
 			var gid := "windows" if k.begins_with("window") else "doors"
 			(by_id[gid].items as Array[Dictionary]).append({"id": k, "label": str(cat.kind(k).get("label", k)),
 					"tags": PackedStringArray(["opening", gid, k])})
+		library_groups.sort()
+		var order: Array[String] = []
 		for g: Array in OBJECT_GROUPS:
-			var items: Array[Dictionary] = by_id[g[0]].items
+			if g[0] == "doors":
+				order.append_array(library_groups)
+			order.append(str(g[0]))
+		for gid: String in order:
+			var items: Array[Dictionary] = by_id[gid].items
 			if not items.is_empty():
 				items.sort_custom(func(a: Dictionary, b: Dictionary) -> bool: return str(a.label) < str(b.label))
-				out.append(by_id[g[0]])
+				out.append(by_id[gid])
 	var extra: Array = palette_extra.values().filter(func(g: Dictionary) -> bool: return str(g.kind) == kind)
 	extra.sort_custom(func(a: Dictionary, b: Dictionary) -> bool: return int(a.order) < int(b.order))
 	for g: Dictionary in extra:

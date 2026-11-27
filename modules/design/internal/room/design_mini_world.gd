@@ -55,6 +55,16 @@ func setup(p_session: DesignSession) -> void:
 	e.tonemap_mode = Environment.TONE_MAPPER_FILMIC
 	env.environment = e
 	add_child(env)
+	# The site's ground, as in the designer, so the plan reads against it.
+	var ground := MeshInstance3D.new()
+	ground.name = "Ground"
+	var plane := PlaneMesh.new()
+	plane.size = Vector2(1000, 1000)
+	ground.mesh = plane
+	ground.material_override = ArtStyle.ground()
+	ground.position.y = -0.02
+	add_child(ground)
+	Graphics.changed.connect(func() -> void: ground.material_override = ArtStyle.ground())
 	view = DesignView.new()
 	view.name = "Building"
 	view.set("labels_fixed", false)

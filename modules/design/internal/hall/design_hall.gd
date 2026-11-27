@@ -218,7 +218,7 @@ func open_fullscreen(wall_id: String, panel := -1) -> bool:
 	page.name = "WallFullScreen"
 	page.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	page.theme = BsxTheme.get_theme()
-	page.add_theme_stylebox_override("panel", T.box(Color(0.02, 0.05, 0.09, 0.97), T.EDGE, 0, 0.0))
+	page.add_theme_stylebox_override("panel", T.box(Color(BsxTheme.PANEL, 0.98), T.EDGE, 0, 0.0))
 	var col := VBoxContainer.new()
 	page.add_child(col)
 	var bar := HBoxContainer.new()

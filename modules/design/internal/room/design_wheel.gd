@@ -71,11 +71,12 @@ func _draw() -> void:
 			var a := a0 + TAU / n * k / 16.0
 			pts.append(centre + Vector2(sin(a), -cos(a)) * RADIUS)
 		var lit := str(ITEMS[i].id) == pick
-		draw_colored_polygon(pts, LIT if lit else SLICE)
+		draw_colored_polygon(pts, LIT if lit else Color(BsxTheme.PANEL, 0.92))
 		var label := str(ITEMS[i].label)
 		var at := centre + Vector2(sin(mid), -cos(mid)) * RADIUS * 0.62
 		var size := font.get_string_size(label, HORIZONTAL_ALIGNMENT_CENTER, -1, 17)
 		draw_string(font, at - Vector2(size.x / 2.0, -6), label, HORIZONTAL_ALIGNMENT_CENTER, -1, 17,
-				Color(0.05, 0.05, 0.08) if lit else Color(0.9, 0.95, 1.0))
-	draw_circle(centre, DEAD, Color(0.02, 0.04, 0.07, 0.95))
+				Color(0.05, 0.05, 0.08) if lit else BsxTheme.TEXT)
+	draw_circle(centre, DEAD, Color(BsxTheme.PANEL, 0.97))
+	draw_arc(centre, DEAD, 0, TAU, 32, Color(BsxTheme.TEXT, 0.5), 1.5)
 	draw_arc(centre, RADIUS, 0, TAU, 48, LIT, 2.0)
