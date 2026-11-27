@@ -19,6 +19,8 @@ flags = {
 "demolition": true,
 "demolition.demo": true,
 "timelapse.demo": true,
+"sites": true,
+"sites.real_sites": true,
 "structure": true,
 "structure.stress_test": false,
 "services": true,
