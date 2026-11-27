@@ -6,10 +6,14 @@ extends Node3D
 
 var model: BuildingModel
 var nodes: Dictionary = {}  # layer id -> Node3D
+## The DesignView beside it: drawn see-through while any layer is on.
+var view: Node3D
+var _age := 0.0
 
 
-func _init(p_model: BuildingModel = null) -> void:
+func _init(p_model: BuildingModel = null, p_view: Node3D = null) -> void:
 	model = p_model
+	view = p_view
 	name = "Layers"
 
 
@@ -19,6 +23,23 @@ func _ready() -> void:
 		return
 	design.layers_changed.connect(sync)
 	sync()
+
+
+func _process(delta: float) -> void:
+	_age += delta
+	if _age < 0.25 or view == null or not is_instance_valid(view) or (nodes.is_empty() and float(view.get("ghost")) == 0.0):
+		return
+	_age = 0.0
+	view.call("set_ghost", any_on())
+
+
+## True while any registered layer is on.
+static func any_on() -> bool:
+	var design := Modules.bus("design") as DesignBus
+	for l: Dictionary in design.layer_list():
+		if (l.is_on as Callable).is_valid() and bool((l.is_on as Callable).call()):
+			return true
+	return false
 
 
 ## Adds the layers that are new and drops those that went.

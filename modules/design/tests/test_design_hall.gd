@@ -97,6 +97,8 @@ func run_tests() -> void:
 	else:
 		DesignLayers.toggle_all()
 	check(lon[0], "T at the table turns it on")
+	await get_tree().create_timer(0.35).timeout
+	check(float((holo.get("view") as Node).get("ghost")) > 0.0, "and the table's model goes see-through while it's on")
 	design.unregister_layer("test.layer")
 	await frames(2)
 	check(made.all(func(n: Variant) -> bool: return not is_instance_valid(n) or (n as Node).is_queued_for_deletion()), "and it goes when unregistered")

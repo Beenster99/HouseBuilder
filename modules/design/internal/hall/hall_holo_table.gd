@@ -51,7 +51,7 @@ func setup(p_hall: Node, model: BuildingModel) -> void:
 	view.set("labels_fixed", false)
 	model_root.add_child(view)
 	# Other modules' 3D layers (the stress diagram) over the table's model.
-	layers = DesignLayers.new(model)
+	layers = DesignLayers.new(model, view)
 	model_root.add_child(layers)
 	view.call("bind", model)
 	view.call("show_level", 1000)

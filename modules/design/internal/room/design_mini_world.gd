@@ -71,7 +71,7 @@ func setup(p_session: DesignSession) -> void:
 	view.name = "Building"
 	view.set("labels_fixed", false)
 	add_child(view)
-	add_child(DesignLayers.new(session.model))
+	add_child(DesignLayers.new(session.model, view))
 	view.call("bind", session.model)
 	view.call("show_level", 1000)
 	view.set_process(false)

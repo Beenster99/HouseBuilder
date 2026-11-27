@@ -39,6 +39,11 @@ const CELL := 16.0
 ## Room labels keep their size on screen (sharp at any zoom) and fade with it; false draws
 ## them at a size in the world (the holotable's model, the small views).
 var labels_fixed := true
+## How see-through the building is drawn (0 solid): the ghost look while a 3D layer such as
+## the stress diagram is on, so what's inside reads through the walls and floors.
+var ghost := 0.0
+## The ghost look's see-through amount.
+const GHOST := 0.8
 ## A room's label fades in as the room grows from LABEL_FADE to twice that many pixels
 ## across on screen.
 const LABEL_FADE := 45.0
@@ -329,10 +334,25 @@ func _build_batch(key: String) -> void:
 		var m: Material = b.mat
 		if m is BaseMaterial3D and (m as BaseMaterial3D).transparency != BaseMaterial3D.TRANSPARENCY_DISABLED:
 			mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		mi.transparency = ghost
 		add_child(mi)
 		b.mesh = mi
 	(b.mesh as MeshInstance3D).mesh = mesh
 	(b.mesh as Node3D).visible = _visible(int(b.level), bool(b.room))
+
+
+## Draws the building see-through (on) or solid.
+func set_ghost(on: bool) -> void:
+	var g := GHOST if on else 0.0
+	if is_equal_approx(g, ghost):
+		return
+	ghost = g
+	for key: String in _batches:
+		var mi: Variant = _batches[key].mesh
+		if mi is MeshInstance3D and is_instance_valid(mi):
+			(mi as MeshInstance3D).transparency = g
+			(mi as MeshInstance3D).cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF if on \
+					else GeometryInstance3D.SHADOW_CASTING_SETTING_ON
 
 
 ## The arrays the entry being built adds faces of this colour or material to.
