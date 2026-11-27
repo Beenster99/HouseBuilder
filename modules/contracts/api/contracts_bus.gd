@@ -57,6 +57,11 @@ var _design: Node
 ## The building's checksum when structure_report was made: a report for an older design is
 ## stale and counts as untested.
 var _report_sum := 0
+## The model and revision report_for last checked, and what it found, so the live panel
+## does not hash the whole building on every refresh.
+var _checked_model: BuildingModel
+var _checked_rev := -1
+var _checked_fresh := false
 
 
 func register_module() -> void:
@@ -97,6 +102,7 @@ func _take_report(report: Dictionary) -> void:
 	structure_report = report.duplicate(true)
 	var m := building()
 	_report_sum = m.checksum() if m != null else 0
+	_checked_model = null
 	report_taken.emit()
 
 
@@ -165,9 +171,13 @@ func assess(model: BuildingModel = null) -> Dictionary:
 func report_for(m: BuildingModel) -> Dictionary:
 	if structure_report.is_empty():
 		return {}
-	if m != null and _report_sum != 0 and m.checksum() != _report_sum:
-		return {"stale": true}
-	return structure_report
+	if m == null or _report_sum == 0:
+		return structure_report
+	if m != _checked_model or m.revision != _checked_rev:
+		_checked_model = m
+		_checked_rev = m.revision
+		_checked_fresh = m.checksum() == _report_sum
+	return structure_report if _checked_fresh else {"stale": true}
 
 
 func brief(brief_id: String) -> Dictionary:
@@ -253,6 +263,7 @@ func _apply_accept(p: Dictionary) -> void:
 			sites.load_site(site_id)
 	structure_report = {}
 	_report_sum = 0
+	_checked_model = null
 	active_changed.emit()
 
 
@@ -263,6 +274,7 @@ func _apply_handover(p: Dictionary) -> void:
 	active = {}
 	structure_report = {}
 	_report_sum = 0
+	_checked_model = null
 	_deal_board(int(p.get("seed", board_seed + 1)))
 	active_changed.emit()
 	settled.emit(s)
@@ -274,6 +286,7 @@ func _apply_abandon(_p: Dictionary) -> void:
 	active = {}
 	structure_report = {}
 	_report_sum = 0
+	_checked_model = null
 	active_changed.emit()
 
 
@@ -328,6 +341,7 @@ func reset_data() -> void:
 	active = {}
 	structure_report = {}
 	_report_sum = 0
+	_checked_model = null
 	last_settlement = {}
 	_deal_board(1)
 	active_changed.emit()

@@ -96,6 +96,24 @@ var _next := 1
 ## id -> whether it existed before the op being applied (for the entry signals).
 var _touched: Dictionary = {}
 var _levels_touched := false
+## Indexes kept in step with the tables by _store, so lookups do not scan every part:
+## wall id -> {opening id: true}; part id -> {connection id: true}; "a|b" -> connection id.
+var _hosted: Dictionary = {}
+var _conns: Dictionary = {}
+var _pairs: Dictionary = {}
+## Goes up on every change to an entry (including level shifts); the query caches below
+## are good while it holds.
+var _mut := 0
+var _cache: Dictionary = {}
+var _cache_mut := -1
+## Results other classes work out per entry (BuildingQuantities' costs), by entry id, so an
+## edit only redoes what it touched. An entry's result is dropped when it changes, a wall's
+## when its openings change, and all of them on a level change or a load. Read it only
+## through those classes.
+var derived: Dictionary = {}
+## level -> a count that goes up whenever a fixture on that level changes (a room's
+## capacity depends on the fixtures standing in it).
+var fixture_rev: Dictionary = {}
 
 
 func _init(building_id: String = "", building_name: String = "New building", cat: BuildingCatalog = null) -> void:
@@ -203,7 +221,7 @@ func _add(table_name: String, entry: Variant) -> Dictionary:
 	if table_name == "connections" and _connection_between(str(norm.a), str(norm.b)) != "":
 		return {}
 	_touch(eid)
-	_table(table_name)[eid] = norm
+	_store(table_name, eid, norm)
 	var n := eid.substr(1).to_int() if eid.length() > 1 and eid.substr(1).is_valid_int() else 0
 	_next = maxi(_next, n + 1)
 	return {"do": {"op": "add", "table": table_name, "entry": norm.duplicate(true)},
@@ -214,8 +232,7 @@ func _set_entry(eid: String, fields: Dictionary) -> Dictionary:
 	var table_name := table_of(eid)
 	if table_name == "" or fields.is_empty():
 		return {}
-	var table := _table(table_name)
-	var old: Dictionary = table[eid]
+	var old: Dictionary = _table(table_name)[eid]
 	var merged := old.duplicate(true)
 	for k: String in fields:
 		if k == "id":
@@ -230,9 +247,9 @@ func _set_entry(eid: String, fields: Dictionary) -> Dictionary:
 	if table_name == "connections" and _connection_between(str(norm.a), str(norm.b)) not in ["", eid]:
 		return {}
 	_touch(eid)
-	table[eid] = norm
+	_store(table_name, eid, norm)
 	if table_name == "parts" and not _hosted_fit(eid):
-		table[eid] = old
+		_store(table_name, eid, old)
 		return {}
 	var dfields := {}
 	var ufields := {}
@@ -261,15 +278,16 @@ func _remove(ids: Array) -> Dictionary:
 	var gone := {}
 	for s in wanted:
 		gone[s] = true
-	for pid: String in parts:
-		if gone.has(str(parts[pid].get("host", ""))):
-			gone[pid] = true
-	for cid: String in connections:
-		if gone.has(str(connections[cid].a)) or gone.has(str(connections[cid].b)):
+	for s in wanted:
+		for oid: String in _hosted.get(s, {}):
+			gone[oid] = true
+	for gid: String in gone.keys():
+		for cid: String in _conns.get(gid, {}):
 			gone[cid] = true
 	var restore: Array = []
+	var gone_sorted := sort_ids(gone.keys())
 	for group: int in 4:
-		for gid: String in sort_ids(gone.keys()):
+		for gid: String in gone_sorted:
 			var t := table_of(gid)
 			var opening: bool = t == "parts" and parts[gid].has("host")
 			var in_group: bool = (group == 0 and t == "parts" and not opening) or (group == 1 and opening) \
@@ -278,7 +296,7 @@ func _remove(ids: Array) -> Dictionary:
 				restore.append({"op": "add", "table": t, "entry": _table(t)[gid].duplicate(true)})
 	for gid: String in gone:
 		_touch(gid)
-		_table(table_of(gid)).erase(gid)
+		_store(table_of(gid), gid, null)
 	var do := {"op": "remove", "id": wanted[0]} if wanted.size() == 1 else {"op": "remove", "ids": Array(wanted)}
 	return {"do": do, "undo": restore[0] if restore.size() == 1 else {"op": "batch", "ops": restore}}
 
@@ -362,6 +380,7 @@ func _add_level(op: Dictionary) -> Dictionary:
 	var lv := {"height": height, "name": str(op.get("name", ""))}
 	levels.insert(index, lv)
 	_levels_touched = true
+	_drop_all_derived()
 	for table: Dictionary in [parts, rooms]:
 		for e: Dictionary in table.values():
 			if e.has("level") and int(e.level) >= index:
@@ -387,6 +406,7 @@ func _remove_level(index: int) -> Dictionary:
 	var lv: Dictionary = levels[index]
 	levels.remove_at(index)
 	_levels_touched = true
+	_drop_all_derived()
 	for table: Dictionary in [parts, rooms]:
 		for e: Dictionary in table.values():
 			if e.has("level") and int(e.level) > index:
@@ -407,7 +427,9 @@ func _set_level(index: int, fields: Variant) -> Dictionary:
 		return {}
 	levels[index] = lv
 	_levels_touched = true
-	for pid: String in parts:
+	_drop_all_derived()
+	# Only walls with openings can stop fitting.
+	for pid: String in _hosted:
 		if int(parts[pid].get("level", -1)) == index and not _hosted_fit(pid):
 			levels[index] = old
 			return {}
@@ -592,11 +614,79 @@ func _hosted_fit(wall_id: String) -> bool:
 
 
 func _connection_between(a: String, b: String) -> String:
-	for cid: String in connections:
-		var c: Dictionary = connections[cid]
-		if (str(c.a) == a and str(c.b) == b) or (str(c.a) == b and str(c.b) == a):
-			return cid
-	return ""
+	return str(_pairs.get(_pair_key(a, b), ""))
+
+
+static func _pair_key(a: String, b: String) -> String:
+	return a + "|" + b if a < b else b + "|" + a
+
+
+## Every write to a table goes through here (e null removes), keeping the indexes in step.
+func _store(table_name: String, eid: String, e: Variant) -> void:
+	var t := _table(table_name)
+	var old: Dictionary = t.get(eid, {})
+	if not old.is_empty():
+		_index(table_name, eid, old, false)
+		_drop_derived(table_name, eid, old)
+	if e == null:
+		t.erase(eid)
+	else:
+		t[eid] = e
+		_index(table_name, eid, e, true)
+		_drop_derived(table_name, eid, e)
+	_mut += 1
+
+
+func _drop_derived(table_name: String, eid: String, e: Dictionary) -> void:
+	derived.erase(eid)
+	if table_name != "parts":
+		return
+	if e.has("host"):
+		derived.erase(str(e.host))
+	elif catalog.family_of(str(e.get("kind", ""))) == "fixture":
+		var lv := int(e.get("level", 0))
+		fixture_rev[lv] = int(fixture_rev.get(lv, 0)) + 1
+
+
+## Every derived result goes (levels shifted or changed height, or a load).
+func _drop_all_derived() -> void:
+	derived = {}
+	for lv: int in fixture_rev:
+		fixture_rev[lv] = int(fixture_rev[lv]) + 1
+	_mut += 1
+
+
+func _index(table_name: String, eid: String, e: Dictionary, on: bool) -> void:
+	if table_name == "parts" and e.has("host"):
+		_index_in(_hosted, str(e.host), eid, on)
+	elif table_name == "connections":
+		_index_in(_conns, str(e.a), eid, on)
+		_index_in(_conns, str(e.b), eid, on)
+		var k := _pair_key(str(e.a), str(e.b))
+		if on:
+			_pairs[k] = eid
+		elif str(_pairs.get(k, "")) == eid:
+			_pairs.erase(k)
+
+
+static func _index_in(index: Dictionary, key: String, eid: String, on: bool) -> void:
+	if on:
+		if not index.has(key):
+			index[key] = {}
+		index[key][eid] = true
+	elif index.has(key):
+		var d: Dictionary = index[key]
+		d.erase(eid)
+		if d.is_empty():
+			index.erase(key)
+
+
+## A cached query result (key -> sorted ids), dropped on any change.
+func _cached(key: String) -> Variant:
+	if _cache_mut != _mut:
+		_cache = {}
+		_cache_mut = _mut
+	return _cache.get(key)
 
 
 # Reading the model
@@ -648,45 +738,58 @@ func level_of(eid: String) -> int:
 
 ## Part ids on a level, sorted (openings count on their wall's level).
 func parts_on(index: int) -> PackedStringArray:
+	var key := "on:%d" % index
+	var hit: Variant = _cached(key)
+	if hit != null:
+		return hit
 	var out: Array = []
 	for pid: String in parts:
 		if level_of(pid) == index:
 			out.append(pid)
-	return sort_ids(out)
+	var ids := sort_ids(out)
+	_cache[key] = ids
+	return ids
 
 
 func rooms_on(index: int) -> PackedStringArray:
+	var key := "rooms_on:%d" % index
+	var hit: Variant = _cached(key)
+	if hit != null:
+		return hit
 	var out: Array = []
 	for rid: String in rooms:
 		if int(rooms[rid].level) == index:
 			out.append(rid)
-	return sort_ids(out)
+	var ids := sort_ids(out)
+	_cache[key] = ids
+	return ids
 
 
 ## Part ids of one catalog family ("beam", "wall"...), sorted.
 func parts_of_family(family: String) -> PackedStringArray:
+	var key := "family:" + family
+	var hit: Variant = _cached(key)
+	if hit != null:
+		return hit
 	var out: Array = []
 	for pid: String in parts:
 		if catalog.family_of(str(parts[pid].kind)) == family:
 			out.append(pid)
-	return sort_ids(out)
+	var ids := sort_ids(out)
+	_cache[key] = ids
+	return ids
 
 
+## Opening ids in a wall, sorted.
 func openings_in(wall_id: String) -> PackedStringArray:
-	var out: Array = []
-	for pid: String in parts:
-		if str(parts[pid].get("host", "")) == wall_id:
-			out.append(pid)
-	return sort_ids(out)
+	var d: Dictionary = _hosted.get(wall_id, {})
+	return PackedStringArray() if d.is_empty() else sort_ids(d.keys())
 
 
 ## Connection ids touching a part, sorted.
 func connections_of(part_id: String) -> PackedStringArray:
-	var out: Array = []
-	for cid: String in connections:
-		if str(connections[cid].a) == part_id or str(connections[cid].b) == part_id:
-			out.append(cid)
-	return sort_ids(out)
+	var d: Dictionary = _conns.get(part_id, {})
+	return PackedStringArray() if d.is_empty() else sort_ids(d.keys())
 
 
 ## The connection id between two parts, or "".
@@ -910,6 +1013,10 @@ func load_data(data: Dictionary) -> Dictionary:
 	parts = {}
 	rooms = {}
 	connections = {}
+	_hosted = {}
+	_conns = {}
+	_pairs = {}
+	_drop_all_derived()
 	_next = 1
 	var dropped := 0
 	# Walls before the openings they host; parts before connections.
@@ -986,6 +1093,25 @@ func _table(table_name: String) -> Dictionary:
 
 ## Ids sorted by prefix, then by number ("p2" before "p10").
 static func sort_ids(ids: Array) -> PackedStringArray:
+	# Fast path: ids that are a letter and a plain number sort natively as one integer each.
+	var keys := PackedInt64Array()
+	keys.resize(ids.size())
+	var i := 0
+	for v: Variant in ids:
+		var s := str(v)
+		var num := s.substr(1)
+		if s.length() < 2 or s.length() > 13 or s.unicode_at(0) > 127 or not num.is_valid_int() or num.begins_with("0") or num.begins_with("-") or num.begins_with("+"):
+			break
+		keys[i] = s.unicode_at(0) * 10000000000000 + num.to_int()
+		i += 1
+	if i == ids.size():
+		keys.sort()
+		var out := PackedStringArray()
+		out.resize(keys.size())
+		for j in keys.size():
+			var k := keys[j]
+			out[j] = String.chr(k / 10000000000000) + str(k % 10000000000000)
+		return out
 	var list := ids.duplicate()
 	list.sort_custom(func(a: Variant, b: Variant) -> bool:
 		var sa := str(a)

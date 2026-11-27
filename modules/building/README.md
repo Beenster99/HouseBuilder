@@ -38,6 +38,13 @@ shaft from its level up to `top_level`). World-space helpers: `points_of(id)`, `
 `part_height(id)`, `openings_in(wall)`, `connections_of(part)`, `parts_on(level)`,
 `rooms_on(level)`, `parts_of_family(f)`.
 
+Speed: `openings_in`, `connections_of` and `connection_between` read indexes the model keeps
+up to date; `parts_on`, `rooms_on` and `parts_of_family` are cached until the next change, so
+calling them per part or per room is fine. `BuildingQuantities.totals()` keeps each part's and
+room's result on the model and recosts only what an edit touched: on the 4,000-part airport
+terminal it takes about 50 ms the first time and about 19 ms after an edit (headless).
+`checksum()` hashes everything (about 35 ms on the terminal): compare `revision` first.
+
 ## Ops
 
 See the header of `api/building_model.gd`. `apply(op)` returns `{}` (refused) or

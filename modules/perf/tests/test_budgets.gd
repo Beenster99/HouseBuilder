@@ -17,8 +17,7 @@ extends ModuleTest
 const SKIP_OVER_MS := 3000.0
 ## measure id -> [ms (or bytes/s) when listed, owner module, what is slow]. 2026-11-27.
 const KNOWN := {
-	"quantities.office": [530.0, "building", "BuildingQuantities.totals() runs on every edit (design room cost panel)"],
-	"quantities.terminal": [8000.0, "building", "BuildingQuantities.totals()"],
+	"quantities.terminal": [60.0, "building", "the first full costing (about 50 ms); after it an edit recosts only what it touched (about 19 ms)"],
 	"stress.office": [21000.0, "structure", "the load-path solver is far from linear in members (the live check runs it after every edit)"],
 	"stress.terminal": [120000.0, "structure", "the load-path solver"],
 	"route.office": [1200.0, "services", "routing runs on the host's main thread a moment after every edit (services.live)"],
