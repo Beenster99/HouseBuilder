@@ -70,8 +70,9 @@ var flying := false
 var spot: Dictionary = {}
 ## The part the edit rows (E) show, "" for the parts list.
 var edit_id := ""
-## "build" (the designer's walk-inside) or "charges" (demolition: aim and click to place
-## charges on the structure from inside; no building edits).
+## "build" (the designer's walk-inside), "charges" (demolition: aim and click to place
+## charges on the structure from inside; no building edits) or "view" (a finished building in
+## the town: walk, fly and look, nothing changes).
 var mode := "build"
 ## The delay a new charge gets, s (the wheel steps it).
 var charge_delay := 0.0
@@ -901,6 +902,8 @@ func toggle_fly() -> void:
 
 ## A left click: put down what you hold, or pick up the part you aim at.
 func click() -> void:
+	if mode == "view":
+		return
 	if mode == "charges":
 		charge_aimed()
 		return
@@ -938,6 +941,9 @@ func _input(event: InputEvent) -> void:
 				_drop_holding()
 			MOUSE_BUTTON_WHEEL_UP, MOUSE_BUTTON_WHEEL_DOWN:
 				var up := (event as InputEventMouseButton).button_index == MOUSE_BUTTON_WHEEL_UP
+				if mode == "view":
+					get_viewport().set_input_as_handled()
+					return
 				if mode == "charges":
 					step_delay(1 if up else -1)
 					get_viewport().set_input_as_handled()
@@ -952,7 +958,7 @@ func _input(event: InputEvent) -> void:
 		var k := event as InputEventKey
 		var vp := get_viewport()
 		var handled := true
-		if mode == "charges" and (k.physical_keycode in [KEY_TAB, KEY_R, KEY_X, KEY_DELETE, KEY_F, KEY_E, KEY_Z, KEY_Y]
+		if mode != "build" and (k.physical_keycode in [KEY_TAB, KEY_R, KEY_X, KEY_DELETE, KEY_F, KEY_E, KEY_Z, KEY_Y]
 				or (k.ctrl_pressed and k.physical_keycode in [KEY_C, KEY_V])):
 			vp.set_input_as_handled()  # no building edits while placing charges
 			return
@@ -1079,6 +1085,10 @@ func _process(delta: float) -> void:
 func _aim_text() -> String:
 	if mode == "charges":
 		return _charge_text()
+	if mode == "view":
+		var keys := "[b]WASD[/b] move   [b]Space[/b] up   [b]C[/b] down   [b]Q[/b] walk" if flying \
+				else "[b]WASD[/b] walk   [b]Shift[/b] run   [b]Space[/b] jump   [b]Q[/b] fly"
+		return "Viewing %s\n%s   [b]V[/b] model or real look   [b]Esc[/b] back" % [model.name, keys]
 	if r_turning():
 		var r := float(holding.rot) if str(_r_hold.id) == "" else float(model.parts.get(str(_r_hold.id), {}).get("rot", 0.0))
 		return "Turning  %.1f°\n[b]Move the mouse[/b] to turn   [b]Alt[/b] free (no 5° snap)   let go of [b]R[/b] to set it" % r
