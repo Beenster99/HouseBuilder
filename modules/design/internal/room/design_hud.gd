@@ -956,8 +956,14 @@ func _refresh_tools() -> void:
 	var cat := _session.catalog
 	match _session.tool:
 		"room", "select":
+			# Every room type in the catalog, grouped by its category in catalog order.
 			var types := PackedStringArray()
-			for category: String in ["domestic", "office", "services", "education", "police", "health", "transport"]:
+			var cats: Array[String] = []
+			for t: String in cat.room_types:
+				var c := str(cat.room_types[t].get("category", "other"))
+				if not cats.has(c):
+					cats.append(c)
+			for category in cats:
 				types.append_array(cat.room_types_in(category))
 			_option("Room type", types, _session.room_type, func(v: String) -> void:
 				_session.room_type = v
