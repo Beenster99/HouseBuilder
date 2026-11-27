@@ -32,6 +32,13 @@ static func from_model(model: BuildingModel) -> Array[Dictionary]:
 	var out: Array[Dictionary] = []
 	var by_id: Dictionary = {}
 	var joins := WallJoins.new(model)
+	var hosted: Dictionary = {}
+	for pid: String in model.parts:
+		var host := str((model.parts[pid] as Dictionary).get("host", ""))
+		if host != "":
+			if not hosted.has(host):
+				hosted[host] = []
+			hosted[host].append(pid)
 	for pid: String in BuildingModel.sort_ids(model.parts.keys()):
 		var e: Dictionary = model.parts[pid]
 		var family := model.catalog.family_of(str(e.kind))
@@ -45,7 +52,7 @@ static func from_model(model: BuildingModel) -> Array[Dictionary]:
 		var p := {"id": pid, "kind": kind, "family": family, "material": str(e.get("material", "")),
 				"aabb": box, "supported_by": [], "cost": float(q.get("cost", 0.0)),
 				"mass": float(q.get("mass", 0.0)), "level": model.level_of(pid)}
-		var shape := shape_of(model, pid, joins)
+		var shape := shape_of(model, pid, joins, hosted)
 		if not shape.is_empty():
 			p.shape = shape
 		var look := model_of(model, pid)
@@ -159,20 +166,36 @@ static func _add_support(p: Dictionary, carrier: String) -> void:
 		p.supported_by.append(carrier)
 
 
-## A library object's own model (an airliner, a car, a desk) to draw in place of its box:
-## {"kind", "size": Vector3, "at": Vector3 (world, on its floor), "rot": degrees}. {} for
-## anything else.
+## A placed part's library model (an airliner, a desk, a WC, a door, a window) to draw in
+## place of its box: {"kind", "size": Vector3, "fit": Vector3 (scale the model to this),
+## "at": Vector3 (world, its base centre), "rot": degrees about y}. {} when the kind has none.
 static func model_of(model: BuildingModel, pid: String) -> Dictionary:
 	var e: Dictionary = model.parts.get(pid, {})
-	var spec := model.catalog.kind(str(e.get("kind", "")))
-	if str(spec.get("family", "")) != "fixture" or str(spec.get("asset", "")) == "" or not e.has("at"):
+	var kind := str(e.get("kind", ""))
+	var spec := model.catalog.kind(kind)
+	var fam := str(spec.get("family", ""))
+	if AssetLibrary.id_for_kind(kind) == "":
 		return {}
-	var a: Variant = e.at
-	var at: Vector3 = a if a is Vector3 else Vector3(float(a[0]), float(a[1]), float(a[2]))
-	return {"kind": str(e.kind),
-			"size": Vector3(float(spec.get("w", 0.5)), float(spec.get("h", 0.8)), float(spec.get("d", 0.5))),
-			"at": at + Vector3(0, model.level_elevation(model.level_of(pid)), 0),
-			"rot": float(e.get("rot", 0.0))}
+	if fam == "fixture" and e.has("at"):
+		var a: Variant = e.at
+		var at: Vector3 = a if a is Vector3 else Vector3(float(a[0]), float(a[1]), float(a[2]))
+		var size := Vector3(float(spec.get("w", 0.5)), float(spec.get("h", 0.8)), float(spec.get("d", 0.5)))
+		return {"kind": kind, "size": size, "fit": size,
+				"at": at + Vector3(0, model.level_elevation(model.level_of(pid)), 0),
+				"rot": float(e.get("rot", 0.0))}
+	if fam == "opening":
+		# A door or window: its frame, leaf and glazing across the opening, in the wall's line.
+		var pts := model.points_of(pid)
+		if pts.size() < 2 or pts[0].distance_to(pts[1]) < 0.05:
+			return {}
+		var host: Dictionary = model.parts.get(str(e.get("host", "")), {})
+		var d := float(model.catalog.section(str(host.get("section", ""))).get("d", 0.1))
+		var h := float(e.get("h", spec.get("h", 2.0)))
+		var along := pts[1] - pts[0]
+		var size := Vector3(Vector2(along.x, along.z).length(), h, d)
+		return {"kind": kind, "size": size, "fit": size, "at": (pts[0] + pts[1]) * 0.5,
+				"rot": rad_to_deg(atan2(-along.z, along.x))}
+	return {}
 
 
 ## A part's exact shape for drawing, beyond its box: walls, beams, braces and openings at
@@ -182,7 +205,9 @@ static func model_of(model: BuildingModel, pid: String) -> Dictionary:
 ## {} when the box is the shape (columns, pads, fixtures).
 ## Walls are run on or stopped short at their ends so corners and tees join up as the design
 ## room draws them (`joins`, the design api's WallJoins; made here when not given).
-static func shape_of(model: BuildingModel, pid: String, joins: WallJoins = null) -> Dictionary:
+## Walls with doors and windows also carry "cuts": the wall as boxes round its openings.
+## `hosted` (host id -> opening ids) saves looking the openings up when given.
+static func shape_of(model: BuildingModel, pid: String, joins: WallJoins = null, hosted: Variant = null) -> Dictionary:
 	var e: Dictionary = model.parts.get(pid, {})
 	if e.is_empty():
 		return {}
@@ -206,7 +231,11 @@ static func shape_of(model: BuildingModel, pid: String, joins: WallJoins = null)
 				var dir := Vector3(b.x - a.x, 0, b.z - a.z).normalized()
 				a -= dir * ext.x
 				b += dir * ext.y
-				return {"obb": _box_along(Vector3(a.x, y0, a.z), Vector3(b.x, y0, b.z), d, h, 0.0)}
+				var out := {"obb": _box_along(Vector3(a.x, y0, a.z), Vector3(b.x, y0, b.z), d, h, 0.0)}
+				var holes := _holes(model, pid, Vector3(a.x, y0, a.z), dir, hosted)
+				if not holes.is_empty():
+					out.cuts = _cut_wall(Vector3(a.x, y0, a.z), dir, Vector2(a.x, a.z).distance_to(Vector2(b.x, b.z)), y0, h, d, holes)
+				return out
 			var w := float(sec.get("w", sec.get("dia", sec.get("d", 0.2))))
 			var depth := float(sec.get("d", w))
 			return {"obb": _box_along(a, b, w, depth, -depth * 0.5)}
@@ -236,6 +265,53 @@ static func shape_of(model: BuildingModel, pid: String, joins: WallJoins = null)
 				return {"faces": faces}
 			return _outline_shape(outline, top, maxf(float(sec.get("d", 0.0)), 0.05))
 	return {}
+
+
+## The openings in wall `pid` as spans along it from `start` (along `dir`) and up:
+## [Vector4(from, to, bottom y, top y)], sorted along the wall.
+static func _holes(model: BuildingModel, pid: String, start: Vector3, dir: Vector3, hosted: Variant) -> Array:
+	var ids: Array = []
+	if hosted is Dictionary:
+		ids = (hosted as Dictionary).get(pid, [])
+	else:
+		for oid: String in model.parts:
+			if str((model.parts[oid] as Dictionary).get("host", "")) == pid:
+				ids.append(oid)
+	var out: Array = []
+	for oid: String in ids:
+		var e: Dictionary = model.parts[oid]
+		var pts := model.points_of(oid)
+		if pts.size() < 2:
+			continue
+		var s0 := (pts[0] - start).dot(dir)
+		var s1 := (pts[1] - start).dot(dir)
+		var spec := model.catalog.kind(str(e.kind))
+		var bottom := minf(pts[0].y, pts[1].y)
+		out.append(Vector4(minf(s0, s1), maxf(s0, s1), bottom, bottom + float(e.get("h", spec.get("h", 2.0)))))
+	out.sort_custom(func(p: Vector4, q: Vector4) -> bool: return p.x < q.x)
+	return out
+
+
+## A wall `length` long from `start` along `dir`, `y0` to `y0 + h`, `d` thick, as boxes
+## round its `holes` (from _holes): full-height piers between them, and a piece under and
+## over each.
+static func _cut_wall(start: Vector3, dir: Vector3, length: float, y0: float, h: float, d: float, holes: Array) -> Array:
+	var out: Array = []
+	var top := y0 + h
+	var at := 0.0
+	var piece := func(s0: float, s1: float, lo: float, hi: float) -> void:
+		if s1 - s0 > 0.01 and hi - lo > 0.01:
+			out.append(_box_along(start + dir * s0 + Vector3(0, lo - start.y, 0),
+					start + dir * s1 + Vector3(0, lo - start.y, 0), d, hi - lo, 0.0))
+	for hv: Vector4 in holes:
+		var s0 := clampf(hv.x, at, length)
+		var s1 := clampf(hv.y, s0, length)
+		piece.call(at, s0, y0, top)
+		piece.call(s0, s1, y0, clampf(hv.z, y0, top))
+		piece.call(s0, s1, clampf(hv.w, y0, top), top)
+		at = maxf(at, s1)
+	piece.call(at, length, y0, top)
+	return out
 
 
 ## A box `width` across and `height` tall along the line a-b, its bottom at `lift` (m)

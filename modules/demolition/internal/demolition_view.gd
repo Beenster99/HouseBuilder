@@ -249,6 +249,10 @@ func _material(family: String) -> StandardMaterial3D:
 	return m
 
 
+## Placed models swap to a plain box beyond this many metres (or eight times their size).
+const MODEL_LOD := 60.0
+
+
 func _make_chunk(p: Dictionary, index: int, box: AABB) -> RigidBody3D:
 	var body := RigidBody3D.new()
 	body.name = "%s_%d" % [str(p.id).replace(":", "_"), index]
@@ -263,12 +267,23 @@ func _make_chunk(p: Dictionary, index: int, box: AABB) -> RigidBody3D:
 	bs.size = size
 	shape.shape = bs
 	body.add_child(shape)
-	var mesh := MeshInstance3D.new()
-	var bm := BoxMesh.new()
-	bm.size = size * 0.995
-	mesh.mesh = bm
-	mesh.material_override = _part_material(p)
-	body.add_child(mesh)
+	var look: Dictionary = p.get("model", {})
+	if not look.is_empty() and DemolitionRules.chunks(p, _chunk_size).size() == 1:
+		# Fit-out, doors and windows that come down whole: their library model on the body,
+		# the box kept as its collision shape.
+		var node := AssetLibrary.make_kind(str(look.kind), {"size": look.size, "fit": look.get("fit", look.size),
+				"family": "fixture", "lod": maxf(MODEL_LOD, (look.size as Vector3).length() * 8.0)})
+		node.name = "Model"
+		node.position = (look.at as Vector3) - box.get_center()
+		node.rotation.y = deg_to_rad(float(look.get("rot", 0.0)))
+		body.add_child(node)
+	else:
+		var mesh := MeshInstance3D.new()
+		var bm := BoxMesh.new()
+		bm.size = size * 0.995
+		mesh.mesh = bm
+		mesh.material_override = _part_material(p)
+		body.add_child(mesh)
 	body.position = box.get_center()
 	_building_root.add_child(body)
 	return body
@@ -669,6 +684,12 @@ func _refresh_preview() -> void:
 			for c in body.get_children():
 				if c is MeshInstance3D:
 					(c as MeshInstance3D).material_override = mat
+				elif c.name == "Model":
+					# A library model: the game's look, or all in the preview colour when doomed.
+					AssetLibrary.apply_look(c)
+					if doomed.has(id):
+						for mi in c.find_children("*", "MeshInstance3D", true, false):
+							(mi as MeshInstance3D).material_override = hot
 
 
 ## The part under the mouse, or "".

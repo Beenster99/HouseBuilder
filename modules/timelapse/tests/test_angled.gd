@@ -14,6 +14,7 @@ func run_tests() -> void:
 	var b := dir * 6.0
 	var wid := str(m.apply(BuildingCommands.place_part("wall_loadbearing", 0, {"a": [0, 0, 0], "b": [b.x, 0, b.z]}, "masonry")).do.entry.id)
 	var sid := str(m.apply(BuildingCommands.place_part("slab", 0, {"outline": [[0, 0], [8, 0], [0, 6]]})).do.entry.id)
+	var win := str(m.apply(BuildingCommands.place_opening("window_medium", wid, 3.0)).do.entry.id)
 	# An L corner away from the rest: the walls must join up, not overlap or leave a notch.
 	var c1 := str(m.apply(BuildingCommands.place_part("wall_loadbearing", 0, {"a": [20, 0, 20], "b": [26, 0, 20]}, "masonry")).do.entry.id)
 	var c2 := str(m.apply(BuildingCommands.place_part("wall_loadbearing", 0, {"a": [26, 0, 20], "b": [26, 0, 26]}, "masonry")).do.entry.id)
@@ -111,8 +112,29 @@ func run_tests() -> void:
 	add_child(view)
 	await frames(2)
 	var wm := view._pieces[wid].mesh as MeshInstance3D
-	check(wm.transform.basis.x.normalized().dot(dir) > 0.999, "the timelapse draws the wall at its angle")
+	var inv := (wall.shape.obb as Transform3D).affine_inverse()
+	var inside := true
+	var wv: PackedVector3Array = wm.mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX]
+	for v in wv:
+		var q := inv * (wm.transform * v)
+		if absf(q.x) > 0.501 or absf(q.y) > 0.501 or absf(q.z) > 0.501:
+			inside = false
+	check(inside and wv.size() > 0, "the timelapse draws the wall at its angle")
+	check((wall.shape.get("cuts", []) as Array).size() >= 3, "round its window: %d pieces" % (wall.shape.get("cuts", []) as Array).size())
+	var hole_free := true
+	var win_mid: Vector3 = view._pieces[win].pivot.global_position + Vector3(0, 0.5, 0)
+	for xf: Transform3D in wall.shape.cuts:
+		var q := xf.affine_inverse() * win_mid
+		if absf(q.x) < 0.5 and absf(q.y) < 0.5 and absf(q.z) < 0.5:
+			hole_free = false
+	check(hole_free, "leaving the window's hole open")
 	check(view._pieces[sid].mesh.mesh is ArrayMesh, "and the slab as its outline")
+	# A window in the angled wall: its library model, turned to the wall's line.
+	var wp: Dictionary = view._pieces.get(win, {})
+	check(wp.has("meshes") and (wp.meshes as Array).size() > 1, "the window builds as its library model, not a box")
+	if wp.has("meshes"):
+		var wn := wp.pivot as Node3D
+		check(absf(wn.global_transform.basis.x.normalized().dot(dir)) > 0.99, "lined up with its angled wall")
 	if jid != "":
 		# A library object (the jumbo jet) builds as its own model, not its box.
 		var jet: Dictionary = view._pieces[jid]

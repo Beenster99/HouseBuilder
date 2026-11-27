@@ -35,6 +35,18 @@ func run_tests() -> void:
 	var fall := bus.predicted()
 	check(slab in fall and "p9" in fall, "without its walls the floor and the window fall: %s" % fall)
 	check(not walls.has(fall[0]) if not fall.is_empty() else true, "charged walls are not listed")
+	# The window comes down whole: its library model on the body, its box the collision.
+	var view: Node3D = load("res://modules/demolition/internal/demolition_view.tscn").instantiate()
+	add_child(view)
+	await frames(2)
+	var bodies: Array = view._chunks.get("p9", [])
+	var has_model := false
+	for b: RigidBody3D in bodies:
+		var n := b.get_node_or_null("Model")
+		has_model = has_model or (n != null and n.find_children("*", "MeshInstance3D", true, false).size() > 1)
+	check(bodies.size() == 1 and has_model, "the window is drawn as its library model")
+	view.queue_free()
+	await frames(1)
 	bus.apply_net_snapshot({})
 	check(bus.model == null, "clearing the site forgets the model")
 	building.model = was

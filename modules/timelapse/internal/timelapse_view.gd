@@ -263,10 +263,16 @@ func _add_piece(t: Dictionary) -> void:
 		_ghost_root.add_child(ghost)
 
 
-## A library object (an airliner, a car, a desk) as its own model, fading in like the rest.
+## Placed models swap to a plain box beyond this many metres (or eight times their size).
+const MODEL_LOD := 60.0
+
+
+## A placed part with a library model (an airliner, a desk, a door) drawn as that model,
+## fading in like the rest.
 func _add_model(t: Dictionary, look: Dictionary) -> void:
 	for ghost: bool in [false, true]:
-		var node := AssetLibrary.make_kind(str(look.kind), {"size": look.size, "family": "fixture"})
+		var node := AssetLibrary.make_kind(str(look.kind), {"size": look.size, "fit": look.get("fit", look.size), "family": "fixture",
+				"lod": maxf(MODEL_LOD, (look.size as Vector3).length() * 8.0)})
 		node.name = "Model_" + str(t.id)
 		node.position = look.at
 		node.rotation.y = deg_to_rad(float(look.rot))
@@ -291,7 +297,10 @@ func _add_shaped(t: Dictionary, shape: Dictionary) -> void:
 	var pivot := Node3D.new()
 	var mesh := MeshInstance3D.new()
 	var m: Mesh
-	if shape.has("obb"):
+	if shape.has("cuts"):
+		# A wall with doors and windows: boxes round its openings, as one mesh.
+		m = boxes_mesh(shape.cuts)
+	elif shape.has("obb"):
 		var bm := BoxMesh.new()
 		m = bm
 		mesh.transform = shape.obb
@@ -349,6 +358,17 @@ static func slab_mesh(outline: PackedVector2Array, top: float, thick: float) -> 
 		var q1 := Vector3(q.x, top, q.y)
 		_face(st, p0, q0, q1, out)
 		_face(st, p0, q1, p1, out)
+	st.generate_normals()
+	return st.commit()
+
+
+## Unit boxes placed by `boxes` (Transform3D each) as one mesh.
+static func boxes_mesh(boxes: Array) -> ArrayMesh:
+	var st := SurfaceTool.new()
+	st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	var unit := BoxMesh.new()
+	for xf: Transform3D in boxes:
+		st.append_from(unit, 0, xf)
 	st.generate_normals()
 	return st.commit()
 
