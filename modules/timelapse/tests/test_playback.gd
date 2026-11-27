@@ -60,6 +60,27 @@ func run_tests() -> void:
 		if (view._pieces[id].pivot as Node3D).visible:
 			shown += 1
 	check(shown > 5 and shown < bus.tasks().size(), "halfway, some parts are built: %d" % shown)
+	# Building parts fade in at full size; site work spreads across the plot.
+	var full_size := true
+	for id: String in view._pieces:
+		var piece: Dictionary = view._pieces[id]
+		if not (piece.pivot as Node3D).visible or not view.fades(piece.task):
+			continue
+		full_size = full_size and (piece.pivot as Node3D).scale.is_equal_approx(Vector3.ONE)
+	check(full_size, "building parts appear at full size")
+	var mid := 0.0
+	for t: Dictionary in bus.tasks():
+		if view.fades(t):
+			mid = (float(t.start) + float(t.end)) / 2.0
+			break
+	bus.request_seek(mid)
+	await frames(2)
+	var fading := 0
+	for id: String in view._pieces:
+		var a := (view._pieces[id].mesh as MeshInstance3D).transparency
+		if view.fades(view._pieces[id].task) and a > 0.05 and a < 0.95:
+			fading += 1
+	check(fading >= 1, "a part being built is part way faded in: %d" % fading)
 	var date := view.find_child("Date", true, false) as Label
 	check(date != null and date.text.contains("day"), "HUD shows the date and day: %s" % (date.text if date else ""))
 	var money := view.find_child("Money", true, false) as Label
@@ -71,6 +92,10 @@ func run_tests() -> void:
 		if (view._pieces[id].pivot as Node3D).visible:
 			shown += 1
 	check(shown == bus.tasks().size(), "at the end everything is built")
+	var solid := true
+	for id: String in view._pieces:
+		solid = solid and is_zero_approx((view._pieces[id].mesh as MeshInstance3D).transparency)
+	check(solid, "at the end every part is solid")
 	view.queue_free()
 	await frames(1)
 

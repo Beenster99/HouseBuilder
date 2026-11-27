@@ -226,6 +226,12 @@ func _material(t: Dictionary, ghost: bool) -> BaseMaterial3D:
 	return m
 
 
+## Whether a task fades in (beams, columns, walls, floors, roofs and the rest of the
+## building) rather than spreading across the plot (site clearance and landscaping).
+static func fades(t: Dictionary) -> bool:
+	return t.stage != "site" and t.stage != "landscape"
+
+
 func _add_piece(t: Dictionary) -> void:
 	var box: AABB = t.aabb
 	var size := box.size
@@ -287,11 +293,19 @@ func _process(_delta: float) -> void:
 		pivot.visible = p > 0.0
 		if p <= 0.0:
 			continue
+		var mesh := piece.mesh as MeshInstance3D
+		if fades(t):
+			# Building parts fade in at full size over their build time.
+			mesh.transparency = 1.0 - smoothstep(0.0, 1.0, p)
+			if p < 1.0:
+				working.append((t.aabb as AABB).get_center())
+			continue
+		# Site work spreads across the plot.
 		var s := Vector3.ONE
 		s[int(piece.axis)] = maxf(p, 0.001)
 		pivot.scale = s
 		var busy: bool = p < 1.0 and t.stage != "site" and t.stage != "landscape"
-		(piece.mesh as MeshInstance3D).material_override = _working_mat if busy else _material(t, false)
+		mesh.material_override = _working_mat if busy else _material(t, false)
 		if busy:
 			working.append((t.aabb as AABB).get_center())
 	_aim_crane(working)
