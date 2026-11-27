@@ -547,8 +547,6 @@ def special(what="helipad"):
 					kit.box((0.02, 0.005, 0.01), ((i - (n - 1) / 2) * 0.6 + 0.15, (1.07 if n > 1 else 0.6) / 2 + 0.01, 0.4 + j * 0.25), "light_emitter", "led")
 		elif what in ("hot_desk_lockers", "coat_lockers"):
 			carcass(1.2, 0.45, 1.8 if what == "coat_lockers" else 1.2, "laminate_white", doors=4, plinth=0.1)
-			if what == "hot_desk_lockers":
-				carcass(1.2, 0.45, 0.6, "laminate_grey", doors=4, plinth=0.0)
 		elif what == "sofa_pod":
 			with kit.hollow(0.3):
 				kit.rounded_box((2.0, 0.2, 1.4), (0, -0.4, 0.7), "fabric_blue", "high_back", radius=0.05)

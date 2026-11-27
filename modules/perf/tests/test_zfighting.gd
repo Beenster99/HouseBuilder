@@ -36,23 +36,20 @@ const KNOWN := {
 const ASSET_STEP := 25
 ## Models allowed a fight (owner, or why) (a fight within one surface and material can't flicker).
 const KNOWN_ASSETS := {
-	"context.church.wal_saddle": "assets: a 10 cm² sliver of dark glass over itself, same surface and material",
-	# Found in the realistic look 2026-11-27 (the clean look draws them in one white): remove each when fixed.
-	"context.church.sco_free": "assets",
-	"context.dales.house_10": "assets",
-	"context.farm.dales_barn": "assets",
+	# Left after the asset build's settle() pass and a full realistic-look scan, 2026-11-27: small
+	# slivers (the largest 0.28 m²) on imported Torque Shed models. Remove each when fixed.
+	"context.farm.grey_store": "assets",
+	"context.industrial.big_box": "assets",
+	"context.industrial.blue_depot": "assets",
+	"context.industrial.office_annex": "assets",
+	"context.industrial.retail_row": "assets",
+	"context.industrial.solar_curve": "assets",
 	"context.industrial.supermarket": "assets",
-	"fixture.locker": "assets",
-	"industrial.workshop.repair_pro": "assets",
-	"industrial.yard.cone": "assets",
-	"people.staff.teacher": "assets",
-	"plant.cabin.toilet_green": "assets",
-	"plant.excavator.midi": "assets",
-	"services.plant.pump_set": "assets",
-	"street.furniture.info_board": "assets",
-	"street.traffic.signal_three_aspect": "assets",
-	"vehicle.car.dales_1": "assets",
-	"vehicle.car.wreck": "assets",
+	"context.industrial.trade_terrace": "assets",
+	"context.industrial.workshop": "assets",
+	"street.furniture.post_box_c": "assets",
+	"street.furniture.post_box_d": "assets",
+	"vehicle.towed.touring_caravan_b": "assets",
 }
 
 var building: BuildingBus
