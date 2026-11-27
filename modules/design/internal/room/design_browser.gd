@@ -58,7 +58,7 @@ func _list(title: String, pick: Callable) -> ItemList:
 	l.name = title
 	l.focus_mode = FOCUS_NONE
 	l.size_flags_vertical = SIZE_EXPAND_FILL
-	l.add_theme_font_size_override("font_size", 14)
+	l.add_theme_font_size_override("font_size", 12)
 	l.item_clicked.connect(func(i: int, _at: Vector2, _b: int) -> void: pick.call(i))
 	add_child(l)
 	return l

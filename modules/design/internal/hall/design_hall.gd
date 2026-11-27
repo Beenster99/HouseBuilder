@@ -70,7 +70,8 @@ var boards: Dictionary = {}  # wall id -> HallWallBoard
 var mode := "room"
 var fullscreen: Control
 var full_from := {}
-var _hint: Label
+## The help bar along the bottom (keys here, what you are looking at), as in the designer.
+var help: DesignHelpBar
 var _cross: Control
 var _bounds: DesignBounds
 var _designer_opened := false
@@ -441,16 +442,26 @@ func _process(delta: float) -> void:
 				float(Input.is_physical_key_pressed(KEY_K)) - float(Input.is_physical_key_pressed(KEY_I)))
 		if spin != 0.0 or grow != 0.0 or pan != Vector2.ZERO:
 			holo.call("nudge", spin * TURN_RATE * delta, pow(ZOOM_RATE, grow * delta), pan * PAN_RATE * delta)
-	_hint.visible = mode == "room" and not HudSlots.pointer_claimed()
+	help.visible = mode == "room" and not HudSlots.pointer_claimed()
 	_cross.visible = mode == "room"
-	if mode == "room":
+	if mode == "room" and help.visible:
+		var f := Keys.prompt(Keys.INTERACT)
 		var wall := aimed_wall()
 		if wall != "":
-			_hint.text = "LMB  press < or > to change a panel      %s  full screen" % Keys.prompt(Keys.INTERACT)
+			help.call("set_keys", DesignHelpBar.keys_text([["LMB", "< or > changes the panel"], [f, "full screen"],
+					["MMB", "ping it"], ["Esc", "menu"]]))
+			var board: Node = boards[wall]
+			var i := int(board.call("panel_at", (walls[wall] as HallScreen).pointer_px))
+			if i >= 0:
+				var view := str((board.get("panels") as Array)[i].view)
+				help.hover("Screen: %s · %s wall" % [HallChannels.title_of(self, view), wall])
 		elif near:
-			_hint.text = "%s  Design at the holotable      ← →  turn   ↑ ↓  zoom   I J K L  pan" % Keys.prompt(Keys.INTERACT)
+			help.call("set_keys", DesignHelpBar.keys_text([[f, "design at the holotable"], ["← →", "turn"], ["↑ ↓", "zoom"],
+					["I J K L", "pan"], ["MMB", "ping"]]))
+			help.hover("Holotable: the live model everyone shares")
 		else:
-			_hint.text = "WASD walk   Shift run   %s use   Esc menu" % Keys.prompt(Keys.INTERACT)
+			help.call("set_keys", DesignHelpBar.keys_text([["WASD", "walk"], ["Shift", "run"], [f, "use"], ["MMB", "ping"],
+					["Esc", "menu"]]))
 
 
 # --- The room ---------------------------------------------------------------------------
@@ -570,16 +581,8 @@ func _build_hud() -> void:
 	_cross = Cross.new()
 	_cross.set_anchors_and_offsets_preset(Control.PRESET_CENTER)
 	layer.add_child(_cross)
-	_hint = T.label("", "body", 17, T.TEXT)
-	_hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_hint.set_anchors_and_offsets_preset(Control.PRESET_CENTER_BOTTOM)
-	_hint.offset_top = -60
-	_hint.offset_bottom = -24
-	_hint.offset_left = -500
-	_hint.offset_right = 500
-	_hint.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.8))
-	_hint.add_theme_constant_override("outline_size", 6)
-	layer.add_child(_hint)
+	help = DesignHelpBar.attach(layer, 200, 200, 12)
+	Graphics.changed.connect(help.restyle)
 
 
 ## A small dot in the middle of the screen to aim with.

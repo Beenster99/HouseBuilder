@@ -3,15 +3,16 @@ extends Control
 ## the top bar (crew, level, grid, 2D/3D, undo, redo, save, load, other modules' actions),
 ## the left dock (tools, the tool's options, and the Rooms / Components / Levels browser), the
 ## right dock (a small 3D view, the View's panel, other modules' live assessment windows, the
-## cost), an optional section along the bottom of the middle, and the status line. Small
-## text, so the columns hold a lot.
+## design summary, the cost), an optional section along the bottom of the middle, and the
+## help bar along the bottom. Small text, so the columns hold a lot; each block of information
+## is its own framed card with a title bar (click the title to fold it).
 
 const PANEL_W := 300
 ## Height taken by the two-row top bar, px.
-const TOP_H := 108
+const TOP_H := 96
 const COST_W := 340
 ## Body text size, px.
-const FONT := 14
+const FONT := 12
 ## The small 3D view's height, and the section's, px.
 const MINI_H := 230
 const SECTION_H := 280
@@ -27,7 +28,11 @@ var _level_label: Label
 var _view_button: Button
 var _grid_pick: OptionButton
 var _cost: RichTextLabel
-var _status: Label
+## The help bar along the bottom: keys for the mode, what the pointer is over, messages.
+var help: DesignHelpBar
+var _summary: RichTextLabel
+var _hover_age := 0.0
+var _cards: Dictionary = {}  # id -> Callable that repaints the card
 var _options: VBoxContainer
 var _actions: HBoxContainer
 ## The top bar's right end: the Walk inside button (from the walk module's action).
@@ -38,6 +43,9 @@ var _overlay_slot: VBoxContainer
 var _side_slot: VBoxContainer
 ## The Rooms / Components / Levels tabs under the tools.
 var browser: TabContainer
+## The left and right docks (they move and roll up).
+var left_dock: PanelContainer
+var right_dock: PanelContainer
 ## Add rooms / Add objects, grouped and filtered, between the tools and the browser.
 var palette: VBoxContainer
 var _folded: Dictionary = {}
@@ -61,12 +69,12 @@ var _cost_age := 0.0
 const COST_EVERY := 0.25
 ## Rooms listed in the cost panel; the Rooms tab lists them all.
 const COST_ROOMS := 30
-var _status_age := 0.0
+var _hover_text := ""
+var _summary_dirty := true
 ## The whole design for the small views (every level, no plan cut).
 var mini: DesignMiniWorld
 var mini_3d: Control
 var _mini_box: Control
-var _mini_head: Button
 var section: Control
 var _section_box: Control
 var _section_toggle: CheckButton
@@ -136,9 +144,15 @@ func _process(delta: float) -> void:
 			_cost_dirty = not current
 			_book_rev = _book.revision
 			_refresh_cost()
-	_status_age += delta
-	if _status_age > 6.0 and _status.modulate.a > 0.0:
-		_status.modulate.a = maxf(0.0, _status.modulate.a - delta)
+	if _summary_dirty and is_inside_tree():
+		_summary_dirty = false
+		_refresh_summary()
+	_hover_age += delta
+	if _hover_age >= 0.1:
+		_hover_age = 0.0
+		_hover_text = _describe_hover()
+	if _hover_text != "":
+		help.hover(_hover_text)
 
 
 func _panel(min_w: int) -> PanelContainer:
@@ -156,6 +170,58 @@ func _button(text: String, press: Callable, tip := "") -> Button:
 	b.focus_mode = FOCUS_NONE
 	b.pressed.connect(press)
 	return b
+
+
+## A framed card: a title bar (click it to fold the card) over its body, so each block of
+## information stands apart. `tip` says what the card is for (the help bar shows it).
+func card(title: String, body: Control, id: String, tip := "") -> PanelContainer:
+	var p := PanelContainer.new()
+	p.name = "Card_" + id
+	p.add_theme_stylebox_override("panel", BsxTheme.card_style(6.0, 0.9))
+	p.size_flags_vertical = body.size_flags_vertical
+	p.size_flags_stretch_ratio = body.size_flags_stretch_ratio
+	p.mouse_filter = MOUSE_FILTER_PASS
+	var v := VBoxContainer.new()
+	v.add_theme_constant_override("separation", 3)
+	p.add_child(v)
+	var head := Button.new()
+	head.name = "Title"
+	head.flat = true
+	head.focus_mode = FOCUS_NONE
+	head.alignment = HORIZONTAL_ALIGNMENT_LEFT
+	head.tooltip_text = tip
+	head.add_theme_font_size_override("font_size", 12)
+	head.add_theme_color_override("font_color", BsxTheme.ACCENT)
+	head.add_theme_color_override("font_hover_color", BsxTheme.ACCENT)
+	head.add_theme_constant_override("h_separation", 4)
+	var hb := StyleBoxFlat.new()
+	hb.bg_color = Color(BsxTheme.ACCENT, 0.1)
+	hb.content_margin_left = 4
+	hb.content_margin_top = 1
+	hb.content_margin_bottom = 1
+	head.add_theme_stylebox_override("normal", hb)
+	head.add_theme_stylebox_override("hover", hb)
+	head.add_theme_stylebox_override("pressed", hb)
+	v.add_child(head)
+	v.add_child(body)
+	var paint := func() -> void:
+		var folded: bool = _folded.get(id, false)
+		head.text = ("▸  " if folded else "▾  ") + title.to_upper()
+		body.visible = not folded
+		p.size_flags_vertical = SIZE_FILL if folded else body.size_flags_vertical
+	head.pressed.connect(func() -> void:
+		_folded[id] = not _folded.get(id, false)
+		paint.call())
+	_cards[id] = paint
+	paint.call()
+	return p
+
+
+## Folds or opens a card by id (tests, keys).
+func fold_card(id: String, folded: bool) -> void:
+	_folded[id] = folded
+	if _cards.has(id) and (_cards[id] as Callable).is_valid():
+		(_cards[id] as Callable).call()
 
 
 # --- Docks, sections and the mode banner ---------------------------------------------------
@@ -184,7 +250,7 @@ func dock_header(p: PanelContainer, dock: VBoxContainer, title: String, id: Stri
 	bar.tooltip_text = "Drag to move this panel"
 	var row := HBoxContainer.new()
 	bar.add_child(row)
-	var l := BsxTheme.hud_label("⠿  " + title, 14, BsxTheme.ACCENT)
+	var l := BsxTheme.hud_label("⠿  " + title, 13, BsxTheme.ACCENT)
 	l.size_flags_horizontal = SIZE_EXPAND_FILL
 	row.add_child(l)
 	var home := _button("⟲", func() -> void: reset_dock(p, id), "Put this panel back where it was")
@@ -327,6 +393,8 @@ func refresh_banner() -> void:
 	_banner.add_theme_stylebox_override("panel", sb)
 	_banner_text.text = "[color=#%s][b]%s[/b][/color]   [color=#%s]%s[/color]" % [colour.to_html(false), head,
 			BsxTheme.TEXT.to_html(false), how]
+	if help:
+		help.set_keys(DesignHelpBar.keys_text(mode_keys()))
 	_banner.reset_size()
 	_banner.position.x = (size.x - _banner.size.x) * 0.5
 
@@ -506,7 +574,8 @@ func show_overlay_panel(id: String) -> void:
 	if make.is_valid():
 		var panel: Variant = make.call()
 		if panel is Control:
-			_overlay_slot.add_child(panel)
+			_overlay_slot.add_child(card("View: " + str(o.get("label", id)), panel as Control, "overlay",
+					"The %s view's own panel" % o.get("label", id)))
 
 
 func refresh_bar() -> void:
@@ -541,25 +610,25 @@ func _build_tools() -> void:
 	var dock := VBoxContainer.new()
 	p.add_child(dock)
 	dock_header(p, dock, "DESIGN TOOLS", "left")
+	dock.add_theme_constant_override("separation", 6)
 	var scroll := ScrollContainer.new()
 	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	scroll.size_flags_vertical = SIZE_EXPAND_FILL
-	scroll.size_flags_stretch_ratio = 1.3
-	dock.add_child(scroll)
-	dock.add_child(section_title("ADD TO THE DESIGN", "pick a room type or an object, then draw it"))
+	scroll.size_flags_stretch_ratio = 1.1
+	dock.add_child(card("Tools", scroll, "tools", "Pick a tool: 1 Select · 2 Room · 3 Wall … (keys); its options show under the buttons"))
 	palette = preload("res://modules/design/internal/room/design_palette.gd").new()
 	palette.name = "Palette"
 	palette.set("room", room)
-	dock.add_child(palette)
-	dock.add_child(section_title("IN THIS DESIGN", "click to select · right-click a part for Edit / Delete"))
+	dock.add_child(card("Add to the design", palette, "add", "Pick a room type or an object, then draw it on the plan"))
 	browser = preload("res://modules/design/internal/room/design_browser.gd").new()
 	browser.name = "Browser"
 	browser.set("room", room)
-	dock.add_child(browser)
+	browser.size_flags_vertical = SIZE_EXPAND_FILL
+	dock.add_child(card("In this design", browser, "browser", "Everything in the design: click to select · right-click a part for Edit / Delete"))
+	left_dock = p
 	var col := VBoxContainer.new()
 	col.size_flags_horizontal = SIZE_EXPAND_FILL
 	scroll.add_child(col)
-	col.add_child(section_title("TOOLS", "1 Select · 2 Room · 3 Wall … (keys)"))
 	var grid := GridContainer.new()
 	grid.columns = 2
 	col.add_child(grid)
@@ -584,13 +653,6 @@ func _build_tools() -> void:
 	col.add_child(HSeparator.new())
 	_options = VBoxContainer.new()
 	col.add_child(_options)
-	col.add_child(HSeparator.new())
-	var keys := Label.new()
-	keys.text = "Left drag: use tool\nRight drag: orbit · Middle: pan · Wheel: zoom\nMiddle click: ping · Hold middle: notes wheel · Tab 2D/3D · PgUp/PgDn level\nDel delete · Ctrl+Z undo · Ctrl+Y redo · R turn · V realistic look · Esc cancel"
-	keys.add_theme_font_size_override("font_size", 12)
-	keys.modulate = BsxTheme.MUTED
-	keys.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	col.add_child(keys)
 
 
 func _refresh_tools() -> void:
@@ -724,46 +786,51 @@ func _build_cost() -> void:
 	var dock := VBoxContainer.new()
 	p.add_child(dock)
 	dock_header(p, dock, "VIEWS AND CHECKS", "right")
+	dock.add_theme_constant_override("separation", 6)
+	right_dock = p
 	# The small 3D view on top: the whole building, whatever the middle is showing.
-	_mini_head = Button.new()
-	_mini_head.flat = true
-	_mini_head.focus_mode = FOCUS_NONE
-	_mini_head.alignment = HORIZONTAL_ALIGNMENT_LEFT
-	_mini_head.add_theme_font_size_override("font_size", 13)
-	_mini_head.pressed.connect(func() -> void: show_mini_3d(not _mini_box.visible))
-	dock.add_child(_mini_head)
 	_mini_box = PanelContainer.new()
 	_mini_box.add_theme_stylebox_override("panel", StyleBoxEmpty.new())
 	_mini_box.custom_minimum_size.y = MINI_H
-	dock.add_child(_mini_box)
 	var m := ModelChannel.new()
 	m.setup(mini, "3d")
 	m.distance = 0.75
 	m.name = "Mini3D"
-	m.tooltip_text = "Drag to turn, wheel to zoom"
+	m.tooltip_text = "The whole building, every level: drag to turn, wheel to zoom, middle-click to ping"
 	mini_3d = m
 	_mini_box.add_child(m)
-	show_mini_3d(true)
-	# Under it the dock scrolls as one: the View's panel, the live windows, then the cost.
+	dock.add_child(card("3D view", _mini_box, "mini", "The whole building, every level, whatever the middle shows"))
+	# Under it the dock scrolls as one: the summary, the View's panel, the live windows, the cost.
 	var scroll := ScrollContainer.new()
 	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	scroll.size_flags_vertical = SIZE_EXPAND_FILL
 	dock.add_child(scroll)
 	var col := VBoxContainer.new()
 	col.size_flags_horizontal = SIZE_EXPAND_FILL
+	col.add_theme_constant_override("separation", 6)
 	scroll.add_child(col)
+	_summary = RichTextLabel.new()
+	_summary.name = "Summary"
+	_summary.bbcode_enabled = true
+	_summary.scroll_active = false
+	_summary.fit_content = true
+	_summary.mouse_filter = MOUSE_FILTER_PASS
+	col.add_child(card("Design summary", _summary, "summary", "The design at a glance: size, parts, cost, checks and what you have selected"))
 	_overlay_slot = VBoxContainer.new()
 	_overlay_slot.visible = false
 	col.add_child(_overlay_slot)
 	_side_slot = VBoxContainer.new()
 	_side_slot.name = "SidePanels"
 	_side_slot.visible = false
+	_side_slot.add_theme_constant_override("separation", 6)
 	col.add_child(_side_slot)
 	_cost = RichTextLabel.new()
 	_cost.bbcode_enabled = true
 	_cost.scroll_active = false
 	_cost.fit_content = true
-	col.add_child(_cost)
+	_cost.mouse_filter = MOUSE_FILTER_PASS
+	col.add_child(card("Cost", _cost, "cost", "What the design costs, live: by element, by level and by room"))
+	_session.presence.selection_changed.connect(func(_p: int, _ids: PackedStringArray) -> void: _summary_dirty = true)
 
 
 ## Rebuilds the other modules' always-on windows (DesignBus.register_panel), each under a
@@ -777,28 +844,13 @@ func build_side_panels() -> void:
 	for p: Dictionary in list:
 		var id := str(p.id)
 		var body: Variant = (p.make as Callable).call(_model) if (p.make as Callable).is_valid() else null
-		var head := Button.new()
-		head.flat = true
-		head.alignment = HORIZONTAL_ALIGNMENT_LEFT
-		head.add_theme_font_size_override("font_size", 13)
-		_side_slot.add_child(head)
-		var paint := func() -> void:
-			head.text = ("▸ " if _folded.get(id, false) else "▾ ") + str(p.title)
-			if body is Control:
-				(body as Control).visible = not _folded.get(id, false)
-		head.pressed.connect(func() -> void:
-			_folded[id] = not _folded.get(id, false)
-			paint.call())
 		if body is Control:
-			_side_slot.add_child(body as Control)
-		paint.call()
-		_side_slot.add_child(HSeparator.new())
+			_side_slot.add_child(card(str(p.title), body as Control, "panel:" + id, "%s: live, updated as the design changes" % p.title))
 
 
 ## Folds or opens a side panel (tests, keys).
 func fold_side_panel(id: String, folded: bool) -> void:
-	_folded[id] = folded
-	build_side_panels()
+	fold_card("panel:" + id, folded)
 
 
 func side_panel_count() -> int:
@@ -806,13 +858,14 @@ func side_panel_count() -> int:
 
 
 func _refresh_cost() -> void:
-	_cost.text = DesignCosts.bbcode(_book.summary(), COST_ROOMS, 22)
+	var sum := _book.summary()
+	_cost.text = DesignCosts.bbcode(sum, COST_ROOMS, 18)
+	_refresh_summary(sum)
 
 
 ## Folds or opens the small 3D view at the top of the right dock.
 func show_mini_3d(on: bool) -> void:
-	_mini_box.visible = on
-	_mini_head.text = ("▾ " if on else "▸ ") + "3D VIEW"
+	fold_card("mini", not on)
 
 
 # --- Section ----------------------------------------------------------------------------
@@ -845,23 +898,115 @@ func show_section(on: bool) -> void:
 # --- Status line ------------------------------------------------------------------------
 
 func _build_status() -> void:
-	var p := _panel(0)
-	p.set_anchors_and_offsets_preset(PRESET_BOTTOM_WIDE)
-	p.offset_left = 16 + PANEL_W
-	p.offset_right = -16 - COST_W
-	p.offset_bottom = -8
-	p.offset_top = -40
-	p.mouse_filter = MOUSE_FILTER_IGNORE
-	add_child(p)
-	_status = Label.new()
-	_status.clip_text = true
-	p.add_child(_status)
+	help = DesignHelpBar.attach(self, 8, 8, 6)
+	Graphics.changed.connect(help.restyle)
 
 
 func _show_status(text: String, warn: bool) -> void:
-	_status.text = text
-	_status.modulate = BsxTheme.WARN if warn else BsxTheme.TEXT
-	_status_age = 0.0
+	help.say(text, warn)
+
+
+## What the keys and mouse do in this player's mode now: [[key, what], ...].
+func mode_keys() -> Array:
+	var out: Array = []
+	if bool(room.call("stamping")):
+		out = [["LMB", "place"], ["R", "turn"], ["Esc", "stop"]]
+	else:
+		match _session.tool:
+			"select":
+				if _session.presence.my_selection().is_empty():
+					out = [["LMB", "select"], ["Shift", "add"], ["LMB drag", "pan"], ["RMB", "Edit / Delete menu"]]
+				else:
+					out = [["LMB drag", "move"], ["Handles", "reshape"], ["Del", "delete"], ["RMB", "Edit / Delete"], ["Esc", "deselect"]]
+			"room", "slab", "roof", "raft":
+				out = [["LMB drag", "size it"], ["release", "draw it"], ["Esc", "Select"]]
+			"wall", "partition", "beam", "footing", "stair":
+				out = [["LMB", "each point"], ["RMB", "end the run"], ["Esc", "Select"]]
+			"measure":
+				out = [["LMB", "two points"], ["Esc", "Select"]]
+			_:
+				out = [["LMB", "place"], ["R", "turn"], ["Esc", "Select"]]
+	out.append_array([["Wheel", "zoom"], ["RMB drag", "orbit"], ["MMB", "ping / hold: wheel"], ["Tab", "2D/3D"],
+			["PgUp/Dn", "level"], ["Ctrl+Z", "undo"]])
+	return out
+
+
+## What the pointer is over on the plan or model: a room's size, a part's kind and material.
+func _describe_hover() -> String:
+	if _session.cursor == null or bool(room.call("_pointer_over_hud")):
+		return ""
+	var id := _session.pick(_session.cursor as Vector3)
+	if id == "":
+		return "%s · grid %.2f m" % [_where(_session.cursor as Vector3), _session.grid]
+	return describe(id)
+
+
+func _where(at: Vector3) -> String:
+	return "x %.2f  z %.2f m" % [at.x, at.z]
+
+
+## One line on an entry: "Kitchen · room · 12.4 m² (min 9) · Ground floor".
+func describe(id: String) -> String:
+	var bits := PackedStringArray([_session.label_of(id)])
+	if _model.rooms.has(id):
+		var r: Dictionary = _model.rooms[id]
+		bits.append("room")
+		bits.append("%.1f m²" % BuildingModel.outline_area(r.get("outline", []) as Array))
+		bits.append(_level_name(int(r.get("level", 0))))
+	elif _model.parts.has(id):
+		var e: Dictionary = _model.parts[id]
+		var mat := str(e.get("material", ""))
+		if mat != "":
+			bits.append(str(_session.catalog.material(mat).get("label", mat)))
+		if e.has("a") and e.has("b"):
+			var a: Array = e.a
+			var b: Array = e.b
+			bits.append("%.2f m long" % Vector2(float(b[0]) - float(a[0]), float(b[2]) - float(a[2])).length())
+		bits.append(_level_name(int(e.get("level", 0))))
+	bits.append("right-click: Edit / Delete")
+	return " · ".join(bits)
+
+
+func _level_name(i: int) -> String:
+	if i < 0 or i >= _model.level_count():
+		return "level %d" % i
+	return str(_model.levels[i].get("name", "Level %d" % i))
+
+
+## The design at a glance, and what this player has selected.
+func _refresh_summary(sum: Dictionary = {}) -> void:
+	if _summary == null:
+		return
+	if sum.is_empty():
+		sum = _book.summary()
+	var dim := BsxTheme.MUTED.to_html(false)
+	var cur := str(sum.get("currency", ""))
+	var rows: Array = [
+		["Levels", str(_model.level_count())],
+		["Rooms", "%d · %.0f m²" % [(sum.get("rooms", []) as Array).size(), float(sum.get("floor_area", 0.0))]],
+		["Parts", str(_model.parts.size())],
+		["Cost", DesignCosts.money(float(sum.get("total", 0.0)), cur)],
+	]
+	if float(sum.get("floor_area", 0.0)) > 0.0:
+		rows.append(["per m²", DesignCosts.money(float(sum.total) / float(sum.floor_area), cur)])
+	var warn := 0
+	for n: Dictionary in sum.get("notes", []):
+		if bool(n.get("warn", false)):
+			warn += 1
+	var checks := "all clear" if warn == 0 else "%d to look at (see Cost)" % warn
+	rows.append(["Checks", "[color=#%s]%s[/color]" % [(BsxTheme.WARN if warn > 0 else Color(0.12, 0.55, 0.25)).to_html(false), checks]])
+	var t := "[table=2]"
+	for r: Array in rows:
+		t += "[cell][color=#%s]%s[/color]  [/cell][cell]%s[/cell]" % [dim, r[0], r[1]]
+	t += "[/table]"
+	var sel := _session.presence.my_selection()
+	if not sel.is_empty():
+		t += "\n[b]Selected[/b]  [color=#%s]%d[/color]\n" % [dim, sel.size()]
+		for i in mini(sel.size(), 4):
+			t += "%s\n" % describe(sel[i]).trim_suffix(" · right-click: Edit / Delete")
+		if sel.size() > 4:
+			t += "[color=#%s]and %d more[/color]\n" % [dim, sel.size() - 4]
+	_summary.text = t
 
 
 # --- Save and load ------------------------------------------------------------------------

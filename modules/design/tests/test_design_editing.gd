@@ -119,7 +119,21 @@ func run_tests() -> void:
 	check(banner.get_parsed_text().contains("SELECT MODE"), "the banner says Select mode: %s" % banner.get_parsed_text().left(40))
 	s.set_tool("wall")
 	check(banner.get_parsed_text().contains("WALL"), "and the tool otherwise")
-	var left := (hud.get("browser") as Node).get_parent().get_parent() as PanelContainer
+	var help: Control = hud.get("help")
+	check(help != null and help.is_visible_in_tree() and str(help.call("keys")).contains("Esc"),
+			"the help bar along the bottom says what the keys do")
+	help.call("say", "hello", false)
+	check(str(help.call("tip")) == "hello", "and shows messages in the same place")
+	var summary: RichTextLabel = (hud.get("_summary") as RichTextLabel)
+	hud.call("_refresh_summary")
+	check(summary.get_parsed_text().contains("Rooms") and summary.get_parsed_text().contains("Checks"),
+			"a design summary card: %s" % summary.get_parsed_text().left(60).replace("\n", " "))
+	check(summary.get_parent().get_parent() is PanelContainer, "each block of information is its own card")
+	hud.call("fold_card", "summary", true)
+	check(not summary.visible, "a card folds to its title")
+	hud.call("fold_card", "summary", false)
+	check(int(hud.get("theme").default_font_size) <= 12, "the designer's text is small")
+	var left := hud.get("left_dock") as PanelContainer
 	var dock := left.get_child(0) as VBoxContainer
 	hud.call("roll_dock", left, dock, "left", true)
 	check(not dock.get_child(1).visible and left.offset_bottom - left.offset_top <= 40, "a dock rolls up to its bar")
