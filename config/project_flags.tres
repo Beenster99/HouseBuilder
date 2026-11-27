@@ -51,6 +51,8 @@ flags = {
 "perf.desync_check": true,
 "walk": true,
 "walk.inside": true,
+"town": true,
+"town.map": true,
 "kits": true,
 "kits.modules": true,
 "kits.preview": true,
