@@ -10,7 +10,7 @@ const OUT := 0
 const IN := 1
 const NO_GO := 2
 ## Grids grow coarser on big buildings so a route takes well under a second.
-const MAX_CELLS := 40000
+const MAX_CELLS := 12000
 const BLOCKED := INF
 
 var cell := 0.5
@@ -30,8 +30,14 @@ var riser := PackedByteArray()
 ## Per cell: index into room_ids, or -1.
 var room_at := PackedInt32Array()
 var room_ids := PackedStringArray()
+## room index -> PackedInt32Array of its inside cells (ascending)
+var room_cells: Array = []
 ## edge key (cell * 2 + 0 for +x, + 1 for +z) -> {cost, holes: [{kind, wall}]}
 var walls := {}
+## The same as costs per cell, for the search's inner loop: crossing to the +x / +z
+## neighbour (0 when no wall, INF when sealed).
+var wall_x := PackedFloat64Array()
+var wall_z := PackedFloat64Array()
 
 
 func size() -> int:
@@ -68,13 +74,22 @@ func room_of(i: int) -> String:
 func nearest(level: int, x: float, z: float, room_id: String = "") -> int:
 	if level < 0 or level >= nl:
 		return -1
-	var want := room_ids.find(room_id) if room_id != "" else -2
 	var best := -1
 	var best_d := INF
-	var base := level * nx * nz
-	for k in nx * nz:
-		var i := base + k
-		if state[i] != IN or (want != -2 and room_at[i] != want):
+	var cells: PackedInt32Array
+	if room_id != "":
+		var r := room_ids.find(room_id)
+		if r < 0:
+			return -1
+		cells = room_cells[r]
+	else:
+		var base := level * nx * nz
+		cells = PackedInt32Array()
+		for k in nx * nz:
+			if state[base + k] == IN:
+				cells.append(base + k)
+	for i in cells:
+		if level_of(i) != level:
 			continue
 		var c := centre(i)
 		var d := (c.x - x) * (c.x - x) + (c.z - z) * (c.z - z)
@@ -86,14 +101,8 @@ func nearest(level: int, x: float, z: float, room_id: String = "") -> int:
 
 ## Every cell of a room.
 func cells_of_room(room_id: String) -> PackedInt32Array:
-	var out := PackedInt32Array()
 	var r := room_ids.find(room_id)
-	if r < 0:
-		return out
-	for i in size():
-		if room_at[i] == r and state[i] == IN:
-			out.append(i)
-	return out
+	return room_cells[r] if r >= 0 else PackedInt32Array()
 
 
 ## Neighbours of a cell: [j, kind] where kind is "h" (same level) or "up" / "down".
@@ -189,10 +198,35 @@ func _build(model: BuildingModel, base_cell: float) -> void:
 			state[i] = NO_GO if t in Rates.NO_GO_ROOMS else IN
 			zone[i] = 1 if is_zone and not t in Rates.NO_GO_ROOMS else 0
 			riser[i] = 1 if t in Rates.RISER_ROOMS else 0
+	# Packed arrays are values: gather in Arrays, then pack each once.
+	var gather: Array = []
+	for r in room_ids.size():
+		gather.append([])
+	for i in n:
+		if room_at[i] >= 0 and state[i] == IN:
+			gather[room_at[i]].append(i)
+	room_cells.resize(room_ids.size())
+	for r in room_ids.size():
+		room_cells[r] = PackedInt32Array(gather[r])
+	# Doors by the wall they sit in, gathered once (openings_in() scans every part).
+	var doors_of := {}
+	for pid in BuildingModel.sort_ids(model.parts.keys()):
+		var o: Dictionary = model.parts[pid]
+		if o.has("host") and str(o.kind).begins_with("door"):
+			if not doors_of.has(str(o.host)):
+				doors_of[str(o.host)] = []
+			doors_of[str(o.host)].append(pid)
 	for pid in BuildingModel.sort_ids(model.parts.keys()):
 		var e: Dictionary = model.parts[pid]
 		if cat.family_of(str(e.kind)) == "wall" and e.has("a"):
-			_add_wall(model, pid)
+			_add_wall(model, pid, doors_of.get(pid, []))
+	wall_x.resize(n)
+	wall_z.resize(n)
+	for key: int in walls:
+		if key % 2 == 0:
+			wall_x[key / 2] = float(walls[key].cost)
+		else:
+			wall_z[key / 2] = float(walls[key].cost)
 
 
 ## The cells on `level` whose centres are inside an outline.
@@ -214,7 +248,7 @@ func _cells_in(level: int, outline: Array) -> PackedInt32Array:
 	return out
 
 
-func _add_wall(model: BuildingModel, wall_id: String) -> void:
+func _add_wall(model: BuildingModel, wall_id: String, door_ids: Array) -> void:
 	var e: Dictionary = model.parts[wall_id]
 	var spec := model.catalog.kind(str(e.kind))
 	var l := int(e.level)
@@ -226,11 +260,10 @@ func _add_wall(model: BuildingModel, wall_id: String) -> void:
 	var sealed := str(e.kind) in Rates.SEALED_WALLS
 	var kind := "structural_wall" if bool(spec.get("structural", false)) else "wall"
 	var doors: Array = []  # [t0, t1]
-	for oid in model.openings_in(wall_id):
+	for oid: String in door_ids:
 		var o: Dictionary = model.parts[oid]
-		if str(o.kind).begins_with("door"):
-			var w := float(o.get("w", model.catalog.kind(str(o.kind)).get("w", 0.9)))
-			doors.append([float(o.t) - w * 0.5, float(o.t) + w * 0.5])
+		var w := float(o.get("w", model.catalog.kind(str(o.kind)).get("w", 0.9)))
+		doors.append([float(o.t) - w * 0.5, float(o.t) + w * 0.5])
 	var x0 := clampi(int(floorf((minf(a.x, b.x) - ox) / cell)) - 1, 0, nx - 1)
 	var x1 := clampi(int(ceilf((maxf(a.x, b.x) - ox) / cell)) + 1, 0, nx - 1)
 	var z0 := clampi(int(floorf((minf(a.y, b.y) - oz) / cell)) - 1, 0, nz - 1)

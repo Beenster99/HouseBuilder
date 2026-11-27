@@ -44,6 +44,14 @@ class FakeNet:
 		for p: FakeNet in wire.peers:
 			p.events[event_name].apply.call(bytes_to_var(bytes))
 
+	func host_emit(event_name: String, payload: Dictionary = {}) -> void:
+		var bytes := var_to_bytes(payload)
+		for p: FakeNet in wire.peers:
+			p.events[event_name].apply.call(bytes_to_var(bytes))
+
+	func is_host() -> bool:
+		return wire.peers[0] == self
+
 	func join(host: FakeNet) -> void:
 		for section: String in host.snapshots:
 			var data: Dictionary = bytes_to_var(var_to_bytes(host.snapshots[section].get_net_snapshot()))
@@ -51,8 +59,8 @@ class FakeNet:
 
 
 func run_tests() -> void:
-	_solo_bus()
-	_host_and_clients()
+	await _solo_bus()
+	await _host_and_clients()
 	_save_and_load()
 
 
@@ -71,7 +79,10 @@ func _solo_bus() -> void:
 	var house := Samples.house()
 	bus.set_model_provider(func() -> BuildingModel: return house)
 	bus.run_consultant()
-	check(reports.size() == 1 and bus.last_report() == reports[0], "solo run reports at once")
+	check(reports.is_empty() and bus.is_routing(), "routing runs in the background, not in this frame")
+	await _until(func() -> bool: return reports.size() == 1)
+	check(reports.size() == 1 and bus.last_report() == reports[0], "solo run reports when done")
+	check(bus.last_report().revision == house.revision, "report carries the building revision")
 	check(bus.last_report().digest() == ServicesConsultant.route(house).digest(), "same as routing directly")
 	bus.place_source("gas", 0, Vector2.ZERO)
 	check(rejected.size() == 2 and rejected[1].contains("gas"), "unknown service refused: %s" % str(rejected))
@@ -90,12 +101,21 @@ func _solo_bus() -> void:
 		bare.apply(op))
 	var said: Array = []
 	bus.design_done.connect(func(notes: PackedStringArray) -> void: said.append(notes))
+	var before := reports.size()
 	bus.design_services()
+	check(edits.is_empty(), "the design is worked out off the main thread")
+	await _until(func() -> bool: return said.size() == 1 and reports.size() > before and not bus.is_routing())
 	check(edits.size() == 1 and edits[0].op == "batch", "one batch edit, one undo step")
 	check(bus.last_report().passed(), "after the design every room is served: %s" % bus.last_report().summary)
 	check(said.size() == 1 and "\n".join(said[0]).contains("soil stack"), "it says what it did")
 	bus.design_services()
+	await _until(func() -> bool: return said.size() == 2)
 	check(edits.size() == 1, "nothing more to add, no edit")
+	var reviews: Array = []
+	bus.review_done.connect(func(r: Dictionary) -> void: reviews.append(r))
+	bus.review_feasibility()
+	await _until(func() -> bool: return reviews.size() == 1)
+	check(reviews.size() == 1 and reviews[0].areas.services.ok, "feasibility arrives from the worker")
 	bus.set_edit_handler(Callable())
 	# Design room hooks: tints and the panel.
 	var tints := bus.overlay_tints(bare)
@@ -124,6 +144,7 @@ func _host_and_clients() -> void:
 	# A client's own building is never used: only the host routes.
 	buses[1].set_model_provider(func() -> BuildingModel: return Samples.house(false))
 	buses[2].run_consultant()
+	await _until(func() -> bool: return buses[2].last_report() != null)
 	var want := ServicesConsultant.route(house).digest()
 	for i in 3:
 		check(buses[i].last_report() != null and buses[i].last_report().digest() == want,
@@ -133,7 +154,9 @@ func _host_and_clients() -> void:
 	buses[1].place_source("power", 0, Vector2(1, 0.5))
 	for i in 3:
 		check(buses[i].sources.get("power", {}).get("level", -1) == 0, "peer %d has the placed source" % (i + 1))
+	var first := buses[2].last_report()
 	buses[2].run_consultant()
+	await _until(func() -> bool: return buses[2].last_report() != first)
 	for i in 3:
 		check(str(buses[i].last_report().system("power").source.how) == "placed", "peer %d: report uses it" % (i + 1))
 	# A late joiner gets the sources and the last report in the join snapshot.
@@ -165,3 +188,9 @@ func _save_and_load() -> void:
 	check(other.sources.is_empty() and other.last_report() == null, "reset clears")
 	bus.free()
 	other.free()
+
+
+func _until(cond: Callable, seconds := 10.0) -> void:
+	var t0 := Time.get_ticks_msec()
+	while not cond.call() and Time.get_ticks_msec() - t0 < seconds * 1000.0:
+		await get_tree().process_frame

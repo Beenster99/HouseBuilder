@@ -82,8 +82,11 @@ toilets, commercial kitchen) with no fixtures yet are routed to their centre.
   consultant chooses (plant room, utility, garage, hallway...; consumer unit by the front
   door, water main on the street side, stack under the WCs) and says so.
 - Rates are approximate UK installed costs (2025 to 2026) to tune in playtesting.
-- Speed: a two-storey house routes in a few milliseconds; a 60 by 30 m, three-storey office
-  with 64 rooms in under a second, and its report is about 40 KB on the wire.
+- Speed: nothing heavy runs on the main thread. Routing (host), Design services and the
+  feasibility review run on worker threads on a copy of the building; the main thread only
+  takes the building's to_data() snapshot (about 10 ms on a 128-room office, 35 ms on a
+  384-room terminal) and applies the report. The grid coarsens past 12,000 cells, so a
+  house routes in about 16 ms, the office in about 350 ms and the terminal in about 800 ms.
 
 ## Still to come
 

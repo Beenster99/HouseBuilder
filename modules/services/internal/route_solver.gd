@@ -75,6 +75,15 @@ func _search(waiting: Dictionary, wc: bool) -> void:
 	var nxz: int = nx * nz
 	var nl: int = grid.nl
 	var state: PackedByteArray = grid.state
+	var zone: PackedByteArray = grid.zone
+	var riser: PackedByteArray = grid.riser
+	var wall_x: PackedFloat64Array = grid.wall_x
+	var wall_z: PackedFloat64Array = grid.wall_z
+	var level_h: PackedFloat64Array = grid.level_h
+	var h_step: float = grid.cell * per_m
+	var zone_f: float = Rates.SERVICE_ZONE_FACTOR
+	var floor_hole: float = Rates.PENETRATION.floor
+	var riser_hole: float = Rates.PENETRATION.riser_floor
 	var waste := system == "waste"
 	while not waiting.is_empty() and not heap.is_empty():
 		var d := heap.top_cost()
@@ -102,20 +111,41 @@ func _search(waiting: Dictionary, wc: bool) -> void:
 		var x := i % nx
 		var z := (i / nx) % nz
 		var l := i / nxz
+		var zi := zone[i] == 1
 		for dir in 6:
 			var j := -1
+			var wall := 0.0
 			match dir:
-				0: j = i - 1 if x > 0 else -1
-				1: j = i + 1 if x < nx - 1 else -1
-				2: j = i - nx if z > 0 else -1
-				3: j = i + nx if z < nz - 1 else -1
-				4: j = i - nxz if l > 0 and not waste else -1
-				5: j = i + nxz if l < nl - 1 else -1
-			if j < 0 or state[j] != 1:
+				0:
+					if x > 0:
+						j = i - 1
+						wall = wall_x[j]
+				1:
+					if x < nx - 1:
+						j = i + 1
+						wall = wall_x[i]
+				2:
+					if z > 0:
+						j = i - nx
+						wall = wall_z[j]
+				3:
+					if z < nz - 1:
+						j = i + nx
+						wall = wall_z[i]
+				4:
+					if l > 0 and not waste:
+						j = i - nxz
+				5:
+					if l < nl - 1:
+						j = i + nxz
+			if j < 0 or state[j] != 1 or wall == INF:
 				continue
-			var step := _step(i, j, "h" if dir < 4 else "v", per_m)
-			if step == INF:
-				continue
+			var step: float
+			if dir < 4:
+				step = h_step * (zone_f if zi or zone[j] == 1 else 1.0) + wall
+			else:
+				var lo := mini(l, j / nxz)
+				step = level_h[lo] * per_m + (riser_hole if riser[i] == 1 and riser[j] == 1 else floor_hole)
 			var nd := d + step
 			if nd < dist[j] - 0.0000001:
 				dist[j] = nd

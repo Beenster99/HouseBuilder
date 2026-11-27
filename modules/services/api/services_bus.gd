@@ -18,13 +18,18 @@ extends Node
 
 signal report_changed(report: ServicesReport)
 signal sources_changed
+## The host started routing; report_changed follows when it is done.
+signal routing_started
 ## The consultant's design was sent to the building (or there was nothing to add): its
 ## notes, in words. Fired on the player who asked.
 signal design_done(notes: PackedStringArray)
 ## A feasibility review finished (FeasibilityReview), on the player who asked.
 signal review_done(review: Dictionary)
 
+## A player asks the host to route; the host routes on a worker thread and broadcasts the
+## result as EVENT_REPORT, so nobody's frame waits on the routing.
 const EVENT_ROUTE := "services.route"
+const EVENT_REPORT := "services.report"
 const EVENT_SOURCE := "services.source"
 const SAVE_SECTION := "services"
 const SAVE_VERSION := 1
@@ -98,9 +103,12 @@ func _run_live() -> void:
 	var m := _model()
 	if m == null or m.rooms.is_empty():
 		return
+	# One snapshot of the building feeds both jobs; turning it back into a model happens on
+	# the worker threads, so the main thread only pays for to_data().
+	var data := m.to_data()
 	if _net and (not _net.has_method("is_host") or _net.is_host()):
-		run_consultant()
-	_review_in_background(m)
+		_route_in_background(data, m.revision, m.catalog)
+	_review_in_background(data, m.catalog)
 
 
 ## The live review runs on a worker thread on a copy of the building, so a second of
@@ -109,14 +117,14 @@ var _task := -1
 var _again := false
 
 
-func _review_in_background(m: BuildingModel) -> void:
+func _review_in_background(data: Dictionary, cat: BuildingCatalog, given_brief: Dictionary = {}) -> void:
 	if _task >= 0:
 		_again = true
 		return
-	var copy := BuildingModel.from_data(m.to_data(), m.catalog)
-	var brief := _active_brief()
+	var brief := given_brief if not given_brief.is_empty() else _active_brief()
 	var src := sources.duplicate(true)
 	_task = WorkerThreadPool.add_task(func() -> void:
+		var copy := BuildingModel.from_data(data, cat)
 		var r := FeasibilityReview.review(copy, brief, src)
 		_finish_review.call_deferred(r))
 
@@ -142,6 +150,12 @@ func _exit_tree() -> void:
 	if _task >= 0:
 		WorkerThreadPool.wait_for_task_completion(_task)
 		_task = -1
+	if _route_task >= 0:
+		WorkerThreadPool.wait_for_task_completion(_route_task)
+		_route_task = -1
+	if _design_task >= 0:
+		WorkerThreadPool.wait_for_task_completion(_design_task)
+		_design_task = -1
 
 
 ## The last feasibility verdict on this player ({} before the first).
@@ -161,6 +175,7 @@ func unregister_module() -> void:
 	_design = null
 	if _net:
 		_net.unregister_event(EVENT_ROUTE)
+		_net.unregister_event(EVENT_REPORT)
 		_net.unregister_event(EVENT_SOURCE)
 		_net.unregister_snapshot_provider(SAVE_SECTION)
 	_net = null
@@ -171,7 +186,8 @@ func attach(net: Object) -> void:
 	_net = net
 	if _net == null:
 		return
-	_net.register_event(EVENT_ROUTE, _apply_route, _validate_route)
+	_net.register_event(EVENT_ROUTE, _apply_queued, _validate_route)
+	_net.register_event(EVENT_REPORT, _apply_route)
 	_net.register_event(EVENT_SOURCE, _apply_source, _validate_source)
 	_net.register_snapshot_provider(SAVE_SECTION, self)
 
@@ -241,15 +257,32 @@ func set_edit_handler(handler: Callable) -> void:
 
 
 ## The consultant does the design work: it works out what the building is missing (fixtures
-## in bare wet rooms, the consumer unit, water main, boiler and soil stack), sends it to the
-## building as one edit, then routes everything again. Returns the plan (ServicesDesigner).
-func design_services() -> Dictionary:
+## in bare wet rooms, the consumer unit, water main, boiler and soil stack) on a worker
+## thread, sends it to the building as one edit, then routes everything again. design_done
+## (with the notes) fires when the edit has been sent; last_plan() is the plan.
+func design_services() -> void:
 	var model := _model()
-	if model == null:
-		var none := {"ops": [], "notes": PackedStringArray(["Nothing to design yet: draw some rooms first."])}
-		design_done.emit(none.notes)
-		return none
-	var plan := ServicesDesigner.propose(model, sources)
+	if model == null or model.rooms.is_empty():
+		design_done.emit(PackedStringArray(["Nothing to design yet: draw some rooms first."]))
+		return
+	if _design_task >= 0:
+		return
+	var data := model.to_data()
+	var cat := model.catalog
+	var src := sources.duplicate(true)
+	_design_task = WorkerThreadPool.add_task(func() -> void:
+		var plan := ServicesDesigner.propose(BuildingModel.from_data(data, cat), src)
+		_finish_design.call_deferred(plan))
+
+
+var _design_task := -1
+var _plan: Dictionary = {}
+
+
+func _finish_design(plan: Dictionary) -> void:
+	WorkerThreadPool.wait_for_task_completion(_design_task)
+	_design_task = -1
+	_plan = plan
 	if not (plan.ops as Array).is_empty():
 		var op := BuildingCommands.batch(plan.ops)
 		if _editor.is_valid():
@@ -260,19 +293,25 @@ func design_services() -> Dictionary:
 				b.sync.edit(op)
 	design_done.emit(plan.notes)
 	run_consultant()
-	return plan
+
+
+## The last Design services plan (ServicesDesigner.propose), or {}.
+func last_plan() -> Dictionary:
+	return _plan
 
 
 ## The consultant's verdict on the shared building: does it stand up, is it powered and
 ## plumbed, and does it meet the active contract's brief and budget (FeasibilityReview).
-## Worked out on this player's copy of the building, which every player shares, so anyone
-## asking gets the same answer.
-func review_feasibility(brief: Dictionary = {}) -> Dictionary:
-	var b := brief if not brief.is_empty() else _active_brief()
-	var r := FeasibilityReview.review(_model(), b, sources)
-	_review = r
-	review_done.emit(r)
-	return r
+## Worked out on a worker thread on this player's copy of the building, which every player
+## shares, so anyone asking gets the same answer; it arrives through review_done.
+func review_feasibility(brief: Dictionary = {}) -> void:
+	var m := _model()
+	if m == null:
+		var r := FeasibilityReview.review(null)
+		_review = r
+		review_done.emit(r)
+		return
+	_review_in_background(m.to_data(), m.catalog, brief)
 
 
 ## Asks the host to route every service through the current building. The report arrives
@@ -312,16 +351,54 @@ func _validate_route(_sender: int, _payload: Dictionary) -> Variant:
 	var model := _model()
 	if model == null or model.rooms.is_empty():
 		return "Nothing to route yet: draw some rooms first"
-	var report := ServicesConsultant.route(model, sources)
-	return {"report": report.to_dict(), "digest": report.digest()}
+	_route_in_background(model.to_data(), model.revision, model.catalog)
+	return {"revision": model.revision}
+
+
+## Everyone: the host has started routing (routing_started); the report follows.
+func _apply_queued(_payload: Dictionary) -> void:
+	routing_started.emit()
+
+
+var _route_task := -1
+var _route_again := false
+
+
+## Host: route a copy of the building on a worker thread; a request made while one runs
+## queues one more run, so the last report is always of the latest building.
+func _route_in_background(data: Dictionary, revision: int, cat: BuildingCatalog) -> void:
+	if _route_task >= 0:
+		_route_again = true
+		return
+	var src := sources.duplicate(true)
+	_route_task = WorkerThreadPool.add_task(func() -> void:
+		var copy := BuildingModel.from_data(data, cat)
+		var report := ServicesConsultant.route(copy, src)
+		report.revision = revision
+		var payload := {"report": report.to_dict(), "digest": report.digest()}
+		_finish_route.call_deferred(payload))
+
+
+func _finish_route(payload: Dictionary) -> void:
+	WorkerThreadPool.wait_for_task_completion(_route_task)
+	_route_task = -1
+	if _net:
+		_net.host_emit(EVENT_REPORT, payload)
+	if _route_again:
+		_route_again = false
+		var model := _model()
+		if model != null and not model.rooms.is_empty():
+			_route_in_background(model.to_data(), model.revision, model.catalog)
+
+
+## True while the host is routing on a worker thread.
+func is_routing() -> bool:
+	return _route_task >= 0
 
 
 func _apply_route(payload: Dictionary) -> void:
-	var report := ServicesReport.from_dict(payload.get("report", {}))
-	if payload.has("digest") and report.digest() != str(payload.digest):
-		push_warning("services: consultant report changed on the way (%s)" % payload.digest)
-	_report = report
-	report_changed.emit(report)
+	_report = ServicesReport.from_dict(payload.get("report", {}))
+	report_changed.emit(_report)
 
 
 func _validate_source(_sender: int, payload: Dictionary) -> Variant:
