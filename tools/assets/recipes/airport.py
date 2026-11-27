@@ -172,9 +172,9 @@ def carousel(l=12.0, w=4.0):
 	"""An oval baggage reclaim belt."""
 	r = w / 2
 	path = []
-	for a in range(-90, 91, 15):
+	for a in range(0, 181, 15):
 		path.append((r * 0.75 * math.cos(math.radians(a)), l / 2 - r + r * 0.75 * math.sin(math.radians(a)), 0))
-	for a in range(90, 271, 15):
+	for a in range(180, 361, 15):
 		path.append((r * 0.75 * math.cos(math.radians(a)), -l / 2 + r + r * 0.75 * math.sin(math.radians(a)), 0))
 	path.append(path[0])
 	path.append(path[1])

@@ -3096,12 +3096,12 @@
 			[
 				-2.0,
 				0.0,
-				-5.9319
+				-6.0
 			],
 			[
 				2.0,
 				2.85,
-				5.9319
+				6.0
 			]
 		],
 		"category": "airport",
@@ -3109,16 +3109,16 @@
 		"file": "models/airport/airport.reclaim.carousel.glb",
 		"kind": "",
 		"label": "Baggage carousel, 12 m",
-		"mass": 40137.9,
+		"mass": 40542.9,
 		"pieces": [
 			{
-				"mass": 15971.55,
+				"mass": 16369.713,
 				"node": "body__steel_stainless",
 				"slot": "steel_stainless",
 				"stage": "body"
 			},
 			{
-				"mass": 343.34,
+				"mass": 350.198,
 				"node": "belt__rubber",
 				"slot": "rubber",
 				"stage": "belt"
@@ -3130,7 +3130,7 @@
 				"stage": "feed"
 			},
 			{
-				"mass": 23463.0,
+				"mass": 23463.001,
 				"node": "feed__steel_stainless",
 				"slot": "steel_stainless",
 				"stage": "feed"
@@ -3159,12 +3159,12 @@
 			[
 				-2.5,
 				0.0,
-				-9.9148
+				-10.0
 			],
 			[
 				2.5,
 				2.85,
-				9.9148
+				10.0
 			]
 		],
 		"category": "airport",
@@ -3172,16 +3172,16 @@
 		"file": "models/airport/airport.reclaim.carousel_large.glb",
 		"kind": "",
 		"label": "Baggage carousel, 20 m",
-		"mass": 57612.5,
+		"mass": 58259.7,
 		"pieces": [
 			{
-				"mass": 33088.42,
+				"mass": 33724.482,
 				"node": "body__steel_stainless",
 				"slot": "steel_stainless",
 				"stage": "body"
 			},
 			{
-				"mass": 701.11,
+				"mass": 712.176,
 				"node": "belt__rubber",
 				"slot": "rubber",
 				"stage": "belt"
@@ -3193,7 +3193,7 @@
 				"stage": "feed"
 			},
 			{
-				"mass": 23463.0,
+				"mass": 23463.001,
 				"node": "feed__steel_stainless",
 				"slot": "steel_stainless",
 				"stage": "feed"
@@ -7208,14 +7208,14 @@
 	"demolition.heap.blockwork_large": {
 		"aabb": [
 			[
-				-3.96,
-				-0.0151,
-				-3.168
+				-3.9548,
+				-0.3055,
+				-3.0441
 			],
 			[
-				3.96,
-				1.9055,
-				3.168
+				3.8314,
+				1.9789,
+				3.0148
 			]
 		],
 		"category": "demolition",
@@ -7223,16 +7223,16 @@
 		"file": "models/demolition/demolition.heap.blockwork_large.glb",
 		"kind": "",
 		"label": "Blockwork rubble heap, large",
-		"mass": 43773.1,
+		"mass": 29123.9,
 		"pieces": [
 			{
-				"mass": 43749.97,
+				"mass": 29101.219,
 				"node": "main__blockwork",
 				"slot": "blockwork",
 				"stage": "main"
 			},
 			{
-				"mass": 23.13,
+				"mass": 22.69,
 				"node": "main__steel_painted",
 				"slot": "steel_painted",
 				"stage": "main"
@@ -7248,19 +7248,19 @@
 			"demolition",
 			"outdoor"
 		],
-		"tris": 508
+		"tris": 1624
 	},
 	"demolition.heap.blockwork_small": {
 		"aabb": [
 			[
-				-1.76,
-				-0.0472,
-				-1.408
+				-1.5911,
+				-0.2372,
+				-1.4238
 			],
 			[
-				1.76,
-				0.945,
-				1.408
+				1.7974,
+				0.9086,
+				1.4229
 			]
 		],
 		"category": "demolition",
@@ -7268,16 +7268,16 @@
 		"file": "models/demolition/demolition.heap.blockwork_small.glb",
 		"kind": "",
 		"label": "Blockwork rubble heap, small",
-		"mass": 3978.1,
+		"mass": 3227.3,
 		"pieces": [
 			{
-				"mass": 3968.2,
+				"mass": 3217.113,
 				"node": "main__blockwork",
 				"slot": "blockwork",
 				"stage": "main"
 			},
 			{
-				"mass": 9.9,
+				"mass": 10.236,
 				"node": "main__steel_painted",
 				"slot": "steel_painted",
 				"stage": "main"
@@ -7293,19 +7293,19 @@
 			"demolition",
 			"outdoor"
 		],
-		"tris": 496
+		"tris": 1158
 	},
 	"demolition.heap.brick_large": {
 		"aabb": [
 			[
-				-3.96,
-				-0.0151,
-				-3.168
+				-3.9548,
+				-0.3055,
+				-3.0441
 			],
 			[
-				3.96,
-				1.9055,
-				3.168
+				3.8314,
+				1.9789,
+				3.0148
 			]
 		],
 		"category": "demolition",
@@ -7313,16 +7313,16 @@
 		"file": "models/demolition/demolition.heap.brick_large.glb",
 		"kind": "",
 		"label": "Brick rubble heap, large",
-		"mass": 59398.1,
+		"mass": 39517.2,
 		"pieces": [
 			{
-				"mass": 59374.96,
+				"mass": 39494.508,
 				"node": "main__brick",
 				"slot": "brick",
 				"stage": "main"
 			},
 			{
-				"mass": 23.13,
+				"mass": 22.69,
 				"node": "main__steel_painted",
 				"slot": "steel_painted",
 				"stage": "main"
@@ -7338,19 +7338,19 @@
 			"demolition",
 			"outdoor"
 		],
-		"tris": 508
+		"tris": 1624
 	},
 	"demolition.heap.brick_small": {
 		"aabb": [
 			[
-				-1.76,
-				-0.0472,
-				-1.408
+				-1.5911,
+				-0.2372,
+				-1.4238
 			],
 			[
-				1.76,
-				0.945,
-				1.408
+				1.7974,
+				0.9086,
+				1.4229
 			]
 		],
 		"category": "demolition",
@@ -7358,16 +7358,16 @@
 		"file": "models/demolition/demolition.heap.brick_small.glb",
 		"kind": "",
 		"label": "Brick rubble heap, small",
-		"mass": 5395.3,
+		"mass": 4376.3,
 		"pieces": [
 			{
-				"mass": 5385.41,
+				"mass": 4366.077,
 				"node": "main__brick",
 				"slot": "brick",
 				"stage": "main"
 			},
 			{
-				"mass": 9.9,
+				"mass": 10.236,
 				"node": "main__steel_painted",
 				"slot": "steel_painted",
 				"stage": "main"
@@ -7383,19 +7383,19 @@
 			"demolition",
 			"outdoor"
 		],
-		"tris": 496
+		"tris": 1158
 	},
 	"demolition.heap.concrete_large": {
 		"aabb": [
 			[
-				-3.96,
-				-0.0151,
-				-3.168
+				-3.9548,
+				-0.3055,
+				-3.0441
 			],
 			[
-				3.96,
-				1.9055,
-				3.168
+				3.8314,
+				1.9789,
+				3.0148
 			]
 		],
 		"category": "demolition",
@@ -7403,22 +7403,22 @@
 		"file": "models/demolition/demolition.heap.concrete_large.glb",
 		"kind": "",
 		"label": "Concrete rubble heap, large",
-		"mass": 78124.2,
+		"mass": 51585.1,
 		"pieces": [
 			{
-				"mass": 78025.37,
+				"mass": 50282.883,
 				"node": "main__concrete",
 				"slot": "concrete",
 				"stage": "main"
 			},
 			{
-				"mass": 75.68,
+				"mass": 1279.515,
 				"node": "main__brick",
 				"slot": "brick",
 				"stage": "main"
 			},
 			{
-				"mass": 23.13,
+				"mass": 22.69,
 				"node": "main__steel_painted",
 				"slot": "steel_painted",
 				"stage": "main"
@@ -7434,19 +7434,19 @@
 			"demolition",
 			"outdoor"
 		],
-		"tris": 508
+		"tris": 1624
 	},
 	"demolition.heap.concrete_small": {
 		"aabb": [
 			[
-				-1.76,
-				-0.0472,
-				-1.408
+				-1.5911,
+				-0.2372,
+				-1.4238
 			],
 			[
-				1.76,
-				0.945,
-				1.408
+				1.7974,
+				0.9086,
+				1.4229
 			]
 		],
 		"category": "demolition",
@@ -7454,22 +7454,22 @@
 		"file": "models/demolition/demolition.heap.concrete_small.glb",
 		"kind": "",
 		"label": "Concrete rubble heap, small",
-		"mass": 7080.8,
+		"mass": 5640.7,
 		"pieces": [
 			{
-				"mass": 7022.77,
+				"mass": 5268.258,
 				"node": "main__concrete",
 				"slot": "concrete",
 				"stage": "main"
 			},
 			{
-				"mass": 48.11,
+				"mass": 362.199,
 				"node": "main__brick",
 				"slot": "brick",
 				"stage": "main"
 			},
 			{
-				"mass": 9.9,
+				"mass": 10.236,
 				"node": "main__steel_painted",
 				"slot": "steel_painted",
 				"stage": "main"
@@ -7485,7 +7485,7 @@
 			"demolition",
 			"outdoor"
 		],
-		"tris": 496
+		"tris": 1158
 	},
 	"demolition.heap.crushed_brick": {
 		"aabb": [
@@ -7508,7 +7508,7 @@
 		"mass": 46689.0,
 		"pieces": [
 			{
-				"mass": 46688.99,
+				"mass": 46688.992,
 				"node": "main__brick",
 				"slot": "brick",
 				"stage": "main"
@@ -7547,7 +7547,7 @@
 		"mass": 61432.9,
 		"pieces": [
 			{
-				"mass": 61432.88,
+				"mass": 61432.884,
 				"node": "main__concrete",
 				"slot": "concrete",
 				"stage": "main"

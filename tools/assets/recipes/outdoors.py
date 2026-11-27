@@ -501,11 +501,12 @@ def debris(what="rubble", size=0.3, slot="concrete", seed=1, n=1):
 			a = rng.random() * 6.283
 			kit.chunk((s, s * (0.6 + rng.random() * 0.5), s * (0.5 + rng.random() * 0.4)), (r * math.cos(a), r * math.sin(a), s * 0.25), slot, "lump", seed=seed * 100 + i, points=10, rot=(0, 0, rng.random() * 360))
 	elif what == "heap":
-		kit.lathe([(size * 2.2, 0), (size * 1.5, size * 0.5), (size * 0.5, size * 0.95), (0.02, size)], (0, 0, 0), slot, "heap", segs=12, scale=(1, 0.8, 1))
-		for i in range(26):
-			a, r = rng.random() * 6.283, size * 2.0 * rng.random()
-			s = 0.25 + rng.random() * 0.35
-			kit.chunk((s, s * 0.7, s * 0.5), (r * math.cos(a), r * 0.8 * math.sin(a), max(0.05, size * (1 - r / (size * 2.2)) * 0.95)), "brick" if i % 3 == 0 and slot == "concrete" else slot, "lump", seed=seed * 100 + i, points=9, rot=(rng.random() * 40, rng.random() * 40, rng.random() * 360))
+		kit.lathe([(size * 2.0, 0), (size * 1.3, size * 0.4), (size * 0.4, size * 0.75), (0.02, size * 0.8)], (0, 0, 0), slot, "heap", segs=9, scale=(1, 0.8, 1))
+		for i in range(int(50 + size * 40)):
+			a, f = rng.random() * 6.283, math.sqrt(rng.random())
+			r = size * 2.1 * f
+			s = (0.3 + rng.random() * 0.5) * (0.7 + size * 0.3)
+			kit.chunk((s, s * 0.7, s * 0.5), (r * math.cos(a), r * 0.8 * math.sin(a), max(0.08, size * 0.85 * (1 - f) ** 0.8 + 0.05)), "brick" if i % 3 == 0 and slot == "concrete" else slot, "lump", seed=seed * 100 + i, points=9, rot=(rng.random() * 50, rng.random() * 50, rng.random() * 360))
 		for i in range(5):
 			a = rng.random() * 6.283
 			kit.rod((size * math.cos(a), size * 0.8 * math.sin(a), size * 0.3), (size * 1.6 * math.cos(a + 0.4), size * 1.3 * math.sin(a + 0.4), size * (0.6 + rng.random() * 0.5)), 0.012, "steel_painted", "rebar", segs=5)
