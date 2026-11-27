@@ -13,6 +13,7 @@ func run_tests() -> void:
 	_long_spans()
 	_floating_beam()
 	_bus()
+	_school_hall()
 
 
 ## A two-storey 14 x 10 m office on perimeter walls only: far too far for its slabs.
@@ -63,10 +64,10 @@ func _long_spans() -> void:
 	var only_safe := true
 	for op: Dictionary in plan.op.ops:
 		if str(op.op) == "set":
-			only_safe = only_safe and (op.fields as Dictionary).keys() == ["section"]
+			only_safe = only_safe and (op.fields as Dictionary).keys().all(func(k: String) -> bool: return k in ["section", "material", "kind"])
 		elif str(op.op) != "add":
 			only_safe = false
-	check(only_safe, "only adds parts or changes sections")
+	check(only_safe, "only adds parts or strengthens them")
 	check(str(plan.op.op) == "batch", "one edit, so one undo")
 	var r := m.apply(plan.op)
 	check(not r.is_empty(), "the edit applies to the real building")
@@ -88,8 +89,7 @@ func _long_spans() -> void:
 func _floating_beam() -> void:
 	var C := BuildingCommands
 	var m: BuildingModel = Samples.model_house().model
-	var r := m.apply(C.place_part("beam", 0, {"a": [10, 3, 2], "b": [14, 3, 2]}, "steel", "ub_203x133x25"))
-	var bid := str(r.do.entry.id)
+	m.apply(C.place_part("beam", 0, {"a": [10, 3, 2], "b": [14, 3, 2]}, "steel", "ub_203x133x25"))
 	var plan := StructureDesigner.design(m)
 	check(plan.passed, "a beam in mid air gets propped: %s" % "\n".join(plan.notes))
 	var cols := 0
@@ -99,7 +99,7 @@ func _floating_beam() -> void:
 			cols += 1 if str(op.entry.kind) == "column" else 0
 			pads += 1 if str(op.entry.kind) == "pad_footing" else 0
 	check(cols == 2 and pads == 2, "a column and a pad under each end (%d, %d)" % [cols, pads])
-	check(("\n".join(plan.notes)).contains(bid), "the notes name the beam")
+	check(plan.notes.size() == 1 and str(plan.notes[0]).contains("2 columns and 2 pad footings"), "and says what it added in one line: %s" % plan.notes[0])
 
 
 func _bus() -> void:
@@ -122,3 +122,25 @@ func _bus() -> void:
 	bus.design_structure()
 	check(str(said[-1][0]).begins_with("Nothing to design"), "an empty building: nothing to design")
 	bus.free()
+
+
+## A single-storey hall: long masonry walls full of windows under a heavy concrete roof,
+## drawn with no footings. Before, the engineer gave up on the walls and listed advice;
+## now it finishes the job.
+func _school_hall() -> void:
+	var C := BuildingCommands
+	var m := BuildingModel.new("hall", "Hall", BuildingCatalog.default_catalog())
+	var corners := [[0, 0, 0], [30, 0, 0], [30, 0, 18], [0, 0, 18]]
+	var walls: Array = []
+	for i in 4:
+		var r := m.apply(C.place_part("wall_loadbearing", 0, {"a": corners[i], "b": corners[(i + 1) % 4]}, "masonry", "wall_cavity_300"))
+		walls.append(str(r.do.entry.id))
+	for t in [3.0, 7.0, 11.0, 15.0, 19.0, 23.0, 27.0]:
+		m.apply(C.place_opening("window_large", walls[0], t))
+	m.apply(C.place_opening("door_double", walls[2], 15.0))
+	m.apply(C.place_part("roof_flat", 0, {"outline": C.rect(0, 0, 30, 18), "y": 3.0}, "concrete"))
+	var plan := StructureDesigner.design(m)
+	check(not plan.before.passed() and plan.passed, "the engineer makes the hall pass: %s" % "\n".join(plan.notes))
+	check(plan.notes.size() == 1, "and sums it up in one line: %s" % plan.notes[0])
+	check(StructureDesigner.describe(m, walls[0]).contains("ground floor") and StructureDesigner.describe(m, walls[0]).contains("30.0 m long"),
+			"parts are described so they can be found: %s" % StructureDesigner.describe(m, walls[0]))

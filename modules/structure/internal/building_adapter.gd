@@ -71,10 +71,7 @@ static func build(m: BuildingModel, removed: PackedStringArray = PackedStringArr
 
 
 func _label(id: String) -> String:
-	var e: Dictionary = model.parts[id]
-	var kind_label := str(cat.kind(str(e.kind)).get("label", str(e.kind).capitalize()))
-	var n := str(e.get("name", ""))
-	return "%s %s" % [kind_label, n if n != "" else id]
+	return StructureDesigner.describe(model, id)
 
 
 func _collect() -> void:
@@ -286,8 +283,17 @@ func _walls() -> void:
 			var s: Dictionary = spans[k]
 			var p0 := a.lerp(b, s.t0)
 			var p1 := a.lerp(b, s.t1)
-			var top_sid := _section("wb:%s:%s:%d" % [sec_id, mat_id, roundi(float(s.above) * 100.0)],
-					Props.wall_beam(sec, mat_id, s.above))
+			var top_props: Dictionary = Props.wall_beam(sec, mat_id, s.above)
+			var top_key := "wb:%s:%s:%d" % [sec_id, mat_id, roundi(float(s.above) * 100.0)]
+			if not s.solid:
+				# Every opening in a load-bearing wall has a lintel over it, sized for its width.
+				var lintel := _lintel(float(s.len))
+				var lp: Dictionary = Props.frame(cat.section(lintel), "steel", cat.material("steel"), "beam", float(s.len))
+				top_props = top_props.duplicate()
+				top_props.bending = maxf(float(top_props.bending), float(lp.bending))
+				top_props.shear = maxf(float(top_props.shear), float(lp.shear))
+				top_key += ":" + lintel
+			var top_sid := _section(top_key, top_props)
 			g.add_member("%s|t%d" % [w.part, k], _node(p0 + up), _node(p1 + up), StructureGraph.BEAM,
 					top_sid, 1.0, Vector3.ZERO, w.label, w.part, w.part + "|t")
 			if float(s.below) > 0.05:
@@ -295,6 +301,17 @@ func _walls() -> void:
 						Props.wall_beam(sec, mat_id, s.below))
 				g.add_member("%s|b%d" % [w.part, k], _node(p0), _node(p1), StructureGraph.BEAM,
 						bot_sid, 1.0, Vector3.ZERO, w.label, w.part, w.part + "|b")
+
+
+## The steel lintel over an opening this wide (the catalog's smallest beams).
+func _lintel(width: float) -> String:
+	if width <= 1.2:
+		return "ub_203x133x25"
+	if width <= 2.4:
+		return "ub_254x146x31"
+	if width <= 3.6:
+		return "ub_305x165x40"
+	return "ub_406x178x60"
 
 
 func _anchors() -> void:

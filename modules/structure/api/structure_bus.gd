@@ -26,6 +26,8 @@ signal checking_changed(busy: bool)
 signal engineer_placed(left: int)
 ## The stress diagram was turned on or off for everyone (set_diagram).
 signal diagram_changed(on: bool)
+## A player asked to be shown a part (focus_part): the design room selects and frames it.
+signal part_focused(part_id: String)
 
 const EVENT_RUN := "structure.run"
 ## The "Stress test" button and the Engineer view in the design room.
@@ -47,6 +49,8 @@ const EVENT_DIAGRAM := "structure.diagram"
 const DIAGRAM_FLAG := "structure.diagram"
 const LAYER := "structure.diagram"
 const DIAGRAM_SCRIPT := "res://modules/structure/internal/stress_diagram_view.gd"
+## Tags the design room shows on parts (DesignBus.set_part_tags): what fails, by number.
+const TAGS := "structure.failing"
 ## Seconds of quiet after an edit before the host re-tests.
 const LIVE_DELAY := 0.4
 ## Seconds between the live engineer's placements, so everyone watches them go in.
@@ -468,6 +472,7 @@ func hook_design(design: Node) -> void:
 	else:
 		design.register_overlay(OVERLAY, "Engineer", overlay_tints, make_panel, 40)
 	report_changed.connect(func(_r: StructureReport) -> void: design.refresh_overlay(OVERLAY))
+	report_changed.connect(func(_r: StructureReport) -> void: _send_tags())
 	if Flags.is_on(DIAGRAM_FLAG) and design.has_method("register_layer"):
 		design.register_layer(LAYER, "Stress diagram", make_diagram, toggle_diagram,
 				func() -> bool: return diagram_on, 45)
@@ -614,4 +619,35 @@ func _apply_diagram(payload: Dictionary) -> void:
 			_wait = 0.0
 		elif _net and _report != null:
 			run_stress_test()
+
+
+# --- Finding parts ----------------------------------------------------------------------
+
+## Shows a part to this player: the design room selects it, frames it and flashes it.
+## The engineer's notes call this when a part number in them is pressed.
+func focus_part(part_id: String) -> void:
+	part_focused.emit(part_id)
+	if not is_instance_valid(_design):
+		return
+	if _design.has_method("focus_part"):
+		_design.focus_part(part_id)
+	elif _design.has_method("pulse"):
+		_design.pulse(PackedStringArray([part_id]))
+
+
+## Part number and utilisation of each failing part ({} when it all passes), for tags on
+## the design.
+func failing_tags() -> Dictionary:
+	var out := {}
+	if _report == null:
+		return out
+	var u := part_utilisation()
+	for pid in _report.failed_parts():
+		out[pid] = "%s  %d%%" % [pid, roundi(minf(float(u.get(pid, 0.0)), 9.99) * 100.0)]
+	return out
+
+
+func _send_tags() -> void:
+	if is_instance_valid(_design) and _design.has_method("set_part_tags"):
+		_design.set_part_tags(TAGS, failing_tags())
 

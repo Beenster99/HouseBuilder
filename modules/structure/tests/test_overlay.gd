@@ -13,6 +13,14 @@ class FakeDesign:
 	var actions := {}
 	var overlays := {}
 	var refreshed: Array[String] = []
+	var tags := {}
+	var focused: Array[String] = []
+
+	func set_part_tags(source: String, t: Dictionary) -> void:
+		tags[source] = t
+
+	func focus_part(id: String) -> void:
+		focused.append(id)
 
 	func register_action(id: String, label: String, press: Callable, order: int = 50) -> void:
 		actions[id] = {"label": label, "press": press, "order": order}
@@ -90,6 +98,14 @@ func _tints_and_panel() -> void:
 		colours = tints.call(h.model)
 		check(colours.values().has(StructureBus.RED), "no ground-floor walls: the view shows red")
 		check(_text(panel).contains("fails"), "panel says it fails")
+		var tags: Dictionary = design.tags.get(StructureBus.TAGS, {})
+		check(not tags.is_empty() and tags.size() == bad.failed_parts().size(), "the design tags each failing part by number (%d)" % tags.size())
+		var link := _first_link(panel)
+		check(link != null, "a note naming a part is a link")
+		if link:
+			link.pressed.emit()
+			check(design.focused == [str(link.get_meta("part_id"))], "pressing it shows that part on the design")
+		check(str(bad.summary).contains("floor"), "and parts are named with their floor: %s" % bad.summary)
 
 	check(StructureBus.colour_for(0.2) == StructureBus.GREEN, "low is green")
 	check(StructureBus.colour_for(0.85) == StructureBus.AMBER, "near capacity is amber")
@@ -99,10 +115,22 @@ func _tints_and_panel() -> void:
 	bus.free()
 
 
+func _first_link(c: Node) -> Button:
+	if c is Button and c.has_meta("part_id"):
+		return c
+	for k in c.get_children():
+		var b := _first_link(k)
+		if b:
+			return b
+	return null
+
+
 func _text(c: Node) -> String:
 	var out := ""
 	if c is Label:
 		out += (c as Label).text + "\n"
+	elif c is Button:
+		out += (c as Button).text + "\n"
 	for k in c.get_children():
 		out += _text(k)
 	return out

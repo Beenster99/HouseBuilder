@@ -10,8 +10,10 @@ const WIDTH := 320
 var _bus: Node
 var _summary: Label
 var _scenarios: Label
-var _notes: Label
-var _said: Label
+## Note lines: a line naming a part (p145) is a button that shows that part on the design.
+var _notes: VBoxContainer
+var _said: VBoxContainer
+var _part_id := RegEx.create_from_string("\\bp\\d+\\b")
 var _title: Control
 var _status: Label
 var _auto: CheckButton
@@ -30,8 +32,8 @@ func _init() -> void:
 	add_child(_summary)
 	_scenarios = _wrap_label()
 	add_child(_scenarios)
-	_notes = _wrap_label()
-	_notes.add_theme_color_override("font_color", BsxTheme.MUTED)
+	_notes = VBoxContainer.new()
+	_notes.add_theme_constant_override("separation", 2)
 	add_child(_notes)
 	add_child(_key())
 	var row := HBoxContainer.new()
@@ -51,7 +53,8 @@ func _init() -> void:
 		if _bus and on != bool(_bus.live_engineer):
 			_bus.set_live_engineer(on))
 	add_child(_auto)
-	_said = _wrap_label()
+	_said = VBoxContainer.new()
+	_said.add_theme_constant_override("separation", 2)
 	add_child(_said)
 
 
@@ -69,7 +72,7 @@ func bind(bus: Node, live: bool = false) -> void:
 	bus.report_changed.connect(_show)
 	bus.design_done.connect(func(notes: PackedStringArray) -> void:
 		if is_instance_valid(_said):
-			_said.text = "\n".join(notes))
+			_fill(_said, notes, false))
 	_show(bus.last_report())
 
 
@@ -115,7 +118,7 @@ func _show(report: StructureReport) -> void:
 	if report == null:
 		_summary.text = "Not tested yet. Press Stress test to check the building under normal use, a storm and an earthquake."
 		_scenarios.text = ""
-		_notes.text = ""
+		_fill(_notes, PackedStringArray(), true)
 		return
 	_summary.text = report.summary
 	var lines := PackedStringArray()
@@ -124,4 +127,37 @@ func _show(report: StructureReport) -> void:
 		lines.append("%s: %s, worst %d%%" % [r.scenario_title, "passes" if r.passed() else "fails",
 				roundi(minf(float(worst.u), 9.99) * 100.0)])
 	_scenarios.text = "\n".join(lines)
-	_notes.text = "\n".join(report.notes)
+	_fill(_notes, report.notes, true)
+
+
+## Puts lines in a box; a line that names a part becomes a flat button showing that part.
+func _fill(box: VBoxContainer, lines: PackedStringArray, muted: bool) -> void:
+	for c in box.get_children():
+		box.remove_child(c)
+		c.queue_free()
+	for line in lines:
+		var m := _part_id.search(line)
+		if m == null:
+			var l := _wrap_label()
+			l.text = line
+			if muted:
+				l.add_theme_color_override("font_color", BsxTheme.MUTED)
+			box.add_child(l)
+			continue
+		var pid := m.get_string()
+		var b := Button.new()
+		b.flat = true
+		b.text = line
+		b.alignment = HORIZONTAL_ALIGNMENT_LEFT
+		b.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		b.custom_minimum_size = Vector2(WIDTH, 0)
+		b.action_mode = BaseButton.ACTION_MODE_BUTTON_PRESS
+		b.tooltip_text = "Show %s on the design" % pid
+		b.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+		b.set_meta("part_id", pid)
+		if muted:
+			b.add_theme_color_override("font_color", BsxTheme.MUTED)
+		b.pressed.connect(func() -> void:
+			if _bus and _bus.has_method("focus_part"):
+				_bus.focus_part(pid))
+		box.add_child(b)

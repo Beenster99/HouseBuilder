@@ -55,7 +55,7 @@ func _loose_beam() -> void:
 		var rep := StructureBuilding.stress_test(m)
 		check(not rep.passed() and beam in rep.failed_parts(), "the loose beam fails (run %d)" % i)
 		check(rep.first_failure().id == beam, "and fails first")
-		check(rep.notes[0].begins_with("Beam Loose is not connected to any foundation"), "note: %s" % rep.notes[0])
+		check(rep.notes[0].begins_with("Beam Loose (p") and rep.notes[0].contains("is not connected to any foundation"), "note: %s" % rep.notes[0])
 		var brief := rep.brief_result()
 		check(not brief.ok and brief.failures == [beam] and brief.scenario == "normal_use", "brief result: %s" % brief)
 
