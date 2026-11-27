@@ -10,6 +10,7 @@ flags = {
 "multiplayer": true,
 "assets": true,
 "assets.gallery": true,
+"assets.textures": true,
 "building": true,
 "building.library": true,
 "contracts": true,

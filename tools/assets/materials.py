@@ -1,4 +1,5 @@
-"""The library's PBR materials: name -> (base colour, roughness, metallic, alpha, density kg/m3).
+"""The library's PBR materials: name -> (base colour as seen on screen, roughness, metallic,
+alpha, density kg/m3).
 
 A kit piece names one of these as its material slot. Blender builds a Principled BSDF from
 the row and the glTF export carries it to the game for the realistic look; the sketch look
@@ -84,6 +85,15 @@ MATERIALS = {
 	"velvet_teal": ((0.05, 0.22, 0.24), 1.0, 0.0, 1.0, 150),
 	"glass_dark": ((0.03, 0.045, 0.06), 0.06, 0.0, 1.0, 2500),
 }
+
+
+def _linear(c: float) -> float:
+	return c / 12.92 if c <= 0.04045 else ((c + 0.055) / 1.055) ** 2.4
+
+
+# The table above is written as the colours should look on screen (sRGB); Blender and glTF
+# want linear values. (Slots added later by recipes/torque.py are linear already.)
+MATERIALS = {name: (tuple(round(_linear(c), 4) for c in row[0]),) + row[1:] for name, row in MATERIALS.items()}
 
 
 def get(name: str) -> bpy.types.Material:

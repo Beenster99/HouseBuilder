@@ -62,5 +62,15 @@ colours get slots named `<surface>_<colour>` (for example `paint_c22`), with PBR
 the index; dark opaque window glass is `glass_dark`. Lit parts of lights are in the slot
 `glow` (statement lights) or `light_emitter`.
 
+Realistic look, flag `assets.textures`: `AssetLibrary.apply_look()` gives each mesh a
+textured material for its slot from `AssetMaterials` (internal). `build.py` writes the slots'
+colour, roughness, metal and surface pattern to `internal/materials.json`;
+`python3 tools/assets/textures.py` makes the 22 seamless detail and normal maps in
+`internal/textures/` (brick, block, stone, slate, tile, timber, concrete, cladding, fabric...)
+and holds the table that says which slot gets which pattern. They are mapped triplanar in the
+model's own space at true size, so no model needs UVs and stretched pieces are not smeared.
+Colours in `materials.py` are written as they should look on screen. With the flag off the
+models show their own flat PBR colours.
+
 Then `godot --headless --path . --import` and `tools/run_tests.sh assets`. The gallery
 (main menu, flag `assets.gallery`) shows everything.

@@ -24,6 +24,7 @@ import bmesh
 from mathutils import Vector
 
 import kit
+import materials
 import registry
 
 OUT = os.path.join(registry.ROOT, "modules", "assets", "internal")
@@ -84,6 +85,18 @@ def build_scene(a: dict) -> dict:
 	}
 
 
+def write_materials() -> None:
+	"""The slots' PBR values and surface pattern, for the game's textured realistic look."""
+	import textures
+	table = {}
+	for name, (rgb, rough, metal, alpha, _density) in sorted(materials.MATERIALS.items()):
+		pattern = textures.pattern_for(name) if alpha >= 1.0 else ""
+		table[name] = {"rgb": [round(c, 4) for c in rgb], "rough": rough, "metal": metal, "alpha": alpha,
+			"pattern": pattern, "size": textures.SIZE.get(pattern, 1.0), "glow": name in ("glow", "light_emitter") or name.startswith("light_")}
+	with open(os.path.join(OUT, "materials.json"), "w") as f:
+		json.dump(table, f, indent="\t", sort_keys=True)
+
+
 def main(argv: list) -> int:
 	save_blend = "--blend" in argv
 	filters = [x for x in argv if not x.startswith("--")]
@@ -114,6 +127,7 @@ def main(argv: list) -> int:
 	with open(path, "w", encoding="utf-8") as f:
 		json.dump(manifest, f, indent="\t", sort_keys=True)
 		f.write("\n")
+	write_materials()
 	print("%d assets in the manifest" % len(manifest))
 	for p in problems:
 		print("PROBLEM: " + p)

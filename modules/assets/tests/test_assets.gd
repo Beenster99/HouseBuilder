@@ -65,7 +65,30 @@ func run_tests() -> void:
 	var glass := win.get_node("glazing__glass") as MeshInstance3D
 	GraphicsOptions.set_value("art_style", ArtStyle.REALISTIC)
 	AssetLibrary.apply_look(win)
-	check(glass.material_override == null and glass.mesh.surface_get_material(0) != null, "realistic keeps the model's own PBR materials")
+	var textured := Flags.is_on(AssetMaterials.FLAG)
+	Flags.set_flag(AssetMaterials.FLAG, false)
+	AssetLibrary.apply_look(win)
+	check(glass.material_override == null and glass.mesh.surface_get_material(0) != null, "realistic without textures keeps the model's own PBR materials")
+	Flags.set_flag(AssetMaterials.FLAG, true)
+	AssetLibrary.apply_look(win)
+	check(glass.material_override is StandardMaterial3D and (glass.material_override as StandardMaterial3D).albedo_color.a < 1.0, "realistic with textures gives glass its see-through slot material")
+	var rendered := AssetLibrary.make("structure.cladding.render", {"length": 4.0, "height": 2.5})
+	var skin := (rendered.get_child(0) as MeshInstance3D).material_override as StandardMaterial3D
+	check(skin != null and skin.albedo_texture != null and skin.normal_texture != null and skin.uv1_triplanar, "a rendered wall gets a tiling surface texture and normal map")
+	check(skin != null and is_equal_approx(skin.uv1_scale.z / skin.uv1_scale.x, 4.0), "a stretched piece keeps its texture at true size: %s" % str(skin.uv1_scale if skin else Vector3.ZERO))
+	rendered.free()
+	var bad_slots := 0
+	for id in AssetLibrary.ids():
+		for p: Dictionary in AssetLibrary.info(id).pieces:
+			if not AssetMaterials.has(str(p.slot)):
+				bad_slots += 1
+	check(bad_slots == 0, "every piece's slot has a realistic material (%d missing)" % bad_slots)
+	for name: String in AssetMaterials.table():
+		var pat := AssetMaterials.pattern(name)
+		if pat != "" and not ResourceLoader.exists(AssetMaterials.TEXTURES + pat + "_a.png"):
+			bad_slots += 1
+	check(bad_slots == 0, "every surface pattern has its texture")
+	Flags.set_flag(AssetMaterials.FLAG, textured)
 	GraphicsOptions.set_value("art_style", ArtStyle.MODEL)
 	AssetLibrary.apply_look(win)
 	check(glass.material_override != null, "the sketch look overrides them with ArtStyle's")

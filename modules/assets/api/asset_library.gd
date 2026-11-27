@@ -132,15 +132,18 @@ static func make_kind(kind: String, opts: Dictionary = {}) -> Node3D:
 	return make(id if id != "" else "missing." + kind, opts)
 
 
-## Sets every mesh under `root` to the current look: the model's own PBR materials when
-## realistic, ArtStyle's sketch material otherwise. Call again on Graphics.changed.
+## Sets every mesh under `root` to the current look: PBR materials when realistic (textured
+## ones per material slot with flag assets.textures, else the model's own flat colours),
+## ArtStyle's sketch material otherwise. Call again on Graphics.changed.
 static func apply_look(root: Node) -> void:
 	var real := ArtStyle.realistic()
 	for mi: MeshInstance3D in _meshes(root):
 		if mi.has_meta("asset_box"):
 			mi.material_override = ArtStyle.material("", str(mi.get_meta("asset_box")))
 		elif real:
-			mi.material_override = null
+			# (the textured material for the slot; the model's own flat PBR one without the flag)
+			var holder := mi.get_parent() as Node3D
+			mi.material_override = AssetMaterials.realistic(str(mi.name).get_slice("__", 1), holder.scale if holder else Vector3.ONE) if Flags.is_on(AssetMaterials.FLAG) else null
 		else:
 			var slot := str(mi.name).get_slice("__", 1)
 			mi.material_override = ArtStyle.material(slot, "opening" if slot.begins_with("glass") else "fixture")
@@ -160,6 +163,7 @@ static func clear_cache() -> void:
 	_templates.clear()
 	_manifest.clear()
 	_by_kind.clear()
+	AssetMaterials.clear_cache()
 
 
 static func _meshes(root: Node) -> Array[MeshInstance3D]:

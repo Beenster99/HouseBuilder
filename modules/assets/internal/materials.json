@@ -1,0 +1,7061 @@
+{
+	"aluminium": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 1.0,
+		"pattern": "brushed",
+		"rgb": [
+			0.6038,
+			0.6209,
+			0.6383
+		],
+		"rough": 0.3,
+		"size": 0.5
+	},
+	"asphalt": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "asphalt",
+		"rgb": [
+			0.01,
+			0.01,
+			0.0116
+		],
+		"rough": 0.95,
+		"size": 0.8
+	},
+	"bark": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "timber",
+		"rgb": [
+			0.0637,
+			0.0331,
+			0.0174
+		],
+		"rough": 0.95,
+		"size": 0.8
+	},
+	"blockwork": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "block",
+		"rgb": [
+			0.3424,
+			0.3424,
+			0.3185
+		],
+		"rough": 0.95,
+		"size": 0.9
+	},
+	"brass": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 1.0,
+		"pattern": "",
+		"rgb": [
+			0.5705,
+			0.3424,
+			0.0732
+		],
+		"rough": 0.3,
+		"size": 1.0
+	},
+	"brick": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "brick",
+		"rgb": [
+			0.2738,
+			0.0732,
+			0.0397
+		],
+		"rough": 0.9,
+		"size": 0.9
+	},
+	"brick_854": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "brick",
+		"rgb": [
+			0.25,
+			0.085,
+			0.05
+		],
+		"rough": 0.9,
+		"size": 0.9
+	},
+	"brick_965": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "brick",
+		"rgb": [
+			0.33,
+			0.14,
+			0.08
+		],
+		"rough": 0.9,
+		"size": 0.9
+	},
+	"brick_975": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "brick",
+		"rgb": [
+			0.3,
+			0.16,
+			0.1
+		],
+		"rough": 0.9,
+		"size": 0.9
+	},
+	"brick_a86": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "brick",
+		"rgb": [
+			0.42,
+			0.28,
+			0.15
+		],
+		"rough": 0.9,
+		"size": 0.9
+	},
+	"brick_a87": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "brick",
+		"rgb": [
+			0.38,
+			0.28,
+			0.16
+		],
+		"rough": 0.9,
+		"size": 0.9
+	},
+	"brick_bba": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "brick",
+		"rgb": [
+			0.48,
+			0.45,
+			0.4
+		],
+		"rough": 0.9,
+		"size": 0.9
+	},
+	"brick_fff": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "brick",
+		"rgb": [
+			1.0,
+			1.0,
+			1.0
+		],
+		"rough": 0.9,
+		"size": 0.9
+	},
+	"car_blue": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.5,
+		"pattern": "",
+		"rgb": [
+			0.0072,
+			0.0272,
+			0.1706
+		],
+		"rough": 0.25,
+		"size": 1.0
+	},
+	"car_red": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.5,
+		"pattern": "",
+		"rgb": [
+			0.3185,
+			0.0039,
+			0.0039
+		],
+		"rough": 0.25,
+		"size": 1.0
+	},
+	"car_silver": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.8,
+		"pattern": "",
+		"rgb": [
+			0.448,
+			0.4624,
+			0.4919
+		],
+		"rough": 0.25,
+		"size": 1.0
+	},
+	"car_white": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.2,
+		"pattern": "",
+		"rgb": [
+			0.8276,
+			0.8276,
+			0.8276
+		],
+		"rough": 0.3,
+		"size": 1.0
+	},
+	"carpet": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "carpet",
+		"rgb": [
+			0.1005,
+			0.1065,
+			0.1473
+		],
+		"rough": 1.0,
+		"size": 0.4
+	},
+	"cast_iron": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.8,
+		"pattern": "paint",
+		"rgb": [
+			0.022,
+			0.022,
+			0.0245
+		],
+		"rough": 0.6,
+		"size": 1.0
+	},
+	"ceramic": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "",
+		"rgb": [
+			0.9114,
+			0.9114,
+			0.89
+		],
+		"rough": 0.1,
+		"size": 1.0
+	},
+	"chrome_eee": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 1.0,
+		"pattern": "",
+		"rgb": [
+			0.9,
+			0.9,
+			0.9
+		],
+		"rough": 0.15,
+		"size": 1.0
+	},
+	"clad_235": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.4,
+		"pattern": "clad",
+		"rgb": [
+			0.012,
+			0.035,
+			0.1
+		],
+		"rough": 0.45,
+		"size": 1.0
+	},
+	"clad_247": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.4,
+		"pattern": "clad",
+		"rgb": [
+			0.02,
+			0.06,
+			0.16
+		],
+		"rough": 0.45,
+		"size": 1.0
+	},
+	"clad_248": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.4,
+		"pattern": "clad",
+		"rgb": [
+			0.02,
+			0.06,
+			0.25
+		],
+		"rough": 0.45,
+		"size": 1.0
+	},
+	"clad_333": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.4,
+		"pattern": "clad",
+		"rgb": [
+			0.035,
+			0.038,
+			0.042
+		],
+		"rough": 0.45,
+		"size": 1.0
+	},
+	"clad_343": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.4,
+		"pattern": "clad",
+		"rgb": [
+			0.03,
+			0.07,
+			0.04
+		],
+		"rough": 0.45,
+		"size": 1.0
+	},
+	"clad_354": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.4,
+		"pattern": "clad",
+		"rgb": [
+			0.035,
+			0.075,
+			0.05
+		],
+		"rough": 0.45,
+		"size": 1.0
+	},
+	"clad_368": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.4,
+		"pattern": "clad",
+		"rgb": [
+			0.04,
+			0.12,
+			0.27
+		],
+		"rough": 0.45,
+		"size": 1.0
+	},
+	"clad_444": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.4,
+		"pattern": "clad",
+		"rgb": [
+			0.06,
+			0.065,
+			0.07
+		],
+		"rough": 0.45,
+		"size": 1.0
+	},
+	"clad_454": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.4,
+		"pattern": "clad",
+		"rgb": [
+			0.05,
+			0.09,
+			0.07
+		],
+		"rough": 0.45,
+		"size": 1.0
+	},
+	"clad_455": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.4,
+		"pattern": "clad",
+		"rgb": [
+			0.07,
+			0.075,
+			0.085
+		],
+		"rough": 0.45,
+		"size": 1.0
+	},
+	"clad_555": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.4,
+		"pattern": "clad",
+		"rgb": [
+			0.08,
+			0.085,
+			0.09
+		],
+		"rough": 0.45,
+		"size": 1.0
+	},
+	"clad_58b": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.4,
+		"pattern": "clad",
+		"rgb": [
+			0.1,
+			0.24,
+			0.45
+		],
+		"rough": 0.45,
+		"size": 1.0
+	},
+	"clad_643": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.4,
+		"pattern": "clad",
+		"rgb": [
+			0.14,
+			0.06,
+			0.03
+		],
+		"rough": 0.45,
+		"size": 1.0
+	},
+	"clad_654": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.4,
+		"pattern": "clad",
+		"rgb": [
+			0.12,
+			0.09,
+			0.06
+		],
+		"rough": 0.45,
+		"size": 1.0
+	},
+	"clad_665": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.4,
+		"pattern": "clad",
+		"rgb": [
+			0.12,
+			0.15,
+			0.1
+		],
+		"rough": 0.45,
+		"size": 1.0
+	},
+	"clad_733": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.4,
+		"pattern": "clad",
+		"rgb": [
+			0.18,
+			0.035,
+			0.025
+		],
+		"rough": 0.45,
+		"size": 1.0
+	},
+	"clad_742": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.4,
+		"pattern": "clad",
+		"rgb": [
+			0.16,
+			0.055,
+			0.02
+		],
+		"rough": 0.45,
+		"size": 1.0
+	},
+	"clad_743": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.4,
+		"pattern": "clad",
+		"rgb": [
+			0.2,
+			0.07,
+			0.035
+		],
+		"rough": 0.45,
+		"size": 1.0
+	},
+	"clad_777": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.4,
+		"pattern": "clad",
+		"rgb": [
+			0.16,
+			0.17,
+			0.18
+		],
+		"rough": 0.45,
+		"size": 1.0
+	},
+	"clad_778": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.4,
+		"pattern": "clad",
+		"rgb": [
+			0.2,
+			0.21,
+			0.22
+		],
+		"rough": 0.45,
+		"size": 1.0
+	},
+	"clad_843": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.4,
+		"pattern": "clad",
+		"rgb": [
+			0.22,
+			0.07,
+			0.035
+		],
+		"rough": 0.45,
+		"size": 1.0
+	},
+	"clad_877": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.4,
+		"pattern": "clad",
+		"rgb": [
+			0.24,
+			0.21,
+			0.16
+		],
+		"rough": 0.45,
+		"size": 1.0
+	},
+	"clad_887": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.4,
+		"pattern": "clad",
+		"rgb": [
+			0.22,
+			0.22,
+			0.21
+		],
+		"rough": 0.45,
+		"size": 1.0
+	},
+	"clad_888": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.4,
+		"pattern": "clad",
+		"rgb": [
+			0.22,
+			0.23,
+			0.24
+		],
+		"rough": 0.45,
+		"size": 1.0
+	},
+	"clad_8bc": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.4,
+		"pattern": "clad",
+		"rgb": [
+			0.25,
+			0.45,
+			0.65
+		],
+		"rough": 0.45,
+		"size": 1.0
+	},
+	"clad_987": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.4,
+		"pattern": "clad",
+		"rgb": [
+			0.3,
+			0.26,
+			0.19
+		],
+		"rough": 0.45,
+		"size": 1.0
+	},
+	"clad_999": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.4,
+		"pattern": "clad",
+		"rgb": [
+			0.33,
+			0.345,
+			0.355
+		],
+		"rough": 0.45,
+		"size": 1.0
+	},
+	"clad_aab": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.4,
+		"pattern": "clad",
+		"rgb": [
+			0.42,
+			0.44,
+			0.45
+		],
+		"rough": 0.45,
+		"size": 1.0
+	},
+	"clad_bbb": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.4,
+		"pattern": "clad",
+		"rgb": [
+			0.52,
+			0.53,
+			0.53
+		],
+		"rough": 0.45,
+		"size": 1.0
+	},
+	"clad_ccc": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.4,
+		"pattern": "clad",
+		"rgb": [
+			0.55,
+			0.56,
+			0.55
+		],
+		"rough": 0.45,
+		"size": 1.0
+	},
+	"clay_tile": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "tile",
+		"rgb": [
+			0.2633,
+			0.0509,
+			0.022
+		],
+		"rough": 0.85,
+		"size": 1.2
+	},
+	"concrete": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "concrete",
+		"rgb": [
+			0.3185,
+			0.307,
+			0.2738
+		],
+		"rough": 0.9,
+		"size": 2.0
+	},
+	"concrete_222": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "concrete",
+		"rgb": [
+			0.016,
+			0.016,
+			0.016
+		],
+		"rough": 0.9,
+		"size": 2.0
+	},
+	"concrete_444": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "concrete",
+		"rgb": [
+			0.0513,
+			0.0545,
+			0.0595
+		],
+		"rough": 0.9,
+		"size": 2.0
+	},
+	"concrete_643": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "concrete",
+		"rgb": [
+			0.1248,
+			0.0704,
+			0.0356
+		],
+		"rough": 0.9,
+		"size": 2.0
+	},
+	"concrete_653": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "concrete",
+		"rgb": [
+			0.1413,
+			0.0782,
+			0.0395
+		],
+		"rough": 0.9,
+		"size": 2.0
+	},
+	"concrete_666": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "concrete",
+		"rgb": [
+			0.1221,
+			0.1248,
+			0.1301
+		],
+		"rough": 0.9,
+		"size": 2.0
+	},
+	"concrete_743": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "concrete",
+		"rgb": [
+			0.1878,
+			0.063,
+			0.0273
+		],
+		"rough": 0.9,
+		"size": 2.0
+	},
+	"concrete_753": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "concrete",
+		"rgb": [
+			0.1946,
+			0.0742,
+			0.0356
+		],
+		"rough": 0.9,
+		"size": 2.0
+	},
+	"concrete_754": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "concrete",
+		"rgb": [
+			0.1779,
+			0.0976,
+			0.0513
+		],
+		"rough": 0.9,
+		"size": 2.0
+	},
+	"concrete_765": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "concrete",
+		"rgb": [
+			0.1845,
+			0.1441,
+			0.0976
+		],
+		"rough": 0.9,
+		"size": 2.0
+	},
+	"concrete_775": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "concrete",
+		"rgb": [
+			0.2086,
+			0.1651,
+			0.1095
+		],
+		"rough": 0.9,
+		"size": 2.0
+	},
+	"concrete_777": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "concrete",
+		"rgb": [
+			0.2,
+			0.2,
+			0.19
+		],
+		"rough": 0.9,
+		"size": 2.0
+	},
+	"concrete_843": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "concrete",
+		"rgb": [
+			0.2159,
+			0.0704,
+			0.0395
+		],
+		"rough": 0.9,
+		"size": 2.0
+	},
+	"concrete_844": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "concrete",
+		"rgb": [
+			0.227,
+			0.0704,
+			0.0513
+		],
+		"rough": 0.9,
+		"size": 2.0
+	},
+	"concrete_853": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "concrete",
+		"rgb": [
+			0.2423,
+			0.0931,
+			0.0437
+		],
+		"rough": 0.9,
+		"size": 2.0
+	},
+	"concrete_854": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "concrete",
+		"rgb": [
+			0.2789,
+			0.0931,
+			0.0545
+		],
+		"rough": 0.9,
+		"size": 2.0
+	},
+	"concrete_887": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "concrete",
+		"rgb": [
+			0.25,
+			0.22,
+			0.19
+		],
+		"rough": 0.9,
+		"size": 2.0
+	},
+	"concrete_888": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "concrete",
+		"rgb": [
+			0.2705,
+			0.2705,
+			0.2384
+		],
+		"rough": 0.9,
+		"size": 2.0
+	},
+	"concrete_953": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "concrete",
+		"rgb": [
+			0.2874,
+			0.0908,
+			0.0437
+		],
+		"rough": 0.9,
+		"size": 2.0
+	},
+	"concrete_954": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "concrete",
+		"rgb": [
+			0.2961,
+			0.1022,
+			0.0467
+		],
+		"rough": 0.9,
+		"size": 2.0
+	},
+	"concrete_964": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "concrete",
+		"rgb": [
+			0.2961,
+			0.1144,
+			0.0513
+		],
+		"rough": 0.9,
+		"size": 2.0
+	},
+	"concrete_998": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "concrete",
+		"rgb": [
+			0.2961,
+			0.2918,
+			0.2582
+		],
+		"rough": 0.9,
+		"size": 2.0
+	},
+	"concrete_999": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "concrete",
+		"rgb": [
+			0.3419,
+			0.3278,
+			0.2961
+		],
+		"rough": 0.9,
+		"size": 2.0
+	},
+	"concrete_a99": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "concrete",
+		"rgb": [
+			0.3613,
+			0.3515,
+			0.3231
+		],
+		"rough": 0.9,
+		"size": 2.0
+	},
+	"concrete_aaa": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "concrete",
+		"rgb": [
+			0.402,
+			0.4179,
+			0.402
+		],
+		"rough": 0.9,
+		"size": 2.0
+	},
+	"concrete_aab": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "concrete",
+		"rgb": [
+			0.4072,
+			0.4452,
+			0.5029
+		],
+		"rough": 0.9,
+		"size": 2.0
+	},
+	"concrete_abb": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "concrete",
+		"rgb": [
+			0.402,
+			0.5089,
+			0.5029
+		],
+		"rough": 0.9,
+		"size": 2.0
+	},
+	"concrete_bab": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "concrete",
+		"rgb": [
+			0.4508,
+			0.4452,
+			0.5029
+		],
+		"rough": 0.9,
+		"size": 2.0
+	},
+	"concrete_bbb": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "concrete",
+		"rgb": [
+			0.4508,
+			0.4621,
+			0.4508
+		],
+		"rough": 0.9,
+		"size": 2.0
+	},
+	"concrete_ccb": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "concrete",
+		"rgb": [
+			0.6172,
+			0.5776,
+			0.4793
+		],
+		"rough": 0.9,
+		"size": 2.0
+	},
+	"concrete_ccc": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "concrete",
+		"rgb": [
+			0.6584,
+			0.6584,
+			0.6172
+		],
+		"rough": 0.9,
+		"size": 2.0
+	},
+	"concrete_dcc": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "concrete",
+		"rgb": [
+			0.7758,
+			0.6308,
+			0.6172
+		],
+		"rough": 0.9,
+		"size": 2.0
+	},
+	"concrete_edb": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "concrete",
+		"rgb": [
+			0.9047,
+			0.6867,
+			0.5029
+		],
+		"rough": 0.9,
+		"size": 2.0
+	},
+	"concrete_eee": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "concrete",
+		"rgb": [
+			0.82,
+			0.82,
+			0.8
+		],
+		"rough": 0.9,
+		"size": 2.0
+	},
+	"concrete_fdb": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "concrete",
+		"rgb": [
+			0.9473,
+			0.6867,
+			0.5029
+		],
+		"rough": 0.9,
+		"size": 2.0
+	},
+	"concrete_fff": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "concrete",
+		"rgb": [
+			0.95,
+			0.95,
+			0.95
+		],
+		"rough": 0.9,
+		"size": 2.0
+	},
+	"copper": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 1.0,
+		"pattern": "",
+		"rgb": [
+			0.477,
+			0.1706,
+			0.0331
+		],
+		"rough": 0.35,
+		"size": 1.0
+	},
+	"denim": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "fabric",
+		"rgb": [
+			0.0196,
+			0.0397,
+			0.1193
+		],
+		"rough": 0.9,
+		"size": 0.2
+	},
+	"enamel": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "",
+		"rgb": [
+			0.89,
+			0.89,
+			0.89
+		],
+		"rough": 0.15,
+		"size": 1.0
+	},
+	"enamel_123": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.2,
+		"pattern": "paint",
+		"rgb": [
+			0.01,
+			0.015,
+			0.04
+		],
+		"rough": 0.3,
+		"size": 1.0
+	},
+	"enamel_235": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.2,
+		"pattern": "paint",
+		"rgb": [
+			0.0194,
+			0.0319,
+			0.0782
+		],
+		"rough": 0.3,
+		"size": 1.0
+	},
+	"enamel_247": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.2,
+		"pattern": "paint",
+		"rgb": [
+			0.0194,
+			0.0595,
+			0.2016
+		],
+		"rough": 0.3,
+		"size": 1.0
+	},
+	"enamel_333": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.2,
+		"pattern": "paint",
+		"rgb": [
+			0.0395,
+			0.0437,
+			0.0437
+		],
+		"rough": 0.3,
+		"size": 1.0
+	},
+	"enamel_343": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.2,
+		"pattern": "paint",
+		"rgb": [
+			0.0319,
+			0.0704,
+			0.0395
+		],
+		"rough": 0.3,
+		"size": 1.0
+	},
+	"enamel_354": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.2,
+		"pattern": "paint",
+		"rgb": [
+			0.0395,
+			0.0782,
+			0.0513
+		],
+		"rough": 0.3,
+		"size": 1.0
+	},
+	"enamel_444": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.2,
+		"pattern": "paint",
+		"rgb": [
+			0.0513,
+			0.0513,
+			0.0545
+		],
+		"rough": 0.3,
+		"size": 1.0
+	},
+	"enamel_474": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.2,
+		"pattern": "paint",
+		"rgb": [
+			0.0513,
+			0.162,
+			0.0513
+		],
+		"rough": 0.3,
+		"size": 1.0
+	},
+	"enamel_555": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.2,
+		"pattern": "paint",
+		"rgb": [
+			0.1022,
+			0.1022,
+			0.1022
+		],
+		"rough": 0.3,
+		"size": 1.0
+	},
+	"enamel_566": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.2,
+		"pattern": "paint",
+		"rgb": [
+			0.1095,
+			0.1144,
+			0.1221
+		],
+		"rough": 0.3,
+		"size": 1.0
+	},
+	"enamel_666": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.2,
+		"pattern": "paint",
+		"rgb": [
+			0.1221,
+			0.1301,
+			0.1221
+		],
+		"rough": 0.3,
+		"size": 1.0
+	},
+	"enamel_778": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.2,
+		"pattern": "paint",
+		"rgb": [
+			0.2016,
+			0.2122,
+			0.2195
+		],
+		"rough": 0.3,
+		"size": 1.0
+	},
+	"enamel_787": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.2,
+		"pattern": "paint",
+		"rgb": [
+			0.2016,
+			0.2195,
+			0.2122
+		],
+		"rough": 0.3,
+		"size": 1.0
+	},
+	"enamel_822": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.2,
+		"pattern": "paint",
+		"rgb": [
+			0.2502,
+			0.0194,
+			0.016
+		],
+		"rough": 0.3,
+		"size": 1.0
+	},
+	"enamel_888": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.2,
+		"pattern": "paint",
+		"rgb": [
+			0.2384,
+			0.2582,
+			0.2384
+		],
+		"rough": 0.3,
+		"size": 1.0
+	},
+	"enamel_922": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.2,
+		"pattern": "paint",
+		"rgb": [
+			0.2961,
+			0.0194,
+			0.016
+		],
+		"rough": 0.3,
+		"size": 1.0
+	},
+	"enamel_932": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.2,
+		"pattern": "paint",
+		"rgb": [
+			0.3231,
+			0.0319,
+			0.0194
+		],
+		"rough": 0.3,
+		"size": 1.0
+	},
+	"enamel_998": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.2,
+		"pattern": "paint",
+		"rgb": [
+			0.2961,
+			0.2961,
+			0.2789
+		],
+		"rough": 0.3,
+		"size": 1.0
+	},
+	"enamel_999": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.2,
+		"pattern": "paint",
+		"rgb": [
+			0.3231,
+			0.3278,
+			0.3278
+		],
+		"rough": 0.3,
+		"size": 1.0
+	},
+	"enamel_a22": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.2,
+		"pattern": "paint",
+		"rgb": [
+			0.3613,
+			0.0232,
+			0.016
+		],
+		"rough": 0.3,
+		"size": 1.0
+	},
+	"enamel_a32": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.2,
+		"pattern": "paint",
+		"rgb": [
+			0.4179,
+			0.0319,
+			0.0194
+		],
+		"rough": 0.3,
+		"size": 1.0
+	},
+	"enamel_aaa": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.2,
+		"pattern": "paint",
+		"rgb": [
+			0.4179,
+			0.4397,
+			0.4287
+		],
+		"rough": 0.3,
+		"size": 1.0
+	},
+	"enamel_b21": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.2,
+		"pattern": "paint",
+		"rgb": [
+			0.5029,
+			0.0116,
+			0.008
+		],
+		"rough": 0.3,
+		"size": 1.0
+	},
+	"enamel_bbb": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.2,
+		"pattern": "paint",
+		"rgb": [
+			0.5029,
+			0.5029,
+			0.491
+		],
+		"rough": 0.3,
+		"size": 1.0
+	},
+	"enamel_c22": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.2,
+		"pattern": "paint",
+		"rgb": [
+			0.6172,
+			0.0194,
+			0.0116
+		],
+		"rough": 0.3,
+		"size": 1.0
+	},
+	"enamel_cb2": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.2,
+		"pattern": "paint",
+		"rgb": [
+			0.6172,
+			0.4508,
+			0.0194
+		],
+		"rough": 0.3,
+		"size": 1.0
+	},
+	"enamel_ccc": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.2,
+		"pattern": "paint",
+		"rgb": [
+			0.5972,
+			0.6105,
+			0.5972
+		],
+		"rough": 0.3,
+		"size": 1.0
+	},
+	"enamel_db2": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.2,
+		"pattern": "paint",
+		"rgb": [
+			0.7454,
+			0.521,
+			0.0194
+		],
+		"rough": 0.3,
+		"size": 1.0
+	},
+	"enamel_ddd": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.2,
+		"pattern": "paint",
+		"rgb": [
+			0.7835,
+			0.7835,
+			0.7454
+		],
+		"rough": 0.3,
+		"size": 1.0
+	},
+	"fabric_222": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "fabric",
+		"rgb": [
+			0.0194,
+			0.0194,
+			0.0194
+		],
+		"rough": 0.9,
+		"size": 0.2
+	},
+	"fabric_322": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "fabric",
+		"rgb": [
+			0.0273,
+			0.0232,
+			0.0232
+		],
+		"rough": 0.9,
+		"size": 0.2
+	},
+	"fabric_332": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "fabric",
+		"rgb": [
+			0.0273,
+			0.0273,
+			0.0232
+		],
+		"rough": 0.9,
+		"size": 0.2
+	},
+	"fabric_333": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "fabric",
+		"rgb": [
+			0.0319,
+			0.0319,
+			0.0319
+		],
+		"rough": 0.9,
+		"size": 0.2
+	},
+	"fabric_433": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "fabric",
+		"rgb": [
+			0.0513,
+			0.0395,
+			0.0356
+		],
+		"rough": 0.9,
+		"size": 0.2
+	},
+	"fabric_642": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "fabric",
+		"rgb": [
+			0.1413,
+			0.063,
+			0.0232
+		],
+		"rough": 0.9,
+		"size": 0.2
+	},
+	"fabric_643": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "fabric",
+		"rgb": [
+			0.1559,
+			0.0704,
+			0.0273
+		],
+		"rough": 0.9,
+		"size": 0.2
+	},
+	"fabric_653": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "fabric",
+		"rgb": [
+			0.1529,
+			0.0742,
+			0.0356
+		],
+		"rough": 0.9,
+		"size": 0.2
+	},
+	"fabric_743": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "fabric",
+		"rgb": [
+			0.162,
+			0.0704,
+			0.0273
+		],
+		"rough": 0.9,
+		"size": 0.2
+	},
+	"fabric_753": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "fabric",
+		"rgb": [
+			0.1779,
+			0.0865,
+			0.0395
+		],
+		"rough": 0.9,
+		"size": 0.2
+	},
+	"fabric_754": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "fabric",
+		"rgb": [
+			0.2051,
+			0.1095,
+			0.0595
+		],
+		"rough": 0.9,
+		"size": 0.2
+	},
+	"fabric_764": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "fabric",
+		"rgb": [
+			0.2051,
+			0.1144,
+			0.0595
+		],
+		"rough": 0.9,
+		"size": 0.2
+	},
+	"fabric_766": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "fabric",
+		"rgb": [
+			0.2016,
+			0.1301,
+			0.1221
+		],
+		"rough": 0.9,
+		"size": 0.2
+	},
+	"fabric_776": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "fabric",
+		"rgb": [
+			0.2016,
+			0.1845,
+			0.1559
+		],
+		"rough": 0.9,
+		"size": 0.2
+	},
+	"fabric_777": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "fabric",
+		"rgb": [
+			0.2086,
+			0.1912,
+			0.1651
+		],
+		"rough": 0.9,
+		"size": 0.2
+	},
+	"fabric_853": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "fabric",
+		"rgb": [
+			0.2542,
+			0.1022,
+			0.0356
+		],
+		"rough": 0.9,
+		"size": 0.2
+	},
+	"fabric_863": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "fabric",
+		"rgb": [
+			0.2582,
+			0.117,
+			0.0437
+		],
+		"rough": 0.9,
+		"size": 0.2
+	},
+	"fabric_864": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "fabric",
+		"rgb": [
+			0.2159,
+			0.117,
+			0.063
+		],
+		"rough": 0.9,
+		"size": 0.2
+	},
+	"fabric_877": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "fabric",
+		"rgb": [
+			0.227,
+			0.2122,
+			0.1812
+		],
+		"rough": 0.9,
+		"size": 0.2
+	},
+	"fabric_887": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "fabric",
+		"rgb": [
+			0.2542,
+			0.2346,
+			0.2016
+		],
+		"rough": 0.9,
+		"size": 0.2
+	},
+	"fabric_888": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "fabric",
+		"rgb": [
+			0.2747,
+			0.2582,
+			0.2195
+		],
+		"rough": 0.9,
+		"size": 0.2
+	},
+	"fabric_963": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "fabric",
+		"rgb": [
+			0.2961,
+			0.117,
+			0.0395
+		],
+		"rough": 0.9,
+		"size": 0.2
+	},
+	"fabric_964": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "fabric",
+		"rgb": [
+			0.3095,
+			0.1329,
+			0.0467
+		],
+		"rough": 0.9,
+		"size": 0.2
+	},
+	"fabric_974": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "fabric",
+		"rgb": [
+			0.3564,
+			0.1683,
+			0.0666
+		],
+		"rough": 0.9,
+		"size": 0.2
+	},
+	"fabric_987": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "fabric",
+		"rgb": [
+			0.3231,
+			0.2789,
+			0.2016
+		],
+		"rough": 0.9,
+		"size": 0.2
+	},
+	"fabric_988": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "fabric",
+		"rgb": [
+			0.2831,
+			0.2623,
+			0.2232
+		],
+		"rough": 0.9,
+		"size": 0.2
+	},
+	"fabric_996": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "fabric",
+		"rgb": [
+			0.3496,
+			0.3036,
+			0.1288
+		],
+		"rough": 0.9,
+		"size": 0.2
+	},
+	"fabric_998": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "fabric",
+		"rgb": [
+			0.3005,
+			0.2831,
+			0.2384
+		],
+		"rough": 0.9,
+		"size": 0.2
+	},
+	"fabric_999": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "fabric",
+		"rgb": [
+			0.3564,
+			0.3325,
+			0.2831
+		],
+		"rough": 0.9,
+		"size": 0.2
+	},
+	"fabric_a74": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "fabric",
+		"rgb": [
+			0.3613,
+			0.1714,
+			0.0666
+		],
+		"rough": 0.9,
+		"size": 0.2
+	},
+	"fabric_a75": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "fabric",
+		"rgb": [
+			0.3864,
+			0.1912,
+			0.0782
+		],
+		"rough": 0.9,
+		"size": 0.2
+	},
+	"fabric_a96": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "fabric",
+		"rgb": [
+			0.38,
+			0.33,
+			0.14
+		],
+		"rough": 0.9,
+		"size": 0.2
+	},
+	"fabric_a99": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "fabric",
+		"rgb": [
+			0.3663,
+			0.3419,
+			0.2918
+		],
+		"rough": 0.9,
+		"size": 0.2
+	},
+	"fabric_aa9": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "fabric",
+		"rgb": [
+			0.3864,
+			0.3663,
+			0.305
+		],
+		"rough": 0.9,
+		"size": 0.2
+	},
+	"fabric_aaa": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "fabric",
+		"rgb": [
+			0.4233,
+			0.4072,
+			0.3663
+		],
+		"rough": 0.9,
+		"size": 0.2
+	},
+	"fabric_b96": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "fabric",
+		"rgb": [
+			0.46,
+			0.3496,
+			0.1564
+		],
+		"rough": 0.9,
+		"size": 0.2
+	},
+	"fabric_ba7": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "fabric",
+		"rgb": [
+			0.5,
+			0.38,
+			0.17
+		],
+		"rough": 0.9,
+		"size": 0.2
+	},
+	"fabric_ba9": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "fabric",
+		"rgb": [
+			0.4508,
+			0.4233,
+			0.3564
+		],
+		"rough": 0.9,
+		"size": 0.2
+	},
+	"fabric_baa": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "fabric",
+		"rgb": [
+			0.4564,
+			0.4287,
+			0.3613
+		],
+		"rough": 0.9,
+		"size": 0.2
+	},
+	"fabric_bba": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "fabric",
+		"rgb": [
+			0.4851,
+			0.4678,
+			0.4397
+		],
+		"rough": 0.9,
+		"size": 0.2
+	},
+	"fabric_bbb": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "fabric",
+		"rgb": [
+			0.5395,
+			0.5149,
+			0.4851
+		],
+		"rough": 0.9,
+		"size": 0.2
+	},
+	"fabric_blue": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "fabric",
+		"rgb": [
+			0.0331,
+			0.0835,
+			0.214
+		],
+		"rough": 0.95,
+		"size": 0.2
+	},
+	"fabric_cbb": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "fabric",
+		"rgb": [
+			0.552,
+			0.5333,
+			0.4793
+		],
+		"rough": 0.9,
+		"size": 0.2
+	},
+	"fabric_ccb": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "fabric",
+		"rgb": [
+			0.5906,
+			0.5711,
+			0.5333
+		],
+		"rough": 0.9,
+		"size": 0.2
+	},
+	"fabric_ccc": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "fabric",
+		"rgb": [
+			0.6376,
+			0.6172,
+			0.5776
+		],
+		"rough": 0.9,
+		"size": 0.2
+	},
+	"fabric_dcc": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "fabric",
+		"rgb": [
+			0.6654,
+			0.6445,
+			0.5776
+		],
+		"rough": 0.9,
+		"size": 0.2
+	},
+	"fabric_ddc": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "fabric",
+		"rgb": [
+			0.6867,
+			0.6654,
+			0.5972
+		],
+		"rough": 0.9,
+		"size": 0.2
+	},
+	"fabric_green": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "fabric",
+		"rgb": [
+			0.0331,
+			0.1329,
+			0.0509
+		],
+		"rough": 0.95,
+		"size": 0.2
+	},
+	"fabric_grey": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "fabric",
+		"rgb": [
+			0.1706,
+			0.1789,
+			0.196
+		],
+		"rough": 0.95,
+		"size": 0.2
+	},
+	"fabric_red": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "fabric",
+		"rgb": [
+			0.3185,
+			0.0134,
+			0.01
+		],
+		"rough": 0.95,
+		"size": 0.2
+	},
+	"fabric_white": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "fabric",
+		"rgb": [
+			0.8481,
+			0.8276,
+			0.7678
+		],
+		"rough": 0.95,
+		"size": 0.2
+	},
+	"foliage": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "foliage",
+		"rgb": [
+			0.0331,
+			0.1473,
+			0.022
+		],
+		"rough": 0.9,
+		"size": 0.7
+	},
+	"foliage_dark": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "foliage",
+		"rgb": [
+			0.01,
+			0.0637,
+			0.0174
+		],
+		"rough": 0.9,
+		"size": 0.7
+	},
+	"galv_222": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.9,
+		"pattern": "galv",
+		"rgb": [
+			0.0194,
+			0.0194,
+			0.0194
+		],
+		"rough": 0.4,
+		"size": 0.6
+	},
+	"galv_353": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.9,
+		"pattern": "galv",
+		"rgb": [
+			0.025,
+			0.09,
+			0.04
+		],
+		"rough": 0.4,
+		"size": 0.6
+	},
+	"galv_444": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.9,
+		"pattern": "galv",
+		"rgb": [
+			0.05,
+			0.05,
+			0.055
+		],
+		"rough": 0.4,
+		"size": 0.6
+	},
+	"galv_643": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.9,
+		"pattern": "galv",
+		"rgb": [
+			0.1221,
+			0.0704,
+			0.0356
+		],
+		"rough": 0.4,
+		"size": 0.6
+	},
+	"galv_653": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.9,
+		"pattern": "galv",
+		"rgb": [
+			0.15,
+			0.0823,
+			0.0437
+		],
+		"rough": 0.4,
+		"size": 0.6
+	},
+	"galv_654": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.9,
+		"pattern": "galv",
+		"rgb": [
+			0.15,
+			0.0976,
+			0.0545
+		],
+		"rough": 0.4,
+		"size": 0.6
+	},
+	"galv_754": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.9,
+		"pattern": "galv",
+		"rgb": [
+			0.162,
+			0.0908,
+			0.0467
+		],
+		"rough": 0.4,
+		"size": 0.6
+	},
+	"galv_765": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.9,
+		"pattern": "galv",
+		"rgb": [
+			0.1845,
+			0.1441,
+			0.0976
+		],
+		"rough": 0.4,
+		"size": 0.6
+	},
+	"galv_775": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.9,
+		"pattern": "galv",
+		"rgb": [
+			0.2086,
+			0.1651,
+			0.1095
+		],
+		"rough": 0.4,
+		"size": 0.6
+	},
+	"galv_777": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.9,
+		"pattern": "galv",
+		"rgb": [
+			0.18,
+			0.18,
+			0.19
+		],
+		"rough": 0.4,
+		"size": 0.6
+	},
+	"galv_888": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.9,
+		"pattern": "galv",
+		"rgb": [
+			0.2502,
+			0.2582,
+			0.2582
+		],
+		"rough": 0.4,
+		"size": 0.6
+	},
+	"galv_999": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.9,
+		"pattern": "galv",
+		"rgb": [
+			0.3278,
+			0.3419,
+			0.3278
+		],
+		"rough": 0.4,
+		"size": 0.6
+	},
+	"galv_9bb": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.9,
+		"pattern": "galv",
+		"rgb": [
+			0.3564,
+			0.5089,
+			0.5029
+		],
+		"rough": 0.4,
+		"size": 0.6
+	},
+	"galv_aaa": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.9,
+		"pattern": "galv",
+		"rgb": [
+			0.3613,
+			0.3663,
+			0.3613
+		],
+		"rough": 0.4,
+		"size": 0.6
+	},
+	"galv_aab": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.9,
+		"pattern": "galv",
+		"rgb": [
+			0.402,
+			0.4452,
+			0.5029
+		],
+		"rough": 0.4,
+		"size": 0.6
+	},
+	"galv_aba": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.9,
+		"pattern": "galv",
+		"rgb": [
+			0.4452,
+			0.4564,
+			0.4452
+		],
+		"rough": 0.4,
+		"size": 0.6
+	},
+	"galv_abb": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.9,
+		"pattern": "galv",
+		"rgb": [
+			0.3813,
+			0.5089,
+			0.5029
+		],
+		"rough": 0.4,
+		"size": 0.6
+	},
+	"galv_bbb": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.9,
+		"pattern": "galv",
+		"rgb": [
+			0.5029,
+			0.5089,
+			0.5029
+		],
+		"rough": 0.4,
+		"size": 0.6
+	},
+	"galv_ccc": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.9,
+		"pattern": "galv",
+		"rgb": [
+			0.62,
+			0.62,
+			0.62
+		],
+		"rough": 0.4,
+		"size": 0.6
+	},
+	"galv_dc8": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.9,
+		"pattern": "galv",
+		"rgb": [
+			0.78,
+			0.58,
+			0.25
+		],
+		"rough": 0.4,
+		"size": 0.6
+	},
+	"galv_dcc": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.9,
+		"pattern": "galv",
+		"rgb": [
+			0.7835,
+			0.6308,
+			0.6172
+		],
+		"rough": 0.4,
+		"size": 0.6
+	},
+	"galv_ddd": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.9,
+		"pattern": "galv",
+		"rgb": [
+			0.7011,
+			0.7011,
+			0.6795
+		],
+		"rough": 0.4,
+		"size": 0.6
+	},
+	"galv_edb": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.9,
+		"pattern": "galv",
+		"rgb": [
+			0.9131,
+			0.6867,
+			0.5029
+		],
+		"rough": 0.4,
+		"size": 0.6
+	},
+	"galv_eee": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.9,
+		"pattern": "galv",
+		"rgb": [
+			0.8,
+			0.8,
+			0.8
+		],
+		"rough": 0.4,
+		"size": 0.6
+	},
+	"glass": {
+		"alpha": 0.25,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "",
+		"rgb": [
+			0.5225,
+			0.7484,
+			0.8276
+		],
+		"rough": 0.05,
+		"size": 1.0
+	},
+	"glass_dark": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "",
+		"rgb": [
+			0.0023,
+			0.0035,
+			0.0049
+		],
+		"rough": 0.06,
+		"size": 1.0
+	},
+	"glaze_333": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "",
+		"rgb": [
+			0.0319,
+			0.0395,
+			0.0395
+		],
+		"rough": 0.12,
+		"size": 1.0
+	},
+	"glaze_654": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "",
+		"rgb": [
+			0.1413,
+			0.0931,
+			0.0545
+		],
+		"rough": 0.12,
+		"size": 1.0
+	},
+	"glaze_742": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "",
+		"rgb": [
+			0.162,
+			0.0595,
+			0.0232
+		],
+		"rough": 0.12,
+		"size": 1.0
+	},
+	"glaze_765": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "",
+		"rgb": [
+			0.1845,
+			0.1441,
+			0.0976
+		],
+		"rough": 0.12,
+		"size": 1.0
+	},
+	"glaze_777": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "",
+		"rgb": [
+			0.162,
+			0.1683,
+			0.1812
+		],
+		"rough": 0.12,
+		"size": 1.0
+	},
+	"glaze_988": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "",
+		"rgb": [
+			0.2918,
+			0.2747,
+			0.2346
+		],
+		"rough": 0.12,
+		"size": 1.0
+	},
+	"glaze_999": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "",
+		"rgb": [
+			0.3467,
+			0.3278,
+			0.2831
+		],
+		"rough": 0.12,
+		"size": 1.0
+	},
+	"glaze_a76": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "",
+		"rgb": [
+			0.3613,
+			0.2016,
+			0.1221
+		],
+		"rough": 0.12,
+		"size": 1.0
+	},
+	"glaze_bbb": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "",
+		"rgb": [
+			0.4508,
+			0.4678,
+			0.4678
+		],
+		"rough": 0.12,
+		"size": 1.0
+	},
+	"glow": {
+		"alpha": 1.0,
+		"glow": true,
+		"metal": 0.0,
+		"pattern": "",
+		"rgb": [
+			1.0,
+			0.8481,
+			0.5705
+		],
+		"rough": 0.3,
+		"size": 1.0
+	},
+	"glulam": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "timber",
+		"rgb": [
+			0.6038,
+			0.3672,
+			0.1473
+		],
+		"rough": 0.6,
+		"size": 0.8
+	},
+	"hardwood": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "timber",
+		"rgb": [
+			0.1473,
+			0.055,
+			0.0196
+		],
+		"rough": 0.55,
+		"size": 0.8
+	},
+	"hazard_red": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.3,
+		"pattern": "paint",
+		"rgb": [
+			0.5225,
+			0.01,
+			0.0072
+		],
+		"rough": 0.5,
+		"size": 1.0
+	},
+	"hivis_orange": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "",
+		"rgb": [
+			1.0,
+			0.1005,
+			0.0015
+		],
+		"rough": 0.6,
+		"size": 1.0
+	},
+	"hivis_yellow": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "",
+		"rgb": [
+			0.6038,
+			0.89,
+			0.0039
+		],
+		"rough": 0.6,
+		"size": 1.0
+	},
+	"insulation": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.6,
+		"pattern": "",
+		"rgb": [
+			0.5225,
+			0.5382,
+			0.5705
+		],
+		"rough": 0.6,
+		"size": 1.0
+	},
+	"laminate_grey": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "",
+		"rgb": [
+			0.1706,
+			0.1873,
+			0.214
+		],
+		"rough": 0.4,
+		"size": 1.0
+	},
+	"laminate_white": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "",
+		"rgb": [
+			0.8276,
+			0.8276,
+			0.7874
+		],
+		"rough": 0.4,
+		"size": 1.0
+	},
+	"lead": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.9,
+		"pattern": "galv",
+		"rgb": [
+			0.1329,
+			0.1473,
+			0.1706
+		],
+		"rough": 0.5,
+		"size": 0.6
+	},
+	"leather_black": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "leather",
+		"rgb": [
+			0.0049,
+			0.0049,
+			0.0049
+		],
+		"rough": 0.5,
+		"size": 0.25
+	},
+	"lens_822": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "",
+		"rgb": [
+			0.2195,
+			0.0194,
+			0.016
+		],
+		"rough": 0.08,
+		"size": 1.0
+	},
+	"lens_852": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "",
+		"rgb": [
+			0.2384,
+			0.1022,
+			0.0116
+		],
+		"rough": 0.08,
+		"size": 1.0
+	},
+	"lens_922": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "",
+		"rgb": [
+			0.2961,
+			0.016,
+			0.0116
+		],
+		"rough": 0.08,
+		"size": 1.0
+	},
+	"lens_962": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "",
+		"rgb": [
+			0.3515,
+			0.1221,
+			0.0116
+		],
+		"rough": 0.08,
+		"size": 1.0
+	},
+	"lens_999": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "",
+		"rgb": [
+			0.3231,
+			0.3278,
+			0.3231
+		],
+		"rough": 0.08,
+		"size": 1.0
+	},
+	"lens_aaa": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "",
+		"rgb": [
+			0.42,
+			0.44,
+			0.4
+		],
+		"rough": 0.08,
+		"size": 1.0
+	},
+	"lens_bbb": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "",
+		"rgb": [
+			0.5029,
+			0.5029,
+			0.4508
+		],
+		"rough": 0.08,
+		"size": 1.0
+	},
+	"lens_cba": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "",
+		"rgb": [
+			0.5972,
+			0.521,
+			0.3813
+		],
+		"rough": 0.08,
+		"size": 1.0
+	},
+	"lens_ccc": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "",
+		"rgb": [
+			0.552,
+			0.552,
+			0.552
+		],
+		"rough": 0.08,
+		"size": 1.0
+	},
+	"lens_eed": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "",
+		"rgb": [
+			0.8469,
+			0.8388,
+			0.7835
+		],
+		"rough": 0.08,
+		"size": 1.0
+	},
+	"light_153": {
+		"alpha": 1.0,
+		"glow": true,
+		"metal": 0.0,
+		"pattern": "",
+		"rgb": [
+			0.008,
+			0.09,
+			0.03
+		],
+		"rough": 0.3,
+		"size": 1.0
+	},
+	"light_2b6": {
+		"alpha": 1.0,
+		"glow": true,
+		"metal": 0.0,
+		"pattern": "",
+		"rgb": [
+			0.02,
+			0.45,
+			0.12
+		],
+		"rough": 0.3,
+		"size": 1.0
+	},
+	"light_4f9": {
+		"alpha": 1.0,
+		"glow": true,
+		"metal": 0.0,
+		"pattern": "",
+		"rgb": [
+			0.05,
+			1.0,
+			0.35
+		],
+		"rough": 0.3,
+		"size": 1.0
+	},
+	"light_5f9": {
+		"alpha": 1.0,
+		"glow": true,
+		"metal": 0.0,
+		"pattern": "",
+		"rgb": [
+			0.1,
+			1.0,
+			0.35
+		],
+		"rough": 0.3,
+		"size": 1.0
+	},
+	"light_6fb": {
+		"alpha": 1.0,
+		"glow": true,
+		"metal": 0.0,
+		"pattern": "",
+		"rgb": [
+			0.125,
+			1.0,
+			0.5
+		],
+		"rough": 0.3,
+		"size": 1.0
+	},
+	"light_711": {
+		"alpha": 1.0,
+		"glow": true,
+		"metal": 0.0,
+		"pattern": "",
+		"rgb": [
+			0.16,
+			0.008,
+			0.006
+		],
+		"rough": 0.3,
+		"size": 1.0
+	},
+	"light_740": {
+		"alpha": 1.0,
+		"glow": true,
+		"metal": 0.0,
+		"pattern": "",
+		"rgb": [
+			0.2,
+			0.07,
+			0.0
+		],
+		"rough": 0.3,
+		"size": 1.0
+	},
+	"light_bcb": {
+		"alpha": 1.0,
+		"glow": true,
+		"metal": 0.0,
+		"pattern": "",
+		"rgb": [
+			0.496,
+			0.56,
+			0.48
+		],
+		"rough": 0.3,
+		"size": 1.0
+	},
+	"light_c32": {
+		"alpha": 1.0,
+		"glow": true,
+		"metal": 0.0,
+		"pattern": "",
+		"rgb": [
+			0.55,
+			0.03,
+			0.02
+		],
+		"rough": 0.3,
+		"size": 1.0
+	},
+	"light_eb4": {
+		"alpha": 1.0,
+		"glow": true,
+		"metal": 0.0,
+		"pattern": "",
+		"rgb": [
+			0.9,
+			0.45,
+			0.05
+		],
+		"rough": 0.3,
+		"size": 1.0
+	},
+	"light_eee": {
+		"alpha": 1.0,
+		"glow": true,
+		"metal": 0.0,
+		"pattern": "",
+		"rgb": [
+			0.9,
+			0.9,
+			0.85
+		],
+		"rough": 0.3,
+		"size": 1.0
+	},
+	"light_emitter": {
+		"alpha": 1.0,
+		"glow": true,
+		"metal": 0.0,
+		"pattern": "",
+		"rgb": [
+			1.0,
+			0.9551,
+			0.8276
+		],
+		"rough": 0.3,
+		"size": 1.0
+	},
+	"light_f21": {
+		"alpha": 1.0,
+		"glow": true,
+		"metal": 0.0,
+		"pattern": "",
+		"rgb": [
+			1.0,
+			0.02,
+			0.01
+		],
+		"rough": 0.3,
+		"size": 1.0
+	},
+	"light_f32": {
+		"alpha": 1.0,
+		"glow": true,
+		"metal": 0.0,
+		"pattern": "",
+		"rgb": [
+			1.0,
+			0.04,
+			0.02
+		],
+		"rough": 0.3,
+		"size": 1.0
+	},
+	"light_f5c": {
+		"alpha": 1.0,
+		"glow": true,
+		"metal": 0.0,
+		"pattern": "",
+		"rgb": [
+			1.0,
+			0.1,
+			0.55
+		],
+		"rough": 0.3,
+		"size": 1.0
+	},
+	"light_f64": {
+		"alpha": 1.0,
+		"glow": true,
+		"metal": 0.0,
+		"pattern": "",
+		"rgb": [
+			1.0,
+			0.1111,
+			0.0556
+		],
+		"rough": 0.3,
+		"size": 1.0
+	},
+	"light_f90": {
+		"alpha": 1.0,
+		"glow": true,
+		"metal": 0.0,
+		"pattern": "",
+		"rgb": [
+			1.0,
+			0.33,
+			0.0
+		],
+		"rough": 0.3,
+		"size": 1.0
+	},
+	"light_fa4": {
+		"alpha": 1.0,
+		"glow": true,
+		"metal": 0.0,
+		"pattern": "",
+		"rgb": [
+			1.0,
+			0.3889,
+			0.0556
+		],
+		"rough": 0.3,
+		"size": 1.0
+	},
+	"light_fc5": {
+		"alpha": 1.0,
+		"glow": true,
+		"metal": 0.0,
+		"pattern": "",
+		"rgb": [
+			1.0,
+			0.55,
+			0.08
+		],
+		"rough": 0.3,
+		"size": 1.0
+	},
+	"light_ffe": {
+		"alpha": 1.0,
+		"glow": true,
+		"metal": 0.0,
+		"pattern": "",
+		"rgb": [
+			1.0,
+			0.96,
+			0.9
+		],
+		"rough": 0.3,
+		"size": 1.0
+	},
+	"light_fff": {
+		"alpha": 1.0,
+		"glow": true,
+		"metal": 0.0,
+		"pattern": "",
+		"rgb": [
+			0.9583,
+			0.9792,
+			1.0
+		],
+		"rough": 0.3,
+		"size": 1.0
+	},
+	"marble": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "marble",
+		"rgb": [
+			0.7874,
+			0.7678,
+			0.7106
+		],
+		"rough": 0.15,
+		"size": 1.6
+	},
+	"mineral_wool": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "carpet",
+		"rgb": [
+			0.6921,
+			0.5225,
+			0.0732
+		],
+		"rough": 1.0,
+		"size": 0.4
+	},
+	"mirror": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 1.0,
+		"pattern": "",
+		"rgb": [
+			0.7874,
+			0.8276,
+			0.8481
+		],
+		"rough": 0.02,
+		"size": 1.0
+	},
+	"paint_099": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.1,
+		"pattern": "paint",
+		"rgb": [
+			0.0,
+			0.3,
+			0.33
+		],
+		"rough": 0.5,
+		"size": 1.0
+	},
+	"paint_122": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.1,
+		"pattern": "paint",
+		"rgb": [
+			0.01,
+			0.012,
+			0.015
+		],
+		"rough": 0.5,
+		"size": 1.0
+	},
+	"paint_221": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.1,
+		"pattern": "paint",
+		"rgb": [
+			0.012,
+			0.011,
+			0.01
+		],
+		"rough": 0.5,
+		"size": 1.0
+	},
+	"paint_222": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.1,
+		"pattern": "paint",
+		"rgb": [
+			0.02,
+			0.02,
+			0.022
+		],
+		"rough": 0.5,
+		"size": 1.0
+	},
+	"paint_223": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.1,
+		"pattern": "paint",
+		"rgb": [
+			0.018,
+			0.022,
+			0.026
+		],
+		"rough": 0.5,
+		"size": 1.0
+	},
+	"paint_234": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.1,
+		"pattern": "paint",
+		"rgb": [
+			0.012,
+			0.025,
+			0.07
+		],
+		"rough": 0.5,
+		"size": 1.0
+	},
+	"paint_235": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.1,
+		"pattern": "paint",
+		"rgb": [
+			0.018,
+			0.035,
+			0.075
+		],
+		"rough": 0.5,
+		"size": 1.0
+	},
+	"paint_236": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.1,
+		"pattern": "paint",
+		"rgb": [
+			0.012,
+			0.042,
+			0.12
+		],
+		"rough": 0.5,
+		"size": 1.0
+	},
+	"paint_243": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.1,
+		"pattern": "paint",
+		"rgb": [
+			0.0194,
+			0.0595,
+			0.0319
+		],
+		"rough": 0.5,
+		"size": 1.0
+	},
+	"paint_246": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.1,
+		"pattern": "paint",
+		"rgb": [
+			0.02,
+			0.05,
+			0.14
+		],
+		"rough": 0.5,
+		"size": 1.0
+	},
+	"paint_247": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.1,
+		"pattern": "paint",
+		"rgb": [
+			0.02,
+			0.07,
+			0.2
+		],
+		"rough": 0.5,
+		"size": 1.0
+	},
+	"paint_248": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.1,
+		"pattern": "paint",
+		"rgb": [
+			0.0194,
+			0.0595,
+			0.2502
+		],
+		"rough": 0.5,
+		"size": 1.0
+	},
+	"paint_259": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.1,
+		"pattern": "paint",
+		"rgb": [
+			0.0194,
+			0.0782,
+			0.2961
+		],
+		"rough": 0.5,
+		"size": 1.0
+	},
+	"paint_264": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.1,
+		"pattern": "paint",
+		"rgb": [
+			0.02,
+			0.12,
+			0.06
+		],
+		"rough": 0.5,
+		"size": 1.0
+	},
+	"paint_26b": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.1,
+		"pattern": "paint",
+		"rgb": [
+			0.0194,
+			0.15,
+			0.5029
+		],
+		"rough": 0.5,
+		"size": 1.0
+	},
+	"paint_295": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.1,
+		"pattern": "paint",
+		"rgb": [
+			0.02,
+			0.3,
+			0.09
+		],
+		"rough": 0.5,
+		"size": 1.0
+	},
+	"paint_333": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.1,
+		"pattern": "paint",
+		"rgb": [
+			0.0395,
+			0.0437,
+			0.0437
+		],
+		"rough": 0.5,
+		"size": 1.0
+	},
+	"paint_335": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.1,
+		"pattern": "paint",
+		"rgb": [
+			0.0319,
+			0.0395,
+			0.0908
+		],
+		"rough": 0.5,
+		"size": 1.0
+	},
+	"paint_343": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.1,
+		"pattern": "paint",
+		"rgb": [
+			0.04,
+			0.05,
+			0.035
+		],
+		"rough": 0.5,
+		"size": 1.0
+	},
+	"paint_344": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.1,
+		"pattern": "paint",
+		"rgb": [
+			0.04,
+			0.06,
+			0.05
+		],
+		"rough": 0.5,
+		"size": 1.0
+	},
+	"paint_347": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.1,
+		"pattern": "paint",
+		"rgb": [
+			0.03,
+			0.07,
+			0.16
+		],
+		"rough": 0.5,
+		"size": 1.0
+	},
+	"paint_353": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.1,
+		"pattern": "paint",
+		"rgb": [
+			0.0319,
+			0.0782,
+			0.0356
+		],
+		"rough": 0.5,
+		"size": 1.0
+	},
+	"paint_355": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.1,
+		"pattern": "paint",
+		"rgb": [
+			0.0437,
+			0.0865,
+			0.107
+		],
+		"rough": 0.5,
+		"size": 1.0
+	},
+	"paint_364": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.1,
+		"pattern": "paint",
+		"rgb": [
+			0.0319,
+			0.1301,
+			0.0513
+		],
+		"rough": 0.5,
+		"size": 1.0
+	},
+	"paint_374": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.1,
+		"pattern": "paint",
+		"rgb": [
+			0.04,
+			0.16,
+			0.07
+		],
+		"rough": 0.5,
+		"size": 1.0
+	},
+	"paint_432": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.1,
+		"pattern": "paint",
+		"rgb": [
+			0.0513,
+			0.0437,
+			0.0232
+		],
+		"rough": 0.5,
+		"size": 1.0
+	},
+	"paint_444": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.1,
+		"pattern": "paint",
+		"rgb": [
+			0.0513,
+			0.0513,
+			0.0513
+		],
+		"rough": 0.5,
+		"size": 1.0
+	},
+	"paint_454": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.1,
+		"pattern": "paint",
+		"rgb": [
+			0.0595,
+			0.0908,
+			0.0704
+		],
+		"rough": 0.5,
+		"size": 1.0
+	},
+	"paint_455": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.1,
+		"pattern": "paint",
+		"rgb": [
+			0.0704,
+			0.0742,
+			0.0782
+		],
+		"rough": 0.5,
+		"size": 1.0
+	},
+	"paint_456": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.1,
+		"pattern": "paint",
+		"rgb": [
+			0.0513,
+			0.1022,
+			0.1221
+		],
+		"rough": 0.5,
+		"size": 1.0
+	},
+	"paint_457": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.1,
+		"pattern": "paint",
+		"rgb": [
+			0.0513,
+			0.0908,
+			0.2016
+		],
+		"rough": 0.5,
+		"size": 1.0
+	},
+	"paint_466": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.1,
+		"pattern": "paint",
+		"rgb": [
+			0.0545,
+			0.1144,
+			0.1329
+		],
+		"rough": 0.5,
+		"size": 1.0
+	},
+	"paint_468": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.1,
+		"pattern": "paint",
+		"rgb": [
+			0.05,
+			0.12,
+			0.25
+		],
+		"rough": 0.5,
+		"size": 1.0
+	},
+	"paint_46a": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.1,
+		"pattern": "paint",
+		"rgb": [
+			0.06,
+			0.14,
+			0.36
+		],
+		"rough": 0.5,
+		"size": 1.0
+	},
+	"paint_474": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.1,
+		"pattern": "paint",
+		"rgb": [
+			0.0595,
+			0.1812,
+			0.0513
+		],
+		"rough": 0.5,
+		"size": 1.0
+	},
+	"paint_475": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.1,
+		"pattern": "paint",
+		"rgb": [
+			0.05,
+			0.2,
+			0.08
+		],
+		"rough": 0.5,
+		"size": 1.0
+	},
+	"paint_47a": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.1,
+		"pattern": "paint",
+		"rgb": [
+			0.05,
+			0.16,
+			0.42
+		],
+		"rough": 0.5,
+		"size": 1.0
+	},
+	"paint_47c": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.1,
+		"pattern": "paint",
+		"rgb": [
+			0.06,
+			0.18,
+			0.65
+		],
+		"rough": 0.5,
+		"size": 1.0
+	},
+	"paint_485": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.1,
+		"pattern": "paint",
+		"rgb": [
+			0.06,
+			0.28,
+			0.1
+		],
+		"rough": 0.5,
+		"size": 1.0
+	},
+	"paint_486": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.1,
+		"pattern": "paint",
+		"rgb": [
+			0.07,
+			0.26,
+			0.12
+		],
+		"rough": 0.5,
+		"size": 1.0
+	},
+	"paint_494": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.1,
+		"pattern": "paint",
+		"rgb": [
+			0.0513,
+			0.2961,
+			0.0595
+		],
+		"rough": 0.5,
+		"size": 1.0
+	},
+	"paint_522": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.1,
+		"pattern": "paint",
+		"rgb": [
+			0.107,
+			0.0194,
+			0.0194
+		],
+		"rough": 0.5,
+		"size": 1.0
+	},
+	"paint_543": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.1,
+		"pattern": "paint",
+		"rgb": [
+			0.0908,
+			0.063,
+			0.0437
+		],
+		"rough": 0.5,
+		"size": 1.0
+	},
+	"paint_544": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.1,
+		"pattern": "paint",
+		"rgb": [
+			0.1022,
+			0.0704,
+			0.0467
+		],
+		"rough": 0.5,
+		"size": 1.0
+	},
+	"paint_554": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.1,
+		"pattern": "paint",
+		"rgb": [
+			0.1095,
+			0.0782,
+			0.0513
+		],
+		"rough": 0.5,
+		"size": 1.0
+	},
+	"paint_555": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.1,
+		"pattern": "paint",
+		"rgb": [
+			0.1022,
+			0.1022,
+			0.0908
+		],
+		"rough": 0.5,
+		"size": 1.0
+	},
+	"paint_56a": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.1,
+		"pattern": "paint",
+		"rgb": [
+			0.0782,
+			0.15,
+			0.402
+		],
+		"rough": 0.5,
+		"size": 1.0
+	},
+	"paint_576": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.1,
+		"pattern": "paint",
+		"rgb": [
+			0.0782,
+			0.2016,
+			0.1221
+		],
+		"rough": 0.5,
+		"size": 1.0
+	},
+	"paint_584": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.1,
+		"pattern": "paint",
+		"rgb": [
+			0.1022,
+			0.2789,
+			0.0595
+		],
+		"rough": 0.5,
+		"size": 1.0
+	},
+	"paint_58a": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.1,
+		"pattern": "paint",
+		"rgb": [
+			0.08,
+			0.22,
+			0.38
+		],
+		"rough": 0.5,
+		"size": 1.0
+	},
+	"paint_58b": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.1,
+		"pattern": "paint",
+		"rgb": [
+			0.08,
+			0.22,
+			0.5
+		],
+		"rough": 0.5,
+		"size": 1.0
+	},
+	"paint_596": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.1,
+		"pattern": "paint",
+		"rgb": [
+			0.1,
+			0.3,
+			0.14
+		],
+		"rough": 0.5,
+		"size": 1.0
+	},
+	"paint_59c": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.1,
+		"pattern": "paint",
+		"rgb": [
+			0.1,
+			0.3,
+			0.65
+		],
+		"rough": 0.5,
+		"size": 1.0
+	},
+	"paint_5b7": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.1,
+		"pattern": "paint",
+		"rgb": [
+			0.1,
+			0.45,
+			0.18
+		],
+		"rough": 0.5,
+		"size": 1.0
+	},
+	"paint_622": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.1,
+		"pattern": "paint",
+		"rgb": [
+			0.1221,
+			0.0194,
+			0.0194
+		],
+		"rough": 0.5,
+		"size": 1.0
+	},
+	"paint_632": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.1,
+		"pattern": "paint",
+		"rgb": [
+			0.132,
+			0.03,
+			0.018
+		],
+		"rough": 0.5,
+		"size": 1.0
+	},
+	"paint_653": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.1,
+		"pattern": "paint",
+		"rgb": [
+			0.1441,
+			0.0823,
+			0.0395
+		],
+		"rough": 0.5,
+		"size": 1.0
+	},
+	"paint_654": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.1,
+		"pattern": "paint",
+		"rgb": [
+			0.1144,
+			0.0782,
+			0.0513
+		],
+		"rough": 0.5,
+		"size": 1.0
+	},
+	"paint_655": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.1,
+		"pattern": "paint",
+		"rgb": [
+			0.1559,
+			0.1095,
+			0.0742
+		],
+		"rough": 0.5,
+		"size": 1.0
+	},
+	"paint_666": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.1,
+		"pattern": "paint",
+		"rgb": [
+			0.117,
+			0.1529,
+			0.1248
+		],
+		"rough": 0.5,
+		"size": 1.0
+	},
+	"paint_676": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.1,
+		"pattern": "paint",
+		"rgb": [
+			0.1301,
+			0.1683,
+			0.1413
+		],
+		"rough": 0.5,
+		"size": 1.0
+	},
+	"paint_686": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.1,
+		"pattern": "paint",
+		"rgb": [
+			0.1301,
+			0.2159,
+			0.1301
+		],
+		"rough": 0.5,
+		"size": 1.0
+	},
+	"paint_69c": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.1,
+		"pattern": "paint",
+		"rgb": [
+			0.12,
+			0.35,
+			0.62
+		],
+		"rough": 0.5,
+		"size": 1.0
+	},
+	"paint_6b8": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.1,
+		"pattern": "paint",
+		"rgb": [
+			0.15,
+			0.45,
+			0.25
+		],
+		"rough": 0.5,
+		"size": 1.0
+	},
+	"paint_753": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.1,
+		"pattern": "paint",
+		"rgb": [
+			0.1714,
+			0.107,
+			0.0437
+		],
+		"rough": 0.5,
+		"size": 1.0
+	},
+	"paint_754": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.1,
+		"pattern": "paint",
+		"rgb": [
+			0.1812,
+			0.1095,
+			0.0467
+		],
+		"rough": 0.5,
+		"size": 1.0
+	},
+	"paint_764": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.1,
+		"pattern": "paint",
+		"rgb": [
+			0.2016,
+			0.1221,
+			0.0513
+		],
+		"rough": 0.5,
+		"size": 1.0
+	},
+	"paint_765": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.1,
+		"pattern": "paint",
+		"rgb": [
+			0.2,
+			0.14,
+			0.09
+		],
+		"rough": 0.5,
+		"size": 1.0
+	},
+	"paint_766": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.1,
+		"pattern": "paint",
+		"rgb": [
+			0.1683,
+			0.1559,
+			0.1329
+		],
+		"rough": 0.5,
+		"size": 1.0
+	},
+	"paint_776": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.1,
+		"pattern": "paint",
+		"rgb": [
+			0.1946,
+			0.1845,
+			0.1559
+		],
+		"rough": 0.5,
+		"size": 1.0
+	},
+	"paint_777": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.1,
+		"pattern": "paint",
+		"rgb": [
+			0.162,
+			0.1812,
+			0.2016
+		],
+		"rough": 0.5,
+		"size": 1.0
+	},
+	"paint_787": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.1,
+		"pattern": "paint",
+		"rgb": [
+			0.2016,
+			0.2195,
+			0.2016
+		],
+		"rough": 0.5,
+		"size": 1.0
+	},
+	"paint_79b": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.1,
+		"pattern": "paint",
+		"rgb": [
+			0.2,
+			0.32,
+			0.5
+		],
+		"rough": 0.5,
+		"size": 1.0
+	},
+	"paint_843": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.1,
+		"pattern": "paint",
+		"rgb": [
+			0.22,
+			0.05,
+			0.03
+		],
+		"rough": 0.5,
+		"size": 1.0
+	},
+	"paint_864": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.1,
+		"pattern": "paint",
+		"rgb": [
+			0.2195,
+			0.1329,
+			0.0545
+		],
+		"rough": 0.5,
+		"size": 1.0
+	},
+	"paint_865": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.1,
+		"pattern": "paint",
+		"rgb": [
+			0.22,
+			0.15,
+			0.08
+		],
+		"rough": 0.5,
+		"size": 1.0
+	},
+	"paint_875": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.1,
+		"pattern": "paint",
+		"rgb": [
+			0.2502,
+			0.1812,
+			0.1022
+		],
+		"rough": 0.5,
+		"size": 1.0
+	},
+	"paint_876": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.1,
+		"pattern": "paint",
+		"rgb": [
+			0.2384,
+			0.2122,
+			0.1144
+		],
+		"rough": 0.5,
+		"size": 1.0
+	},
+	"paint_877": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.1,
+		"pattern": "paint",
+		"rgb": [
+			0.227,
+			0.2122,
+			0.1812
+		],
+		"rough": 0.5,
+		"size": 1.0
+	},
+	"paint_886": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.1,
+		"pattern": "paint",
+		"rgb": [
+			0.2789,
+			0.2462,
+			0.1329
+		],
+		"rough": 0.5,
+		"size": 1.0
+	},
+	"paint_887": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.1,
+		"pattern": "paint",
+		"rgb": [
+			0.2542,
+			0.2346,
+			0.2016
+		],
+		"rough": 0.5,
+		"size": 1.0
+	},
+	"paint_888": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.1,
+		"pattern": "paint",
+		"rgb": [
+			0.2195,
+			0.2307,
+			0.2384
+		],
+		"rough": 0.5,
+		"size": 1.0
+	},
+	"paint_889": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.1,
+		"pattern": "paint",
+		"rgb": [
+			0.25,
+			0.28,
+			0.3
+		],
+		"rough": 0.5,
+		"size": 1.0
+	},
+	"paint_8aa": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.1,
+		"pattern": "paint",
+		"rgb": [
+			0.22,
+			0.38,
+			0.38
+		],
+		"rough": 0.5,
+		"size": 1.0
+	},
+	"paint_8ac": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.1,
+		"pattern": "paint",
+		"rgb": [
+			0.2502,
+			0.4179,
+			0.5972
+		],
+		"rough": 0.5,
+		"size": 1.0
+	},
+	"paint_922": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.1,
+		"pattern": "paint",
+		"rgb": [
+			0.3515,
+			0.0116,
+			0.0116
+		],
+		"rough": 0.5,
+		"size": 1.0
+	},
+	"paint_932": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.1,
+		"pattern": "paint",
+		"rgb": [
+			0.3231,
+			0.0319,
+			0.0194
+		],
+		"rough": 0.5,
+		"size": 1.0
+	},
+	"paint_943": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.1,
+		"pattern": "paint",
+		"rgb": [
+			0.3,
+			0.05,
+			0.04
+		],
+		"rough": 0.5,
+		"size": 1.0
+	},
+	"paint_952": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.1,
+		"pattern": "paint",
+		"rgb": [
+			0.3515,
+			0.1022,
+			0.0194
+		],
+		"rough": 0.5,
+		"size": 1.0
+	},
+	"paint_964": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.1,
+		"pattern": "paint",
+		"rgb": [
+			0.34,
+			0.15,
+			0.06
+		],
+		"rough": 0.5,
+		"size": 1.0
+	},
+	"paint_985": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.1,
+		"pattern": "paint",
+		"rgb": [
+			0.34,
+			0.22,
+			0.11
+		],
+		"rough": 0.5,
+		"size": 1.0
+	},
+	"paint_986": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.1,
+		"pattern": "paint",
+		"rgb": [
+			0.3278,
+			0.2384,
+			0.1413
+		],
+		"rough": 0.5,
+		"size": 1.0
+	},
+	"paint_987": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.1,
+		"pattern": "paint",
+		"rgb": [
+			0.3515,
+			0.2664,
+			0.162
+		],
+		"rough": 0.5,
+		"size": 1.0
+	},
+	"paint_988": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.1,
+		"pattern": "paint",
+		"rgb": [
+			0.2831,
+			0.2623,
+			0.2232
+		],
+		"rough": 0.5,
+		"size": 1.0
+	},
+	"paint_998": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.1,
+		"pattern": "paint",
+		"rgb": [
+			0.32,
+			0.3,
+			0.28
+		],
+		"rough": 0.5,
+		"size": 1.0
+	},
+	"paint_999": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.1,
+		"pattern": "paint",
+		"rgb": [
+			0.2961,
+			0.2961,
+			0.2961
+		],
+		"rough": 0.5,
+		"size": 1.0
+	},
+	"paint_9a9": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.1,
+		"pattern": "paint",
+		"rgb": [
+			0.3,
+			0.37,
+			0.32
+		],
+		"rough": 0.5,
+		"size": 1.0
+	},
+	"paint_9bc": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.1,
+		"pattern": "paint",
+		"rgb": [
+			0.2961,
+			0.4508,
+			0.5972
+		],
+		"rough": 0.5,
+		"size": 1.0
+	},
+	"paint_a11": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.1,
+		"pattern": "paint",
+		"rgb": [
+			0.4179,
+			0.008,
+			0.008
+		],
+		"rough": 0.5,
+		"size": 1.0
+	},
+	"paint_a21": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.1,
+		"pattern": "paint",
+		"rgb": [
+			0.4,
+			0.02,
+			0.01
+		],
+		"rough": 0.5,
+		"size": 1.0
+	},
+	"paint_a32": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.1,
+		"pattern": "paint",
+		"rgb": [
+			0.3613,
+			0.0319,
+			0.0194
+		],
+		"rough": 0.5,
+		"size": 1.0
+	},
+	"paint_a43": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.1,
+		"pattern": "paint",
+		"rgb": [
+			0.3613,
+			0.0513,
+			0.0395
+		],
+		"rough": 0.5,
+		"size": 1.0
+	},
+	"paint_a87": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.1,
+		"pattern": "paint",
+		"rgb": [
+			0.3613,
+			0.2789,
+			0.1651
+		],
+		"rough": 0.5,
+		"size": 1.0
+	},
+	"paint_a97": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.1,
+		"pattern": "paint",
+		"rgb": [
+			0.3663,
+			0.2831,
+			0.1683
+		],
+		"rough": 0.5,
+		"size": 1.0
+	},
+	"paint_a99": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.1,
+		"pattern": "paint",
+		"rgb": [
+			0.3663,
+			0.3419,
+			0.2918
+		],
+		"rough": 0.5,
+		"size": 1.0
+	},
+	"paint_aa9": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.1,
+		"pattern": "paint",
+		"rgb": [
+			0.3864,
+			0.3663,
+			0.305
+		],
+		"rough": 0.5,
+		"size": 1.0
+	},
+	"paint_aaa": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.1,
+		"pattern": "paint",
+		"rgb": [
+			0.4179,
+			0.4287,
+			0.4397
+		],
+		"rough": 0.5,
+		"size": 1.0
+	},
+	"paint_aab": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.1,
+		"pattern": "paint",
+		"rgb": [
+			0.4179,
+			0.4452,
+			0.5029
+		],
+		"rough": 0.5,
+		"size": 1.0
+	},
+	"paint_aba": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.1,
+		"pattern": "paint",
+		"rgb": [
+			0.4452,
+			0.4564,
+			0.4452
+		],
+		"rough": 0.5,
+		"size": 1.0
+	},
+	"paint_abb": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.1,
+		"pattern": "paint",
+		"rgb": [
+			0.3813,
+			0.5089,
+			0.5029
+		],
+		"rough": 0.5,
+		"size": 1.0
+	},
+	"paint_b22": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.1,
+		"pattern": "paint",
+		"rgb": [
+			0.5029,
+			0.0194,
+			0.0116
+		],
+		"rough": 0.5,
+		"size": 1.0
+	},
+	"paint_b32": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.1,
+		"pattern": "paint",
+		"rgb": [
+			0.5029,
+			0.0319,
+			0.0194
+		],
+		"rough": 0.5,
+		"size": 1.0
+	},
+	"paint_b43": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.1,
+		"pattern": "paint",
+		"rgb": [
+			0.48,
+			0.06,
+			0.04
+		],
+		"rough": 0.5,
+		"size": 1.0
+	},
+	"paint_b54": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.1,
+		"pattern": "paint",
+		"rgb": [
+			0.5029,
+			0.0782,
+			0.0595
+		],
+		"rough": 0.5,
+		"size": 1.0
+	},
+	"paint_b64": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.1,
+		"pattern": "paint",
+		"rgb": [
+			0.45,
+			0.12,
+			0.06
+		],
+		"rough": 0.5,
+		"size": 1.0
+	},
+	"paint_b75": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.1,
+		"pattern": "paint",
+		"rgb": [
+			0.45,
+			0.2,
+			0.08
+		],
+		"rough": 0.5,
+		"size": 1.0
+	},
+	"paint_b94": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.1,
+		"pattern": "paint",
+		"rgb": [
+			0.5029,
+			0.3515,
+			0.0595
+		],
+		"rough": 0.5,
+		"size": 1.0
+	},
+	"paint_b95": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.1,
+		"pattern": "paint",
+		"rgb": [
+			0.4508,
+			0.3278,
+			0.1022
+		],
+		"rough": 0.5,
+		"size": 1.0
+	},
+	"paint_ba7": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.1,
+		"pattern": "paint",
+		"rgb": [
+			0.5,
+			0.36,
+			0.2
+		],
+		"rough": 0.5,
+		"size": 1.0
+	},
+	"paint_ba9": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.1,
+		"pattern": "paint",
+		"rgb": [
+			0.5271,
+			0.4233,
+			0.2961
+		],
+		"rough": 0.5,
+		"size": 1.0
+	},
+	"paint_baa": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.1,
+		"pattern": "paint",
+		"rgb": [
+			0.45,
+			0.43,
+			0.4
+		],
+		"rough": 0.5,
+		"size": 1.0
+	},
+	"paint_bab": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.1,
+		"pattern": "paint",
+		"rgb": [
+			0.4621,
+			0.4452,
+			0.5029
+		],
+		"rough": 0.5,
+		"size": 1.0
+	},
+	"paint_bba": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.1,
+		"pattern": "paint",
+		"rgb": [
+			0.4969,
+			0.4851,
+			0.4287
+		],
+		"rough": 0.5,
+		"size": 1.0
+	},
+	"paint_bbb": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.1,
+		"pattern": "paint",
+		"rgb": [
+			0.4564,
+			0.4678,
+			0.4564
+		],
+		"rough": 0.5,
+		"size": 1.0
+	},
+	"paint_c22": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.1,
+		"pattern": "paint",
+		"rgb": [
+			0.6172,
+			0.0194,
+			0.0116
+		],
+		"rough": 0.5,
+		"size": 1.0
+	},
+	"paint_c32": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.1,
+		"pattern": "paint",
+		"rgb": [
+			0.552,
+			0.0319,
+			0.0194
+		],
+		"rough": 0.5,
+		"size": 1.0
+	},
+	"paint_c33": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.1,
+		"pattern": "paint",
+		"rgb": [
+			0.6,
+			0.04,
+			0.03
+		],
+		"rough": 0.5,
+		"size": 1.0
+	},
+	"paint_c44": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.1,
+		"pattern": "paint",
+		"rgb": [
+			0.55,
+			0.07,
+			0.05
+		],
+		"rough": 0.5,
+		"size": 1.0
+	},
+	"paint_c72": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.1,
+		"pattern": "paint",
+		"rgb": [
+			0.5972,
+			0.1812,
+			0.0194
+		],
+		"rough": 0.5,
+		"size": 1.0
+	},
+	"paint_c73": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.1,
+		"pattern": "paint",
+		"rgb": [
+			0.62,
+			0.2,
+			0.04
+		],
+		"rough": 0.5,
+		"size": 1.0
+	},
+	"paint_ca2": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.1,
+		"pattern": "paint",
+		"rgb": [
+			0.552,
+			0.3813,
+			0.0194
+		],
+		"rough": 0.5,
+		"size": 1.0
+	},
+	"paint_ca7": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.1,
+		"pattern": "paint",
+		"rgb": [
+			0.55,
+			0.4,
+			0.2
+		],
+		"rough": 0.5,
+		"size": 1.0
+	},
+	"paint_ca8": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.1,
+		"pattern": "paint",
+		"rgb": [
+			0.55,
+			0.42,
+			0.28
+		],
+		"rough": 0.5,
+		"size": 1.0
+	},
+	"paint_ca9": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.1,
+		"pattern": "paint",
+		"rgb": [
+			0.5583,
+			0.4233,
+			0.2961
+		],
+		"rough": 0.5,
+		"size": 1.0
+	},
+	"paint_cb8": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.1,
+		"pattern": "paint",
+		"rgb": [
+			0.62,
+			0.46,
+			0.28
+		],
+		"rough": 0.5,
+		"size": 1.0
+	},
+	"paint_cba": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.1,
+		"pattern": "paint",
+		"rgb": [
+			0.552,
+			0.5029,
+			0.402
+		],
+		"rough": 0.5,
+		"size": 1.0
+	},
+	"paint_cbb": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.1,
+		"pattern": "paint",
+		"rgb": [
+			0.552,
+			0.5333,
+			0.4793
+		],
+		"rough": 0.5,
+		"size": 1.0
+	},
+	"paint_cc7": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.1,
+		"pattern": "paint",
+		"rgb": [
+			0.6172,
+			0.552,
+			0.2016
+		],
+		"rough": 0.5,
+		"size": 1.0
+	},
+	"paint_cc8": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.1,
+		"pattern": "paint",
+		"rgb": [
+			0.6172,
+			0.552,
+			0.2502
+		],
+		"rough": 0.5,
+		"size": 1.0
+	},
+	"paint_ccb": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.1,
+		"pattern": "paint",
+		"rgb": [
+			0.6172,
+			0.5972,
+			0.5029
+		],
+		"rough": 0.5,
+		"size": 1.0
+	},
+	"paint_ccc": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.1,
+		"pattern": "paint",
+		"rgb": [
+			0.5776,
+			0.5776,
+			0.5583
+		],
+		"rough": 0.5,
+		"size": 1.0
+	},
+	"paint_d43": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.1,
+		"pattern": "paint",
+		"rgb": [
+			0.7,
+			0.05,
+			0.04
+		],
+		"rough": 0.5,
+		"size": 1.0
+	},
+	"paint_da0": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.1,
+		"pattern": "paint",
+		"rgb": [
+			0.7,
+			0.42,
+			0.0
+		],
+		"rough": 0.5,
+		"size": 1.0
+	},
+	"paint_daa": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.1,
+		"pattern": "paint",
+		"rgb": [
+			0.6795,
+			0.402,
+			0.402
+		],
+		"rough": 0.5,
+		"size": 1.0
+	},
+	"paint_dc2": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.1,
+		"pattern": "paint",
+		"rgb": [
+			0.7454,
+			0.5972,
+			0.0194
+		],
+		"rough": 0.5,
+		"size": 1.0
+	},
+	"paint_dc6": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.1,
+		"pattern": "paint",
+		"rgb": [
+			0.7454,
+			0.5972,
+			0.15
+		],
+		"rough": 0.5,
+		"size": 1.0
+	},
+	"paint_dc9": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.1,
+		"pattern": "paint",
+		"rgb": [
+			0.75,
+			0.62,
+			0.32
+		],
+		"rough": 0.5,
+		"size": 1.0
+	},
+	"paint_dcb": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.1,
+		"pattern": "paint",
+		"rgb": [
+			0.6795,
+			0.6172,
+			0.4793
+		],
+		"rough": 0.5,
+		"size": 1.0
+	},
+	"paint_dcc": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.1,
+		"pattern": "paint",
+		"rgb": [
+			0.7835,
+			0.6308,
+			0.6172
+		],
+		"rough": 0.5,
+		"size": 1.0
+	},
+	"paint_ddc": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.1,
+		"pattern": "paint",
+		"rgb": [
+			0.6867,
+			0.6654,
+			0.5972
+		],
+		"rough": 0.5,
+		"size": 1.0
+	},
+	"paint_ddd": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.1,
+		"pattern": "paint",
+		"rgb": [
+			0.7835,
+			0.7835,
+			0.7605
+		],
+		"rough": 0.5,
+		"size": 1.0
+	},
+	"paint_dee": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.1,
+		"pattern": "paint",
+		"rgb": [
+			0.78,
+			0.79,
+			0.8
+		],
+		"rough": 0.5,
+		"size": 1.0
+	},
+	"paint_ea4": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.1,
+		"pattern": "paint",
+		"rgb": [
+			0.9,
+			0.4,
+			0.05
+		],
+		"rough": 0.5,
+		"size": 1.0
+	},
+	"paint_eb0": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.1,
+		"pattern": "paint",
+		"rgb": [
+			0.8,
+			0.5,
+			0.0
+		],
+		"rough": 0.5,
+		"size": 1.0
+	},
+	"paint_eb4": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.1,
+		"pattern": "paint",
+		"rgb": [
+			0.9,
+			0.45,
+			0.05
+		],
+		"rough": 0.5,
+		"size": 1.0
+	},
+	"paint_ec2": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.1,
+		"pattern": "paint",
+		"rgb": [
+			0.85,
+			0.6,
+			0.02
+		],
+		"rough": 0.5,
+		"size": 1.0
+	},
+	"paint_ec3": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.1,
+		"pattern": "paint",
+		"rgb": [
+			0.85,
+			0.6,
+			0.03
+		],
+		"rough": 0.5,
+		"size": 1.0
+	},
+	"paint_ecc": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.1,
+		"pattern": "paint",
+		"rgb": [
+			0.7913,
+			0.6308,
+			0.6172
+		],
+		"rough": 0.5,
+		"size": 1.0
+	},
+	"paint_ed5": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.1,
+		"pattern": "paint",
+		"rgb": [
+			0.9,
+			0.7,
+			0.08
+		],
+		"rough": 0.5,
+		"size": 1.0
+	},
+	"paint_ed6": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.1,
+		"pattern": "paint",
+		"rgb": [
+			0.9,
+			0.75,
+			0.12
+		],
+		"rough": 0.5,
+		"size": 1.0
+	},
+	"paint_edb": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.1,
+		"pattern": "paint",
+		"rgb": [
+			0.9216,
+			0.6867,
+			0.5029
+		],
+		"rough": 0.5,
+		"size": 1.0
+	},
+	"paint_edc": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.1,
+		"pattern": "paint",
+		"rgb": [
+			0.8,
+			0.72,
+			0.55
+		],
+		"rough": 0.5,
+		"size": 1.0
+	},
+	"paint_eed": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.1,
+		"pattern": "paint",
+		"rgb": [
+			0.7991,
+			0.7991,
+			0.7835
+		],
+		"rough": 0.5,
+		"size": 1.0
+	},
+	"paint_eee": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.1,
+		"pattern": "paint",
+		"rgb": [
+			0.85,
+			0.84,
+			0.8
+		],
+		"rough": 0.5,
+		"size": 1.0
+	},
+	"paint_f93": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.1,
+		"pattern": "paint",
+		"rgb": [
+			0.95,
+			0.3,
+			0.03
+		],
+		"rough": 0.5,
+		"size": 1.0
+	},
+	"paint_fdb": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.1,
+		"pattern": "paint",
+		"rgb": [
+			0.9301,
+			0.6867,
+			0.5029
+		],
+		"rough": 0.5,
+		"size": 1.0
+	},
+	"paint_fee": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.1,
+		"pattern": "paint",
+		"rgb": [
+			0.95,
+			0.9,
+			0.85
+		],
+		"rough": 0.5,
+		"size": 1.0
+	},
+	"paint_fff": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.1,
+		"pattern": "paint",
+		"rgb": [
+			1.0,
+			1.0,
+			1.0
+		],
+		"rough": 0.5,
+		"size": 1.0
+	},
+	"paint_white": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "paint",
+		"rgb": [
+			0.8689,
+			0.8689,
+			0.8276
+		],
+		"rough": 0.5,
+		"size": 1.0
+	},
+	"paving": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "paving",
+		"rgb": [
+			0.3931,
+			0.3672,
+			0.3185
+		],
+		"rough": 0.9,
+		"size": 0.9
+	},
+	"plant_yellow": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.3,
+		"pattern": "paint",
+		"rgb": [
+			0.89,
+			0.42,
+			0.0039
+		],
+		"rough": 0.5,
+		"size": 1.0
+	},
+	"plasterboard": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "render",
+		"rgb": [
+			0.7874,
+			0.7678,
+			0.7106
+		],
+		"rough": 0.9,
+		"size": 1.5
+	},
+	"plastic_black": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "",
+		"rgb": [
+			0.0039,
+			0.0039,
+			0.0039
+		],
+		"rough": 0.5,
+		"size": 1.0
+	},
+	"plastic_blue": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "",
+		"rgb": [
+			0.01,
+			0.0509,
+			0.3185
+		],
+		"rough": 0.4,
+		"size": 1.0
+	},
+	"plastic_green": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "",
+		"rgb": [
+			0.01,
+			0.1706,
+			0.0331
+		],
+		"rough": 0.4,
+		"size": 1.0
+	},
+	"plastic_grey": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "",
+		"rgb": [
+			0.1005,
+			0.1065,
+			0.1193
+		],
+		"rough": 0.5,
+		"size": 1.0
+	},
+	"plastic_red": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "",
+		"rgb": [
+			0.5225,
+			0.0072,
+			0.0049
+		],
+		"rough": 0.4,
+		"size": 1.0
+	},
+	"plastic_white": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "",
+		"rgb": [
+			0.8481,
+			0.8481,
+			0.8481
+		],
+		"rough": 0.4,
+		"size": 1.0
+	},
+	"plastic_yellow": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "",
+		"rgb": [
+			0.89,
+			0.6038,
+			0.01
+		],
+		"rough": 0.4,
+		"size": 1.0
+	},
+	"plywood": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "plywood",
+		"rgb": [
+			0.5382,
+			0.3547,
+			0.1626
+		],
+		"rough": 0.7,
+		"size": 1.2
+	},
+	"render": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "render",
+		"rgb": [
+			0.7484,
+			0.6921,
+			0.5705
+		],
+		"rough": 0.95,
+		"size": 1.5
+	},
+	"render_cbb": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "render",
+		"rgb": [
+			0.5711,
+			0.5395,
+			0.4735
+		],
+		"rough": 0.9,
+		"size": 1.5
+	},
+	"render_ccb": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "render",
+		"rgb": [
+			0.6514,
+			0.5906,
+			0.4793
+		],
+		"rough": 0.9,
+		"size": 1.5
+	},
+	"render_ccc": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "render",
+		"rgb": [
+			0.58,
+			0.58,
+			0.55
+		],
+		"rough": 0.9,
+		"size": 1.5
+	},
+	"render_dcb": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "render",
+		"rgb": [
+			0.6795,
+			0.624,
+			0.4851
+		],
+		"rough": 0.9,
+		"size": 1.5
+	},
+	"render_ddc": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "render",
+		"rgb": [
+			0.7305,
+			0.6867,
+			0.5906
+		],
+		"rough": 0.9,
+		"size": 1.5
+	},
+	"roof_felt": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "asphalt",
+		"rgb": [
+			0.0134,
+			0.0134,
+			0.0153
+		],
+		"rough": 0.95,
+		"size": 0.8
+	},
+	"rubber": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "",
+		"rgb": [
+			0.0031,
+			0.0031,
+			0.0031
+		],
+		"rough": 0.9,
+		"size": 1.0
+	},
+	"screen": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "",
+		"rgb": [
+			0.0015,
+			0.0023,
+			0.0039
+		],
+		"rough": 0.15,
+		"size": 1.0
+	},
+	"skin": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "",
+		"rgb": [
+			0.6038,
+			0.3424,
+			0.214
+		],
+		"rough": 0.7,
+		"size": 1.0
+	},
+	"slate": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "slate",
+		"rgb": [
+			0.0331,
+			0.0397,
+			0.0509
+		],
+		"rough": 0.7,
+		"size": 1.0
+	},
+	"slate_666": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "slate",
+		"rgb": [
+			0.15,
+			0.145,
+			0.14
+		],
+		"rough": 0.7,
+		"size": 1.0
+	},
+	"softwood": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "timber",
+		"rgb": [
+			0.477,
+			0.2738,
+			0.1065
+		],
+		"rough": 0.75,
+		"size": 0.8
+	},
+	"soil": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "soil",
+		"rgb": [
+			0.0637,
+			0.0331,
+			0.0153
+		],
+		"rough": 1.0,
+		"size": 1.5
+	},
+	"steel_222": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.85,
+		"pattern": "paint",
+		"rgb": [
+			0.016,
+			0.016,
+			0.016
+		],
+		"rough": 0.55,
+		"size": 1.0
+	},
+	"steel_235": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.85,
+		"pattern": "paint",
+		"rgb": [
+			0.012,
+			0.03,
+			0.09
+		],
+		"rough": 0.55,
+		"size": 1.0
+	},
+	"steel_248": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.85,
+		"pattern": "paint",
+		"rgb": [
+			0.02,
+			0.06,
+			0.25
+		],
+		"rough": 0.55,
+		"size": 1.0
+	},
+	"steel_264": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.85,
+		"pattern": "paint",
+		"rgb": [
+			0.02,
+			0.12,
+			0.06
+		],
+		"rough": 0.55,
+		"size": 1.0
+	},
+	"steel_333": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.85,
+		"pattern": "paint",
+		"rgb": [
+			0.0395,
+			0.0437,
+			0.0437
+		],
+		"rough": 0.55,
+		"size": 1.0
+	},
+	"steel_343": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.85,
+		"pattern": "paint",
+		"rgb": [
+			0.04,
+			0.05,
+			0.035
+		],
+		"rough": 0.55,
+		"size": 1.0
+	},
+	"steel_444": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.85,
+		"pattern": "paint",
+		"rgb": [
+			0.05,
+			0.05,
+			0.05
+		],
+		"rough": 0.55,
+		"size": 1.0
+	},
+	"steel_544": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.85,
+		"pattern": "paint",
+		"rgb": [
+			0.08,
+			0.06,
+			0.05
+		],
+		"rough": 0.55,
+		"size": 1.0
+	},
+	"steel_555": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.85,
+		"pattern": "paint",
+		"rgb": [
+			0.0782,
+			0.0782,
+			0.0782
+		],
+		"rough": 0.55,
+		"size": 1.0
+	},
+	"steel_654": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.85,
+		"pattern": "paint",
+		"rgb": [
+			0.15,
+			0.1,
+			0.07
+		],
+		"rough": 0.55,
+		"size": 1.0
+	},
+	"steel_666": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.85,
+		"pattern": "paint",
+		"rgb": [
+			0.12,
+			0.13,
+			0.14
+		],
+		"rough": 0.55,
+		"size": 1.0
+	},
+	"steel_777": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.85,
+		"pattern": "paint",
+		"rgb": [
+			0.2,
+			0.2,
+			0.21
+		],
+		"rough": 0.55,
+		"size": 1.0
+	},
+	"steel_875": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.85,
+		"pattern": "paint",
+		"rgb": [
+			0.25,
+			0.18,
+			0.08
+		],
+		"rough": 0.55,
+		"size": 1.0
+	},
+	"steel_888": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.85,
+		"pattern": "paint",
+		"rgb": [
+			0.22,
+			0.22,
+			0.22
+		],
+		"rough": 0.55,
+		"size": 1.0
+	},
+	"steel_999": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.85,
+		"pattern": "paint",
+		"rgb": [
+			0.3278,
+			0.3419,
+			0.3278
+		],
+		"rough": 0.55,
+		"size": 1.0
+	},
+	"steel_9a9": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.85,
+		"pattern": "paint",
+		"rgb": [
+			0.3515,
+			0.3613,
+			0.3515
+		],
+		"rough": 0.55,
+		"size": 1.0
+	},
+	"steel_9aa": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.85,
+		"pattern": "paint",
+		"rgb": [
+			0.35,
+			0.36,
+			0.37
+		],
+		"rough": 0.55,
+		"size": 1.0
+	},
+	"steel_a95": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.85,
+		"pattern": "paint",
+		"rgb": [
+			0.4179,
+			0.2961,
+			0.1022
+		],
+		"rough": 0.55,
+		"size": 1.0
+	},
+	"steel_aaa": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.85,
+		"pattern": "paint",
+		"rgb": [
+			0.3613,
+			0.3663,
+			0.3613
+		],
+		"rough": 0.55,
+		"size": 1.0
+	},
+	"steel_bbb": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.85,
+		"pattern": "paint",
+		"rgb": [
+			0.5029,
+			0.5029,
+			0.5029
+		],
+		"rough": 0.55,
+		"size": 1.0
+	},
+	"steel_fff": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.85,
+		"pattern": "paint",
+		"rgb": [
+			1.0,
+			1.0,
+			1.0
+		],
+		"rough": 0.55,
+		"size": 1.0
+	},
+	"steel_galvanised": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.9,
+		"pattern": "galv",
+		"rgb": [
+			0.3931,
+			0.42,
+			0.448
+		],
+		"rough": 0.35,
+		"size": 0.6
+	},
+	"steel_painted": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.8,
+		"pattern": "paint",
+		"rgb": [
+			0.1473,
+			0.1706,
+			0.214
+		],
+		"rough": 0.45,
+		"size": 1.0
+	},
+	"steel_stainless": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 1.0,
+		"pattern": "brushed",
+		"rgb": [
+			0.5705,
+			0.5705,
+			0.5705
+		],
+		"rough": 0.2,
+		"size": 0.5
+	},
+	"stone_555": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "stone",
+		"rgb": [
+			0.1,
+			0.1,
+			0.1
+		],
+		"rough": 0.9,
+		"size": 1.6
+	},
+	"stone_556": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "stone",
+		"rgb": [
+			0.099,
+			0.11,
+			0.121
+		],
+		"rough": 0.9,
+		"size": 1.6
+	},
+	"stone_665": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "stone",
+		"rgb": [
+			0.132,
+			0.121,
+			0.099
+		],
+		"rough": 0.9,
+		"size": 1.6
+	},
+	"stone_666": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "stone",
+		"rgb": [
+			0.12,
+			0.12,
+			0.115
+		],
+		"rough": 0.9,
+		"size": 1.6
+	},
+	"stone_766": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "stone",
+		"rgb": [
+			0.16,
+			0.145,
+			0.12
+		],
+		"rough": 0.9,
+		"size": 1.6
+	},
+	"stone_776": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "stone",
+		"rgb": [
+			0.165,
+			0.165,
+			0.154
+		],
+		"rough": 0.9,
+		"size": 1.6
+	},
+	"stone_777": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "stone",
+		"rgb": [
+			0.19,
+			0.18,
+			0.16
+		],
+		"rough": 0.9,
+		"size": 1.6
+	},
+	"stone_778": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "stone",
+		"rgb": [
+			0.18,
+			0.2,
+			0.22
+		],
+		"rough": 0.9,
+		"size": 1.6
+	},
+	"stone_854": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "stone",
+		"rgb": [
+			0.28,
+			0.1,
+			0.06
+		],
+		"rough": 0.9,
+		"size": 1.6
+	},
+	"stone_875": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "stone",
+		"rgb": [
+			0.275,
+			0.198,
+			0.0935
+		],
+		"rough": 0.9,
+		"size": 1.6
+	},
+	"stone_877": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "stone",
+		"rgb": [
+			0.24,
+			0.21,
+			0.17
+		],
+		"rough": 0.9,
+		"size": 1.6
+	},
+	"stone_887": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "stone",
+		"rgb": [
+			0.24,
+			0.22,
+			0.18
+		],
+		"rough": 0.9,
+		"size": 1.6
+	},
+	"stone_888": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "stone",
+		"rgb": [
+			0.25,
+			0.25,
+			0.22
+		],
+		"rough": 0.9,
+		"size": 1.6
+	},
+	"stone_986": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "stone",
+		"rgb": [
+			0.3025,
+			0.2365,
+			0.1375
+		],
+		"rough": 0.9,
+		"size": 1.6
+	},
+	"stone_987": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "stone",
+		"rgb": [
+			0.3025,
+			0.275,
+			0.209
+		],
+		"rough": 0.9,
+		"size": 1.6
+	},
+	"stone_988": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "stone",
+		"rgb": [
+			0.3,
+			0.27,
+			0.22
+		],
+		"rough": 0.9,
+		"size": 1.6
+	},
+	"stone_998": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "stone",
+		"rgb": [
+			0.3,
+			0.29,
+			0.24
+		],
+		"rough": 0.9,
+		"size": 1.6
+	},
+	"stone_a97": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "stone",
+		"rgb": [
+			0.4,
+			0.3,
+			0.2
+		],
+		"rough": 0.9,
+		"size": 1.6
+	},
+	"stone_a98": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "stone",
+		"rgb": [
+			0.36,
+			0.31,
+			0.24
+		],
+		"rough": 0.9,
+		"size": 1.6
+	},
+	"stone_aa8": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "stone",
+		"rgb": [
+			0.42,
+			0.37,
+			0.27
+		],
+		"rough": 0.9,
+		"size": 1.6
+	},
+	"stone_aaa": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "stone",
+		"rgb": [
+			0.42,
+			0.41,
+			0.37
+		],
+		"rough": 0.9,
+		"size": 1.6
+	},
+	"stone_ba7": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "stone",
+		"rgb": [
+			0.5,
+			0.36,
+			0.17
+		],
+		"rough": 0.9,
+		"size": 1.6
+	},
+	"stone_ba9": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "stone",
+		"rgb": [
+			0.45,
+			0.42,
+			0.34
+		],
+		"rough": 0.9,
+		"size": 1.6
+	},
+	"stone_bba": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "stone",
+		"rgb": [
+			0.48,
+			0.47,
+			0.43
+		],
+		"rough": 0.9,
+		"size": 1.6
+	},
+	"stone_ca8": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "stone",
+		"rgb": [
+			0.55,
+			0.43,
+			0.25
+		],
+		"rough": 0.9,
+		"size": 1.6
+	},
+	"stone_cb8": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "stone",
+		"rgb": [
+			0.5775,
+			0.4515,
+			0.2625
+		],
+		"rough": 0.9,
+		"size": 1.6
+	},
+	"stone_cba": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "stone",
+		"rgb": [
+			0.55,
+			0.5,
+			0.38
+		],
+		"rough": 0.9,
+		"size": 1.6
+	},
+	"stone_cbb": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "stone",
+		"rgb": [
+			0.55,
+			0.53,
+			0.48
+		],
+		"rough": 0.9,
+		"size": 1.6
+	},
+	"stone_ccb": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "stone",
+		"rgb": [
+			0.55,
+			0.55,
+			0.5
+		],
+		"rough": 0.9,
+		"size": 1.6
+	},
+	"tile_444": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "tile",
+		"rgb": [
+			0.06,
+			0.065,
+			0.07
+		],
+		"rough": 0.8,
+		"size": 1.2
+	},
+	"tile_445": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "tile",
+		"rgb": [
+			0.06,
+			0.065,
+			0.075
+		],
+		"rough": 0.8,
+		"size": 1.2
+	},
+	"tile_766": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "tile",
+		"rgb": [
+			0.16,
+			0.152,
+			0.128
+		],
+		"rough": 0.8,
+		"size": 1.2
+	},
+	"tile_777": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "tile",
+		"rgb": [
+			0.2,
+			0.19,
+			0.16
+		],
+		"rough": 0.8,
+		"size": 1.2
+	},
+	"tile_853": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "tile",
+		"rgb": [
+			0.24,
+			0.08,
+			0.04
+		],
+		"rough": 0.8,
+		"size": 1.2
+	},
+	"tile_954": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "tile",
+		"rgb": [
+			0.3,
+			0.1,
+			0.05
+		],
+		"rough": 0.8,
+		"size": 1.2
+	},
+	"timber_111": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "timber",
+		"rgb": [
+			0.01,
+			0.01,
+			0.01
+		],
+		"rough": 0.8,
+		"size": 0.8
+	},
+	"timber_222": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "timber",
+		"rgb": [
+			0.016,
+			0.016,
+			0.016
+		],
+		"rough": 0.8,
+		"size": 0.8
+	},
+	"timber_232": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "timber",
+		"rgb": [
+			0.022,
+			0.04,
+			0.02
+		],
+		"rough": 0.8,
+		"size": 0.8
+	},
+	"timber_243": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "timber",
+		"rgb": [
+			0.0194,
+			0.0595,
+			0.0319
+		],
+		"rough": 0.8,
+		"size": 0.8
+	},
+	"timber_333": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "timber",
+		"rgb": [
+			0.0319,
+			0.0395,
+			0.0319
+		],
+		"rough": 0.8,
+		"size": 0.8
+	},
+	"timber_344": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "timber",
+		"rgb": [
+			0.04,
+			0.07,
+			0.05
+		],
+		"rough": 0.8,
+		"size": 0.8
+	},
+	"timber_432": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "timber",
+		"rgb": [
+			0.0595,
+			0.0437,
+			0.0232
+		],
+		"rough": 0.8,
+		"size": 0.8
+	},
+	"timber_433": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "timber",
+		"rgb": [
+			0.06,
+			0.04,
+			0.024
+		],
+		"rough": 0.8,
+		"size": 0.8
+	},
+	"timber_543": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "timber",
+		"rgb": [
+			0.0782,
+			0.0513,
+			0.0356
+		],
+		"rough": 0.8,
+		"size": 0.8
+	},
+	"timber_544": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "timber",
+		"rgb": [
+			0.1022,
+			0.0704,
+			0.0467
+		],
+		"rough": 0.8,
+		"size": 0.8
+	},
+	"timber_643": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "timber",
+		"rgb": [
+			0.12,
+			0.06,
+			0.04
+		],
+		"rough": 0.8,
+		"size": 0.8
+	},
+	"timber_653": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "timber",
+		"rgb": [
+			0.1221,
+			0.1022,
+			0.0319
+		],
+		"rough": 0.8,
+		"size": 0.8
+	},
+	"timber_654": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "timber",
+		"rgb": [
+			0.1221,
+			0.0782,
+			0.0513
+		],
+		"rough": 0.8,
+		"size": 0.8
+	},
+	"timber_754": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "timber",
+		"rgb": [
+			0.17,
+			0.11,
+			0.065
+		],
+		"rough": 0.8,
+		"size": 0.8
+	},
+	"timber_764": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "timber",
+		"rgb": [
+			0.2016,
+			0.15,
+			0.0595
+		],
+		"rough": 0.8,
+		"size": 0.8
+	},
+	"timber_765": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "timber",
+		"rgb": [
+			0.1683,
+			0.1221,
+			0.0782
+		],
+		"rough": 0.8,
+		"size": 0.8
+	},
+	"timber_875": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "timber",
+		"rgb": [
+			0.24,
+			0.16,
+			0.09
+		],
+		"rough": 0.8,
+		"size": 0.8
+	},
+	"timber_888": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "timber",
+		"rgb": [
+			0.275,
+			0.275,
+			0.2585
+		],
+		"rough": 0.8,
+		"size": 0.8
+	},
+	"timber_986": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "timber",
+		"rgb": [
+			0.2961,
+			0.2195,
+			0.1221
+		],
+		"rough": 0.8,
+		"size": 0.8
+	},
+	"timber_998": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "timber",
+		"rgb": [
+			0.3025,
+			0.3025,
+			0.275
+		],
+		"rough": 0.8,
+		"size": 0.8
+	},
+	"timber_a21": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "timber",
+		"rgb": [
+			0.4179,
+			0.0116,
+			0.008
+		],
+		"rough": 0.8,
+		"size": 0.8
+	},
+	"timber_a96": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "timber",
+		"rgb": [
+			0.4287,
+			0.3278,
+			0.1329
+		],
+		"rough": 0.8,
+		"size": 0.8
+	},
+	"timber_b95": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "timber",
+		"rgb": [
+			0.4508,
+			0.3278,
+			0.1022
+		],
+		"rough": 0.8,
+		"size": 0.8
+	},
+	"timber_ba6": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "timber",
+		"rgb": [
+			0.4793,
+			0.3613,
+			0.15
+		],
+		"rough": 0.8,
+		"size": 0.8
+	},
+	"timber_ba8": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "timber",
+		"rgb": [
+			0.45,
+			0.36,
+			0.24
+		],
+		"rough": 0.8,
+		"size": 0.8
+	},
+	"timber_bbb": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "timber",
+		"rgb": [
+			0.5,
+			0.5,
+			0.47
+		],
+		"rough": 0.8,
+		"size": 0.8
+	},
+	"timber_ca7": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "timber",
+		"rgb": [
+			0.55,
+			0.36,
+			0.2
+		],
+		"rough": 0.8,
+		"size": 0.8
+	},
+	"timber_ca8": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "timber",
+		"rgb": [
+			0.55,
+			0.42,
+			0.26
+		],
+		"rough": 0.8,
+		"size": 0.8
+	},
+	"timber_ccb": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "timber",
+		"rgb": [
+			0.55,
+			0.55,
+			0.5
+		],
+		"rough": 0.8,
+		"size": 0.8
+	},
+	"timber_ccc": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "timber",
+		"rgb": [
+			0.5972,
+			0.5972,
+			0.5776
+		],
+		"rough": 0.8,
+		"size": 0.8
+	},
+	"timber_dca": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "timber",
+		"rgb": [
+			0.7,
+			0.56,
+			0.36
+		],
+		"rough": 0.8,
+		"size": 0.8
+	},
+	"timber_ddd": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "timber",
+		"rgb": [
+			0.7011,
+			0.7011,
+			0.6795
+		],
+		"rough": 0.8,
+		"size": 0.8
+	},
+	"timber_eee": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "timber",
+		"rgb": [
+			0.9,
+			0.9,
+			0.9
+		],
+		"rough": 0.8,
+		"size": 0.8
+	},
+	"velvet_teal": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "carpet",
+		"rgb": [
+			0.0039,
+			0.0397,
+			0.047
+		],
+		"rough": 1.0,
+		"size": 0.4
+	},
+	"vinyl_floor": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "",
+		"rgb": [
+			0.3185,
+			0.42,
+			0.448
+		],
+		"rough": 0.5,
+		"size": 1.0
+	},
+	"water": {
+		"alpha": 0.5,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "",
+		"rgb": [
+			0.0509,
+			0.1706,
+			0.3185
+		],
+		"rough": 0.05,
+		"size": 1.0
+	},
+	"worktop": {
+		"alpha": 1.0,
+		"glow": false,
+		"metal": 0.0,
+		"pattern": "concrete",
+		"rgb": [
+			0.0331,
+			0.0331,
+			0.0363
+		],
+		"rough": 0.3,
+		"size": 2.0
+	}
+}
