@@ -221,3 +221,7 @@ def unit_entries(root: str, wanted) -> list:
 	yield list(batch([({"id": "context.school." + d[0][3:].lower(), "label": d[1], "centre": True, "tags": ["outdoor", "context"],
 		"source": ["Tools/blender_village_kit.py " + d[0]]}, (lambda d=d: F.unit(d[0], d[1], d[2]))) for d in V.DESIGNS]))
 	F.wall_surface, F.wall_rgb, F.thick, F.plinth, F.bay = saved
+	K.clear()
+	import blender_church_assemble as CH
+	yield list(batch([({"id": "context.church." + spec["name"][10:].lower(), "label": spec["label"], "centre": True, "tags": ["outdoor", "context"],
+		"source": ["Tools/blender_church_assemble.py " + spec["name"]]}, (lambda spec=spec: CH.build_one(spec))) for spec in CH.SPECS]))

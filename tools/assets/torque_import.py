@@ -36,7 +36,7 @@ STREET = ["paint", "timber", "galv", "concrete", "glaze", "lens", "enamel", "ste
 ALIASES = {"cladding": "clad", "metal": "steel", "block": "concrete", "wood": "timber", "roof": "clad", "sign": "paint",
 	"masonry": "stone", "plastic": "paint", "window": "glass", "rooflight": "lens", "tarmac": "concrete",
 	"boarding": "timber", "weatherboard": "timber", "frame": "paint", "lamp": "light", "louvre": "paint", "pale": "galv",
-	"panel_door": "paint", "plain": "paint", "shutter": "galv", "solar": "enamel", "straw": "fabric", "tin": "clad", "trailer": "paint"}
+	"panel_door": "paint", "plain": "paint", "shutter": "galv", "solar": "enamel", "straw": "fabric", "tin": "clad", "trailer": "paint", "flint": "stone", "thatch": "fabric"}
 materials: dict = {}
 
 

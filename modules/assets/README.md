@@ -49,9 +49,10 @@ Blender side, in `tools/assets/` (Python, needs `pip install bpy`):
   `internal/manifest.json`. `--blend` also saves a .blend to open in Blender.
 - `python3 tools/assets/render.py out [id prefix ...]` renders a contact sheet in both looks.
 
-Models from Torque Shed UE (the owner's other game; tag `torque_shed`, about 450: lorry
+Models from Torque Shed UE (the owner's other game; tag `torque_shed`, about 490: lorry
 trailers, vans, tractors, buses, trains, pylons, poles, the wind turbine, industrial units,
-farm and school buildings, Dales stone houses, street, farm and playground props, animals):
+farm and school buildings, churches, Dales stone houses, street, farm and playground props,
+animals):
 `python3 tools/assets/torque_import.py /path/to/torque-shed-ue` reads its .glb files and runs
 its Blender kit scripts, and writes one neutral .glb per asset to
 `tools/assets/vendor/torque_shed/` with `index.json`; `torque_catalog.py` lists what comes

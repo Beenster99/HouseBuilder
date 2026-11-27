@@ -14236,6 +14236,3690 @@
 		],
 		"tris": 116
 	},
+	"context.church.corn_chapel": {
+		"aabb": [
+			[
+				-7.25,
+				-0.6,
+				-5.4527
+			],
+			[
+				7.25,
+				9.1593,
+				5.4527
+			]
+		],
+		"category": "context",
+		"family": "fixture",
+		"file": "models/context/context.church.corn_chapel.glb",
+		"kind": "",
+		"label": "Cornish Methodist chapel, granite",
+		"mass": 425340.2,
+		"pieces": [
+			{
+				"mass": 309377.25,
+				"node": "main__stone_998",
+				"slot": "stone_998",
+				"stage": "main"
+			},
+			{
+				"mass": 3958.82,
+				"node": "main__clad_455",
+				"slot": "clad_455",
+				"stage": "main"
+			},
+			{
+				"mass": 102421.0,
+				"node": "main__stone_aaa",
+				"slot": "stone_aaa",
+				"stage": "main"
+			},
+			{
+				"mass": 7430.4,
+				"node": "main__stone_887",
+				"slot": "stone_887",
+				"stage": "main"
+			},
+			{
+				"mass": 294.2,
+				"node": "main__timber_344",
+				"slot": "timber_344",
+				"stage": "main"
+			},
+			{
+				"mass": 1858.55,
+				"node": "main__glass_dark",
+				"slot": "glass_dark",
+				"stage": "main"
+			}
+		],
+		"sockets": {},
+		"stages": [
+			"main"
+		],
+		"stretch": "",
+		"tags": [
+			"context",
+			"outdoor",
+			"torque_shed"
+		],
+		"tris": 2188
+	},
+	"context.church.corn_granite": {
+		"aabb": [
+			[
+				-16.1875,
+				-0.6,
+				-10.9028
+			],
+			[
+				16.1875,
+				22.86,
+				10.9028
+			]
+		],
+		"category": "context",
+		"family": "fixture",
+		"file": "models/context/context.church.corn_granite.glb",
+		"kind": "",
+		"label": "Cornwall: granite tower, wide aisles",
+		"mass": 1678326.9,
+		"pieces": [
+			{
+				"mass": 1237955.45,
+				"node": "main__stone_998",
+				"slot": "stone_998",
+				"stage": "main"
+			},
+			{
+				"mass": 13086.38,
+				"node": "main__clad_455",
+				"slot": "clad_455",
+				"stage": "main"
+			},
+			{
+				"mass": 409936.51,
+				"node": "main__stone_aaa",
+				"slot": "stone_aaa",
+				"stage": "main"
+			},
+			{
+				"mass": 12456.36,
+				"node": "main__stone_887",
+				"slot": "stone_887",
+				"stage": "main"
+			},
+			{
+				"mass": 4396.6,
+				"node": "main__glass_dark",
+				"slot": "glass_dark",
+				"stage": "main"
+			},
+			{
+				"mass": 173.36,
+				"node": "main__timber_111",
+				"slot": "timber_111",
+				"stage": "main"
+			},
+			{
+				"mass": 309.14,
+				"node": "main__timber_543",
+				"slot": "timber_543",
+				"stage": "main"
+			},
+			{
+				"mass": 13.11,
+				"node": "main__steel_444",
+				"slot": "steel_444",
+				"stage": "main"
+			}
+		],
+		"sockets": {},
+		"stages": [
+			"main"
+		],
+		"stretch": "",
+		"tags": [
+			"context",
+			"outdoor",
+			"torque_shed"
+		],
+		"tris": 7382
+	},
+	"context.church.corn_small": {
+		"aabb": [
+			[
+				-6.7125,
+				-0.6,
+				-4.65
+			],
+			[
+				6.7125,
+				8.6712,
+				4.65
+			]
+		],
+		"category": "context",
+		"family": "fixture",
+		"file": "models/context/context.church.corn_small.glb",
+		"kind": "",
+		"label": "Cornish cove church: bellcote",
+		"mass": 245644.3,
+		"pieces": [
+			{
+				"mass": 208161.84,
+				"node": "main__stone_998",
+				"slot": "stone_998",
+				"stage": "main"
+			},
+			{
+				"mass": 3298.45,
+				"node": "main__clad_455",
+				"slot": "clad_455",
+				"stage": "main"
+			},
+			{
+				"mass": 31023.23,
+				"node": "main__stone_aaa",
+				"slot": "stone_aaa",
+				"stage": "main"
+			},
+			{
+				"mass": 2581.89,
+				"node": "main__stone_887",
+				"slot": "stone_887",
+				"stage": "main"
+			},
+			{
+				"mass": 282.86,
+				"node": "main__glass_dark",
+				"slot": "glass_dark",
+				"stage": "main"
+			},
+			{
+				"mass": 154.53,
+				"node": "main__timber_111",
+				"slot": "timber_111",
+				"stage": "main"
+			},
+			{
+				"mass": 126.96,
+				"node": "main__timber_543",
+				"slot": "timber_543",
+				"stage": "main"
+			},
+			{
+				"mass": 14.55,
+				"node": "main__steel_875",
+				"slot": "steel_875",
+				"stage": "main"
+			}
+		],
+		"sockets": {},
+		"stages": [
+			"main"
+		],
+		"stretch": "",
+		"tags": [
+			"context",
+			"outdoor",
+			"torque_shed"
+		],
+		"tris": 1608
+	},
+	"context.church.cots_baptist": {
+		"aabb": [
+			[
+				-6.75,
+				-0.6,
+				-4.9526
+			],
+			[
+				6.75,
+				8.9261,
+				4.9526
+			]
+		],
+		"category": "context",
+		"family": "fixture",
+		"file": "models/context/context.church.cots_baptist.glb",
+		"kind": "",
+		"label": "Cotswold Baptist chapel, one tier",
+		"mass": 375267.4,
+		"pieces": [
+			{
+				"mass": 270025.14,
+				"node": "main__stone_a97",
+				"slot": "stone_a97",
+				"stage": "main"
+			},
+			{
+				"mass": 3335.72,
+				"node": "main__clad_455",
+				"slot": "clad_455",
+				"stage": "main"
+			},
+			{
+				"mass": 91558.45,
+				"node": "main__stone_ca8",
+				"slot": "stone_ca8",
+				"stage": "main"
+			},
+			{
+				"mass": 2490.0,
+				"node": "main__stone_cb8",
+				"slot": "stone_cb8",
+				"stage": "main"
+			},
+			{
+				"mass": 6077.08,
+				"node": "main__stone_986",
+				"slot": "stone_986",
+				"stage": "main"
+			},
+			{
+				"mass": 294.2,
+				"node": "main__timber_344",
+				"slot": "timber_344",
+				"stage": "main"
+			},
+			{
+				"mass": 1486.84,
+				"node": "main__glass_dark",
+				"slot": "glass_dark",
+				"stage": "main"
+			}
+		],
+		"sockets": {},
+		"stages": [
+			"main"
+		],
+		"stretch": "",
+		"tags": [
+			"context",
+			"outdoor",
+			"torque_shed"
+		],
+		"tris": 1900
+	},
+	"context.church.cots_bellcote": {
+		"aabb": [
+			[
+				-8.7125,
+				-0.6,
+				-4.65
+			],
+			[
+				8.7125,
+				9.7453,
+				4.65
+			]
+		],
+		"category": "context",
+		"family": "fixture",
+		"file": "models/context/context.church.cots_bellcote.glb",
+		"kind": "",
+		"label": "Cotswold hamlet church: bellcote",
+		"mass": 334650.8,
+		"pieces": [
+			{
+				"mass": 285565.56,
+				"node": "main__stone_a97",
+				"slot": "stone_a97",
+				"stage": "main"
+			},
+			{
+				"mass": 4564.52,
+				"node": "main__clad_987",
+				"slot": "clad_987",
+				"stage": "main"
+			},
+			{
+				"mass": 39880.95,
+				"node": "main__stone_ca8",
+				"slot": "stone_ca8",
+				"stage": "main"
+			},
+			{
+				"mass": 3852.28,
+				"node": "main__stone_986",
+				"slot": "stone_986",
+				"stage": "main"
+			},
+			{
+				"mass": 491.43,
+				"node": "main__glass_dark",
+				"slot": "glass_dark",
+				"stage": "main"
+			},
+			{
+				"mass": 154.53,
+				"node": "main__timber_111",
+				"slot": "timber_111",
+				"stage": "main"
+			},
+			{
+				"mass": 126.96,
+				"node": "main__timber_543",
+				"slot": "timber_543",
+				"stage": "main"
+			},
+			{
+				"mass": 14.55,
+				"node": "main__steel_875",
+				"slot": "steel_875",
+				"stage": "main"
+			}
+		],
+		"sockets": {},
+		"stages": [
+			"main"
+		],
+		"stretch": "",
+		"tags": [
+			"context",
+			"outdoor",
+			"torque_shed"
+		],
+		"tris": 2248
+	},
+	"context.church.cots_needle": {
+		"aabb": [
+			[
+				-15.2875,
+				-0.6,
+				-7.4
+			],
+			[
+				15.2875,
+				28.5,
+				7.4
+			]
+		],
+		"category": "context",
+		"family": "fixture",
+		"file": "models/context/context.church.cots_needle.glb",
+		"kind": "",
+		"label": "Cotswold: tower and needle spire",
+		"mass": 1208354.1,
+		"pieces": [
+			{
+				"mass": 825934.47,
+				"node": "main__stone_a97",
+				"slot": "stone_a97",
+				"stage": "main"
+			},
+			{
+				"mass": 9832.85,
+				"node": "main__clad_987",
+				"slot": "clad_987",
+				"stage": "main"
+			},
+			{
+				"mass": 357906.92,
+				"node": "main__stone_ca8",
+				"slot": "stone_ca8",
+				"stage": "main"
+			},
+			{
+				"mass": 11149.82,
+				"node": "main__stone_986",
+				"slot": "stone_986",
+				"stage": "main"
+			},
+			{
+				"mass": 3034.45,
+				"node": "main__glass_dark",
+				"slot": "glass_dark",
+				"stage": "main"
+			},
+			{
+				"mass": 173.36,
+				"node": "main__timber_111",
+				"slot": "timber_111",
+				"stage": "main"
+			},
+			{
+				"mass": 309.14,
+				"node": "main__timber_543",
+				"slot": "timber_543",
+				"stage": "main"
+			},
+			{
+				"mass": 13.11,
+				"node": "main__steel_444",
+				"slot": "steel_444",
+				"stage": "main"
+			}
+		],
+		"sockets": {},
+		"stages": [
+			"main"
+		],
+		"stretch": "",
+		"tags": [
+			"context",
+			"outdoor",
+			"torque_shed"
+		],
+		"tris": 6736
+	},
+	"context.church.cots_wool": {
+		"aabb": [
+			[
+				-20.0375,
+				-0.6,
+				-9.665
+			],
+			[
+				20.0375,
+				26.86,
+				9.665
+			]
+		],
+		"category": "context",
+		"family": "fixture",
+		"file": "models/context/context.church.cots_wool.glb",
+		"kind": "",
+		"label": "Cotswold wool church: tall tower, aisles, battlements",
+		"mass": 2243841.0,
+		"pieces": [
+			{
+				"mass": 1494874.96,
+				"node": "main__stone_a97",
+				"slot": "stone_a97",
+				"stage": "main"
+			},
+			{
+				"mass": 9755.63,
+				"node": "main__clad_778",
+				"slot": "clad_778",
+				"stage": "main"
+			},
+			{
+				"mass": 713300.9,
+				"node": "main__stone_ca8",
+				"slot": "stone_ca8",
+				"stage": "main"
+			},
+			{
+				"mass": 2667.58,
+				"node": "main__clad_987",
+				"slot": "clad_987",
+				"stage": "main"
+			},
+			{
+				"mass": 17073.47,
+				"node": "main__stone_986",
+				"slot": "stone_986",
+				"stage": "main"
+			},
+			{
+				"mass": 5672.82,
+				"node": "main__glass_dark",
+				"slot": "glass_dark",
+				"stage": "main"
+			},
+			{
+				"mass": 173.36,
+				"node": "main__timber_111",
+				"slot": "timber_111",
+				"stage": "main"
+			},
+			{
+				"mass": 309.14,
+				"node": "main__timber_543",
+				"slot": "timber_543",
+				"stage": "main"
+			},
+			{
+				"mass": 13.11,
+				"node": "main__steel_444",
+				"slot": "steel_444",
+				"stage": "main"
+			}
+		],
+		"sockets": {},
+		"stages": [
+			"main"
+		],
+		"stretch": "",
+		"tags": [
+			"context",
+			"outdoor",
+			"torque_shed"
+		],
+		"tris": 11630
+	},
+	"context.church.dales_chapel": {
+		"aabb": [
+			[
+				-7.2125,
+				-0.6,
+				-4.75
+			],
+			[
+				7.2125,
+				8.4551,
+				4.75
+			]
+		],
+		"category": "context",
+		"family": "fixture",
+		"file": "models/context/context.church.dales_chapel.glb",
+		"kind": "",
+		"label": "Dales chapel of ease (stage 1)",
+		"mass": 264896.5,
+		"pieces": [
+			{
+				"mass": 219220.02,
+				"node": "main__stone_766",
+				"slot": "stone_766",
+				"stage": "main"
+			},
+			{
+				"mass": 3475.9,
+				"node": "main__clad_665",
+				"slot": "clad_665",
+				"stage": "main"
+			},
+			{
+				"mass": 37558.75,
+				"node": "main__stone_887",
+				"slot": "stone_887",
+				"stage": "main"
+			},
+			{
+				"mass": 18.04,
+				"node": "main__steel_875",
+				"slot": "steel_875",
+				"stage": "main"
+			},
+			{
+				"mass": 3929.39,
+				"node": "main__stone_665",
+				"slot": "stone_665",
+				"stage": "main"
+			},
+			{
+				"mass": 156.57,
+				"node": "main__timber_111",
+				"slot": "timber_111",
+				"stage": "main"
+			},
+			{
+				"mass": 124.81,
+				"node": "main__timber_543",
+				"slot": "timber_543",
+				"stage": "main"
+			},
+			{
+				"mass": 413.01,
+				"node": "main__glass_dark",
+				"slot": "glass_dark",
+				"stage": "main"
+			}
+		],
+		"sockets": {},
+		"stages": [
+			"main"
+		],
+		"stretch": "",
+		"tags": [
+			"context",
+			"outdoor",
+			"torque_shed"
+		],
+		"tris": 3156
+	},
+	"context.church.ea_bellcote": {
+		"aabb": [
+			[
+				-6.7125,
+				-0.6,
+				-4.75
+			],
+			[
+				6.7125,
+				9.6129,
+				4.75
+			]
+		],
+		"category": "context",
+		"family": "fixture",
+		"file": "models/context/context.church.ea_bellcote.glb",
+		"kind": "",
+		"label": "Fenland: flint, bellcote",
+		"mass": 267474.4,
+		"pieces": [
+			{
+				"mass": 224498.91,
+				"node": "main__stone_555",
+				"slot": "stone_555",
+				"stage": "main"
+			},
+			{
+				"mass": 3718.21,
+				"node": "main__clad_843",
+				"slot": "clad_843",
+				"stage": "main"
+			},
+			{
+				"mass": 34918.98,
+				"node": "main__stone_cba",
+				"slot": "stone_cba",
+				"stage": "main"
+			},
+			{
+				"mass": 3616.48,
+				"node": "main__stone_987",
+				"slot": "stone_987",
+				"stage": "main"
+			},
+			{
+				"mass": 393.5,
+				"node": "main__glass_dark",
+				"slot": "glass_dark",
+				"stage": "main"
+			},
+			{
+				"mass": 173.36,
+				"node": "main__timber_111",
+				"slot": "timber_111",
+				"stage": "main"
+			},
+			{
+				"mass": 140.38,
+				"node": "main__timber_543",
+				"slot": "timber_543",
+				"stage": "main"
+			},
+			{
+				"mass": 14.55,
+				"node": "main__steel_875",
+				"slot": "steel_875",
+				"stage": "main"
+			}
+		],
+		"sockets": {},
+		"stages": [
+			"main"
+		],
+		"stretch": "",
+		"tags": [
+			"context",
+			"outdoor",
+			"torque_shed"
+		],
+		"tris": 2652
+	},
+	"context.church.ea_methodist": {
+		"aabb": [
+			[
+				-6.25,
+				-0.6,
+				-4.7025
+			],
+			[
+				6.25,
+				8.8095,
+				4.7025
+			]
+		],
+		"category": "context",
+		"family": "fixture",
+		"file": "models/context/context.church.ea_methodist.glb",
+		"kind": "",
+		"label": "Norfolk Primitive Methodist chapel, brick",
+		"mass": 345777.5,
+		"pieces": [
+			{
+				"mass": 243255.59,
+				"node": "main__stone_854",
+				"slot": "stone_854",
+				"stage": "main"
+			},
+			{
+				"mass": 2913.61,
+				"node": "main__clad_455",
+				"slot": "clad_455",
+				"stage": "main"
+			},
+			{
+				"mass": 91750.13,
+				"node": "main__stone_cba",
+				"slot": "stone_cba",
+				"stage": "main"
+			},
+			{
+				"mass": 6077.08,
+				"node": "main__stone_987",
+				"slot": "stone_987",
+				"stage": "main"
+			},
+			{
+				"mass": 294.2,
+				"node": "main__timber_344",
+				"slot": "timber_344",
+				"stage": "main"
+			},
+			{
+				"mass": 1486.84,
+				"node": "main__glass_dark",
+				"slot": "glass_dark",
+				"stage": "main"
+			}
+		],
+		"sockets": {},
+		"stages": [
+			"main"
+		],
+		"stretch": "",
+		"tags": [
+			"context",
+			"outdoor",
+			"torque_shed"
+		],
+		"tris": 1900
+	},
+	"context.church.ea_round_thatch": {
+		"aabb": [
+			[
+				-12.99,
+				-0.6,
+				-5.125
+			],
+			[
+				12.99,
+				14.15,
+				5.125
+			]
+		],
+		"category": "context",
+		"family": "fixture",
+		"file": "models/context/context.church.ea_round_thatch.glb",
+		"kind": "",
+		"label": "Norfolk: round tower, thatched nave",
+		"mass": 637087.8,
+		"pieces": [
+			{
+				"mass": 522993.96,
+				"node": "main__stone_555",
+				"slot": "stone_555",
+				"stage": "main"
+			},
+			{
+				"mass": 1908.14,
+				"node": "main__fabric_764",
+				"slot": "fabric_764",
+				"stage": "main"
+			},
+			{
+				"mass": 103223.03,
+				"node": "main__stone_cba",
+				"slot": "stone_cba",
+				"stage": "main"
+			},
+			{
+				"mass": 6699.09,
+				"node": "main__stone_987",
+				"slot": "stone_987",
+				"stage": "main"
+			},
+			{
+				"mass": 1631.15,
+				"node": "main__glass_dark",
+				"slot": "glass_dark",
+				"stage": "main"
+			},
+			{
+				"mass": 173.36,
+				"node": "main__timber_111",
+				"slot": "timber_111",
+				"stage": "main"
+			},
+			{
+				"mass": 140.38,
+				"node": "main__timber_543",
+				"slot": "timber_543",
+				"stage": "main"
+			},
+			{
+				"mass": 318.68,
+				"node": "main__clad_778",
+				"slot": "clad_778",
+				"stage": "main"
+			}
+		],
+		"sockets": {},
+		"stages": [
+			"main"
+		],
+		"stretch": "",
+		"tags": [
+			"context",
+			"outdoor",
+			"torque_shed"
+		],
+		"tris": 4334
+	},
+	"context.church.ea_round_tile": {
+		"aabb": [
+			[
+				-13.9125,
+				-0.6,
+				-5.15
+			],
+			[
+				13.9125,
+				18.32,
+				5.15
+			]
+		],
+		"category": "context",
+		"family": "fixture",
+		"file": "models/context/context.church.ea_round_tile.glb",
+		"kind": "",
+		"label": "Suffolk: round tower, tiled roof",
+		"mass": 625842.4,
+		"pieces": [
+			{
+				"mass": 543820.55,
+				"node": "main__stone_555",
+				"slot": "stone_555",
+				"stage": "main"
+			},
+			{
+				"mass": 7359.88,
+				"node": "main__clad_843",
+				"slot": "clad_843",
+				"stage": "main"
+			},
+			{
+				"mass": 66950.1,
+				"node": "main__stone_cba",
+				"slot": "stone_cba",
+				"stage": "main"
+			},
+			{
+				"mass": 6580.06,
+				"node": "main__stone_987",
+				"slot": "stone_987",
+				"stage": "main"
+			},
+			{
+				"mass": 818.07,
+				"node": "main__glass_dark",
+				"slot": "glass_dark",
+				"stage": "main"
+			},
+			{
+				"mass": 173.36,
+				"node": "main__timber_111",
+				"slot": "timber_111",
+				"stage": "main"
+			},
+			{
+				"mass": 140.38,
+				"node": "main__timber_543",
+				"slot": "timber_543",
+				"stage": "main"
+			}
+		],
+		"sockets": {},
+		"stages": [
+			"main"
+		],
+		"stretch": "",
+		"tags": [
+			"context",
+			"outdoor",
+			"torque_shed"
+		],
+		"tris": 4766
+	},
+	"context.church.ea_wool": {
+		"aabb": [
+			[
+				-22.7875,
+				-0.6,
+				-9.915
+			],
+			[
+				22.7875,
+				30.86,
+				9.915
+			]
+		],
+		"category": "context",
+		"family": "fixture",
+		"file": "models/context/context.church.ea_wool.glb",
+		"kind": "",
+		"label": "East Anglian wool church: flint, clerestory, battlements",
+		"mass": 2666479.4,
+		"pieces": [
+			{
+				"mass": 1817512.52,
+				"node": "main__stone_555",
+				"slot": "stone_555",
+				"stage": "main"
+			},
+			{
+				"mass": 11738.04,
+				"node": "main__clad_778",
+				"slot": "clad_778",
+				"stage": "main"
+			},
+			{
+				"mass": 809824.23,
+				"node": "main__stone_cba",
+				"slot": "stone_cba",
+				"stage": "main"
+			},
+			{
+				"mass": 3091.85,
+				"node": "main__clad_843",
+				"slot": "clad_843",
+				"stage": "main"
+			},
+			{
+				"mass": 17820.9,
+				"node": "main__stone_987",
+				"slot": "stone_987",
+				"stage": "main"
+			},
+			{
+				"mass": 5996.25,
+				"node": "main__glass_dark",
+				"slot": "glass_dark",
+				"stage": "main"
+			},
+			{
+				"mass": 173.36,
+				"node": "main__timber_111",
+				"slot": "timber_111",
+				"stage": "main"
+			},
+			{
+				"mass": 309.14,
+				"node": "main__timber_543",
+				"slot": "timber_543",
+				"stage": "main"
+			},
+			{
+				"mass": 13.11,
+				"node": "main__steel_444",
+				"slot": "steel_444",
+				"stage": "main"
+			}
+		],
+		"sockets": {},
+		"stages": [
+			"main"
+		],
+		"stretch": "",
+		"tags": [
+			"context",
+			"outdoor",
+			"torque_shed"
+		],
+		"tris": 12302
+	},
+	"context.church.methodist_chapel": {
+		"aabb": [
+			[
+				-8.75,
+				-0.6,
+				-6.4529
+			],
+			[
+				8.75,
+				12.2257,
+				6.4529
+			]
+		],
+		"category": "context",
+		"family": "fixture",
+		"file": "models/context/context.church.methodist_chapel.glb",
+		"kind": "",
+		"label": "Methodist chapel (stage 1)",
+		"mass": 656439.7,
+		"pieces": [
+			{
+				"mass": 487511.36,
+				"node": "main__stone_854",
+				"slot": "stone_854",
+				"stage": "main"
+			},
+			{
+				"mass": 5717.43,
+				"node": "main__clad_455",
+				"slot": "clad_455",
+				"stage": "main"
+			},
+			{
+				"mass": 143309.99,
+				"node": "main__stone_cbb",
+				"slot": "stone_cbb",
+				"stage": "main"
+			},
+			{
+				"mass": 2490.0,
+				"node": "main__stone_ccb",
+				"slot": "stone_ccb",
+				"stage": "main"
+			},
+			{
+				"mass": 13536.78,
+				"node": "main__stone_998",
+				"slot": "stone_998",
+				"stage": "main"
+			},
+			{
+				"mass": 294.2,
+				"node": "main__timber_344",
+				"slot": "timber_344",
+				"stage": "main"
+			},
+			{
+				"mass": 3579.9,
+				"node": "main__glass_dark",
+				"slot": "glass_dark",
+				"stage": "main"
+			}
+		],
+		"sockets": {},
+		"stages": [
+			"main"
+		],
+		"stretch": "",
+		"tags": [
+			"context",
+			"outdoor",
+			"torque_shed"
+		],
+		"tris": 4456
+	},
+	"context.church.norman_tower": {
+		"aabb": [
+			[
+				-15.3875,
+				-0.6,
+				-5.5658
+			],
+			[
+				15.3875,
+				18.15,
+				5.5658
+			]
+		],
+		"category": "context",
+		"family": "fixture",
+		"file": "models/context/context.church.norman_tower.glb",
+		"kind": "",
+		"label": "Norman village church (stage 1)",
+		"mass": 857657.5,
+		"pieces": [
+			{
+				"mass": 708105.99,
+				"node": "main__stone_aa8",
+				"slot": "stone_aa8",
+				"stage": "main"
+			},
+			{
+				"mass": 7546.48,
+				"node": "main__clad_455",
+				"slot": "clad_455",
+				"stage": "main"
+			},
+			{
+				"mass": 133973.78,
+				"node": "main__stone_cba",
+				"slot": "stone_cba",
+				"stage": "main"
+			},
+			{
+				"mass": 709.52,
+				"node": "main__clad_778",
+				"slot": "clad_778",
+				"stage": "main"
+			},
+			{
+				"mass": 12.13,
+				"node": "main__steel_444",
+				"slot": "steel_444",
+				"stage": "main"
+			},
+			{
+				"mass": 6186.9,
+				"node": "main__stone_987",
+				"slot": "stone_987",
+				"stage": "main"
+			},
+			{
+				"mass": 756.86,
+				"node": "main__glass_dark",
+				"slot": "glass_dark",
+				"stage": "main"
+			},
+			{
+				"mass": 211.3,
+				"node": "main__timber_543",
+				"slot": "timber_543",
+				"stage": "main"
+			},
+			{
+				"mass": 154.53,
+				"node": "main__timber_111",
+				"slot": "timber_111",
+				"stage": "main"
+			}
+		],
+		"sockets": {},
+		"stages": [
+			"main"
+		],
+		"stretch": "",
+		"tags": [
+			"context",
+			"outdoor",
+			"torque_shed"
+		],
+		"tris": 4052
+	},
+	"context.church.pennine_broach": {
+		"aabb": [
+			[
+				-15.3125,
+				-0.6,
+				-8.6807
+			],
+			[
+				15.3125,
+				34.95,
+				8.6807
+			]
+		],
+		"category": "context",
+		"family": "fixture",
+		"file": "models/context/context.church.pennine_broach.glb",
+		"kind": "",
+		"label": "Mill town: broach spire, aisle, clerestory",
+		"mass": 1440614.4,
+		"pieces": [
+			{
+				"mass": 1081057.0,
+				"node": "main__stone_766",
+				"slot": "stone_766",
+				"stage": "main"
+			},
+			{
+				"mass": 12490.12,
+				"node": "main__clad_455",
+				"slot": "clad_455",
+				"stage": "main"
+			},
+			{
+				"mass": 329034.07,
+				"node": "main__stone_887",
+				"slot": "stone_887",
+				"stage": "main"
+			},
+			{
+				"mass": 13653.64,
+				"node": "main__stone_665",
+				"slot": "stone_665",
+				"stage": "main"
+			},
+			{
+				"mass": 3866.15,
+				"node": "main__glass_dark",
+				"slot": "glass_dark",
+				"stage": "main"
+			},
+			{
+				"mass": 173.36,
+				"node": "main__timber_111",
+				"slot": "timber_111",
+				"stage": "main"
+			},
+			{
+				"mass": 326.93,
+				"node": "main__timber_543",
+				"slot": "timber_543",
+				"stage": "main"
+			},
+			{
+				"mass": 13.11,
+				"node": "main__steel_444",
+				"slot": "steel_444",
+				"stage": "main"
+			}
+		],
+		"sockets": {},
+		"stages": [
+			"main"
+		],
+		"stretch": "",
+		"tags": [
+			"context",
+			"outdoor",
+			"torque_shed"
+		],
+		"tris": 7872
+	},
+	"context.church.pennine_chapel": {
+		"aabb": [
+			[
+				-8.25,
+				-0.6,
+				-5.9528
+			],
+			[
+				8.25,
+				11.5925,
+				5.9528
+			]
+		],
+		"category": "context",
+		"family": "fixture",
+		"file": "models/context/context.church.pennine_chapel.glb",
+		"kind": "",
+		"label": "Pennine Methodist chapel, two tiers",
+		"mass": 579354.3,
+		"pieces": [
+			{
+				"mass": 426834.5,
+				"node": "main__stone_766",
+				"slot": "stone_766",
+				"stage": "main"
+			},
+			{
+				"mass": 4961.92,
+				"node": "main__clad_455",
+				"slot": "clad_455",
+				"stage": "main"
+			},
+			{
+				"mass": 132770.04,
+				"node": "main__stone_887",
+				"slot": "stone_887",
+				"stage": "main"
+			},
+			{
+				"mass": 11483.61,
+				"node": "main__stone_665",
+				"slot": "stone_665",
+				"stage": "main"
+			},
+			{
+				"mass": 294.2,
+				"node": "main__timber_344",
+				"slot": "timber_344",
+				"stage": "main"
+			},
+			{
+				"mass": 3010.06,
+				"node": "main__glass_dark",
+				"slot": "glass_dark",
+				"stage": "main"
+			}
+		],
+		"sockets": {},
+		"stages": [
+			"main"
+		],
+		"stretch": "",
+		"tags": [
+			"context",
+			"outdoor",
+			"torque_shed"
+		],
+		"tris": 3856
+	},
+	"context.church.pennine_cross": {
+		"aabb": [
+			[
+				-14.8625,
+				-0.6,
+				-8.175
+			],
+			[
+				14.8625,
+				14.4,
+				8.175
+			]
+		],
+		"category": "context",
+		"family": "fixture",
+		"file": "models/context/context.church.pennine_cross.glb",
+		"kind": "",
+		"label": "Dales cruciform church: transepts, west tower",
+		"mass": 1018403.4,
+		"pieces": [
+			{
+				"mass": 806924.81,
+				"node": "main__stone_766",
+				"slot": "stone_766",
+				"stage": "main"
+			},
+			{
+				"mass": 10613.88,
+				"node": "main__clad_665",
+				"slot": "clad_665",
+				"stage": "main"
+			},
+			{
+				"mass": 187784.74,
+				"node": "main__stone_887",
+				"slot": "stone_887",
+				"stage": "main"
+			},
+			{
+				"mass": 9575.73,
+				"node": "main__stone_665",
+				"slot": "stone_665",
+				"stage": "main"
+			},
+			{
+				"mass": 3008.62,
+				"node": "main__glass_dark",
+				"slot": "glass_dark",
+				"stage": "main"
+			},
+			{
+				"mass": 173.36,
+				"node": "main__timber_111",
+				"slot": "timber_111",
+				"stage": "main"
+			},
+			{
+				"mass": 309.14,
+				"node": "main__timber_543",
+				"slot": "timber_543",
+				"stage": "main"
+			},
+			{
+				"mass": 13.11,
+				"node": "main__steel_444",
+				"slot": "steel_444",
+				"stage": "main"
+			}
+		],
+		"sockets": {},
+		"stages": [
+			"main"
+		],
+		"stretch": "",
+		"tags": [
+			"context",
+			"outdoor",
+			"torque_shed"
+		],
+		"tris": 6174
+	},
+	"context.church.pennine_meeting": {
+		"aabb": [
+			[
+				-6.62,
+				-0.6,
+				-4.3747
+			],
+			[
+				6.62,
+				7.0455,
+				4.3747
+			]
+		],
+		"category": "context",
+		"family": "fixture",
+		"file": "models/context/context.church.pennine_meeting.glb",
+		"kind": "",
+		"label": "Dales Friends' meeting house, stone",
+		"mass": 249566.3,
+		"pieces": [
+			{
+				"mass": 217522.17,
+				"node": "main__stone_766",
+				"slot": "stone_766",
+				"stage": "main"
+			},
+			{
+				"mass": 3370.91,
+				"node": "main__clad_665",
+				"slot": "clad_665",
+				"stage": "main"
+			},
+			{
+				"mass": 22996.87,
+				"node": "main__stone_887",
+				"slot": "stone_887",
+				"stage": "main"
+			},
+			{
+				"mass": 4519.69,
+				"node": "main__stone_665",
+				"slot": "stone_665",
+				"stage": "main"
+			},
+			{
+				"mass": 978.48,
+				"node": "main__glass_dark",
+				"slot": "glass_dark",
+				"stage": "main"
+			},
+			{
+				"mass": 178.2,
+				"node": "main__timber_344",
+				"slot": "timber_344",
+				"stage": "main"
+			}
+		],
+		"sockets": {},
+		"stages": [
+			"main"
+		],
+		"stretch": "",
+		"tags": [
+			"context",
+			"outdoor",
+			"torque_shed"
+		],
+		"tris": 1082
+	},
+	"context.church.pennine_perp": {
+		"aabb": [
+			[
+				-14.0625,
+				-0.6,
+				-5.4
+			],
+			[
+				14.0625,
+				17.4,
+				5.4
+			]
+		],
+		"category": "context",
+		"family": "fixture",
+		"file": "models/context/context.church.pennine_perp.glb",
+		"kind": "",
+		"label": "Pennine: Perpendicular tower, chancel",
+		"mass": 813662.3,
+		"pieces": [
+			{
+				"mass": 598427.6,
+				"node": "main__stone_766",
+				"slot": "stone_766",
+				"stage": "main"
+			},
+			{
+				"mass": 6061.6,
+				"node": "main__clad_665",
+				"slot": "clad_665",
+				"stage": "main"
+			},
+			{
+				"mass": 195332.2,
+				"node": "main__stone_887",
+				"slot": "stone_887",
+				"stage": "main"
+			},
+			{
+				"mass": 10174.74,
+				"node": "main__stone_665",
+				"slot": "stone_665",
+				"stage": "main"
+			},
+			{
+				"mass": 3170.57,
+				"node": "main__glass_dark",
+				"slot": "glass_dark",
+				"stage": "main"
+			},
+			{
+				"mass": 173.36,
+				"node": "main__timber_111",
+				"slot": "timber_111",
+				"stage": "main"
+			},
+			{
+				"mass": 309.14,
+				"node": "main__timber_543",
+				"slot": "timber_543",
+				"stage": "main"
+			},
+			{
+				"mass": 13.11,
+				"node": "main__steel_444",
+				"slot": "steel_444",
+				"stage": "main"
+			}
+		],
+		"sockets": {},
+		"stages": [
+			"main"
+		],
+		"stretch": "",
+		"tags": [
+			"context",
+			"outdoor",
+			"torque_shed"
+		],
+		"tris": 6314
+	},
+	"context.church.pennine_saddle": {
+		"aabb": [
+			[
+				-9.2625,
+				-0.6,
+				-5.05
+			],
+			[
+				9.2625,
+				14.516,
+				5.05
+			]
+		],
+		"category": "context",
+		"family": "fixture",
+		"file": "models/context/context.church.pennine_saddle.glb",
+		"kind": "",
+		"label": "Dales church: saddleback tower",
+		"mass": 489224.1,
+		"pieces": [
+			{
+				"mass": 373533.76,
+				"node": "main__stone_766",
+				"slot": "stone_766",
+				"stage": "main"
+			},
+			{
+				"mass": 4704.38,
+				"node": "main__clad_665",
+				"slot": "clad_665",
+				"stage": "main"
+			},
+			{
+				"mass": 103158.47,
+				"node": "main__stone_887",
+				"slot": "stone_887",
+				"stage": "main"
+			},
+			{
+				"mass": 6578.7,
+				"node": "main__stone_665",
+				"slot": "stone_665",
+				"stage": "main"
+			},
+			{
+				"mass": 753.2,
+				"node": "main__glass_dark",
+				"slot": "glass_dark",
+				"stage": "main"
+			},
+			{
+				"mass": 173.36,
+				"node": "main__timber_111",
+				"slot": "timber_111",
+				"stage": "main"
+			},
+			{
+				"mass": 309.14,
+				"node": "main__timber_543",
+				"slot": "timber_543",
+				"stage": "main"
+			},
+			{
+				"mass": 13.11,
+				"node": "main__steel_444",
+				"slot": "steel_444",
+				"stage": "main"
+			}
+		],
+		"sockets": {},
+		"stages": [
+			"main"
+		],
+		"stretch": "",
+		"tags": [
+			"context",
+			"outdoor",
+			"torque_shed"
+		],
+		"tris": 5042
+	},
+	"context.church.sco_free": {
+		"aabb": [
+			[
+				-10.5375,
+				-0.6,
+				-7.8
+			],
+			[
+				10.5375,
+				34.8,
+				7.8
+			]
+		],
+		"category": "context",
+		"family": "fixture",
+		"file": "models/context/context.church.sco_free.glb",
+		"kind": "",
+		"label": "Scottish Free Church: sandstone, needle spire",
+		"mass": 1188102.2,
+		"pieces": [
+			{
+				"mass": 734366.22,
+				"node": "main__stone_988",
+				"slot": "stone_988",
+				"stage": "main"
+			},
+			{
+				"mass": 8217.96,
+				"node": "main__clad_455",
+				"slot": "clad_455",
+				"stage": "main"
+			},
+			{
+				"mass": 431356.59,
+				"node": "main__stone_a98",
+				"slot": "stone_a98",
+				"stage": "main"
+			},
+			{
+				"mass": 10225.8,
+				"node": "main__stone_776",
+				"slot": "stone_776",
+				"stage": "main"
+			},
+			{
+				"mass": 3735.96,
+				"node": "main__glass_dark",
+				"slot": "glass_dark",
+				"stage": "main"
+			},
+			{
+				"mass": 186.55,
+				"node": "main__timber_543",
+				"slot": "timber_543",
+				"stage": "main"
+			},
+			{
+				"mass": 13.11,
+				"node": "main__steel_444",
+				"slot": "steel_444",
+				"stage": "main"
+			}
+		],
+		"sockets": {},
+		"stages": [
+			"main"
+		],
+		"stretch": "",
+		"tags": [
+			"context",
+			"outdoor",
+			"torque_shed"
+		],
+		"tris": 6088
+	},
+	"context.church.sco_kirk": {
+		"aabb": [
+			[
+				-7.7125,
+				-0.6,
+				-4.05
+			],
+			[
+				7.7125,
+				10.52,
+				4.05
+			]
+		],
+		"category": "context",
+		"family": "fixture",
+		"file": "models/context/context.church.sco_kirk.glb",
+		"kind": "",
+		"label": "Scottish kirk: harled, birdcage bellcote",
+		"mass": 204563.1,
+		"pieces": [
+			{
+				"mass": 160117.22,
+				"node": "main__render_ccc",
+				"slot": "render_ccc",
+				"stage": "main"
+			},
+			{
+				"mass": 4330.89,
+				"node": "main__clad_455",
+				"slot": "clad_455",
+				"stage": "main"
+			},
+			{
+				"mass": 36347.93,
+				"node": "main__stone_988",
+				"slot": "stone_988",
+				"stage": "main"
+			},
+			{
+				"mass": 3130.02,
+				"node": "main__stone_766",
+				"slot": "stone_766",
+				"stage": "main"
+			},
+			{
+				"mass": 439.29,
+				"node": "main__glass_dark",
+				"slot": "glass_dark",
+				"stage": "main"
+			},
+			{
+				"mass": 183.19,
+				"node": "main__timber_543",
+				"slot": "timber_543",
+				"stage": "main"
+			},
+			{
+				"mass": 14.55,
+				"node": "main__steel_875",
+				"slot": "steel_875",
+				"stage": "main"
+			}
+		],
+		"sockets": {},
+		"stages": [
+			"main"
+		],
+		"stretch": "",
+		"tags": [
+			"context",
+			"outdoor",
+			"torque_shed"
+		],
+		"tris": 1888
+	},
+	"context.church.sco_tower": {
+		"aabb": [
+			[
+				-11.6875,
+				-0.6,
+				-6.15
+			],
+			[
+				11.6875,
+				30.6,
+				6.15
+			]
+		],
+		"category": "context",
+		"family": "fixture",
+		"file": "models/context/context.church.sco_tower.glb",
+		"kind": "",
+		"label": "Scottish parish kirk: tower and slate spire",
+		"mass": 653672.0,
+		"pieces": [
+			{
+				"mass": 349307.91,
+				"node": "main__render_ccc",
+				"slot": "render_ccc",
+				"stage": "main"
+			},
+			{
+				"mass": 7490.52,
+				"node": "main__clad_455",
+				"slot": "clad_455",
+				"stage": "main"
+			},
+			{
+				"mass": 288401.23,
+				"node": "main__stone_988",
+				"slot": "stone_988",
+				"stage": "main"
+			},
+			{
+				"mass": 6872.14,
+				"node": "main__stone_766",
+				"slot": "stone_766",
+				"stage": "main"
+			},
+			{
+				"mass": 1152.7,
+				"node": "main__glass_dark",
+				"slot": "glass_dark",
+				"stage": "main"
+			},
+			{
+				"mass": 154.53,
+				"node": "main__timber_111",
+				"slot": "timber_111",
+				"stage": "main"
+			},
+			{
+				"mass": 279.82,
+				"node": "main__timber_543",
+				"slot": "timber_543",
+				"stage": "main"
+			},
+			{
+				"mass": 13.11,
+				"node": "main__steel_444",
+				"slot": "steel_444",
+				"stage": "main"
+			}
+		],
+		"sockets": {},
+		"stages": [
+			"main"
+		],
+		"stretch": "",
+		"tags": [
+			"context",
+			"outdoor",
+			"torque_shed"
+		],
+		"tris": 4944
+	},
+	"context.church.se_belfry": {
+		"aabb": [
+			[
+				-10.175,
+				-0.6,
+				-4.9
+			],
+			[
+				10.175,
+				18.2732,
+				4.9
+			]
+		],
+		"category": "context",
+		"family": "fixture",
+		"file": "models/context/context.church.se_belfry.glb",
+		"kind": "",
+		"label": "Weald: timber belfry, shingled spire",
+		"mass": 389394.4,
+		"pieces": [
+			{
+				"mass": 340136.17,
+				"node": "main__stone_998",
+				"slot": "stone_998",
+				"stage": "main"
+			},
+			{
+				"mass": 5642.82,
+				"node": "main__clad_843",
+				"slot": "clad_843",
+				"stage": "main"
+			},
+			{
+				"mass": 34296.38,
+				"node": "main__stone_ba9",
+				"slot": "stone_ba9",
+				"stage": "main"
+			},
+			{
+				"mass": 5821.12,
+				"node": "main__stone_887",
+				"slot": "stone_887",
+				"stage": "main"
+			},
+			{
+				"mass": 796.72,
+				"node": "main__glass_dark",
+				"slot": "glass_dark",
+				"stage": "main"
+			},
+			{
+				"mass": 173.36,
+				"node": "main__timber_111",
+				"slot": "timber_111",
+				"stage": "main"
+			},
+			{
+				"mass": 140.38,
+				"node": "main__timber_543",
+				"slot": "timber_543",
+				"stage": "main"
+			},
+			{
+				"mass": 1226.4,
+				"node": "main__timber_bbb",
+				"slot": "timber_bbb",
+				"stage": "main"
+			},
+			{
+				"mass": 28.9,
+				"node": "main__timber_888",
+				"slot": "timber_888",
+				"stage": "main"
+			},
+			{
+				"mass": 1127.14,
+				"node": "main__timber_654",
+				"slot": "timber_654",
+				"stage": "main"
+			},
+			{
+				"mass": 4.97,
+				"node": "main__steel_444",
+				"slot": "steel_444",
+				"stage": "main"
+			}
+		],
+		"sockets": {},
+		"stages": [
+			"main"
+		],
+		"stretch": "",
+		"tags": [
+			"context",
+			"outdoor",
+			"torque_shed"
+		],
+		"tris": 3920
+	},
+	"context.church.se_brick_broach": {
+		"aabb": [
+			[
+				-13.8125,
+				-0.6,
+				-6.675
+			],
+			[
+				13.8125,
+				30.45,
+				6.675
+			]
+		],
+		"category": "context",
+		"family": "fixture",
+		"file": "models/context/context.church.se_brick_broach.glb",
+		"kind": "",
+		"label": "Victorian brick: broach spire",
+		"mass": 1108968.1,
+		"pieces": [
+			{
+				"mass": 769908.26,
+				"node": "main__stone_854",
+				"slot": "stone_854",
+				"stage": "main"
+			},
+			{
+				"mass": 9298.26,
+				"node": "main__clad_843",
+				"slot": "clad_843",
+				"stage": "main"
+			},
+			{
+				"mass": 312297.57,
+				"node": "main__stone_cbb",
+				"slot": "stone_cbb",
+				"stage": "main"
+			},
+			{
+				"mass": 13141.39,
+				"node": "main__stone_998",
+				"slot": "stone_998",
+				"stage": "main"
+			},
+			{
+				"mass": 3809.23,
+				"node": "main__glass_dark",
+				"slot": "glass_dark",
+				"stage": "main"
+			},
+			{
+				"mass": 173.36,
+				"node": "main__timber_111",
+				"slot": "timber_111",
+				"stage": "main"
+			},
+			{
+				"mass": 326.93,
+				"node": "main__timber_543",
+				"slot": "timber_543",
+				"stage": "main"
+			},
+			{
+				"mass": 13.11,
+				"node": "main__steel_444",
+				"slot": "steel_444",
+				"stage": "main"
+			}
+		],
+		"sockets": {},
+		"stages": [
+			"main"
+		],
+		"stretch": "",
+		"tags": [
+			"context",
+			"outdoor",
+			"torque_shed"
+		],
+		"tris": 6324
+	},
+	"context.church.se_cap": {
+		"aabb": [
+			[
+				-13.675,
+				-0.6,
+				-5.15
+			],
+			[
+				13.675,
+				16.04,
+				5.15
+			]
+		],
+		"category": "context",
+		"family": "fixture",
+		"file": "models/context/context.church.se_cap.glb",
+		"kind": "",
+		"label": "Sussex: tower with a low pyramid cap",
+		"mass": 769675.5,
+		"pieces": [
+			{
+				"mass": 600345.83,
+				"node": "main__stone_998",
+				"slot": "stone_998",
+				"stage": "main"
+			},
+			{
+				"mass": 6557.59,
+				"node": "main__clad_843",
+				"slot": "clad_843",
+				"stage": "main"
+			},
+			{
+				"mass": 152747.59,
+				"node": "main__stone_ba9",
+				"slot": "stone_ba9",
+				"stage": "main"
+			},
+			{
+				"mass": 7868.17,
+				"node": "main__stone_887",
+				"slot": "stone_887",
+				"stage": "main"
+			},
+			{
+				"mass": 949.62,
+				"node": "main__glass_dark",
+				"slot": "glass_dark",
+				"stage": "main"
+			},
+			{
+				"mass": 173.36,
+				"node": "main__timber_111",
+				"slot": "timber_111",
+				"stage": "main"
+			},
+			{
+				"mass": 309.14,
+				"node": "main__timber_543",
+				"slot": "timber_543",
+				"stage": "main"
+			},
+			{
+				"mass": 711.07,
+				"node": "main__clad_654",
+				"slot": "clad_654",
+				"stage": "main"
+			},
+			{
+				"mass": 13.11,
+				"node": "main__steel_444",
+				"slot": "steel_444",
+				"stage": "main"
+			}
+		],
+		"sockets": {},
+		"stages": [
+			"main"
+		],
+		"stretch": "",
+		"tags": [
+			"context",
+			"outdoor",
+			"torque_shed"
+		],
+		"tris": 4988
+	},
+	"context.church.se_perp": {
+		"aabb": [
+			[
+				-15.3125,
+				-0.6,
+				-7.4049
+			],
+			[
+				15.3125,
+				19.4,
+				7.4049
+			]
+		],
+		"category": "context",
+		"family": "fixture",
+		"file": "models/context/context.church.se_perp.glb",
+		"kind": "",
+		"label": "Kent ragstone: battlemented tower, aisle",
+		"mass": 1135768.0,
+		"pieces": [
+			{
+				"mass": 898968.93,
+				"node": "main__stone_998",
+				"slot": "stone_998",
+				"stage": "main"
+			},
+			{
+				"mass": 9305.78,
+				"node": "main__clad_843",
+				"slot": "clad_843",
+				"stage": "main"
+			},
+			{
+				"mass": 212681.81,
+				"node": "main__stone_ba9",
+				"slot": "stone_ba9",
+				"stage": "main"
+			},
+			{
+				"mass": 10767.02,
+				"node": "main__stone_887",
+				"slot": "stone_887",
+				"stage": "main"
+			},
+			{
+				"mass": 3548.82,
+				"node": "main__glass_dark",
+				"slot": "glass_dark",
+				"stage": "main"
+			},
+			{
+				"mass": 173.36,
+				"node": "main__timber_111",
+				"slot": "timber_111",
+				"stage": "main"
+			},
+			{
+				"mass": 309.14,
+				"node": "main__timber_543",
+				"slot": "timber_543",
+				"stage": "main"
+			},
+			{
+				"mass": 13.11,
+				"node": "main__steel_444",
+				"slot": "steel_444",
+				"stage": "main"
+			}
+		],
+		"sockets": {},
+		"stages": [
+			"main"
+		],
+		"stretch": "",
+		"tags": [
+			"context",
+			"outdoor",
+			"torque_shed"
+		],
+		"tris": 6002
+	},
+	"context.church.se_tin": {
+		"aabb": [
+			[
+				-7.8,
+				-0.6,
+				-3.6
+			],
+			[
+				7.8,
+				9.45,
+				3.6
+			]
+		],
+		"category": "context",
+		"family": "fixture",
+		"file": "models/context/context.church.se_tin.glb",
+		"kind": "",
+		"label": "Tin tabernacle",
+		"mass": 10298.5,
+		"pieces": [
+			{
+				"mass": 5054.82,
+				"node": "main__clad_354",
+				"slot": "clad_354",
+				"stage": "main"
+			},
+			{
+				"mass": 3723.63,
+				"node": "main__clad_733",
+				"slot": "clad_733",
+				"stage": "main"
+			},
+			{
+				"mass": 477.7,
+				"node": "main__timber_ccb",
+				"slot": "timber_ccb",
+				"stage": "main"
+			},
+			{
+				"mass": 168.38,
+				"node": "main__timber_998",
+				"slot": "timber_998",
+				"stage": "main"
+			},
+			{
+				"mass": 495.09,
+				"node": "main__glass_dark",
+				"slot": "glass_dark",
+				"stage": "main"
+			},
+			{
+				"mass": 119.7,
+				"node": "main__timber_344",
+				"slot": "timber_344",
+				"stage": "main"
+			},
+			{
+				"mass": 259.2,
+				"node": "main__stone_ccb",
+				"slot": "stone_ccb",
+				"stage": "main"
+			}
+		],
+		"sockets": {},
+		"stages": [
+			"main"
+		],
+		"stretch": "",
+		"tags": [
+			"context",
+			"outdoor",
+			"torque_shed"
+		],
+		"tris": 2402
+	},
+	"context.church.som_chapel": {
+		"aabb": [
+			[
+				-8.25,
+				-0.6,
+				-5.9528
+			],
+			[
+				8.25,
+				11.5925,
+				5.9528
+			]
+		],
+		"category": "context",
+		"family": "fixture",
+		"file": "models/context/context.church.som_chapel.glb",
+		"kind": "",
+		"label": "Somerset Wesleyan chapel, stone",
+		"mass": 579354.3,
+		"pieces": [
+			{
+				"mass": 426834.5,
+				"node": "main__stone_888",
+				"slot": "stone_888",
+				"stage": "main"
+			},
+			{
+				"mass": 4961.92,
+				"node": "main__clad_455",
+				"slot": "clad_455",
+				"stage": "main"
+			},
+			{
+				"mass": 132770.04,
+				"node": "main__stone_ba7",
+				"slot": "stone_ba7",
+				"stage": "main"
+			},
+			{
+				"mass": 11483.61,
+				"node": "main__stone_875",
+				"slot": "stone_875",
+				"stage": "main"
+			},
+			{
+				"mass": 294.2,
+				"node": "main__timber_344",
+				"slot": "timber_344",
+				"stage": "main"
+			},
+			{
+				"mass": 3010.06,
+				"node": "main__glass_dark",
+				"slot": "glass_dark",
+				"stage": "main"
+			}
+		],
+		"sockets": {},
+		"stages": [
+			"main"
+		],
+		"stretch": "",
+		"tags": [
+			"context",
+			"outdoor",
+			"torque_shed"
+		],
+		"tris": 3856
+	},
+	"context.church.som_small": {
+		"aabb": [
+			[
+				-8.7125,
+				-0.6,
+				-4.65
+			],
+			[
+				8.7125,
+				9.17,
+				4.65
+			]
+		],
+		"category": "context",
+		"family": "fixture",
+		"file": "models/context/context.church.som_small.glb",
+		"kind": "",
+		"label": "Somerset Levels: small church, bellcote",
+		"mass": 330050.1,
+		"pieces": [
+			{
+				"mass": 276103.67,
+				"node": "main__stone_888",
+				"slot": "stone_888",
+				"stage": "main"
+			},
+			{
+				"mass": 4182.04,
+				"node": "main__clad_455",
+				"slot": "clad_455",
+				"stage": "main"
+			},
+			{
+				"mass": 43743.18,
+				"node": "main__stone_ba7",
+				"slot": "stone_ba7",
+				"stage": "main"
+			},
+			{
+				"mass": 5064.49,
+				"node": "main__stone_875",
+				"slot": "stone_875",
+				"stage": "main"
+			},
+			{
+				"mass": 613.88,
+				"node": "main__glass_dark",
+				"slot": "glass_dark",
+				"stage": "main"
+			},
+			{
+				"mass": 173.36,
+				"node": "main__timber_111",
+				"slot": "timber_111",
+				"stage": "main"
+			},
+			{
+				"mass": 140.38,
+				"node": "main__timber_543",
+				"slot": "timber_543",
+				"stage": "main"
+			},
+			{
+				"mass": 29.1,
+				"node": "main__steel_875",
+				"slot": "steel_875",
+				"stage": "main"
+			}
+		],
+		"sockets": {},
+		"stages": [
+			"main"
+		],
+		"stretch": "",
+		"tags": [
+			"context",
+			"outdoor",
+			"torque_shed"
+		],
+		"tris": 3680
+	},
+	"context.church.som_tower": {
+		"aabb": [
+			[
+				-18.5375,
+				-0.6,
+				-9.665
+			],
+			[
+				18.5375,
+				32.86,
+				9.665
+			]
+		],
+		"category": "context",
+		"family": "fixture",
+		"file": "models/context/context.church.som_tower.glb",
+		"kind": "",
+		"label": "Somerset: tall pinnacled tower, aisles",
+		"mass": 2227320.7,
+		"pieces": [
+			{
+				"mass": 1474783.85,
+				"node": "main__stone_888",
+				"slot": "stone_888",
+				"stage": "main"
+			},
+			{
+				"mass": 8938.81,
+				"node": "main__clad_778",
+				"slot": "clad_778",
+				"stage": "main"
+			},
+			{
+				"mass": 720076.16,
+				"node": "main__stone_ba7",
+				"slot": "stone_ba7",
+				"stage": "main"
+			},
+			{
+				"mass": 2416.42,
+				"node": "main__clad_455",
+				"slot": "clad_455",
+				"stage": "main"
+			},
+			{
+				"mass": 15485.47,
+				"node": "main__stone_875",
+				"slot": "stone_875",
+				"stage": "main"
+			},
+			{
+				"mass": 5124.38,
+				"node": "main__glass_dark",
+				"slot": "glass_dark",
+				"stage": "main"
+			},
+			{
+				"mass": 173.36,
+				"node": "main__timber_111",
+				"slot": "timber_111",
+				"stage": "main"
+			},
+			{
+				"mass": 309.14,
+				"node": "main__timber_543",
+				"slot": "timber_543",
+				"stage": "main"
+			},
+			{
+				"mass": 13.11,
+				"node": "main__steel_444",
+				"slot": "steel_444",
+				"stage": "main"
+			}
+		],
+		"sockets": {},
+		"stages": [
+			"main"
+		],
+		"stretch": "",
+		"tags": [
+			"context",
+			"outdoor",
+			"torque_shed"
+		],
+		"tris": 10550
+	},
+	"context.church.som_village": {
+		"aabb": [
+			[
+				-14.3875,
+				-0.6,
+				-5.3
+			],
+			[
+				14.3875,
+				20.86,
+				5.3
+			]
+		],
+		"category": "context",
+		"family": "fixture",
+		"file": "models/context/context.church.som_village.glb",
+		"kind": "",
+		"label": "Somerset village: Perpendicular tower",
+		"mass": 1045241.7,
+		"pieces": [
+			{
+				"mass": 644090.6,
+				"node": "main__stone_888",
+				"slot": "stone_888",
+				"stage": "main"
+			},
+			{
+				"mass": 6261.95,
+				"node": "main__clad_455",
+				"slot": "clad_455",
+				"stage": "main"
+			},
+			{
+				"mass": 379116.07,
+				"node": "main__stone_ba7",
+				"slot": "stone_ba7",
+				"stage": "main"
+			},
+			{
+				"mass": 11436.61,
+				"node": "main__stone_875",
+				"slot": "stone_875",
+				"stage": "main"
+			},
+			{
+				"mass": 3840.9,
+				"node": "main__glass_dark",
+				"slot": "glass_dark",
+				"stage": "main"
+			},
+			{
+				"mass": 173.36,
+				"node": "main__timber_111",
+				"slot": "timber_111",
+				"stage": "main"
+			},
+			{
+				"mass": 309.14,
+				"node": "main__timber_543",
+				"slot": "timber_543",
+				"stage": "main"
+			},
+			{
+				"mass": 13.11,
+				"node": "main__steel_444",
+				"slot": "steel_444",
+				"stage": "main"
+			}
+		],
+		"sockets": {},
+		"stages": [
+			"main"
+		],
+		"stretch": "",
+		"tags": [
+			"context",
+			"outdoor",
+			"torque_shed"
+		],
+		"tris": 6926
+	},
+	"context.church.town_brick_perp": {
+		"aabb": [
+			[
+				-19.5375,
+				-0.6,
+				-10.151
+			],
+			[
+				19.5375,
+				24.86,
+				10.151
+			]
+		],
+		"category": "context",
+		"family": "fixture",
+		"file": "models/context/context.church.town_brick_perp.glb",
+		"kind": "",
+		"label": "Town church in brick: pinnacled tower, aisles",
+		"mass": 2100551.9,
+		"pieces": [
+			{
+				"mass": 1600067.29,
+				"node": "main__stone_854",
+				"slot": "stone_854",
+				"stage": "main"
+			},
+			{
+				"mass": 18102.3,
+				"node": "main__clad_455",
+				"slot": "clad_455",
+				"stage": "main"
+			},
+			{
+				"mass": 461965.6,
+				"node": "main__stone_cbb",
+				"slot": "stone_cbb",
+				"stage": "main"
+			},
+			{
+				"mass": 15596.78,
+				"node": "main__stone_998",
+				"slot": "stone_998",
+				"stage": "main"
+			},
+			{
+				"mass": 4324.32,
+				"node": "main__glass_dark",
+				"slot": "glass_dark",
+				"stage": "main"
+			},
+			{
+				"mass": 173.36,
+				"node": "main__timber_111",
+				"slot": "timber_111",
+				"stage": "main"
+			},
+			{
+				"mass": 309.14,
+				"node": "main__timber_543",
+				"slot": "timber_543",
+				"stage": "main"
+			},
+			{
+				"mass": 13.11,
+				"node": "main__steel_444",
+				"slot": "steel_444",
+				"stage": "main"
+			}
+		],
+		"sockets": {},
+		"stages": [
+			"main"
+		],
+		"stretch": "",
+		"tags": [
+			"context",
+			"outdoor",
+			"torque_shed"
+		],
+		"tris": 10106
+	},
+	"context.church.town_catholic": {
+		"aabb": [
+			[
+				-14.2125,
+				-0.6,
+				-5.6
+			],
+			[
+				14.2125,
+				16.6288,
+				5.6
+			]
+		],
+		"category": "context",
+		"family": "fixture",
+		"file": "models/context/context.church.town_catholic.glb",
+		"kind": "",
+		"label": "Catholic church: brick, big west window",
+		"mass": 953685.5,
+		"pieces": [
+			{
+				"mass": 795928.9,
+				"node": "main__stone_a97",
+				"slot": "stone_a97",
+				"stage": "main"
+			},
+			{
+				"mass": 11089.2,
+				"node": "main__clad_455",
+				"slot": "clad_455",
+				"stage": "main"
+			},
+			{
+				"mass": 132418.42,
+				"node": "main__stone_cbb",
+				"slot": "stone_cbb",
+				"stage": "main"
+			},
+			{
+				"mass": 10263.99,
+				"node": "main__stone_998",
+				"slot": "stone_998",
+				"stage": "main"
+			},
+			{
+				"mass": 3765.53,
+				"node": "main__glass_dark",
+				"slot": "glass_dark",
+				"stage": "main"
+			},
+			{
+				"mass": 204.95,
+				"node": "main__timber_543",
+				"slot": "timber_543",
+				"stage": "main"
+			},
+			{
+				"mass": 14.55,
+				"node": "main__steel_875",
+				"slot": "steel_875",
+				"stage": "main"
+			}
+		],
+		"sockets": {},
+		"stages": [
+			"main"
+		],
+		"stretch": "",
+		"tags": [
+			"context",
+			"outdoor",
+			"torque_shed"
+		],
+		"tris": 4208
+	},
+	"context.church.town_cruciform": {
+		"aabb": [
+			[
+				-16.3125,
+				-0.6,
+				-10.175
+			],
+			[
+				16.3125,
+				32.7,
+				10.175
+			]
+		],
+		"category": "context",
+		"family": "fixture",
+		"file": "models/context/context.church.town_cruciform.glb",
+		"kind": "",
+		"label": "Victorian cruciform church: transepts, crossing spire",
+		"mass": 1667618.3,
+		"pieces": [
+			{
+				"mass": 1304909.84,
+				"node": "main__stone_987",
+				"slot": "stone_987",
+				"stage": "main"
+			},
+			{
+				"mass": 17964.07,
+				"node": "main__clad_455",
+				"slot": "clad_455",
+				"stage": "main"
+			},
+			{
+				"mass": 326176.62,
+				"node": "main__stone_ba9",
+				"slot": "stone_ba9",
+				"stage": "main"
+			},
+			{
+				"mass": 13553.12,
+				"node": "main__stone_887",
+				"slot": "stone_887",
+				"stage": "main"
+			},
+			{
+				"mass": 4501.25,
+				"node": "main__glass_dark",
+				"slot": "glass_dark",
+				"stage": "main"
+			},
+			{
+				"mass": 173.36,
+				"node": "main__timber_111",
+				"slot": "timber_111",
+				"stage": "main"
+			},
+			{
+				"mass": 326.93,
+				"node": "main__timber_543",
+				"slot": "timber_543",
+				"stage": "main"
+			},
+			{
+				"mass": 13.11,
+				"node": "main__steel_444",
+				"slot": "steel_444",
+				"stage": "main"
+			}
+		],
+		"sockets": {},
+		"stages": [
+			"main"
+		],
+		"stretch": "",
+		"tags": [
+			"context",
+			"outdoor",
+			"torque_shed"
+		],
+		"tris": 6508
+	},
+	"context.church.town_meeting": {
+		"aabb": [
+			[
+				-7.62,
+				-0.6,
+				-4.8747
+			],
+			[
+				7.62,
+				7.7579,
+				4.8747
+			]
+		],
+		"category": "context",
+		"family": "fixture",
+		"file": "models/context/context.church.town_meeting.glb",
+		"kind": "",
+		"label": "Friends' meeting house, brick",
+		"mass": 303981.8,
+		"pieces": [
+			{
+				"mass": 277109.33,
+				"node": "main__stone_854",
+				"slot": "stone_854",
+				"stage": "main"
+			},
+			{
+				"mass": 4300.37,
+				"node": "main__clad_843",
+				"slot": "clad_843",
+				"stage": "main"
+			},
+			{
+				"mass": 16364.07,
+				"node": "main__stone_cbb",
+				"slot": "stone_cbb",
+				"stage": "main"
+			},
+			{
+				"mass": 4927.7,
+				"node": "main__stone_998",
+				"slot": "stone_998",
+				"stage": "main"
+			},
+			{
+				"mass": 1102.08,
+				"node": "main__glass_dark",
+				"slot": "glass_dark",
+				"stage": "main"
+			},
+			{
+				"mass": 178.2,
+				"node": "main__timber_344",
+				"slot": "timber_344",
+				"stage": "main"
+			}
+		],
+		"sockets": {},
+		"stages": [
+			"main"
+		],
+		"stretch": "",
+		"tags": [
+			"context",
+			"outdoor",
+			"torque_shed"
+		],
+		"tris": 746
+	},
+	"context.church.town_needle": {
+		"aabb": [
+			[
+				-17.0375,
+				-0.6,
+				-9.901
+			],
+			[
+				17.0375,
+				36.9,
+				9.901
+			]
+		],
+		"category": "context",
+		"family": "fixture",
+		"file": "models/context/context.church.town_needle.glb",
+		"kind": "",
+		"label": "Victorian limestone: needle spire, aisles",
+		"mass": 2040712.1,
+		"pieces": [
+			{
+				"mass": 1533059.44,
+				"node": "main__stone_aa8",
+				"slot": "stone_aa8",
+				"stage": "main"
+			},
+			{
+				"mass": 18796.65,
+				"node": "main__clad_455",
+				"slot": "clad_455",
+				"stage": "main"
+			},
+			{
+				"mass": 468009.25,
+				"node": "main__stone_cba",
+				"slot": "stone_cba",
+				"stage": "main"
+			},
+			{
+				"mass": 15842.75,
+				"node": "main__stone_987",
+				"slot": "stone_987",
+				"stage": "main"
+			},
+			{
+				"mass": 4490.61,
+				"node": "main__glass_dark",
+				"slot": "glass_dark",
+				"stage": "main"
+			},
+			{
+				"mass": 173.36,
+				"node": "main__timber_111",
+				"slot": "timber_111",
+				"stage": "main"
+			},
+			{
+				"mass": 326.93,
+				"node": "main__timber_543",
+				"slot": "timber_543",
+				"stage": "main"
+			},
+			{
+				"mass": 13.11,
+				"node": "main__steel_444",
+				"slot": "steel_444",
+				"stage": "main"
+			}
+		],
+		"sockets": {},
+		"stages": [
+			"main"
+		],
+		"stretch": "",
+		"tags": [
+			"context",
+			"outdoor",
+			"torque_shed"
+		],
+		"tris": 10072
+	},
+	"context.church.victorian_spire": {
+		"aabb": [
+			[
+				-17.4,
+				-0.6,
+				-9.4529
+			],
+			[
+				17.4,
+				41.0,
+				9.4529
+			]
+		],
+		"category": "context",
+		"family": "fixture",
+		"file": "models/context/context.church.victorian_spire.glb",
+		"kind": "",
+		"label": "Victorian Gothic town church (stage 1)",
+		"mass": 1749591.5,
+		"pieces": [
+			{
+				"mass": 1255310.87,
+				"node": "main__stone_987",
+				"slot": "stone_987",
+				"stage": "main"
+			},
+			{
+				"mass": 15591.34,
+				"node": "main__clad_455",
+				"slot": "clad_455",
+				"stage": "main"
+			},
+			{
+				"mass": 254.5,
+				"node": "main__clad_743",
+				"slot": "clad_743",
+				"stage": "main"
+			},
+			{
+				"mass": 453358.06,
+				"node": "main__stone_ba9",
+				"slot": "stone_ba9",
+				"stage": "main"
+			},
+			{
+				"mass": 16314.98,
+				"node": "main__stone_887",
+				"slot": "stone_887",
+				"stage": "main"
+			},
+			{
+				"mass": 5018.66,
+				"node": "main__glass_dark",
+				"slot": "glass_dark",
+				"stage": "main"
+			},
+			{
+				"mass": 478.25,
+				"node": "main__timber_543",
+				"slot": "timber_543",
+				"stage": "main"
+			},
+			{
+				"mass": 3249.51,
+				"node": "main__clad_877",
+				"slot": "clad_877",
+				"stage": "main"
+			},
+			{
+				"mass": 15.28,
+				"node": "main__steel_444",
+				"slot": "steel_444",
+				"stage": "main"
+			}
+		],
+		"sockets": {},
+		"stages": [
+			"main"
+		],
+		"stretch": "",
+		"tags": [
+			"context",
+			"outdoor",
+			"torque_shed"
+		],
+		"tris": 8760
+	},
+	"context.church.wal_bellcote": {
+		"aabb": [
+			[
+				-9.7125,
+				-0.6,
+				-4.65
+			],
+			[
+				9.7125,
+				9.3018,
+				4.65
+			]
+		],
+		"category": "context",
+		"family": "fixture",
+		"file": "models/context/context.church.wal_bellcote.glb",
+		"kind": "",
+		"label": "Welsh hill church: double bellcote",
+		"mass": 351601.3,
+		"pieces": [
+			{
+				"mass": 300703.67,
+				"node": "main__stone_666",
+				"slot": "stone_666",
+				"stage": "main"
+			},
+			{
+				"mass": 4893.95,
+				"node": "main__clad_455",
+				"slot": "clad_455",
+				"stage": "main"
+			},
+			{
+				"mass": 39210.57,
+				"node": "main__stone_998",
+				"slot": "stone_998",
+				"stage": "main"
+			},
+			{
+				"mass": 5735.23,
+				"node": "main__stone_776",
+				"slot": "stone_776",
+				"stage": "main"
+			},
+			{
+				"mass": 715.04,
+				"node": "main__glass_dark",
+				"slot": "glass_dark",
+				"stage": "main"
+			},
+			{
+				"mass": 173.36,
+				"node": "main__timber_111",
+				"slot": "timber_111",
+				"stage": "main"
+			},
+			{
+				"mass": 140.38,
+				"node": "main__timber_543",
+				"slot": "timber_543",
+				"stage": "main"
+			},
+			{
+				"mass": 29.1,
+				"node": "main__steel_875",
+				"slot": "steel_875",
+				"stage": "main"
+			}
+		],
+		"sockets": {},
+		"stages": [
+			"main"
+		],
+		"stretch": "",
+		"tags": [
+			"context",
+			"outdoor",
+			"torque_shed"
+		],
+		"tris": 3848
+	},
+	"context.church.wal_capel": {
+		"aabb": [
+			[
+				-8.75,
+				-0.6,
+				-6.953
+			],
+			[
+				8.75,
+				12.0589,
+				6.953
+			]
+		],
+		"category": "context",
+		"family": "fixture",
+		"file": "models/context/context.church.wal_capel.glb",
+		"kind": "",
+		"label": "Welsh capel, two tiers",
+		"mass": 678658.5,
+		"pieces": [
+			{
+				"mass": 505252.82,
+				"node": "main__stone_666",
+				"slot": "stone_666",
+				"stage": "main"
+			},
+			{
+				"mass": 6145.89,
+				"node": "main__clad_455",
+				"slot": "clad_455",
+				"stage": "main"
+			},
+			{
+				"mass": 149848.95,
+				"node": "main__stone_bba",
+				"slot": "stone_bba",
+				"stage": "main"
+			},
+			{
+				"mass": 13536.78,
+				"node": "main__stone_888",
+				"slot": "stone_888",
+				"stage": "main"
+			},
+			{
+				"mass": 294.2,
+				"node": "main__timber_344",
+				"slot": "timber_344",
+				"stage": "main"
+			},
+			{
+				"mass": 3579.9,
+				"node": "main__glass_dark",
+				"slot": "glass_dark",
+				"stage": "main"
+			}
+		],
+		"sockets": {},
+		"stages": [
+			"main"
+		],
+		"stretch": "",
+		"tags": [
+			"context",
+			"outdoor",
+			"torque_shed"
+		],
+		"tris": 4432
+	},
+	"context.church.wal_capel_render": {
+		"aabb": [
+			[
+				-6.75,
+				-0.6,
+				-5.2026
+			],
+			[
+				6.75,
+				9.0427,
+				5.2026
+			]
+		],
+		"category": "context",
+		"family": "fixture",
+		"file": "models/context/context.church.wal_capel_render.glb",
+		"kind": "",
+		"label": "Welsh capel, rendered, one tier",
+		"mass": 276308.3,
+		"pieces": [
+			{
+				"mass": 168548.17,
+				"node": "main__render_ccb",
+				"slot": "render_ccb",
+				"stage": "main"
+			},
+			{
+				"mass": 3496.99,
+				"node": "main__clad_455",
+				"slot": "clad_455",
+				"stage": "main"
+			},
+			{
+				"mass": 96405.04,
+				"node": "main__stone_778",
+				"slot": "stone_778",
+				"stage": "main"
+			},
+			{
+				"mass": 6077.08,
+				"node": "main__stone_556",
+				"slot": "stone_556",
+				"stage": "main"
+			},
+			{
+				"mass": 294.2,
+				"node": "main__timber_344",
+				"slot": "timber_344",
+				"stage": "main"
+			},
+			{
+				"mass": 1486.84,
+				"node": "main__glass_dark",
+				"slot": "glass_dark",
+				"stage": "main"
+			}
+		],
+		"sockets": {},
+		"stages": [
+			"main"
+		],
+		"stretch": "",
+		"tags": [
+			"context",
+			"outdoor",
+			"torque_shed"
+		],
+		"tris": 1900
+	},
+	"context.church.wal_saddle": {
+		"aabb": [
+			[
+				-13.4625,
+				-0.6,
+				-5.15
+			],
+			[
+				13.4625,
+				16.772,
+				5.15
+			]
+		],
+		"category": "context",
+		"family": "fixture",
+		"file": "models/context/context.church.wal_saddle.glb",
+		"kind": "",
+		"label": "Welsh valley: saddleback tower",
+		"mass": 713096.8,
+		"pieces": [
+			{
+				"mass": 563779.84,
+				"node": "main__stone_666",
+				"slot": "stone_666",
+				"stage": "main"
+			},
+			{
+				"mass": 7380.48,
+				"node": "main__clad_455",
+				"slot": "clad_455",
+				"stage": "main"
+			},
+			{
+				"mass": 128988.09,
+				"node": "main__stone_998",
+				"slot": "stone_998",
+				"stage": "main"
+			},
+			{
+				"mass": 10015.21,
+				"node": "main__stone_776",
+				"slot": "stone_776",
+				"stage": "main"
+			},
+			{
+				"mass": 2437.56,
+				"node": "main__glass_dark",
+				"slot": "glass_dark",
+				"stage": "main"
+			},
+			{
+				"mass": 173.36,
+				"node": "main__timber_111",
+				"slot": "timber_111",
+				"stage": "main"
+			},
+			{
+				"mass": 309.14,
+				"node": "main__timber_543",
+				"slot": "timber_543",
+				"stage": "main"
+			},
+			{
+				"mass": 13.11,
+				"node": "main__steel_444",
+				"slot": "steel_444",
+				"stage": "main"
+			}
+		],
+		"sockets": {},
+		"stages": [
+			"main"
+		],
+		"stretch": "",
+		"tags": [
+			"context",
+			"outdoor",
+			"torque_shed"
+		],
+		"tris": 5598
+	},
+	"context.church.wal_tower": {
+		"aabb": [
+			[
+				-12.7625,
+				-0.6,
+				-4.95
+			],
+			[
+				12.7625,
+				19.4,
+				4.95
+			]
+		],
+		"category": "context",
+		"family": "fixture",
+		"file": "models/context/context.church.wal_tower.glb",
+		"kind": "",
+		"label": "Pembrokeshire: tall slim battlemented tower",
+		"mass": 693976.6,
+		"pieces": [
+			{
+				"mass": 535548.16,
+				"node": "main__stone_666",
+				"slot": "stone_666",
+				"stage": "main"
+			},
+			{
+				"mass": 5754.77,
+				"node": "main__clad_455",
+				"slot": "clad_455",
+				"stage": "main"
+			},
+			{
+				"mass": 143140.74,
+				"node": "main__stone_998",
+				"slot": "stone_998",
+				"stage": "main"
+			},
+			{
+				"mass": 8057.97,
+				"node": "main__stone_776",
+				"slot": "stone_776",
+				"stage": "main"
+			},
+			{
+				"mass": 979.37,
+				"node": "main__glass_dark",
+				"slot": "glass_dark",
+				"stage": "main"
+			},
+			{
+				"mass": 173.36,
+				"node": "main__timber_111",
+				"slot": "timber_111",
+				"stage": "main"
+			},
+			{
+				"mass": 309.14,
+				"node": "main__timber_543",
+				"slot": "timber_543",
+				"stage": "main"
+			},
+			{
+				"mass": 13.11,
+				"node": "main__steel_444",
+				"slot": "steel_444",
+				"stage": "main"
+			}
+		],
+		"sockets": {},
+		"stages": [
+			"main"
+		],
+		"stretch": "",
+		"tags": [
+			"context",
+			"outdoor",
+			"torque_shed"
+		],
+		"tris": 5882
+	},
+	"context.church.yard_lychgate_slate": {
+		"aabb": [
+			[
+				-1.85,
+				0.0,
+				-2.112
+			],
+			[
+				1.85,
+				4.9731,
+				2.112
+			]
+		],
+		"category": "context",
+		"family": "fixture",
+		"file": "models/context/context.church.yard_lychgate_slate.glb",
+		"kind": "",
+		"label": "Lychgate, slate",
+		"mass": 12681.7,
+		"pieces": [
+			{
+				"mass": 7840.0,
+				"node": "main__stone_766",
+				"slot": "stone_766",
+				"stage": "main"
+			},
+			{
+				"mass": 3421.6,
+				"node": "main__stone_887",
+				"slot": "stone_887",
+				"stage": "main"
+			},
+			{
+				"mass": 775.79,
+				"node": "main__timber_543",
+				"slot": "timber_543",
+				"stage": "main"
+			},
+			{
+				"mass": 644.28,
+				"node": "main__clad_455",
+				"slot": "clad_455",
+				"stage": "main"
+			}
+		],
+		"sockets": {},
+		"stages": [
+			"main"
+		],
+		"stretch": "",
+		"tags": [
+			"context",
+			"outdoor",
+			"torque_shed"
+		],
+		"tris": 244
+	},
+	"context.church.yard_lychgate_tile": {
+		"aabb": [
+			[
+				-1.85,
+				0.0,
+				-2.112
+			],
+			[
+				1.85,
+				4.9731,
+				2.112
+			]
+		],
+		"category": "context",
+		"family": "fixture",
+		"file": "models/context/context.church.yard_lychgate_tile.glb",
+		"kind": "",
+		"label": "Lychgate, clay tiles",
+		"mass": 12681.7,
+		"pieces": [
+			{
+				"mass": 7840.0,
+				"node": "main__stone_998",
+				"slot": "stone_998",
+				"stage": "main"
+			},
+			{
+				"mass": 3421.6,
+				"node": "main__stone_ba9",
+				"slot": "stone_ba9",
+				"stage": "main"
+			},
+			{
+				"mass": 775.79,
+				"node": "main__timber_543",
+				"slot": "timber_543",
+				"stage": "main"
+			},
+			{
+				"mass": 644.28,
+				"node": "main__clad_843",
+				"slot": "clad_843",
+				"stage": "main"
+			}
+		],
+		"sockets": {},
+		"stages": [
+			"main"
+		],
+		"stretch": "",
+		"tags": [
+			"context",
+			"outdoor",
+			"torque_shed"
+		],
+		"tris": 244
+	},
+	"context.church.yard_yew": {
+		"aabb": [
+			[
+				-3.1438,
+				0.0,
+				-2.9248
+			],
+			[
+				3.1438,
+				5.95,
+				2.9248
+			]
+		],
+		"category": "context",
+		"family": "fixture",
+		"file": "models/context/context.church.yard_yew.glb",
+		"kind": "",
+		"label": "Old churchyard yew",
+		"mass": 5106.7,
+		"pieces": [
+			{
+				"mass": 150.72,
+				"node": "main__timber_643",
+				"slot": "timber_643",
+				"stage": "main"
+			},
+			{
+				"mass": 4955.96,
+				"node": "main__timber_232",
+				"slot": "timber_232",
+				"stage": "main"
+			}
+		],
+		"sockets": {},
+		"stages": [
+			"main"
+		],
+		"stretch": "",
+		"tags": [
+			"context",
+			"outdoor",
+			"torque_shed"
+		],
+		"tris": 578
+	},
+	"context.church.yard_yew_irish": {
+		"aabb": [
+			[
+				-0.85,
+				0.0,
+				-0.8287
+			],
+			[
+				0.85,
+				5.4,
+				0.8287
+			]
+		],
+		"category": "context",
+		"family": "fixture",
+		"file": "models/context/context.church.yard_yew_irish.glb",
+		"kind": "",
+		"label": "Irish yew",
+		"mass": 557.3,
+		"pieces": [
+			{
+				"mass": 18.45,
+				"node": "main__timber_643",
+				"slot": "timber_643",
+				"stage": "main"
+			},
+			{
+				"mass": 538.87,
+				"node": "main__timber_232",
+				"slot": "timber_232",
+				"stage": "main"
+			}
+		],
+		"sockets": {},
+		"stages": [
+			"main"
+		],
+		"stretch": "",
+		"tags": [
+			"context",
+			"outdoor",
+			"torque_shed"
+		],
+		"tris": 160
+	},
 	"context.church_hall": {
 		"aabb": [
 			[

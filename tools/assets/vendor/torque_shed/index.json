@@ -1183,6 +1183,1076 @@
 			"tags": [],
 			"tris": 1268
 		},
+		"context.church.corn_chapel": {
+			"family": "fixture",
+			"label": "Cornish Methodist chapel, granite",
+			"mass": {
+				"clad_455": 3958.82,
+				"glass_dark": 1858.55,
+				"stone_887": 7430.4,
+				"stone_998": 309377.25,
+				"stone_aaa": 102421.0,
+				"timber_344": 294.2
+			},
+			"source": [
+				"Tools/blender_church_assemble.py SM_Church_corn_chapel"
+			],
+			"stage": {},
+			"tags": [
+				"outdoor",
+				"context"
+			],
+			"tris": 2188
+		},
+		"context.church.corn_granite": {
+			"family": "fixture",
+			"label": "Cornwall: granite tower, wide aisles",
+			"mass": {
+				"clad_455": 13086.38,
+				"glass_dark": 4396.6,
+				"steel_444": 13.11,
+				"stone_887": 12456.36,
+				"stone_998": 1237955.45,
+				"stone_aaa": 409936.51,
+				"timber_111": 173.36,
+				"timber_543": 309.14
+			},
+			"source": [
+				"Tools/blender_church_assemble.py SM_Church_corn_granite"
+			],
+			"stage": {},
+			"tags": [
+				"outdoor",
+				"context"
+			],
+			"tris": 7382
+		},
+		"context.church.corn_small": {
+			"family": "fixture",
+			"label": "Cornish cove church: bellcote",
+			"mass": {
+				"clad_455": 3298.45,
+				"glass_dark": 282.86,
+				"steel_875": 14.55,
+				"stone_887": 2581.89,
+				"stone_998": 208161.84,
+				"stone_aaa": 31023.23,
+				"timber_111": 154.53,
+				"timber_543": 126.96
+			},
+			"source": [
+				"Tools/blender_church_assemble.py SM_Church_corn_small"
+			],
+			"stage": {},
+			"tags": [
+				"outdoor",
+				"context"
+			],
+			"tris": 1608
+		},
+		"context.church.cots_baptist": {
+			"family": "fixture",
+			"label": "Cotswold Baptist chapel, one tier",
+			"mass": {
+				"clad_455": 3335.72,
+				"glass_dark": 1486.84,
+				"stone_986": 6077.08,
+				"stone_a97": 270025.14,
+				"stone_ca8": 91558.45,
+				"stone_cb8": 2490.0,
+				"timber_344": 294.2
+			},
+			"source": [
+				"Tools/blender_church_assemble.py SM_Church_cots_baptist"
+			],
+			"stage": {},
+			"tags": [
+				"outdoor",
+				"context"
+			],
+			"tris": 1900
+		},
+		"context.church.cots_bellcote": {
+			"family": "fixture",
+			"label": "Cotswold hamlet church: bellcote",
+			"mass": {
+				"clad_987": 4564.52,
+				"glass_dark": 491.43,
+				"steel_875": 14.55,
+				"stone_986": 3852.28,
+				"stone_a97": 285565.56,
+				"stone_ca8": 39880.95,
+				"timber_111": 154.53,
+				"timber_543": 126.96
+			},
+			"source": [
+				"Tools/blender_church_assemble.py SM_Church_cots_bellcote"
+			],
+			"stage": {},
+			"tags": [
+				"outdoor",
+				"context"
+			],
+			"tris": 2248
+		},
+		"context.church.cots_needle": {
+			"family": "fixture",
+			"label": "Cotswold: tower and needle spire",
+			"mass": {
+				"clad_987": 9832.85,
+				"glass_dark": 3034.45,
+				"steel_444": 13.11,
+				"stone_986": 11149.82,
+				"stone_a97": 825934.47,
+				"stone_ca8": 357906.92,
+				"timber_111": 173.36,
+				"timber_543": 309.14
+			},
+			"source": [
+				"Tools/blender_church_assemble.py SM_Church_cots_needle"
+			],
+			"stage": {},
+			"tags": [
+				"outdoor",
+				"context"
+			],
+			"tris": 6736
+		},
+		"context.church.cots_wool": {
+			"family": "fixture",
+			"label": "Cotswold wool church: tall tower, aisles, battlements",
+			"mass": {
+				"clad_778": 9755.63,
+				"clad_987": 2667.58,
+				"glass_dark": 5672.82,
+				"steel_444": 13.11,
+				"stone_986": 17073.47,
+				"stone_a97": 1494874.96,
+				"stone_ca8": 713300.9,
+				"timber_111": 173.36,
+				"timber_543": 309.14
+			},
+			"source": [
+				"Tools/blender_church_assemble.py SM_Church_cots_wool"
+			],
+			"stage": {},
+			"tags": [
+				"outdoor",
+				"context"
+			],
+			"tris": 11630
+		},
+		"context.church.dales_chapel": {
+			"family": "fixture",
+			"label": "Dales chapel of ease (stage 1)",
+			"mass": {
+				"clad_665": 3475.9,
+				"glass_dark": 413.01,
+				"steel_875": 18.04,
+				"stone_665": 3929.39,
+				"stone_766": 219220.02,
+				"stone_887": 37558.75,
+				"timber_111": 156.57,
+				"timber_543": 124.81
+			},
+			"source": [
+				"Tools/blender_church_assemble.py SM_Church_dales_chapel"
+			],
+			"stage": {},
+			"tags": [
+				"outdoor",
+				"context"
+			],
+			"tris": 3156
+		},
+		"context.church.ea_bellcote": {
+			"family": "fixture",
+			"label": "Fenland: flint, bellcote",
+			"mass": {
+				"clad_843": 3718.21,
+				"glass_dark": 393.5,
+				"steel_875": 14.55,
+				"stone_555": 224498.91,
+				"stone_987": 3616.48,
+				"stone_cba": 34918.98,
+				"timber_111": 173.36,
+				"timber_543": 140.38
+			},
+			"source": [
+				"Tools/blender_church_assemble.py SM_Church_ea_bellcote"
+			],
+			"stage": {},
+			"tags": [
+				"outdoor",
+				"context"
+			],
+			"tris": 2652
+		},
+		"context.church.ea_methodist": {
+			"family": "fixture",
+			"label": "Norfolk Primitive Methodist chapel, brick",
+			"mass": {
+				"clad_455": 2913.61,
+				"glass_dark": 1486.84,
+				"stone_854": 243255.59,
+				"stone_987": 6077.08,
+				"stone_cba": 91750.13,
+				"timber_344": 294.2
+			},
+			"source": [
+				"Tools/blender_church_assemble.py SM_Church_ea_methodist"
+			],
+			"stage": {},
+			"tags": [
+				"outdoor",
+				"context"
+			],
+			"tris": 1900
+		},
+		"context.church.ea_round_thatch": {
+			"family": "fixture",
+			"label": "Norfolk: round tower, thatched nave",
+			"mass": {
+				"clad_778": 318.68,
+				"fabric_764": 1908.14,
+				"glass_dark": 1631.15,
+				"stone_555": 522993.96,
+				"stone_987": 6699.09,
+				"stone_cba": 103223.03,
+				"timber_111": 173.36,
+				"timber_543": 140.38
+			},
+			"source": [
+				"Tools/blender_church_assemble.py SM_Church_ea_round_thatch"
+			],
+			"stage": {},
+			"tags": [
+				"outdoor",
+				"context"
+			],
+			"tris": 4334
+		},
+		"context.church.ea_round_tile": {
+			"family": "fixture",
+			"label": "Suffolk: round tower, tiled roof",
+			"mass": {
+				"clad_843": 7359.88,
+				"glass_dark": 818.07,
+				"stone_555": 543820.55,
+				"stone_987": 6580.06,
+				"stone_cba": 66950.1,
+				"timber_111": 173.36,
+				"timber_543": 140.38
+			},
+			"source": [
+				"Tools/blender_church_assemble.py SM_Church_ea_round_tile"
+			],
+			"stage": {},
+			"tags": [
+				"outdoor",
+				"context"
+			],
+			"tris": 4766
+		},
+		"context.church.ea_wool": {
+			"family": "fixture",
+			"label": "East Anglian wool church: flint, clerestory, battlements",
+			"mass": {
+				"clad_778": 11738.04,
+				"clad_843": 3091.85,
+				"glass_dark": 5996.25,
+				"steel_444": 13.11,
+				"stone_555": 1817512.52,
+				"stone_987": 17820.9,
+				"stone_cba": 809824.23,
+				"timber_111": 173.36,
+				"timber_543": 309.14
+			},
+			"source": [
+				"Tools/blender_church_assemble.py SM_Church_ea_wool"
+			],
+			"stage": {},
+			"tags": [
+				"outdoor",
+				"context"
+			],
+			"tris": 12302
+		},
+		"context.church.methodist_chapel": {
+			"family": "fixture",
+			"label": "Methodist chapel (stage 1)",
+			"mass": {
+				"clad_455": 5717.43,
+				"glass_dark": 3579.9,
+				"stone_854": 487511.36,
+				"stone_998": 13536.78,
+				"stone_cbb": 143309.99,
+				"stone_ccb": 2490.0,
+				"timber_344": 294.2
+			},
+			"source": [
+				"Tools/blender_church_assemble.py SM_Church_methodist_chapel"
+			],
+			"stage": {},
+			"tags": [
+				"outdoor",
+				"context"
+			],
+			"tris": 4456
+		},
+		"context.church.norman_tower": {
+			"family": "fixture",
+			"label": "Norman village church (stage 1)",
+			"mass": {
+				"clad_455": 7546.48,
+				"clad_778": 709.52,
+				"glass_dark": 756.86,
+				"steel_444": 12.13,
+				"stone_987": 6186.9,
+				"stone_aa8": 708105.99,
+				"stone_cba": 133973.78,
+				"timber_111": 154.53,
+				"timber_543": 211.3
+			},
+			"source": [
+				"Tools/blender_church_assemble.py SM_Church_norman_tower"
+			],
+			"stage": {},
+			"tags": [
+				"outdoor",
+				"context"
+			],
+			"tris": 4052
+		},
+		"context.church.pennine_broach": {
+			"family": "fixture",
+			"label": "Mill town: broach spire, aisle, clerestory",
+			"mass": {
+				"clad_455": 12490.12,
+				"glass_dark": 3866.15,
+				"steel_444": 13.11,
+				"stone_665": 13653.64,
+				"stone_766": 1081057.0,
+				"stone_887": 329034.07,
+				"timber_111": 173.36,
+				"timber_543": 326.93
+			},
+			"source": [
+				"Tools/blender_church_assemble.py SM_Church_pennine_broach"
+			],
+			"stage": {},
+			"tags": [
+				"outdoor",
+				"context"
+			],
+			"tris": 7872
+		},
+		"context.church.pennine_chapel": {
+			"family": "fixture",
+			"label": "Pennine Methodist chapel, two tiers",
+			"mass": {
+				"clad_455": 4961.92,
+				"glass_dark": 3010.06,
+				"stone_665": 11483.61,
+				"stone_766": 426834.5,
+				"stone_887": 132770.04,
+				"timber_344": 294.2
+			},
+			"source": [
+				"Tools/blender_church_assemble.py SM_Church_pennine_chapel"
+			],
+			"stage": {},
+			"tags": [
+				"outdoor",
+				"context"
+			],
+			"tris": 3856
+		},
+		"context.church.pennine_cross": {
+			"family": "fixture",
+			"label": "Dales cruciform church: transepts, west tower",
+			"mass": {
+				"clad_665": 10613.88,
+				"glass_dark": 3008.62,
+				"steel_444": 13.11,
+				"stone_665": 9575.73,
+				"stone_766": 806924.81,
+				"stone_887": 187784.74,
+				"timber_111": 173.36,
+				"timber_543": 309.14
+			},
+			"source": [
+				"Tools/blender_church_assemble.py SM_Church_pennine_cross"
+			],
+			"stage": {},
+			"tags": [
+				"outdoor",
+				"context"
+			],
+			"tris": 6174
+		},
+		"context.church.pennine_meeting": {
+			"family": "fixture",
+			"label": "Dales Friends' meeting house, stone",
+			"mass": {
+				"clad_665": 3370.91,
+				"glass_dark": 978.48,
+				"stone_665": 4519.69,
+				"stone_766": 217522.17,
+				"stone_887": 22996.87,
+				"timber_344": 178.2
+			},
+			"source": [
+				"Tools/blender_church_assemble.py SM_Church_pennine_meeting"
+			],
+			"stage": {},
+			"tags": [
+				"outdoor",
+				"context"
+			],
+			"tris": 1082
+		},
+		"context.church.pennine_perp": {
+			"family": "fixture",
+			"label": "Pennine: Perpendicular tower, chancel",
+			"mass": {
+				"clad_665": 6061.6,
+				"glass_dark": 3170.57,
+				"steel_444": 13.11,
+				"stone_665": 10174.74,
+				"stone_766": 598427.6,
+				"stone_887": 195332.2,
+				"timber_111": 173.36,
+				"timber_543": 309.14
+			},
+			"source": [
+				"Tools/blender_church_assemble.py SM_Church_pennine_perp"
+			],
+			"stage": {},
+			"tags": [
+				"outdoor",
+				"context"
+			],
+			"tris": 6314
+		},
+		"context.church.pennine_saddle": {
+			"family": "fixture",
+			"label": "Dales church: saddleback tower",
+			"mass": {
+				"clad_665": 4704.38,
+				"glass_dark": 753.2,
+				"steel_444": 13.11,
+				"stone_665": 6578.7,
+				"stone_766": 373533.76,
+				"stone_887": 103158.47,
+				"timber_111": 173.36,
+				"timber_543": 309.14
+			},
+			"source": [
+				"Tools/blender_church_assemble.py SM_Church_pennine_saddle"
+			],
+			"stage": {},
+			"tags": [
+				"outdoor",
+				"context"
+			],
+			"tris": 5042
+		},
+		"context.church.sco_free": {
+			"family": "fixture",
+			"label": "Scottish Free Church: sandstone, needle spire",
+			"mass": {
+				"clad_455": 8217.96,
+				"glass_dark": 3735.96,
+				"steel_444": 13.11,
+				"stone_776": 10225.8,
+				"stone_988": 734366.22,
+				"stone_a98": 431356.59,
+				"timber_543": 186.55
+			},
+			"source": [
+				"Tools/blender_church_assemble.py SM_Church_sco_free"
+			],
+			"stage": {},
+			"tags": [
+				"outdoor",
+				"context"
+			],
+			"tris": 6088
+		},
+		"context.church.sco_kirk": {
+			"family": "fixture",
+			"label": "Scottish kirk: harled, birdcage bellcote",
+			"mass": {
+				"clad_455": 4330.89,
+				"glass_dark": 439.29,
+				"render_ccc": 160117.22,
+				"steel_875": 14.55,
+				"stone_766": 3130.02,
+				"stone_988": 36347.93,
+				"timber_543": 183.19
+			},
+			"source": [
+				"Tools/blender_church_assemble.py SM_Church_sco_kirk"
+			],
+			"stage": {},
+			"tags": [
+				"outdoor",
+				"context"
+			],
+			"tris": 1888
+		},
+		"context.church.sco_tower": {
+			"family": "fixture",
+			"label": "Scottish parish kirk: tower and slate spire",
+			"mass": {
+				"clad_455": 7490.52,
+				"glass_dark": 1152.7,
+				"render_ccc": 349307.91,
+				"steel_444": 13.11,
+				"stone_766": 6872.14,
+				"stone_988": 288401.23,
+				"timber_111": 154.53,
+				"timber_543": 279.82
+			},
+			"source": [
+				"Tools/blender_church_assemble.py SM_Church_sco_tower"
+			],
+			"stage": {},
+			"tags": [
+				"outdoor",
+				"context"
+			],
+			"tris": 4944
+		},
+		"context.church.se_belfry": {
+			"family": "fixture",
+			"label": "Weald: timber belfry, shingled spire",
+			"mass": {
+				"clad_843": 5642.82,
+				"glass_dark": 796.72,
+				"steel_444": 4.97,
+				"stone_887": 5821.12,
+				"stone_998": 340136.17,
+				"stone_ba9": 34296.38,
+				"timber_111": 173.36,
+				"timber_543": 140.38,
+				"timber_654": 1127.14,
+				"timber_888": 28.9,
+				"timber_bbb": 1226.4
+			},
+			"source": [
+				"Tools/blender_church_assemble.py SM_Church_se_belfry"
+			],
+			"stage": {},
+			"tags": [
+				"outdoor",
+				"context"
+			],
+			"tris": 3920
+		},
+		"context.church.se_brick_broach": {
+			"family": "fixture",
+			"label": "Victorian brick: broach spire",
+			"mass": {
+				"clad_843": 9298.26,
+				"glass_dark": 3809.23,
+				"steel_444": 13.11,
+				"stone_854": 769908.26,
+				"stone_998": 13141.39,
+				"stone_cbb": 312297.57,
+				"timber_111": 173.36,
+				"timber_543": 326.93
+			},
+			"source": [
+				"Tools/blender_church_assemble.py SM_Church_se_brick_broach"
+			],
+			"stage": {},
+			"tags": [
+				"outdoor",
+				"context"
+			],
+			"tris": 6324
+		},
+		"context.church.se_cap": {
+			"family": "fixture",
+			"label": "Sussex: tower with a low pyramid cap",
+			"mass": {
+				"clad_654": 711.07,
+				"clad_843": 6557.59,
+				"glass_dark": 949.62,
+				"steel_444": 13.11,
+				"stone_887": 7868.17,
+				"stone_998": 600345.83,
+				"stone_ba9": 152747.59,
+				"timber_111": 173.36,
+				"timber_543": 309.14
+			},
+			"source": [
+				"Tools/blender_church_assemble.py SM_Church_se_cap"
+			],
+			"stage": {},
+			"tags": [
+				"outdoor",
+				"context"
+			],
+			"tris": 4988
+		},
+		"context.church.se_perp": {
+			"family": "fixture",
+			"label": "Kent ragstone: battlemented tower, aisle",
+			"mass": {
+				"clad_843": 9305.78,
+				"glass_dark": 3548.82,
+				"steel_444": 13.11,
+				"stone_887": 10767.02,
+				"stone_998": 898968.93,
+				"stone_ba9": 212681.81,
+				"timber_111": 173.36,
+				"timber_543": 309.14
+			},
+			"source": [
+				"Tools/blender_church_assemble.py SM_Church_se_perp"
+			],
+			"stage": {},
+			"tags": [
+				"outdoor",
+				"context"
+			],
+			"tris": 6002
+		},
+		"context.church.se_tin": {
+			"family": "fixture",
+			"label": "Tin tabernacle",
+			"mass": {
+				"clad_354": 5054.82,
+				"clad_733": 3723.63,
+				"glass_dark": 495.09,
+				"stone_ccb": 259.2,
+				"timber_344": 119.7,
+				"timber_998": 168.38,
+				"timber_ccb": 477.7
+			},
+			"source": [
+				"Tools/blender_church_assemble.py SM_Church_se_tin"
+			],
+			"stage": {},
+			"tags": [
+				"outdoor",
+				"context"
+			],
+			"tris": 2402
+		},
+		"context.church.som_chapel": {
+			"family": "fixture",
+			"label": "Somerset Wesleyan chapel, stone",
+			"mass": {
+				"clad_455": 4961.92,
+				"glass_dark": 3010.06,
+				"stone_875": 11483.61,
+				"stone_888": 426834.5,
+				"stone_ba7": 132770.04,
+				"timber_344": 294.2
+			},
+			"source": [
+				"Tools/blender_church_assemble.py SM_Church_som_chapel"
+			],
+			"stage": {},
+			"tags": [
+				"outdoor",
+				"context"
+			],
+			"tris": 3856
+		},
+		"context.church.som_small": {
+			"family": "fixture",
+			"label": "Somerset Levels: small church, bellcote",
+			"mass": {
+				"clad_455": 4182.04,
+				"glass_dark": 613.88,
+				"steel_875": 29.1,
+				"stone_875": 5064.49,
+				"stone_888": 276103.67,
+				"stone_ba7": 43743.18,
+				"timber_111": 173.36,
+				"timber_543": 140.38
+			},
+			"source": [
+				"Tools/blender_church_assemble.py SM_Church_som_small"
+			],
+			"stage": {},
+			"tags": [
+				"outdoor",
+				"context"
+			],
+			"tris": 3680
+		},
+		"context.church.som_tower": {
+			"family": "fixture",
+			"label": "Somerset: tall pinnacled tower, aisles",
+			"mass": {
+				"clad_455": 2416.42,
+				"clad_778": 8938.81,
+				"glass_dark": 5124.38,
+				"steel_444": 13.11,
+				"stone_875": 15485.47,
+				"stone_888": 1474783.85,
+				"stone_ba7": 720076.16,
+				"timber_111": 173.36,
+				"timber_543": 309.14
+			},
+			"source": [
+				"Tools/blender_church_assemble.py SM_Church_som_tower"
+			],
+			"stage": {},
+			"tags": [
+				"outdoor",
+				"context"
+			],
+			"tris": 10550
+		},
+		"context.church.som_village": {
+			"family": "fixture",
+			"label": "Somerset village: Perpendicular tower",
+			"mass": {
+				"clad_455": 6261.95,
+				"glass_dark": 3840.9,
+				"steel_444": 13.11,
+				"stone_875": 11436.61,
+				"stone_888": 644090.6,
+				"stone_ba7": 379116.07,
+				"timber_111": 173.36,
+				"timber_543": 309.14
+			},
+			"source": [
+				"Tools/blender_church_assemble.py SM_Church_som_village"
+			],
+			"stage": {},
+			"tags": [
+				"outdoor",
+				"context"
+			],
+			"tris": 6926
+		},
+		"context.church.town_brick_perp": {
+			"family": "fixture",
+			"label": "Town church in brick: pinnacled tower, aisles",
+			"mass": {
+				"clad_455": 18102.3,
+				"glass_dark": 4324.32,
+				"steel_444": 13.11,
+				"stone_854": 1600067.29,
+				"stone_998": 15596.78,
+				"stone_cbb": 461965.6,
+				"timber_111": 173.36,
+				"timber_543": 309.14
+			},
+			"source": [
+				"Tools/blender_church_assemble.py SM_Church_town_brick_perp"
+			],
+			"stage": {},
+			"tags": [
+				"outdoor",
+				"context"
+			],
+			"tris": 10106
+		},
+		"context.church.town_catholic": {
+			"family": "fixture",
+			"label": "Catholic church: brick, big west window",
+			"mass": {
+				"clad_455": 11089.2,
+				"glass_dark": 3765.53,
+				"steel_875": 14.55,
+				"stone_998": 10263.99,
+				"stone_a97": 795928.9,
+				"stone_cbb": 132418.42,
+				"timber_543": 204.95
+			},
+			"source": [
+				"Tools/blender_church_assemble.py SM_Church_town_catholic"
+			],
+			"stage": {},
+			"tags": [
+				"outdoor",
+				"context"
+			],
+			"tris": 4208
+		},
+		"context.church.town_cruciform": {
+			"family": "fixture",
+			"label": "Victorian cruciform church: transepts, crossing spire",
+			"mass": {
+				"clad_455": 17964.07,
+				"glass_dark": 4501.25,
+				"steel_444": 13.11,
+				"stone_887": 13553.12,
+				"stone_987": 1304909.84,
+				"stone_ba9": 326176.62,
+				"timber_111": 173.36,
+				"timber_543": 326.93
+			},
+			"source": [
+				"Tools/blender_church_assemble.py SM_Church_town_cruciform"
+			],
+			"stage": {},
+			"tags": [
+				"outdoor",
+				"context"
+			],
+			"tris": 6508
+		},
+		"context.church.town_meeting": {
+			"family": "fixture",
+			"label": "Friends' meeting house, brick",
+			"mass": {
+				"clad_843": 4300.37,
+				"glass_dark": 1102.08,
+				"stone_854": 277109.33,
+				"stone_998": 4927.7,
+				"stone_cbb": 16364.07,
+				"timber_344": 178.2
+			},
+			"source": [
+				"Tools/blender_church_assemble.py SM_Church_town_meeting"
+			],
+			"stage": {},
+			"tags": [
+				"outdoor",
+				"context"
+			],
+			"tris": 746
+		},
+		"context.church.town_needle": {
+			"family": "fixture",
+			"label": "Victorian limestone: needle spire, aisles",
+			"mass": {
+				"clad_455": 18796.65,
+				"glass_dark": 4490.61,
+				"steel_444": 13.11,
+				"stone_987": 15842.75,
+				"stone_aa8": 1533059.44,
+				"stone_cba": 468009.25,
+				"timber_111": 173.36,
+				"timber_543": 326.93
+			},
+			"source": [
+				"Tools/blender_church_assemble.py SM_Church_town_needle"
+			],
+			"stage": {},
+			"tags": [
+				"outdoor",
+				"context"
+			],
+			"tris": 10072
+		},
+		"context.church.victorian_spire": {
+			"family": "fixture",
+			"label": "Victorian Gothic town church (stage 1)",
+			"mass": {
+				"clad_455": 15591.34,
+				"clad_743": 254.5,
+				"clad_877": 3249.51,
+				"glass_dark": 5018.66,
+				"steel_444": 15.28,
+				"stone_887": 16314.98,
+				"stone_987": 1255310.87,
+				"stone_ba9": 453358.06,
+				"timber_543": 478.25
+			},
+			"source": [
+				"Tools/blender_church_assemble.py SM_Church_victorian_spire"
+			],
+			"stage": {},
+			"tags": [
+				"outdoor",
+				"context"
+			],
+			"tris": 8760
+		},
+		"context.church.wal_bellcote": {
+			"family": "fixture",
+			"label": "Welsh hill church: double bellcote",
+			"mass": {
+				"clad_455": 4893.95,
+				"glass_dark": 715.04,
+				"steel_875": 29.1,
+				"stone_666": 300703.67,
+				"stone_776": 5735.23,
+				"stone_998": 39210.57,
+				"timber_111": 173.36,
+				"timber_543": 140.38
+			},
+			"source": [
+				"Tools/blender_church_assemble.py SM_Church_wal_bellcote"
+			],
+			"stage": {},
+			"tags": [
+				"outdoor",
+				"context"
+			],
+			"tris": 3848
+		},
+		"context.church.wal_capel": {
+			"family": "fixture",
+			"label": "Welsh capel, two tiers",
+			"mass": {
+				"clad_455": 6145.89,
+				"glass_dark": 3579.9,
+				"stone_666": 505252.82,
+				"stone_888": 13536.78,
+				"stone_bba": 149848.95,
+				"timber_344": 294.2
+			},
+			"source": [
+				"Tools/blender_church_assemble.py SM_Church_wal_capel"
+			],
+			"stage": {},
+			"tags": [
+				"outdoor",
+				"context"
+			],
+			"tris": 4432
+		},
+		"context.church.wal_capel_render": {
+			"family": "fixture",
+			"label": "Welsh capel, rendered, one tier",
+			"mass": {
+				"clad_455": 3496.99,
+				"glass_dark": 1486.84,
+				"render_ccb": 168548.17,
+				"stone_556": 6077.08,
+				"stone_778": 96405.04,
+				"timber_344": 294.2
+			},
+			"source": [
+				"Tools/blender_church_assemble.py SM_Church_wal_capel_render"
+			],
+			"stage": {},
+			"tags": [
+				"outdoor",
+				"context"
+			],
+			"tris": 1900
+		},
+		"context.church.wal_saddle": {
+			"family": "fixture",
+			"label": "Welsh valley: saddleback tower",
+			"mass": {
+				"clad_455": 7380.48,
+				"glass_dark": 2437.56,
+				"steel_444": 13.11,
+				"stone_666": 563779.84,
+				"stone_776": 10015.21,
+				"stone_998": 128988.09,
+				"timber_111": 173.36,
+				"timber_543": 309.14
+			},
+			"source": [
+				"Tools/blender_church_assemble.py SM_Church_wal_saddle"
+			],
+			"stage": {},
+			"tags": [
+				"outdoor",
+				"context"
+			],
+			"tris": 5598
+		},
+		"context.church.wal_tower": {
+			"family": "fixture",
+			"label": "Pembrokeshire: tall slim battlemented tower",
+			"mass": {
+				"clad_455": 5754.77,
+				"glass_dark": 979.37,
+				"steel_444": 13.11,
+				"stone_666": 535548.16,
+				"stone_776": 8057.97,
+				"stone_998": 143140.74,
+				"timber_111": 173.36,
+				"timber_543": 309.14
+			},
+			"source": [
+				"Tools/blender_church_assemble.py SM_Church_wal_tower"
+			],
+			"stage": {},
+			"tags": [
+				"outdoor",
+				"context"
+			],
+			"tris": 5882
+		},
+		"context.church.yard_lychgate_slate": {
+			"family": "fixture",
+			"label": "Lychgate, slate",
+			"mass": {
+				"clad_455": 644.28,
+				"stone_766": 7840.0,
+				"stone_887": 3421.6,
+				"timber_543": 775.79
+			},
+			"source": [
+				"Tools/blender_church_assemble.py SM_Church_yard_lychgate_slate"
+			],
+			"stage": {},
+			"tags": [
+				"outdoor",
+				"context"
+			],
+			"tris": 244
+		},
+		"context.church.yard_lychgate_tile": {
+			"family": "fixture",
+			"label": "Lychgate, clay tiles",
+			"mass": {
+				"clad_843": 644.28,
+				"stone_998": 7840.0,
+				"stone_ba9": 3421.6,
+				"timber_543": 775.79
+			},
+			"source": [
+				"Tools/blender_church_assemble.py SM_Church_yard_lychgate_tile"
+			],
+			"stage": {},
+			"tags": [
+				"outdoor",
+				"context"
+			],
+			"tris": 244
+		},
+		"context.church.yard_yew": {
+			"family": "fixture",
+			"label": "Old churchyard yew",
+			"mass": {
+				"timber_232": 4955.96,
+				"timber_643": 150.72
+			},
+			"source": [
+				"Tools/blender_church_assemble.py SM_Church_yard_yew"
+			],
+			"stage": {},
+			"tags": [
+				"outdoor",
+				"context"
+			],
+			"tris": 578
+		},
+		"context.church.yard_yew_irish": {
+			"family": "fixture",
+			"label": "Irish yew",
+			"mass": {
+				"timber_232": 538.87,
+				"timber_643": 18.45
+			},
+			"source": [
+				"Tools/blender_church_assemble.py SM_Church_yard_yew_irish"
+			],
+			"stage": {},
+			"tags": [
+				"outdoor",
+				"context"
+			],
+			"tris": 160
+		},
 		"context.dales.barn_01": {
 			"family": "fixture",
 			"label": "Dales stone barn 1, 4 x 5 m",
@@ -8866,6 +9936,17 @@
 			],
 			"rough": 0.45
 		},
+		"clad_455": {
+			"alpha": 1.0,
+			"areal": 12,
+			"metal": 0.4,
+			"rgb": [
+				0.07,
+				0.075,
+				0.085
+			],
+			"rough": 0.45
+		},
 		"clad_555": {
 			"alpha": 1.0,
 			"areal": 12,
@@ -8899,6 +9980,17 @@
 			],
 			"rough": 0.45
 		},
+		"clad_654": {
+			"alpha": 1.0,
+			"areal": 12,
+			"metal": 0.4,
+			"rgb": [
+				0.12,
+				0.09,
+				0.06
+			],
+			"rough": 0.45
+		},
 		"clad_665": {
 			"alpha": 1.0,
 			"areal": 12,
@@ -8907,6 +9999,17 @@
 				0.12,
 				0.15,
 				0.1
+			],
+			"rough": 0.45
+		},
+		"clad_733": {
+			"alpha": 1.0,
+			"areal": 12,
+			"metal": 0.4,
+			"rgb": [
+				0.18,
+				0.035,
+				0.025
 			],
 			"rough": 0.45
 		},
@@ -8943,6 +10046,39 @@
 			],
 			"rough": 0.45
 		},
+		"clad_778": {
+			"alpha": 1.0,
+			"areal": 12,
+			"metal": 0.4,
+			"rgb": [
+				0.2,
+				0.21,
+				0.22
+			],
+			"rough": 0.45
+		},
+		"clad_843": {
+			"alpha": 1.0,
+			"areal": 12,
+			"metal": 0.4,
+			"rgb": [
+				0.22,
+				0.07,
+				0.035
+			],
+			"rough": 0.45
+		},
+		"clad_877": {
+			"alpha": 1.0,
+			"areal": 12,
+			"metal": 0.4,
+			"rgb": [
+				0.24,
+				0.21,
+				0.16
+			],
+			"rough": 0.45
+		},
 		"clad_887": {
 			"alpha": 1.0,
 			"areal": 12,
@@ -8973,6 +10109,17 @@
 				0.25,
 				0.45,
 				0.65
+			],
+			"rough": 0.45
+		},
+		"clad_987": {
+			"alpha": 1.0,
+			"areal": 12,
+			"metal": 0.4,
+			"rgb": [
+				0.3,
+				0.26,
+				0.19
 			],
 			"rough": 0.45
 		},
@@ -12804,6 +13951,17 @@
 			],
 			"rough": 0.9
 		},
+		"render_ccc": {
+			"alpha": 1.0,
+			"areal": 300,
+			"metal": 0.0,
+			"rgb": [
+				0.58,
+				0.58,
+				0.55
+			],
+			"rough": 0.9
+		},
 		"render_dcb": {
 			"alpha": 1.0,
 			"areal": 300,
@@ -12980,6 +14138,17 @@
 			],
 			"rough": 0.55
 		},
+		"steel_875": {
+			"alpha": 1.0,
+			"areal": 40,
+			"metal": 0.85,
+			"rgb": [
+				0.25,
+				0.18,
+				0.08
+			],
+			"rough": 0.55
+		},
 		"steel_888": {
 			"alpha": 1.0,
 			"areal": 40,
@@ -13068,6 +14237,72 @@
 			],
 			"rough": 0.55
 		},
+		"stone_555": {
+			"alpha": 1.0,
+			"areal": 500,
+			"metal": 0.0,
+			"rgb": [
+				0.1,
+				0.1,
+				0.1
+			],
+			"rough": 0.9
+		},
+		"stone_556": {
+			"alpha": 1.0,
+			"areal": 500,
+			"metal": 0.0,
+			"rgb": [
+				0.099,
+				0.11,
+				0.121
+			],
+			"rough": 0.9
+		},
+		"stone_665": {
+			"alpha": 1.0,
+			"areal": 500,
+			"metal": 0.0,
+			"rgb": [
+				0.132,
+				0.121,
+				0.099
+			],
+			"rough": 0.9
+		},
+		"stone_666": {
+			"alpha": 1.0,
+			"areal": 500,
+			"metal": 0.0,
+			"rgb": [
+				0.12,
+				0.12,
+				0.115
+			],
+			"rough": 0.9
+		},
+		"stone_766": {
+			"alpha": 1.0,
+			"areal": 500,
+			"metal": 0.0,
+			"rgb": [
+				0.16,
+				0.145,
+				0.12
+			],
+			"rough": 0.9
+		},
+		"stone_776": {
+			"alpha": 1.0,
+			"areal": 500,
+			"metal": 0.0,
+			"rgb": [
+				0.165,
+				0.165,
+				0.154
+			],
+			"rough": 0.9
+		},
 		"stone_777": {
 			"alpha": 1.0,
 			"areal": 500,
@@ -13076,6 +14311,39 @@
 				0.19,
 				0.18,
 				0.16
+			],
+			"rough": 0.9
+		},
+		"stone_778": {
+			"alpha": 1.0,
+			"areal": 500,
+			"metal": 0.0,
+			"rgb": [
+				0.18,
+				0.2,
+				0.22
+			],
+			"rough": 0.9
+		},
+		"stone_854": {
+			"alpha": 1.0,
+			"areal": 500,
+			"metal": 0.0,
+			"rgb": [
+				0.28,
+				0.1,
+				0.06
+			],
+			"rough": 0.9
+		},
+		"stone_875": {
+			"alpha": 1.0,
+			"areal": 500,
+			"metal": 0.0,
+			"rgb": [
+				0.275,
+				0.198,
+				0.0935
 			],
 			"rough": 0.9
 		},
@@ -13090,6 +14358,50 @@
 			],
 			"rough": 0.9
 		},
+		"stone_887": {
+			"alpha": 1.0,
+			"areal": 500,
+			"metal": 0.0,
+			"rgb": [
+				0.24,
+				0.22,
+				0.18
+			],
+			"rough": 0.9
+		},
+		"stone_888": {
+			"alpha": 1.0,
+			"areal": 500,
+			"metal": 0.0,
+			"rgb": [
+				0.25,
+				0.25,
+				0.22
+			],
+			"rough": 0.9
+		},
+		"stone_986": {
+			"alpha": 1.0,
+			"areal": 500,
+			"metal": 0.0,
+			"rgb": [
+				0.3025,
+				0.2365,
+				0.1375
+			],
+			"rough": 0.9
+		},
+		"stone_987": {
+			"alpha": 1.0,
+			"areal": 500,
+			"metal": 0.0,
+			"rgb": [
+				0.3025,
+				0.275,
+				0.209
+			],
+			"rough": 0.9
+		},
 		"stone_988": {
 			"alpha": 1.0,
 			"areal": 500,
@@ -13098,6 +14410,17 @@
 				0.3,
 				0.27,
 				0.22
+			],
+			"rough": 0.9
+		},
+		"stone_998": {
+			"alpha": 1.0,
+			"areal": 500,
+			"metal": 0.0,
+			"rgb": [
+				0.3,
+				0.29,
+				0.24
 			],
 			"rough": 0.9
 		},
@@ -13123,6 +14446,17 @@
 			],
 			"rough": 0.9
 		},
+		"stone_aa8": {
+			"alpha": 1.0,
+			"areal": 500,
+			"metal": 0.0,
+			"rgb": [
+				0.42,
+				0.37,
+				0.27
+			],
+			"rough": 0.9
+		},
 		"stone_aaa": {
 			"alpha": 1.0,
 			"areal": 500,
@@ -13134,6 +14468,28 @@
 			],
 			"rough": 0.9
 		},
+		"stone_ba7": {
+			"alpha": 1.0,
+			"areal": 500,
+			"metal": 0.0,
+			"rgb": [
+				0.5,
+				0.36,
+				0.17
+			],
+			"rough": 0.9
+		},
+		"stone_ba9": {
+			"alpha": 1.0,
+			"areal": 500,
+			"metal": 0.0,
+			"rgb": [
+				0.45,
+				0.42,
+				0.34
+			],
+			"rough": 0.9
+		},
 		"stone_bba": {
 			"alpha": 1.0,
 			"areal": 500,
@@ -13142,6 +14498,61 @@
 				0.48,
 				0.47,
 				0.43
+			],
+			"rough": 0.9
+		},
+		"stone_ca8": {
+			"alpha": 1.0,
+			"areal": 500,
+			"metal": 0.0,
+			"rgb": [
+				0.55,
+				0.43,
+				0.25
+			],
+			"rough": 0.9
+		},
+		"stone_cb8": {
+			"alpha": 1.0,
+			"areal": 500,
+			"metal": 0.0,
+			"rgb": [
+				0.5775,
+				0.4515,
+				0.2625
+			],
+			"rough": 0.9
+		},
+		"stone_cba": {
+			"alpha": 1.0,
+			"areal": 500,
+			"metal": 0.0,
+			"rgb": [
+				0.55,
+				0.5,
+				0.38
+			],
+			"rough": 0.9
+		},
+		"stone_cbb": {
+			"alpha": 1.0,
+			"areal": 500,
+			"metal": 0.0,
+			"rgb": [
+				0.55,
+				0.53,
+				0.48
+			],
+			"rough": 0.9
+		},
+		"stone_ccb": {
+			"alpha": 1.0,
+			"areal": 500,
+			"metal": 0.0,
+			"rgb": [
+				0.55,
+				0.55,
+				0.5
 			],
 			"rough": 0.9
 		},
@@ -13211,6 +14622,17 @@
 			],
 			"rough": 0.8
 		},
+		"timber_111": {
+			"alpha": 1.0,
+			"areal": 25,
+			"metal": 0.0,
+			"rgb": [
+				0.01,
+				0.01,
+				0.01
+			],
+			"rough": 0.8
+		},
 		"timber_222": {
 			"alpha": 1.0,
 			"areal": 25,
@@ -13219,6 +14641,17 @@
 				0.016,
 				0.016,
 				0.016
+			],
+			"rough": 0.8
+		},
+		"timber_232": {
+			"alpha": 1.0,
+			"areal": 25,
+			"metal": 0.0,
+			"rgb": [
+				0.022,
+				0.04,
+				0.02
 			],
 			"rough": 0.8
 		},
@@ -13241,6 +14674,17 @@
 				0.0319,
 				0.0395,
 				0.0319
+			],
+			"rough": 0.8
+		},
+		"timber_344": {
+			"alpha": 1.0,
+			"areal": 25,
+			"metal": 0.0,
+			"rgb": [
+				0.04,
+				0.07,
+				0.05
 			],
 			"rough": 0.8
 		},
@@ -13285,6 +14729,17 @@
 				0.1022,
 				0.0704,
 				0.0467
+			],
+			"rough": 0.8
+		},
+		"timber_643": {
+			"alpha": 1.0,
+			"areal": 25,
+			"metal": 0.0,
+			"rgb": [
+				0.12,
+				0.06,
+				0.04
 			],
 			"rough": 0.8
 		},
@@ -13354,6 +14809,17 @@
 			],
 			"rough": 0.8
 		},
+		"timber_888": {
+			"alpha": 1.0,
+			"areal": 25,
+			"metal": 0.0,
+			"rgb": [
+				0.275,
+				0.275,
+				0.2585
+			],
+			"rough": 0.8
+		},
 		"timber_986": {
 			"alpha": 1.0,
 			"areal": 25,
@@ -13362,6 +14828,17 @@
 				0.2961,
 				0.2195,
 				0.1221
+			],
+			"rough": 0.8
+		},
+		"timber_998": {
+			"alpha": 1.0,
+			"areal": 25,
+			"metal": 0.0,
+			"rgb": [
+				0.3025,
+				0.3025,
+				0.275
 			],
 			"rough": 0.8
 		},
@@ -13420,6 +14897,17 @@
 			],
 			"rough": 0.8
 		},
+		"timber_bbb": {
+			"alpha": 1.0,
+			"areal": 25,
+			"metal": 0.0,
+			"rgb": [
+				0.5,
+				0.5,
+				0.47
+			],
+			"rough": 0.8
+		},
 		"timber_ca7": {
 			"alpha": 1.0,
 			"areal": 25,
@@ -13439,6 +14927,17 @@
 				0.55,
 				0.42,
 				0.26
+			],
+			"rough": 0.8
+		},
+		"timber_ccb": {
+			"alpha": 1.0,
+			"areal": 25,
+			"metal": 0.0,
+			"rgb": [
+				0.55,
+				0.55,
+				0.5
 			],
 			"rough": 0.8
 		},
