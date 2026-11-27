@@ -61,6 +61,16 @@ func close() -> void:
 		Input.mouse_mode = resume_mouse_mode(_mouse_before, HudSlots.pointer_claimed())
 
 
+## Rebuilds the open menu in the current look (the menu style changed in its settings).
+func restyle() -> void:
+	if not is_open or root == null:
+		return
+	root.queue_free()
+	root = null
+	_settings = null
+	_build()
+
+
 ## The mouse after Resume: in a game it goes back to looking (captured, held in the window)
 ## unless another screen still has the pointer; the mode it had when Esc came in could
 ## already be free (an Esc a scene let go of the mouse for), which left the pointer loose
@@ -164,7 +174,7 @@ func _build() -> void:
 	root.mouse_filter = Control.MOUSE_FILTER_STOP
 	add_child(root)
 	var dim := ColorRect.new()
-	dim.color = Color(0.02, 0.03, 0.04, 0.55)
+	dim.color = Color(BsxTheme.PAPER, 0.55) if BsxTheme.pencil() else Color(0.02, 0.03, 0.04, 0.55)
 	dim.set_anchors_preset(Control.PRESET_FULL_RECT)
 	root.add_child(dim)
 	var center := CenterContainer.new()
@@ -173,7 +183,9 @@ func _build() -> void:
 	var pane := PanelContainer.new()
 	pane.name = "Pane"
 	pane.custom_minimum_size = Vector2(440, 0)
-	pane.add_theme_stylebox_override("panel", T.box(T.tone(T.KIOSK, true, 0.86), Color(T.STEEL, 0.6), 2, 0))
+	var sheet: StyleBox = BsxTheme.panel_style(0) if BsxTheme.pencil() \
+			else T.box(T.tone(T.KIOSK, true, 0.86), Color(T.STEEL, 0.6), 2, 0)
+	pane.add_theme_stylebox_override("panel", sheet)
 	center.add_child(pane)
 	var col := VBoxContainer.new()
 	col.add_theme_constant_override("separation", 0)
@@ -181,15 +193,15 @@ func _build() -> void:
 	var head := HBoxContainer.new()
 	head.custom_minimum_size.y = 54
 	var badge := PanelContainer.new()
-	var bst := T.box(T.ORANGE)
+	var bst := BsxTheme.badge_style()
 	bst.content_margin_left = 14
 	bst.content_margin_right = 14
 	badge.add_theme_stylebox_override("panel", bst)
-	var bsx := T.label("BSX", "display_bold", 32, T.BLACK)
+	var bsx := T.label("FD", "display_bold", 30, T.ORANGE if BsxTheme.pencil() else T.BLACK)
 	bsx.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	badge.add_child(bsx)
 	head.add_child(badge)
-	var title := T.label("  PAUSED", "display_bold", 30, T.TEXT)
+	var title := T.label("  Paused", "display_bold", 32, T.TEXT)
 	title.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	head.add_child(title)
 	col.add_child(head)
@@ -203,11 +215,11 @@ func _build() -> void:
 	pad.add_child(body)
 	col.add_child(pad)
 	var game := Saves.current_name if Saves.current_name != "" else "Unsaved game"
-	body.add_child(T.label(game.to_upper(), "display_medium", 17, T.DIM))
+	body.add_child(T.label(game, "display_medium", 18, T.DIM))
 	for spec: Array in [["Resume", close, true], ["Save game", save_now, false],
 			["Settings", show_settings.bind(true), false], ["Main menu", to_main_menu, false],
 			["Quit to desktop", quit, false]]:
-		var b := T.button(str(spec[0]).to_upper(), spec[2], 22, false, true)
+		var b := T.button(str(spec[0]), spec[2], 22, false, false)
 		b.name = str(spec[0]).replace(" ", "")
 		b.custom_minimum_size.y = 50
 		b.pressed.connect(spec[1])
@@ -215,4 +227,4 @@ func _build() -> void:
 	_note = T.label("", "mono_medium", 14, T.GOOD)
 	_note.name = "Note"
 	body.add_child(_note)
-	body.add_child(T.label("%s RESUMES" % Keys.prompt(Keys.CANCEL), "display_medium", 13, T.DIM))
+	body.add_child(T.label("%s resumes" % Keys.prompt(Keys.CANCEL), "display_medium", 14, T.DIM))

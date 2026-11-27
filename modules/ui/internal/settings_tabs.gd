@@ -132,6 +132,8 @@ func _gameplay() -> Control:
 	if Flags.is_on(SUN_FLAG):
 		col.add_child(_slider("TimeOfDay", "Time of day (moves the sun over the yard)", AlienSky.SECTION, AlienSky.KEY,
 				0.0, 24.0, 0.25, func(h: float) -> String: return AlienSky.clock(h)))
+	col.add_child(_choice("MenuStyle", "Menu style (pencil drawing, or the classic dark look)",
+			BsxTheme.STYLE_SECTION, BsxTheme.STYLE_KEY, BsxTheme.STYLES))
 	col.add_child(_choice("TerminalText", "Terminal text (screens and the wrist terminal)", T.TEXT_SECTION, T.TEXT_KEY,
 			T.TEXT_SIZES.keys()))
 	return col

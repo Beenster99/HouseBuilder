@@ -67,7 +67,7 @@ func refresh() -> void:
 		i += 1
 		var title := card.get_node("Col/Title") as Label
 		var text := card.get_node("Col/Text") as Label
-		title.text = str(info.title).to_upper()
+		title.text = str(info.title)
 		text.text = str(info.text)
 		text.visible = text.text != ""
 	for id in _cards.keys():
@@ -79,9 +79,7 @@ func refresh() -> void:
 func _card() -> PanelContainer:
 	var card := PanelContainer.new()
 	card.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	var st := T.box(T.tone(T.KIOSK, true, 0.5), Color(T.STEEL, 0.4), 1, 12.0)
-	st.border_width_left = 4
-	st.border_color = Color(T.ORANGE, 0.85)
+	var st := BsxTheme.card_style(12.0, 0.88)
 	card.add_theme_stylebox_override("panel", st)
 	var col := VBoxContainer.new()
 	col.name = "Col"

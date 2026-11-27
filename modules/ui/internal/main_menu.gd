@@ -3,7 +3,7 @@ extends Control
 ##   Single player   Continue (the latest save), New, Load, Delete, then the demos and tools
 ##                   other modules registered with Menu (grouped entries under their heading)
 ##   Online          the entries modules registered in the "Online" group (Host, Join)
-##   Settings        Gameplay, Graphics (BSX's graphics screen) and Sound
+##   Settings        Gameplay, Graphics and Sound
 ##   Exit game
 ## Picking a section lists its choices beside it. New, Load and Delete open the games panel
 ## over the menu; Settings pages open over it too, and the menu comes back when they close.
@@ -19,35 +19,38 @@ var entry_box: VBoxContainer
 var section := SINGLE
 var _center: Control
 var _sections: Dictionary = {}  # id -> Button
+## The section open last, so the menu comes back on it when it's rebuilt (a menu style switch).
+static var _last_section := ""
 
 
 func _ready() -> void:
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 	theme = BsxTheme.get_theme()
 	set_anchors_preset(Control.PRESET_FULL_RECT)
-	var bg := ColorRect.new()
-	bg.color = BsxTheme.BG
-	bg.set_anchors_preset(Control.PRESET_FULL_RECT)
-	add_child(bg)
-	var pic := TextureRect.new()
+	# The splash picture drawn over in pencil, fading to plain paper under the menu, on
+	# drawing paper with a faint grid.
+	add_child(BsxTheme.paper_backdrop())
+	var pic := BsxTheme.pencil_picture(load(Warmup.SPLASH_IMAGE), Vector2(0.38, 0.62))
 	pic.name = "Splash"
-	pic.texture = load(Warmup.SPLASH_IMAGE)
-	pic.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	pic.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
-	pic.set_anchors_preset(Control.PRESET_FULL_RECT)
 	add_child(pic)
-	# Darken the left side for the menu.
-	var shade := TextureRect.new()
-	var grad := GradientTexture2D.new()
-	grad.gradient = Gradient.new()
-	grad.gradient.set_color(0, Color(BsxTheme.BG, 0.94))
-	grad.gradient.set_color(1, Color(BsxTheme.BG, 0.0))
-	grad.fill_from = Vector2(0.35, 0)
-	grad.fill_to = Vector2(0.85, 0)
-	shade.texture = grad
-	shade.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	shade.set_anchors_preset(Control.PRESET_FULL_RECT)
-	add_child(shade)
+	if BsxTheme.pencil():
+		var grid := BsxTheme.paper_backdrop()
+		grid.name = "Grid"
+		(grid.material as ShaderMaterial).set_shader_parameter("paper", Color(BsxTheme.PAPER, 0.0))
+		add_child(grid)
+	else:
+		# Classic: darken the left side for the menu.
+		var shade := TextureRect.new()
+		var grad := GradientTexture2D.new()
+		grad.gradient = Gradient.new()
+		grad.gradient.set_color(0, Color(BsxTheme.BG, 0.94))
+		grad.gradient.set_color(1, Color(BsxTheme.BG, 0.0))
+		grad.fill_from = Vector2(0.35, 0)
+		grad.fill_to = Vector2(0.85, 0)
+		shade.texture = grad
+		shade.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		shade.set_anchors_preset(Control.PRESET_FULL_RECT)
+		add_child(shade)
 
 	_center = MarginContainer.new()
 	_center.name = "Menu"
@@ -58,8 +61,12 @@ func _ready() -> void:
 	var col := VBoxContainer.new()
 	col.add_theme_constant_override("separation", 10)
 	_center.add_child(col)
-	var title := BsxTheme.title("FREDDIBNAH", 64)
+	var title := BsxTheme.title("FredDibnah", 76)
 	col.add_child(title)
+	var rule := BsxTheme.rule(10.0)
+	rule.custom_minimum_size.x = 460
+	rule.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+	col.add_child(rule)
 	var sub := BsxTheme.muted("design it together, build it, bring it down  -  version %s" % BuildInfo.label().trim_prefix("v"))
 	sub.name = "Version"
 	col.add_child(sub)
@@ -95,7 +102,8 @@ func _ready() -> void:
 	row.add_child(entry_box)
 
 	Menu.entries_changed.connect(_fill_entries)
-	open_section(SINGLE)
+	open_section(_last_section if _last_section != "" else SINGLE)
+	_last_section = ""
 
 
 func open_section(id: String) -> void:
@@ -156,7 +164,8 @@ func _fill_single() -> void:
 			entry_box.add_child(_spacer(4))
 			var head := BsxTheme.muted(group)
 			head.name = "Group_" + group.validate_node_name()
-			head.add_theme_color_override("font_color", Color(BsxTheme.ACCENT, 0.85))
+			head.add_theme_color_override("font_color", BsxTheme.ACCENT)
+			head.add_theme_font_override("font", BsxTheme.font("display"))
 			entry_box.add_child(head)
 		entry_box.add_child(_entry_button(e))
 		shown += 1
@@ -185,6 +194,13 @@ func _fill_settings() -> void:
 	var sound := BsxTheme.button("Sound", func() -> void: _open_settings(Menu.SOUND))
 	sound.name = "Sound"
 	entry_box.add_child(sound)
+	var style := BsxTheme.button("Menu style:  %s" % BsxTheme.style_setting(), func() -> void:
+		_last_section = SETTINGS
+		Settings.set_value(BsxTheme.STYLE_SECTION, BsxTheme.STYLE_KEY,
+				BsxTheme.CLASSIC if BsxTheme.style_setting() == BsxTheme.PENCIL else BsxTheme.PENCIL)
+		Settings.save())
+	style.name = "MenuStyle"
+	entry_box.add_child(style)
 	var more := BsxTheme.button("More settings", func() -> void: Router.goto(UiBus.SETTINGS))
 	more.name = "MoreSettings"
 	entry_box.add_child(more)
@@ -216,7 +232,7 @@ func _open_games(mode: String) -> void:
 	add_child(panel)
 
 
-## The graphics settings over the menu (the menu hides until it's closed), BSX's screen.
+## The graphics settings over the menu (the menu hides until it's closed).
 func _open_graphics() -> void:
 	_center.visible = false
 	var panel := GraphicsPanel.new()

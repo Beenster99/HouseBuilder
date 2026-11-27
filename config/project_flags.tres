@@ -34,6 +34,7 @@ flags = {
 "services.consultant": true,
 "services.live": true,
 "ui.debug_tab": true,
+"ui.pencil": true,
 "ui.sun_slider": false,
 "perf": true,
 "perf.overlay": true,

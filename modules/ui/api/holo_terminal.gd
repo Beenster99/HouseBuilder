@@ -1,7 +1,7 @@
 class_name HoloTerminal
 extends PanelContainer
-## The BSX terminal: the orange badge and title, clock and readouts (HudSlots readouts), the
-## hazard rule, a numbered tab for every wrist channel (HudSlots.register_holo_channel), the
+## The drawing-office terminal: the FD badge and title, clock and readouts (HudSlots readouts), the
+## pencil rule, a numbered tab for every wrist channel (HudSlots.register_holo_channel), the
 ## channel's screen, and the footer's small print (OS, build, date, time, uptime). The wrist
 ## screen shows one on glass; a TV or any screen in the world can show the same channels:
 ##   var term := HoloTerminal.new(false, "HALL TERMINAL")   # opaque, for a TV's SubViewport
@@ -12,6 +12,31 @@ signal close_requested
 signal channel_changed(id: String)
 
 const SHADER := """
+shader_type canvas_item;
+// Pencil over paper: a faint graphite grain, a soft line round the sheet, a paper-white
+// flash as it appears or goes, a ruled line drawn down the sheet (sweep) and a scribble
+// (glitch). Same parameters as the BSX holo shader, so callers' tweens still work.
+uniform vec4 tint : source_color = vec4(0.17, 0.18, 0.2, 1.0);
+uniform float strength = 1.0;
+uniform float flash = 0.0;     // 0..1: the sheet washed out to white paper
+uniform float sweep = -1.0;    // 0..1: a pencil line running down the sheet (< 0 = none)
+uniform float glitch = 0.0;    // 0..1: scribbled lines
+float hash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
+void fragment() {
+	vec2 uv = UV;
+	float grain = hash(floor(FRAGCOORD.xy)) * 0.025;
+	float sw = sweep >= 0.0 ? exp(-pow((uv.y - sweep) * 260.0, 2.0)) : 0.0;
+	float scribble = step(1.0 - glitch * 0.06, hash(vec2(floor(uv.y * 160.0), floor(TIME * 12.0))));
+	float a = grain * strength + sw * 0.6 + scribble * glitch * 0.25;
+	vec3 col = tint.rgb;
+	if (flash > 0.0) {
+		col = mix(col, vec3(0.97, 0.96, 0.93), flash);
+		a = max(a, flash * 0.85);
+	}
+	COLOR = vec4(col, a);
+}
+"""
+const SHADER_CLASSIC := """
 shader_type canvas_item;
 render_mode blend_add;
 uniform vec4 tint : source_color = vec4(0.55, 0.8, 0.95, 1.0);
@@ -35,7 +60,7 @@ void fragment() {
 """
 const T := preload("res://modules/ui/api/terminal_kit.gd")
 ## The terminal's operating system, for the footer's small print.
-const OS_NAME := "BSX-OS"
+const OS_NAME := "FD DRAWING OFFICE"
 const OS_VERSION := "4.2.1"
 
 var glass := true
@@ -163,7 +188,7 @@ func refresh_header() -> void:
 	_status.text = status_text()
 
 
-## The footer's left side: "BSX-OS 4.2.1  ·  WRIST UNIT WT-7  ·  BUILD v0.3.0 (dev)".
+## The footer's left side: "FD DRAWING OFFICE 4.2.1  ·  WRIST UNIT WT-7  ·  BUILD v0.3.0 (dev)".
 func os_text() -> String:
 	return "%s %s  ·  %s  ·  BUILD %s" % [OS_NAME, OS_VERSION, unit, BuildInfo.label().to_upper()]
 
@@ -187,28 +212,35 @@ func _on_channels_changed() -> void:
 
 
 func _build() -> void:
-	var style := T.box(T.tone(T.KIOSK, glass, T.GLASS_KIOSK), Color(T.STEEL, 0.55), 2, 0)
-	if glass:
-		style.shadow_color = Color(0.55, 0.8, 0.95, 0.12)
-		style.shadow_size = 16
+	var style: StyleBox
+	if BsxTheme.pencil():
+		var pb := PencilBox.make(T.tone(T.KIOSK, glass, T.GLASS_KIOSK), Color(T.EDGE, 0.8), 0, 1.8)
+		pb.shade = 0.0 if glass else 5.0
+		style = pb
+	else:
+		var fb := T.box(T.tone(T.KIOSK, glass, T.GLASS_KIOSK), Color(T.STEEL, 0.55), 2, 0)
+		if glass:
+			fb.shadow_color = Color(0.55, 0.8, 0.95, 0.12)
+			fb.shadow_size = 16
+		style = fb
 	add_theme_stylebox_override("panel", style)
 	col = VBoxContainer.new()
 	col.name = "Col"
 	col.add_theme_constant_override("separation", 0)
 	add_child(col)
 
-	# The header: the BSX badge, the title, the clock and readouts.
+	# The header: the FD badge, the title, the clock and readouts.
 	var header := HBoxContainer.new()
 	header.name = "Header"
 	header.custom_minimum_size.y = T.px(58)
 	header.add_theme_constant_override("separation", 0)
 	col.add_child(header)
 	var badge := PanelContainer.new()
-	var badge_st := T.box(Color(T.ORANGE, 0.88 if glass else 1.0))
-	badge_st.content_margin_left = 16
-	badge_st.content_margin_right = 16
+	var badge_st := BsxTheme.badge_style()
+	badge_st.content_margin_left = 14
+	badge_st.content_margin_right = 14
 	badge.add_theme_stylebox_override("panel", badge_st)
-	var bsx := T.label("BSX", "display_bold", 36, T.BLACK)
+	var bsx := T.label("FD", "display_bold", 34, T.ORANGE if BsxTheme.pencil() else T.BLACK)
 	bsx.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	badge.add_child(bsx)
 	header.add_child(badge)
@@ -223,7 +255,7 @@ func _build() -> void:
 	var t := T.label(title_text, "display_bold", 28, T.TEXT)
 	t.name = "Title"
 	title.add_child(t)
-	var game := T.label(Saves.current_name.to_upper() if Saves.current_name != "" else "BSX LTD  ·  SHIPBUILDERS",
+	var game := T.label(Saves.current_name.to_upper() if Saves.current_name != "" else "FREDDIBNAH  ·  ARCHITECTS",
 			"display_medium", 15, T.DIM)
 	game.name = "GameName"
 	title.add_child(game)
@@ -265,7 +297,12 @@ func _build() -> void:
 	# uptime and signal on the right, all in small print.
 	var footer := PanelContainer.new()
 	footer.name = "Footer"
-	var fst := T.box(Color(T.EDGE, 0.45), Color.TRANSPARENT, 0, 5)
+	var fst: StyleBox = T.box(Color(T.EDGE, 0.45), Color.TRANSPARENT, 0, 5)
+	if BsxTheme.pencil():
+		var pf := PencilBox.make(Color(T.PLATE_HI, 0.6), Color(T.EDGE, 0.4), 5, 1.0)
+		pf.passes = 1
+		pf.sides = Vector4i(0, 1, 0, 0)
+		fst = pf
 	fst.content_margin_left = 14
 	fst.content_margin_right = 14
 	footer.add_theme_stylebox_override("panel", fst)
@@ -294,9 +331,9 @@ func _build() -> void:
 	glow.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	scan = ShaderMaterial.new()
 	var shader := Shader.new()
-	shader.code = SHADER
+	shader.code = SHADER if BsxTheme.pencil() else SHADER_CLASSIC
 	scan.shader = shader
-	scan.set_shader_parameter("strength", 1.0 if glass else 0.5)
+	scan.set_shader_parameter("strength", 1.0 if glass or BsxTheme.pencil() else 0.5)
 	glow.material = scan
 	add_child(glow)
 

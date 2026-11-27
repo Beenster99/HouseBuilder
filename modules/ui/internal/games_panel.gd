@@ -2,7 +2,7 @@ class_name GamesPanel
 extends Control
 ## New game and saved games, over the main menu: a name for a new yard and Begin, then the
 ## saved games newest first, each with Load and Delete (Delete asks once more). Begin and
-## Load go to the game's start scene (Menu.start()). Laid out like Void Salvage's menu.
+## Load go to the game's start scene (Menu.start()). On a sheet of paper over the menu.
 ## `mode` (set before adding it) shows one job: "new" (a name and Begin), "load" (saved
 ## games with Load) or "delete" (saved games with Delete); "" shows everything.
 
@@ -20,14 +20,19 @@ func _ready() -> void:
 	var center := CenterContainer.new()
 	center.set_anchors_preset(Control.PRESET_FULL_RECT)
 	add_child(center)
+	var sheet := PanelContainer.new()
+	sheet.name = "Sheet"
+	sheet.add_theme_stylebox_override("panel", BsxTheme.panel_style(28))
+	center.add_child(sheet)
 	var box := VBoxContainer.new()
 	box.custom_minimum_size = Vector2(520, 0)
 	box.add_theme_constant_override("separation", 12)
-	center.add_child(box)
+	sheet.add_child(box)
 
-	var title := BsxTheme.title({"new": "NEW GAME", "load": "LOAD GAME", "delete": "DELETE GAMES"}.get(mode, "GAMES"), 40)
+	var title := BsxTheme.title({"new": "New game", "load": "Load a game", "delete": "Delete games"}.get(mode, "Games"), 44)
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	box.add_child(title)
+	box.add_child(BsxTheme.rule(8.0))
 	box.add_child(_spacer(8))
 	var new_head := _field_label("New game")
 	new_head.visible = mode == "" or mode == "new"

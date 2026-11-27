@@ -7,10 +7,7 @@ extends Control
 func _ready() -> void:
 	theme = BsxTheme.get_theme()
 	set_anchors_preset(Control.PRESET_FULL_RECT)
-	var bg := ColorRect.new()
-	bg.color = BsxTheme.BG
-	bg.set_anchors_preset(Control.PRESET_FULL_RECT)
-	add_child(bg)
+	add_child(BsxTheme.paper_backdrop())
 
 	var center := CenterContainer.new()
 	center.set_anchors_preset(Control.PRESET_FULL_RECT)
@@ -19,9 +16,10 @@ func _ready() -> void:
 	box.custom_minimum_size = Vector2(440, 0)
 	box.add_theme_constant_override("separation", 14)
 	center.add_child(box)
-	var title := BsxTheme.title("SETTINGS", 40)
+	var title := BsxTheme.title("Settings", 46)
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	box.add_child(title)
+	box.add_child(BsxTheme.rule(8.0))
 	box.add_child(_spacer(12))
 
 	box.add_child(BsxTheme.muted("Master volume"))

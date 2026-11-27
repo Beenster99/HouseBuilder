@@ -6,7 +6,6 @@ extends PanelContainer
 
 signal closed
 
-const ACCENT := Color(0.62, 0.9, 1.0)
 
 var _controls: Dictionary = {}       # key -> Control
 var _value_labels: Dictionary = {}   # slider key -> Label
@@ -22,22 +21,15 @@ func _ready() -> void:
 	grow_horizontal = Control.GROW_DIRECTION_BOTH
 	grow_vertical = Control.GROW_DIRECTION_BOTH
 	custom_minimum_size = Vector2(780, 640)
-	var style := StyleBoxFlat.new()
-	style.bg_color = Color(0.02, 0.04, 0.07, 0.96)
-	style.border_color = Color(ACCENT, 0.5)
-	style.set_border_width_all(2)
-	style.set_corner_radius_all(6)
-	style.set_content_margin_all(20)
-	add_theme_stylebox_override("panel", style)
+	theme = BsxTheme.get_theme()
+	add_theme_stylebox_override("panel", BsxTheme.panel_style(20))
 	var box := VBoxContainer.new()
 	box.add_theme_constant_override("separation", 10)
 	add_child(box)
-	var title := Label.new()
-	title.text = "GRAPHICS"
+	var title := BsxTheme.title("Graphics", 34)
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	title.add_theme_font_size_override("font_size", 26)
-	title.add_theme_color_override("font_color", ACCENT)
 	box.add_child(title)
+	box.add_child(BsxTheme.rule(8.0))
 	# Preset row.
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", 10)
@@ -83,10 +75,10 @@ func _ready() -> void:
 	_help = Label.new()
 	_help.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_help.custom_minimum_size = Vector2(0, 54)
-	_help.add_theme_color_override("font_color", Color(0.8, 0.85, 0.9))
+	_help.add_theme_color_override("font_color", BsxTheme.MUTED)
 	box.add_child(_help)
 	_restart_note = Label.new()
-	_restart_note.add_theme_color_override("font_color", Color(1.0, 0.8, 0.4))
+	_restart_note.add_theme_color_override("font_color", BsxTheme.WARN)
 	box.add_child(_restart_note)
 	var back := Button.new()
 	back.text = "Back"

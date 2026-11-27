@@ -31,3 +31,12 @@ Ported from BSX Ltd at 3f178e4 and repurposed for buildings: hall_screen.gd (ui/
 hall_wall_board.gd (design/internal/room/wall_board.gd), hall_holo_table.gd (design/internal/holo/holo_table.gd,
 the table and its controls; the model on it is FredDibnah's DesignView) and hall_scaled_box.gd
 (design/internal/console/scaled_box.gd, unchanged).
+
+## Pencil look (deliberate divergence from BSX Ltd, 2026-11-27)
+
+modules/ui now draws in pencil on paper by default (PencilBox styles, paper and pencil-sketch
+shaders, blue/red/ochre pencil accents, drawn icons; hazard stripes become a double pencil
+rule; BSX/BSX-OS branding becomes FD). BsxTheme and TerminalKit colours are static vars that
+switch between the pencil and Classic (BSX) palettes: BsxTheme.set_pencil(), the "Menu style"
+setting (interface/style), flag ui.pencil. Core's splash and loading screen read the same
+setting. Not for porting back to BSX; the Classic branch keeps BSX's look intact.

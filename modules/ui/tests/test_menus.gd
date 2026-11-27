@@ -1,6 +1,6 @@
 extends ModuleTest
 ## UI: registers its scenes, the main menu lists registered entries, the HUD fills slots,
-## and the Void Salvage look (fonts, space backdrop, graphics screen) is in place.
+## and the pencil look (paper, pencil boxes, fonts, graphics screen) is in place.
 ##   tools/run_tests.sh ui
 
 
@@ -108,6 +108,7 @@ func run_tests() -> void:
 	await _test_sky()
 	await _test_games()
 	await _test_sounds()
+	await _test_pencil_switch()
 	await _test_holo()
 	_test_terminal_kit()
 	await _test_key_binds()
@@ -277,7 +278,7 @@ func _test_holo() -> void:
 			"the wrist screen has no Settings tab")
 	check((holo.root.find_child("Readouts", true, false) as Label).text.contains("CR 1,234"), "readouts show in the header")
 	var os := holo.root.find_child("OsInfo", true, false) as Label
-	check(os != null and os.text.begins_with("BSX-OS") and BuildInfo.version() in os.text,
+	check(os != null and os.text.begins_with(HoloTerminal.OS_NAME) and BuildInfo.version() in os.text,
 			"the footer's small print names the OS and the build")
 	var status := holo.root.find_child("Status", true, false) as Label
 	check(status != null and str(Time.get_datetime_dict_from_system().year) in status.text and "UP " in status.text,
@@ -377,8 +378,8 @@ func _test_terminal_kit() -> void:
 		rows.add_child(T.row([T.cell_text("Stringer", "Orbital surplus"), T.tag("new", T.GOOD),
 				T.cell("24", 60), T.cell("CR " + T.money(12400), 110, T.TEXT, "mono_bold")], i % 2 == 1, true))
 	check(rows.get_child_count() == 3 and rows.get_parent() is ScrollContainer, "kit lists hold rows")
-	var plate := (rows.get_child(0) as PanelContainer).get_theme_stylebox("panel") as StyleBoxFlat
-	check(plate.bg_color.a < 1.0, "rows on glass are still a little see-through")
+	var plate := (rows.get_child(0) as PanelContainer).get_theme_stylebox("panel") as PencilBox
+	check(plate != null and plate.fill.a < 1.0, "rows on glass are still a little see-through")
 	check(T.money(12400) == "12,400" and T.money(-5) == "-5", "money text")
 	var picked := [""]
 	var flow := T.chips(PackedStringArray(["hull", "wiring"]), "", func(n: String) -> void: picked[0] = n, true)
@@ -679,3 +680,26 @@ class Walker extends CharacterBody3D:
 
 class Closing extends Control:
 	signal close_requested
+
+
+func _test_pencil_switch() -> void:
+	var was := BsxTheme.pencil()
+	BsxTheme.set_pencil(true)
+	check(BsxTheme.panel_style() is PencilBox and BsxTheme.TEXT == BsxTheme.INK,
+			"pencil look: paper panels with graphite text")
+	check(ThemeDB.get_default_theme().has_meta("pencil") == Flags.is_on("ui.pencil"),
+			"pencil look is Godot's default theme while ui.pencil is on")
+	check(TerminalKit.ORANGE == BsxTheme.BLUE, "the kit's accent is the blue pencil")
+	BsxTheme.set_pencil(false)
+	check(BsxTheme.panel_style() is StyleBoxFlat and BsxTheme.TEXT == BsxTheme.CLASSIC_COLOURS.TEXT
+			and TerminalKit.ORANGE == TerminalKit.CLASSIC_COLOURS.ORANGE, "Classic brings the old look back")
+	check(not ThemeDB.get_default_theme().has_meta("pencil"), "and Godot's own default theme")
+	check(TerminalKit.button("x").get_theme_stylebox("normal") is StyleBoxFlat, "kit buttons are flat plates again")
+	BsxTheme.set_pencil(was)
+	var menu: Control = (load(Router.scene_path(UiBus.MAIN_MENU)) as PackedScene).instantiate()
+	add_child(menu)
+	await frames(1)
+	menu.open_section("settings")
+	await frames(1)
+	check(menu.find_child("MenuStyle", true, false) is Button, "the main menu's Settings has the menu style switch")
+	menu.queue_free()

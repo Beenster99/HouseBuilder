@@ -11,7 +11,8 @@ extends CanvasLayer
 ##   3. the frames settle (SETTLE_FRAMES in a row under SETTLE_FRAME_MS), so the first thing
 ##      you do is felt at once.
 ## A load that never finishes still ends after GIVE_UP_S, so nothing can lock the game.
-## Plain shapes and Godot's default font: Core draws without UI.
+## Plain shapes and Godot's default font : Core draws without
+## UI. Drawn as a pencil sketch on paper, to match the menus.
 
 signal finished
 
@@ -33,10 +34,14 @@ const AT_START := 0.05
 const AT_BUILT := 0.3
 const AT_HELD := 0.9
 
-const BACK := Color("0b0f14")
-const ACCENT := Color("e8a33c")
-const TEXT := Color("e6edf3")
-const MUTED := Color("8b98a5")
+## Pencil on paper, or the Classic dark look when UI's "Menu style" setting says Classic
+## (Settings interface/style; Core reads the value, it doesn't use UI).
+const PENCIL := {"back": Color(0.953, 0.937, 0.894), "accent": Color(0.17, 0.36, 0.58),
+		"text": Color(0.17, 0.18, 0.2), "muted": Color(0.4, 0.42, 0.45)}
+const CLASSIC := {"back": Color("0b0f14"), "accent": Color("e8a33c"), "text": Color("e6edf3"),
+		"muted": Color("8b98a5")}
+
+var _built_pencil := true
 
 var active := false
 ## What the screen says it is loading ("Orbital yard").
@@ -84,6 +89,9 @@ func begin(what: String) -> void:
 	_calm = 0
 	_fade = 0.0
 	_last_us = Time.get_ticks_usec()
+	if pencil_style() != _built_pencil:
+		_root.free()
+		_build()
 	_stage = "Loading..."
 	_root.modulate.a = 1.0
 	visible = true
@@ -193,13 +201,24 @@ func _end() -> void:
 
 
 func _refresh() -> void:
-	_title.text = title.to_upper() if title != "" else ""
+	_title.text = title
 	_status.text = _stage
 	_percent.text = "%d%%" % roundi(_shown * 100.0)
 	_bar_fill.size.x = _bar_back.size.x * clampf(_shown, 0.0, 1.0)
 
 
+## True unless the "Menu style" setting is Classic.
+static func pencil_style() -> bool:
+	return str(Settings.get_value("interface", "style")) != "Classic"
+
+
 func _build() -> void:
+	_built_pencil = pencil_style()
+	var pal: Dictionary = PENCIL if _built_pencil else CLASSIC
+	var BACK: Color = pal.back
+	var ACCENT: Color = pal.accent
+	var TEXT: Color = pal.text
+	var MUTED: Color = pal.muted
 	_root = Control.new()
 	_root.name = "LoadingScreen"
 	_root.set_anchors_preset(Control.PRESET_FULL_RECT)
@@ -220,12 +239,12 @@ func _build() -> void:
 	box.add_theme_constant_override("separation", 14)
 	centre.add_child(box)
 
-	var brand := _label("BSX LTD", 64, TEXT)
+	var brand := _label("FredDibnah", 64, TEXT)
 	brand.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	box.add_child(brand)
 	var rule := ColorRect.new()
-	rule.color = ACCENT
-	rule.custom_minimum_size = Vector2(0, 3)
+	rule.color = Color(TEXT, 0.75)
+	rule.custom_minimum_size = Vector2(0, 2)
 	box.add_child(rule)
 	_title = _label("", 26, ACCENT)
 	_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -243,7 +262,7 @@ func _build() -> void:
 	row.add_child(_percent)
 
 	_bar_back = ColorRect.new()
-	_bar_back.color = Color(TEXT, 0.12)
+	_bar_back.color = Color(TEXT, 0.1)
 	_bar_back.custom_minimum_size = Vector2(0, 14)
 	box.add_child(_bar_back)
 	_bar_fill = ColorRect.new()
@@ -253,7 +272,7 @@ func _build() -> void:
 	_bar_back.add_child(_bar_fill)
 	_bar_back.resized.connect(_refresh)
 
-	var hint := _label("Your suit unlocks as soon as everything is in place.", 18, MUTED)
+	var hint := _label("You can move as soon as everything is in place.", 18, MUTED)
 	hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	box.add_child(hint)
 

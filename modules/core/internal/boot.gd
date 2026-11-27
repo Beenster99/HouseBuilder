@@ -10,6 +10,12 @@ const FIRST_SCENE := "main_menu"
 const MIN_TIME := 2.0
 ## Materials drawn per frame while warming up.
 const BATCH := 12
+## The splash is a pencil drawing on paper, like the menus (Core draws without UI, so the
+## colours are its own copy of the pencil palette).
+## With UI's "Menu style" setting on Classic it's the photo with dark bands, as before.
+const PAPER := Color(0.953, 0.937, 0.894)
+const INK := Color(0.17, 0.18, 0.2)
+const BLUE := Color(0.17, 0.36, 0.58)
 
 var _bar: ProgressBar
 var _status: Label
@@ -189,6 +195,10 @@ func _warm_shaders(from: float, to: float) -> void:
 
 
 func _build() -> void:
+	var pencil := str(Settings.get_value("interface", "style")) != "Classic"
+	var paper := PAPER if pencil else Color(0.03, 0.04, 0.06)
+	var ink := INK if pencil else Color(0.98, 0.97, 0.93)
+	var blue := BLUE if pencil else Color(1.0, 0.82, 0.3)
 	_layer = CanvasLayer.new()
 	_layer.layer = 100
 	add_child(_layer)
@@ -196,7 +206,7 @@ func _build() -> void:
 	root.set_anchors_preset(Control.PRESET_FULL_RECT)
 	_layer.add_child(root)
 	var bg := ColorRect.new()
-	bg.color = Color(0.05, 0.06, 0.08)
+	bg.color = PAPER if pencil else Color(0.05, 0.06, 0.08)
 	bg.set_anchors_preset(Control.PRESET_FULL_RECT)
 	root.add_child(bg)
 	var pic := TextureRect.new()
@@ -204,13 +214,20 @@ func _build() -> void:
 	pic.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	pic.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
 	pic.set_anchors_preset(Control.PRESET_FULL_RECT)
+	# The picture as a pencil drawing on paper, like the main menu.
+	var sketch := ShaderMaterial.new()
+	sketch.shader = load("res://modules/core/internal/art/pencil_sketch.gdshader")
+	sketch.set_shader_parameter("paper", PAPER)
+	sketch.set_shader_parameter("fade", Vector2(-1.0, 0.0))
+	if pencil:
+		pic.material = sketch
 	root.add_child(pic)
-	# A dark band along the bottom for the title and the bar.
+	# Paper along the bottom for the title and the bar.
 	var shade := TextureRect.new()
 	var grad := GradientTexture2D.new()
 	grad.gradient = Gradient.new()
-	grad.gradient.set_color(0, Color(0.03, 0.04, 0.06, 0.0))
-	grad.gradient.set_color(1, Color(0.03, 0.04, 0.06, 0.92))
+	grad.gradient.set_color(0, Color(paper, 0.0))
+	grad.gradient.set_color(1, Color(paper, 0.95))
 	grad.fill_from = Vector2(0, 0)
 	grad.fill_to = Vector2(0, 1)
 	shade.texture = grad
@@ -227,15 +244,14 @@ func _build() -> void:
 	box.add_theme_constant_override("separation", 10)
 	root.add_child(box)
 	var title := Label.new()
-	title.text = "FREDDIBNAH"
+	title.text = "FredDibnah"
 	title.add_theme_font_size_override("font_size", 72)
-	title.add_theme_color_override("font_color", Color(0.98, 0.97, 0.93))
-	title.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.6))
+	title.add_theme_color_override("font_color", ink)
 	box.add_child(title)
 	var sub := Label.new()
 	sub.text = "Design it together.  Build it.  Bring it down."
 	sub.add_theme_font_size_override("font_size", 24)
-	sub.add_theme_color_override("font_color", Color(1.0, 0.82, 0.3))
+	sub.add_theme_color_override("font_color", blue)
 	box.add_child(sub)
 	_bar = ProgressBar.new()
 	_bar.name = "Progress"
@@ -243,9 +259,9 @@ func _build() -> void:
 	_bar.show_percentage = false
 	_bar.custom_minimum_size.y = 10
 	var fill := StyleBoxFlat.new()
-	fill.bg_color = Color(1.0, 0.78, 0.2)
+	fill.bg_color = blue
 	var back := StyleBoxFlat.new()
-	back.bg_color = Color(1, 1, 1, 0.15)
+	back.bg_color = Color(ink, 0.12)
 	_bar.add_theme_stylebox_override("fill", fill)
 	_bar.add_theme_stylebox_override("background", back)
 	box.add_child(_bar)
@@ -253,10 +269,10 @@ func _build() -> void:
 	box.add_child(row)
 	_status = Label.new()
 	_status.name = "Status"
-	_status.add_theme_color_override("font_color", Color(0.8, 0.82, 0.86))
+	_status.add_theme_color_override("font_color", ink if pencil else Color(0.8, 0.82, 0.86))
 	_status.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	row.add_child(_status)
 	var ver := Label.new()
 	ver.text = BuildInfo.label()
-	ver.add_theme_color_override("font_color", Color(0.6, 0.62, 0.66))
+	ver.add_theme_color_override("font_color", Color(ink, 0.6))
 	row.add_child(ver)

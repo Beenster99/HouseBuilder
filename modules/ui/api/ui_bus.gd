@@ -20,6 +20,9 @@ var look: LookHints
 
 
 func register_module() -> void:
+	# The pencil look (flag ui.pencil), unless the player picked Classic in Settings.
+	Settings.register(BsxTheme.STYLE_SECTION, {BsxTheme.STYLE_KEY: BsxTheme.PENCIL})
+	BsxTheme.set_pencil(Flags.is_on("ui.pencil") and BsxTheme.style_setting() == BsxTheme.PENCIL)
 	Router.register_scene(MAIN_MENU, "res://modules/ui/internal/main_menu.tscn")
 	Router.register_scene(SETTINGS, "res://modules/ui/internal/settings_menu.tscn")
 	Settings.register("audio", {"master": 1.0, "effects": 1.0})
@@ -88,5 +91,20 @@ func apply_settings() -> void:
 			linear_to_db(maxf(float(effects if effects != null else 1.0), 0.0001)))
 
 
-func _on_setting_changed(_section: String, _key: String, _value: Variant) -> void:
+func _on_setting_changed(section: String, key: String, _value: Variant) -> void:
 	apply_settings()
+	if section == BsxTheme.STYLE_SECTION and key == BsxTheme.STYLE_KEY:
+		_apply_style.call_deferred()
+
+
+## The menu style changed: switch the look and rebuild the menu that's open (game scenes
+## pick it up as they're next built).
+func _apply_style() -> void:
+	var on := Flags.is_on("ui.pencil") and BsxTheme.style_setting() == BsxTheme.PENCIL
+	if on == BsxTheme.pencil():
+		return
+	BsxTheme.set_pencil(on)
+	if pause:
+		pause.restyle()
+	if Router.current_id in [MAIN_MENU, SETTINGS]:
+		Router.goto(Router.current_id)

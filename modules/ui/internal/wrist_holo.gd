@@ -2,7 +2,7 @@ class_name WristHolo
 extends CanvasLayer
 ## The wrist screen, like Star Citizen's mobiGlas: press the holo key (Keys.HOLO, F1 by
 ## default) anywhere in a game and your wrist projects the yard terminal in front of your
-## face, see-through: the BSX header, the hazard rule, a numbered tab for every channel
+## face, see-through (tracing paper): the header, the pencil rule, a numbered tab for every channel
 ## modules registered with HudSlots.register_holo_channel (Orders, Stock, Contracts,
 ## Machines...), CLOSE, and the channel's screen under them. The holo key, Esc, CLOSE or a
 ## click outside the screen puts it away. A channel's Control with a close_requested signal
@@ -268,13 +268,16 @@ class WristArm extends Control:
 		var cuff := Vector2(s.x * 0.16, s.y * 0.93)
 		var arm := PackedVector2Array([Vector2(-20, s.y + 20), Vector2(s.x * 0.05, s.y * 0.86),
 				Vector2(s.x * 0.2, s.y * 0.88), Vector2(s.x * 0.26, s.y + 20)])
-		draw_colored_polygon(arm, Color(0.09, 0.1, 0.12, 0.96))
+		var pencil := BsxTheme.pencil()
+		draw_colored_polygon(arm, Color(BsxTheme.PAPER, 0.96) if pencil else Color(0.09, 0.1, 0.12, 0.96))
+		if pencil:
+			draw_polyline(arm, Color(BsxTheme.INK, 0.8), 1.8, true)
 		var plate := PackedVector2Array([Vector2(s.x * 0.08, s.y * 0.885), Vector2(s.x * 0.2, s.y * 0.9),
 				Vector2(s.x * 0.215, s.y * 0.97), Vector2(s.x * 0.075, s.y * 0.955)])
-		draw_colored_polygon(plate, Color(0.2, 0.22, 0.25, 1.0))
-		draw_polyline(plate + PackedVector2Array([plate[0]]), Color(TerminalKit.ORANGE, 0.9), 2.0)
+		draw_colored_polygon(plate, BsxTheme.PAPER_DEEP if pencil else Color(0.2, 0.22, 0.25, 1.0))
+		draw_polyline(plate + PackedVector2Array([plate[0]]), Color(TerminalKit.ORANGE, 0.9), 2.0, true)
 		var pulse := 0.75 + 0.25 * sin(Time.get_ticks_msec() * 0.006)
-		var light := Color(0.62, 0.9, 1.0)
+		var light := BsxTheme.BLUE if pencil else Color(0.62, 0.9, 1.0)
 		draw_circle(cuff, 9.0 + flare * 6.0, Color(light, minf(1.0, 0.9 * pulse + flare)))
 		draw_circle(cuff, 20.0 + flare * 40.0, Color(light, 0.18 * pulse + flare * 0.3))
 		if target and is_instance_valid(target):

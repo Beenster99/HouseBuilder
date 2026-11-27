@@ -2,7 +2,7 @@ class_name TouchScreen
 extends Node3D
 ## A screen in the world that you use by looking at it: any Control shown on a lit panel
 ## (a SubViewport on a quad, in a slim gloss bezel). Aim the view's centre at it within
-## `reach` (or the free mouse, when the mouse is free) and an orange pointer follows on the
+## `reach` (or the free mouse, when the mouse is free) and an pencil pointer follows on the
 ## screen; left click presses what's under it. It takes the clicks it gets in _input, so tools
 ## and benches (_unhandled_input) don't fire on the same click. It doesn't claim the pointer:
 ## a claim stops the view turning, and the pointer follows the view.
@@ -211,7 +211,8 @@ func _claim_id() -> String:
 static func buttons(specs: Array, p_size_m := Vector2(0.3, 0.2), columns := 1) -> TouchScreen:
 	var p := Vector2i((p_size_m * PANEL_PX_PER_M).round())
 	var panel := PanelContainer.new()
-	var st := T.box(Color("07090b"), Color(T.CYAN, 0.35), 3, 14.0)
+	var st: StyleBox = PencilBox.make(T.PLATE, Color(T.EDGE, 0.8), 14.0, 1.8) if BsxTheme.pencil() \
+			else T.box(Color("07090b"), Color(T.CYAN, 0.35), 3, 14.0)
 	panel.add_theme_stylebox_override("panel", st)
 	var grid := GridContainer.new()
 	grid.name = "Buttons"
@@ -257,9 +258,40 @@ func set_on(id: String, on: bool) -> void:
 		b.set_pressed_no_signal(on)
 
 
-## A touch button in the LED look: a black glass key with a glowing edge and caption, lit
-## up cyan while pressed or (toggles) on.
+## A touch button drawn in pencil: a graphite outline on paper, shaded in blue pencil while
+## pressed or (toggles) on.
 static func led_button(text: String, toggle := false, on := false, font_size := 22) -> Button:
+	var b := Button.new()
+	b.text = text
+	b.focus_mode = Control.FOCUS_NONE
+	b.toggle_mode = toggle
+	b.button_pressed = on and toggle
+	b.add_theme_font_override("font", T.font("display_bold"))
+	b.add_theme_font_size_override("font_size", maxi(12, font_size))
+	if not BsxTheme.pencil():
+		b.free()
+		return _led_button_classic(text, toggle, on, font_size)
+	var normal := BsxTheme.button_style("normal", 6.0)
+	var hover := BsxTheme.button_style("hover", 6.0)
+	var lit := BsxTheme.button_style("pressed", 6.0)
+	lit.hatch = Color(T.ORANGE, 0.45)
+	b.add_theme_stylebox_override("normal", normal)
+	b.add_theme_stylebox_override("hover", hover)
+	b.add_theme_stylebox_override("pressed", lit)
+	b.add_theme_stylebox_override("hover_pressed", lit)
+	b.add_theme_stylebox_override("disabled", BsxTheme.button_style("disabled", 6.0))
+	b.add_theme_stylebox_override("focus", StyleBoxEmpty.new())
+	b.add_theme_color_override("font_color", T.TEXT)
+	b.add_theme_color_override("font_hover_color", T.ORANGE)
+	b.add_theme_color_override("font_pressed_color", T.ORANGE)
+	b.add_theme_color_override("font_hover_pressed_color", T.ORANGE)
+	b.add_theme_color_override("font_disabled_color", Color(T.TEXT, 0.35))
+	b.pressed.connect(func() -> void: Sfx.press(b))
+	b.set_meta("sfx", true)
+	return b
+
+
+static func _led_button_classic(text: String, toggle := false, on := false, font_size := 22) -> Button:
 	var b := Button.new()
 	b.text = text
 	b.focus_mode = Control.FOCUS_NONE
@@ -290,6 +322,7 @@ static func led_button(text: String, toggle := false, on := false, font_size := 
 	b.pressed.connect(func() -> void: Sfx.press(b))
 	b.set_meta("sfx", true)
 	return b
+
 
 
 # --- The set ------------------------------------------------------------------------------
@@ -360,13 +393,19 @@ func _build() -> void:
 	add_child(_glass)
 
 
-## The pointer drawn on the screen: a ring and a dot in BSX orange.
+## The pointer drawn on the screen: a blue pencil ring and a graphite dot.
 class Pointer extends Control:
 	func _init() -> void:
 		mouse_filter = Control.MOUSE_FILTER_IGNORE
 		z_index = 10
 
 	func _draw() -> void:
-		draw_circle(Vector2.ZERO, 14.0, Color(0, 0, 0, 0.35))
-		draw_arc(Vector2.ZERO, 12.0, 0.0, TAU, 32, TerminalKit.ORANGE, 3.0, true)
-		draw_circle(Vector2.ZERO, 3.5, Color.WHITE)
+		if not BsxTheme.pencil():
+			draw_circle(Vector2.ZERO, 14.0, Color(0, 0, 0, 0.35))
+			draw_arc(Vector2.ZERO, 12.0, 0.0, TAU, 32, TerminalKit.ORANGE, 3.0, true)
+			draw_circle(Vector2.ZERO, 3.5, Color.WHITE)
+			return
+		draw_circle(Vector2.ZERO, 14.0, Color(1, 1, 1, 0.35))
+		draw_arc(Vector2.ZERO, 12.0, 0.0, TAU, 32, TerminalKit.ORANGE, 2.5, true)
+		draw_arc(Vector2(0.6, -0.4), 11.0, 0.3, TAU - 0.2, 32, Color(TerminalKit.ORANGE, 0.5), 1.2, true)
+		draw_circle(Vector2.ZERO, 3.0, TerminalKit.EDGE)
