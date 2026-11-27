@@ -206,8 +206,8 @@ func _rebuild() -> void:
 	_place_crane(bounds)
 	site.visible = true
 	site.setup(bus.schedule, bounds)
-	# The site's library tower crane replaces the plain one when the library has it.
-	_crane.visible = site.crane == null
+	# The site's library tower crane does the lifting; the old plain crane stays hidden.
+	_crane.visible = false
 	_scrub.max_value = bus.total_days()
 	_scrub.step = 0.01
 	_sync_buttons()

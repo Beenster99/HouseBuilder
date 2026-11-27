@@ -28,6 +28,16 @@ func run_tests() -> void:
 	bus.request_fire()
 	check(not bus.is_fired() and rejected.size() == 3, "no firing without charges")
 
+	# The wrecking-ball crane is off for now (flag demolition.wrecking_ball).
+	var off: Node3D = load("res://modules/demolition/internal/demolition_view.tscn").instantiate()
+	add_child(off)
+	await frames(2)
+	check(off.find_child("WreckingBall", true, false) == null and off._tip == null,
+			"no wrecking-ball crane while its flag is off")
+	off.queue_free()
+	await frames(2)
+	var was_ball := Flags.is_on("demolition.wrecking_ball")
+	Flags.set_flag("demolition.wrecking_ball", true)
 	# Bring it down: every ground-floor column, the middle ones first.
 	var view: Node3D = load("res://modules/demolition/internal/demolition_view.tscn").instantiate()
 	add_child(view)
@@ -86,6 +96,7 @@ func run_tests() -> void:
 	view.queue_free()
 	await frames(2)
 	bus.apply_net_snapshot({})
+	Flags.set_flag("demolition.wrecking_ball", was_ball)
 
 
 func net_claim_test(bus: DemolitionBus, view: Node3D) -> void:

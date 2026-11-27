@@ -43,6 +43,9 @@ const SETTLE_MAX := 25.0
 const CRANE_ID := "crane:tip"
 const CABLE_ID := "crane:cable"
 const BALL_ID := "crane:ball"
+## The wrecking-ball crane (Tab to drive it). Off for now: the person asked for it to go
+## for the time being.
+const WRECKING_BALL_FLAG := "demolition.wrecking_ball"
 const BALL_MASS := 3000.0
 const BALL_RADIUS := 0.7
 const ORBIT_SPEED := 0.006
@@ -215,7 +218,10 @@ func _rebuild() -> void:
 		_build_neighbour(n as AABB)
 	_focus = bounds.get_center()
 	_dist = clampf(maxf(bounds.size.x, maxf(bounds.size.y, bounds.size.z)) * 2.6, 20.0, 400.0)
-	_build_crane(bounds)
+	for mid in [CRANE_ID, CABLE_ID, BALL_ID]:
+		net.unregister_mover(mid)
+	if Flags.is_on(WRECKING_BALL_FLAG):
+		_build_crane(bounds)
 	# A joiner arriving mid-collapse: whatever already fell comes alive at once.
 	var already := PackedStringArray()
 	for id: String in bus.released_ids:
@@ -948,6 +954,8 @@ func _unhandled_input(event: InputEvent) -> void:
 				if not driving_crane():
 					bus.request_reset()
 			KEY_TAB:
+				if _tip == null:
+					return
 				if driving_crane():
 					net.release(CRANE_ID)
 				else:
@@ -994,7 +1002,7 @@ func _update_help() -> void:
 		help.set_help("COLLAPSE", HelpBar.keys_text([["R", "reset and try again"]] + view), BsxTheme.WARN)
 	elif bus.is_active():
 		help.set_help("PLACE CHARGES", HelpBar.keys_text([["click a part", "charge it"], ["[ ]", "delay"],
-				["P", "preview"], ["F", "fire"], ["R", "reset"], ["Tab", "crane"]] + view))
+				["P", "preview"], ["F", "fire"], ["R", "reset"]] + ([["Tab", "crane"]] if _tip != null else []) + view))
 	else:
 		help.set_help("DEMOLITION", "Nothing to demolish yet: build something first.")
 	if _hover != "":
