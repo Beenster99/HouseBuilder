@@ -478,6 +478,19 @@ func put_down() -> bool:
 	if holding.is_empty() or not spot.has("at"):
 		return false
 	var op := {}
+	if holding.has("clip"):
+		var at: Vector3 = spot.at
+		var design := Modules.bus("design")
+		if design == null or not design.has_method("paste_ops"):
+			_status("Paste this in the designer")
+			return false
+		var ops: Array = design.call("paste_ops", holding.clip, WalkEdits.level_at(model, at.y), Vector3(at.x, 0.0, at.z),
+				float(holding.rot), _fresh_ids((holding.clip.items as Array).size()))
+		if ops.is_empty():
+			return false
+		sync.edit(C.batch(ops))
+		_drop_holding()
+		return true
 	if holding.has("module"):
 		var kits := Modules.bus("kits")
 		var at: Vector3 = spot.at
@@ -505,8 +518,9 @@ func put_down() -> bool:
 	return true
 
 
-## Ctrl+C: the part you're editing or aim at (its kind, size, angle, material and section) is
-## kept to paste. False if nothing.
+## Ctrl+C: the part you're editing or aim at, kept to paste here or in the designer (the
+## designer's clipboard, DesignBus.clipboard, so a copy goes either way). Doors and windows
+## keep to walk's own (they need a wall). False if nothing.
 func copy_aimed() -> bool:
 	var id := edit_id if edit_id != "" and is_palette_open() else aimed_part()
 	var e: Dictionary = model.parts.get(id, {})
@@ -514,18 +528,48 @@ func copy_aimed() -> bool:
 	if e.is_empty() or not (e.has("at") or fam == "opening"):
 		_status("Aim at a fitting, column, door or window to copy it")
 		return false
+	var label := str(model.catalog.kind(str(e.kind)).get("label", "part"))
 	var keep := {}
 	for f: String in ["material", "section", "w", "d", "height", "h", "sill", "rot"]:
 		if e.has(f):
 			keep[f] = e[f]
 	clipboard = {"kind": str(e.kind), "fields": keep}
-	_status("Copied the %s: Ctrl+V puts one in your hands" % str(model.catalog.kind(str(e.kind)).get("label", "part")).to_lower())
+	var design := Modules.bus("design")
+	if design and "clipboard" in design:
+		var shared := {}
+		if e.has("at"):
+			var c: Dictionary = e.duplicate(true)
+			c.at = [0.0, float(e.at[1]), 0.0]
+			var sz := WalkEdits.size_of(model, str(e.kind), e)
+			var half := WalkEdits.turned_half(sz.x, sz.z, float(e.get("rot", 0.0)))
+			shared = {"label": label, "size": half * 2.0, "items": [{"table": "parts", "id": id, "entry": c}]}
+		design.set("clipboard", shared)
+	_status("Copied the %s: Ctrl+V puts one in your hands" % label.to_lower())
 	return true
 
 
-## Ctrl+V: a copy of what you copied in your hands, the same size, angle and material, to put
-## down with the guides like any part. Each Ctrl+V another.
+## Ctrl+V: a copy of what you (or you in the designer) copied in your hands, the same size,
+## angle and material, to put down with the guides like any part. Each Ctrl+V another. A
+## designer copy of several things (rooms with their walls and contents) is carried as one.
 func paste() -> bool:
+	var design := Modules.bus("design")
+	var shared: Dictionary = design.get("clipboard") if design and "clipboard" in design else {}
+	var items: Array = shared.get("items", [])
+	if items.size() == 1 and str(items[0].table) == "parts" and (items[0].entry as Dictionary).has("at") \
+			and model.catalog.has_kind(str(items[0].entry.kind)):
+		var e: Dictionary = items[0].entry
+		var keep := {}
+		for f: String in ["material", "section", "w", "d", "height", "rot"]:
+			if e.has(f):
+				keep[f] = e[f]
+		clipboard = {"kind": str(e.kind), "fields": keep}
+	elif items.size() > 1 or (items.size() == 1 and str(items[0].table) == "rooms"):
+		_drop_holding()
+		holding = {"type": "", "clip": shared.duplicate(true), "label": str(shared.get("label", "copy")), "id": "",
+				"rot": 0.0, "opening": false}
+		if is_palette_open():
+			toggle_palette()
+		return true
 	if clipboard.is_empty() or not model.catalog.has_kind(str(clipboard.kind)):
 		_status("Nothing copied: aim at a part and press Ctrl+C")
 		return false
@@ -533,6 +577,20 @@ func paste() -> bool:
 	holding["copy"] = (clipboard.fields as Dictionary).duplicate()
 	holding.rot = float(clipboard.fields.get("rot", 0.0))
 	return true
+
+
+## New ids for a pasted copy (as the designer picks them: past the highest, peers apart).
+func _fresh_ids(count: int) -> Array:
+	var top := 0
+	for t: Dictionary in [model.parts, model.rooms, model.connections]:
+		for id: String in t:
+			top = maxi(top, id.substr(1).to_int())
+	var net: MultiplayerBus = bus.call("net")
+	top += 1 + (net.local_peer_id() % 97) * 7 if net else 1
+	var out: Array = []
+	for i in count * 2 + 4:
+		out.append("p%d" % (top + i))
+	return out
 
 
 ## The part in your hands as an entry: the one you picked up, a copy's fields, else {}.
@@ -944,6 +1002,16 @@ func _update_spot() -> void:
 	var g := WalkEdits.grid(model)
 	var at := Vector3(WalkEdits.snap(p.x, g), p.y, WalkEdits.snap(p.z, g))
 	spot = {"at": at, "ok": true, "why": "Fits"}
+	if holding.has("clip"):
+		# A designer copy of several things: lined up on the guides by its plan box.
+		var cs: Vector2 = holding.clip.get("size", Vector2.ONE)
+		var ch := WalkEdits.turned_half(cs.x, cs.y, float(holding.rot))
+		if not Input.is_key_pressed(KEY_ALT):
+			var cal := WalkGuides.align_at(model, WalkEdits.level_at(model, at.y), at, ch * 2.0, "")
+			at += Vector3(cal.offset.x, 0, cal.offset.y)
+			spot.at = at
+			spot["guides"] = cal.guides
+		return
 	if holding.has("module"):
 		return
 	var held_size := WalkEdits.size_of(model, str(holding.type), _held_entry())
@@ -991,7 +1059,7 @@ func _wall_hits(wall_id: String, box: AABB) -> bool:
 func _update_ghost() -> void:
 	_update_guides()
 	var state := "hand" if not spot.has("at") else str(spot.get("ok", false))
-	var key := "" if holding.is_empty() else "%s/%s/%s" % [holding.type, holding.get("module", ""), state]
+	var key := "" if holding.is_empty() else "%s/%s/%s" % [holding.type, holding.get("module", holding.get("label", "")), state]
 	if key != _ghost_key:
 		_ghost_key = key
 		if _ghost:
@@ -1076,7 +1144,10 @@ func _make_ghost(state: String) -> Node3D:
 	var col := Color(0.1, 0.72, 0.3) if state == "true" else (Color(0.15, 0.5, 0.95) if state == "hand" else Color(0.95, 0.45, 0.08))
 	var size := WalkEdits.size_of(model, str(holding.type), _held_entry())
 	var body_node: Node3D = null
-	if holding.has("module"):
+	if holding.has("clip"):
+		var cs: Vector2 = holding.clip.get("size", Vector2.ONE)
+		size = Vector3(maxf(cs.x, 0.2), 2.4, maxf(cs.y, 0.2))
+	elif holding.has("module"):
 		var kits := Modules.bus("kits")
 		var made: Variant = kits.call("make_ghost", str(holding.module)) if kits and kits.has_method("make_ghost") else null
 		if made is Node3D:

@@ -355,6 +355,31 @@ func run_tests() -> void:
 	ctrl.call(KEY_V)
 	check(str(v.holding.get("type", "")) == "sofa", "Ctrl+V again: another")
 	v._drop_holding()
+	var clip_bus := Modules.bus("design")
+	var shared: Dictionary = clip_bus.get("clipboard")
+	check((shared.get("items", []) as Array).size() == 1 and str(shared.items[0].entry.kind) == "sofa"
+			and is_equal_approx(float(shared.items[0].entry.w), 2.4), "the copy is on the designer's clipboard too, to paste there")
+	# A designer copy of several things is carried as one, on the guides.
+	var two: Dictionary = shared.duplicate(true)
+	var other: Dictionary = (two.items[0] as Dictionary).duplicate(true)
+	other.id = "p_other"
+	other.entry.at = [2.6, 0.0, 0.0]
+	two.items.append(other)
+	two.size = Vector2(5.0, 1.0)
+	two.label = "2 things"
+	clip_bus.set("clipboard", two)
+	ctrl.call(KEY_V)
+	check(v.holding.has("clip") and v.holding.label == "2 things", "a designer copy of 2 things in your hands")
+	await _settle()
+	check(v._ghost != null and is_equal_approx(float(v._ghost.get_meta("size").x), 5.0), "its ghost spans the copy")
+	if clip_bus.has_method("paste_ops"):
+		var n1 := model.parts.size()
+		check(v.put_down(), "put down")
+		await frames(1)
+		check(model.parts.size() == n1 + 2, "both pasted: %d" % (model.parts.size() - n1))
+		b.sync.undo()
+	v._drop_holding()
+	clip_bus.set("clipboard", {})
 	b.sync.undo()
 	b.sync.undo()
 	await frames(1)
