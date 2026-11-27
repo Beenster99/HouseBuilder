@@ -280,6 +280,51 @@ func run_tests() -> void:
 	(ctx_m.get("menu") as PopupMenu).hide()
 	check(mlabels.any(func(t: String) -> bool: return t.begins_with("Mirror copy")) and "Flip top to bottom" in mlabels,
 			"the right-click menu has Mirror and Flip: %s" % str(mlabels))
+	# Turning: a room with its walls about its middle, a part freely (hold R and move the
+	# mouse, 1° per 4 px in 5° steps), a tap of R for 90°, each one undo step.
+	s.presence.select(PackedStringArray([mv_b]))
+	s.rotate_selection(90.0)
+	await frames(2)
+	check(DesignGuides.room_box(model, mv_b).is_equal_approx(Rect2(-55.5, -60.5, 3, 4)) and int(walls_at.call(-55.5)) == 1,
+			"a room turns 90° about its middle, walls and all: %s" % DesignGuides.room_box(model, mv_b))
+	s.undo()
+	await frames(2)
+	var col_b := ""
+	for cid in model.parts_on(s.level):
+		var ce: Dictionary = model.parts[cid]
+		if ce.has("at") and Vector2(float(ce.at[0]), float(ce.at[2])).is_equal_approx(Vector2(-54, -58)):
+			col_b = cid
+	s.presence.select(PackedStringArray([col_b]))
+	var key := func(down: bool) -> void:
+		var k := InputEventKey.new()
+		k.keycode = KEY_R
+		k.pressed = down
+		room.call("_unhandled_input", k)
+	var nudge := func(px: float, alt := false) -> void:
+		var mm := InputEventMouseMotion.new()
+		mm.relative = Vector2(px, 0)
+		mm.alt_pressed = alt
+		room.call("_unhandled_input", mm)
+	key.call(true)
+	for k in 6:
+		nudge.call(7.0)
+	await frames(2)
+	check(is_equal_approx(float(model.parts[col_b].rot), 40.0), "held R and 42 px: 10° on from 30°, in 5° steps: %s" % model.parts[col_b].rot)
+	nudge.call(3.0, true)
+	await frames(2)
+	check(is_equal_approx(float(model.parts[col_b].rot), 41.25), "with Alt, free: %s" % model.parts[col_b].rot)
+	key.call(false)
+	await frames(2)
+	check(Vector2(float(model.parts[col_b].at[0]), float(model.parts[col_b].at[2])).is_equal_approx(Vector2(-54, -58)), "a lone part turns where it stands")
+	s.undo()
+	await frames(2)
+	check(is_equal_approx(float(model.parts[col_b].rot), 30.0), "one undo takes the whole turn back")
+	key.call(true)
+	key.call(false)
+	await frames(2)
+	check(is_equal_approx(float(model.parts[col_b].rot), 120.0), "a tap of R turns 90°")
+	s.undo()
+	await frames(2)
 	# The docks' cards stretch up and down (a grip between them), and keep their sizes.
 	var lsplit := hud2.find_child("Split_left", true, false) as VSplitContainer
 	check(lsplit != null and lsplit.get_child_count() == 3, "the left dock's cards sit in a splitter")

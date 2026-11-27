@@ -135,7 +135,8 @@ func walk_here(at: Vector3) -> Node:
 	return Modules.bus("walk").call("open", session.model, self, {"at": feet, "yaw": 0.0})
 
 
-## The edit form for an entry: a room's type and name, a part's material, a fixture's turn.
+## The edit form for an entry: a room's type, name and a typed turn; a part's material and
+## (standing parts) its angle, typed to a tenth of a degree.
 func open_edit(id: String) -> void:
 	_target = id
 	for c in _edit_body.get_children():
@@ -160,7 +161,12 @@ func open_edit(id: String) -> void:
 		nm.text = str(e.get("name", ""))
 		nm.placeholder_text = str(cat.room_type(str(e.type)).get("label", e.type))
 		_edit_body.add_child(_row("Name", nm))
+		var spin := _angle_box(0.0)
+		_edit_body.add_child(_row("Turn by", spin))
 		apply = func() -> void:
+			if not is_zero_approx(spin.value):
+				session.presence.select(PackedStringArray([id]))
+				session.rotate_selection(spin.value)
 			var ops: Array = []
 			var t := str(types.get_item_metadata(types.selected))
 			if t != str(e.type):
@@ -181,12 +187,7 @@ func open_edit(id: String) -> void:
 				pick.select(pick.item_count - 1)
 		if mats.size() > 1:
 			_edit_body.add_child(_row("Material", pick))
-		var turn := SpinBox.new()
-		turn.min_value = 0
-		turn.max_value = 345
-		turn.step = 15
-		turn.suffix = "°"
-		turn.value = float(e.get("rot", 0.0))
+		var turn := _angle_box(float(e.get("rot", 0.0)))
 		var point := cat.shape_of(kind) == "point"
 		if point:
 			_edit_body.add_child(_row("Turn", turn))
@@ -199,8 +200,8 @@ func open_edit(id: String) -> void:
 			var fields := {}
 			if mats.size() > 1 and pick.selected >= 0 and str(pick.get_item_metadata(pick.selected)) != str(e.get("material", "")):
 				fields["material"] = str(pick.get_item_metadata(pick.selected))
-			if point and not is_equal_approx(turn.value, float(e.get("rot", 0.0))):
-				fields["rot"] = turn.value
+			if point and not is_equal_approx(fposmod(turn.value, 360.0), float(e.get("rot", 0.0))):
+				fields["rot"] = fposmod(turn.value, 360.0)
 			_send(id, [C.set_fields(id, fields)] if not fields.is_empty() else [])
 	else:
 		return
@@ -212,6 +213,18 @@ func open_edit(id: String) -> void:
 	_edit_body.add_child(ok)
 	_edit.reset_size()
 	_edit.popup_centered()
+
+
+## A box for a typed angle, any value to a tenth of a degree.
+static func _angle_box(value: float) -> SpinBox:
+	var b := SpinBox.new()
+	b.min_value = -360
+	b.max_value = 360
+	b.step = 0.1
+	b.suffix = "°"
+	b.value = value
+	b.select_all_on_focus = true
+	return b
 
 
 func _send(id: String, ops: Array) -> void:

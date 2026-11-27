@@ -677,13 +677,109 @@ func rotate() -> void:
 		fixture_rot = fposmod(fixture_rot + 90.0, 360.0)
 		preview_changed.emit()
 		return
-	var ops: Array = []
-	for id in presence.my_selection():
-		var e: Dictionary = model.parts.get(id, {})
-		if e.has("rot") and presence.may_edit(id):
-			ops.append(C.set_fields(id, {"rot": fposmod(float(e.rot) + 90.0, 360.0)}))
+	rotate_selection(90.0)
+
+
+## Turns the selection (rooms with their walls and contents, and parts) by `deg` about its
+## middle, as one undo step (or into `group`'s). A lone part turns where it stands.
+func rotate_selection(deg: float) -> void:
+	var t := _turn_set()
+	if t.is_empty():
+		return
+	var ops := turn_ops(model, t.base, t.centre, deg)
 	if not ops.is_empty():
 		sync.edit(C.batch(ops))
+
+
+## Free turning (hold R and move the mouse): begin_turn(), then turn_to(total degrees) as the
+## mouse moves, then end_turn(). Every step is set from where things were at the start, so
+## it lands the same for everyone however the steps arrive, and the turn is one undo step.
+var turn := {}
+
+func begin_turn() -> bool:
+	end_turn()
+	if tool == "fixture":
+		return false
+	var t := _turn_set()
+	if t.is_empty():
+		return false
+	_group_n += 1
+	t["group"] = "turn-%d-%d" % [net.local_peer_id() if net else 0, _group_n]
+	t["deg"] = 0.0
+	turn = t
+	presence.lock(PackedStringArray(t.base.keys()))
+	return true
+
+
+func turn_to(deg: float) -> void:
+	if turn.is_empty() or is_equal_approx(deg, float(turn.deg)):
+		return
+	turn.deg = deg
+	var ops := turn_ops(model, turn.base, turn.centre, deg)
+	if not ops.is_empty():
+		sync.edit(C.batch(ops), str(turn.group))
+	status.emit("Turned %.0f°" % deg if is_equal_approx(deg, roundf(deg)) else "Turned %.1f°" % deg, false)
+
+
+func end_turn() -> void:
+	if turn.is_empty():
+		return
+	presence.unlock(PackedStringArray(turn.base.keys()))
+	turn = {}
+
+
+## What a turn moves: {base: id -> a copy of the entry as it is, centre: Vector3} or {}.
+func _turn_set() -> Dictionary:
+	var sel := PackedStringArray()
+	for id in presence.my_selection():
+		if model.has(id) and presence.may_edit(id):
+			sel.append(id)
+	if sel.is_empty():
+		return {}
+	var ids := carried(sel)
+	var base := {}
+	for id in ids:
+		var e := model.entry(id)
+		if not e.has("host"):
+			base[id] = e.duplicate(true)
+	var box := _set_out_box(ids)
+	var c := box.get_center()
+	if sel.size() == 1 and model.parts.has(sel[0]) and model.parts[sel[0]].has("at"):
+		var at: Array = model.parts[sel[0]].at
+		c = Vector2(float(at[0]), float(at[2]))
+	return {"base": base, "centre": Vector3(c.x, 0, c.y)}
+
+
+## The ops that set the entries in `base` (id -> entry) turned by `deg` about `centre` (plan),
+## as the parts' own "rot" turns: Basis(Vector3.UP, deg). Doors and windows ride on their walls.
+static func turn_ops(m: BuildingModel, base: Dictionary, centre: Vector3, deg: float) -> Array:
+	var r := deg_to_rad(deg)
+	var p3 := func(v: Array) -> Array:
+		var q := (Vector3(float(v[0]), 0, float(v[2])) - centre).rotated(Vector3.UP, r) + centre
+		return [snappedf(q.x, 0.0001), float(v[1]), snappedf(q.z, 0.0001)]
+	var o2 := func(o: Array) -> Array:
+		var out: Array = []
+		for c: Array in o:
+			var q := (Vector3(float(c[0]), 0, float(c[1])) - centre).rotated(Vector3.UP, r) + centre
+			out.append([snappedf(q.x, 0.0001), snappedf(q.z, 0.0001)])
+		return out
+	var ops: Array = []
+	for id: String in base:
+		if not m.has(id):
+			continue
+		var e: Dictionary = base[id]
+		var fields := {}
+		if e.has("at"):
+			fields["at"] = p3.call(e.at)
+			fields["rot"] = snappedf(fposmod(float(e.get("rot", 0.0)) + deg, 360.0), 0.01)
+		elif e.has("a") and e.has("b"):
+			fields["a"] = p3.call(e.a)
+			fields["b"] = p3.call(e.b)
+		elif e.has("outline"):
+			fields["outline"] = o2.call(e.outline)
+		if not fields.is_empty() and not _same_fields(m.entry(id), fields):
+			ops.append(C.set_fields(id, fields))
+	return ops
 
 
 ## Retags the selected rooms to the current room type.
@@ -693,8 +789,6 @@ func retag_selection() -> void:
 			sync.edit(C.retag(id, room_type))
 
 
-## Furnishes the selected rooms: the room type's usual layout, or what `text` describes
-## ("2 single beds and a desk"). One undo takes it all back.
 ## Mirrors the selection (with its rooms' walls and what stands in them) for symmetrical
 ## designs, as one undo step. axis 0 mirrors left-right (x), 1 up-down (z). As a copy, the
 ## mirror line is the selection's right (or bottom) edge, so the copy sits beside it and the
@@ -860,6 +954,8 @@ func _fresh_ids(count: int) -> Array:
 	return out
 
 
+## Furnishes the selected rooms: the room type's usual layout, or what `text` describes
+## ("2 single beds and a desk"). One undo takes it all back.
 func furnish_selection(text: String = "") -> void:
 	var ops: Array = []
 	var placed := 0

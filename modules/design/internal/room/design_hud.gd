@@ -1208,7 +1208,7 @@ func mode_keys() -> Array:
 				if _session.presence.my_selection().is_empty():
 					out = [["LMB", "select"], ["LMB drag", "pan"], ["Shift+drag", "box select"], ["Shift", "add"], ["RMB", "Edit / Delete menu"]]
 				else:
-					out = [["LMB drag", "move"], ["Handles", "reshape"], ["Del", "delete"], ["Shift+M", "mirror copy"], ["Shift+drag", "box adds"], ["RMB", "Edit / Delete"], ["Esc", "deselect"]]
+					out = [["LMB drag", "move"], ["Handles", "reshape"], ["Del", "delete"], ["R", "turn 90° · hold + mouse: free"], ["Shift+wheel", "turn 15°"], ["Shift+M", "mirror copy"], ["Shift+drag", "box adds"], ["RMB", "Edit / Delete"], ["Esc", "deselect"]]
 			"room", "slab", "roof", "raft":
 				out = [["LMB drag", "size it"], ["release", "draw it"], ["Esc", "Select"]]
 			"wall", "partition", "beam", "footing", "stair":
@@ -1216,7 +1216,7 @@ func mode_keys() -> Array:
 			"measure":
 				out = [["LMB", "two points"], ["Esc", "Select"]]
 			_:
-				out = [["LMB", "place"], ["R", "turn"], ["Esc", "Select"]]
+				out = [["LMB", "place"], ["R", "turn 90°"], ["Shift+wheel", "turn 15° (Alt 1°)"], ["Esc", "Select"]]
 	out.append_array([["Wheel", "zoom"], ["RMB drag", "orbit"], ["MMB", "ping (on a ping: clear it) · hold: wheel"], ["Tab", "2D/3D"],
 			["PgUp/Dn", "level"], ["Ctrl+Z", "undo"]])
 	return out

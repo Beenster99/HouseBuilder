@@ -63,6 +63,11 @@ var _right_from: Variant = null
 var embedded := false
 ## Taking the mouse and keys (false while the hall is shown and the designer is put away).
 var active := true
+## R held (a tap turns 90°, held with the mouse turns freely), and how far the mouse went.
+var _r_held := false
+var _r_px := 0.0
+## Mouse pixels per degree while turning with R held.
+const TURN_PX := 4.0
 ## True while another camera (walk-inside) has this room's view.
 var lent_view := false
 ## Esc with nothing to cancel, while embedded: back to the hall.
@@ -682,6 +687,30 @@ func _unhandled_input(event: InputEvent) -> void:
 			if cam.plan:
 				get_viewport().set_input_as_handled()
 				return
+	if event is InputEventMouseMotion and _r_held:
+		# Holding R: the mouse turns the selection, 1° per 4 px, in 5° steps (Alt: free).
+		var mr := event as InputEventMouseMotion
+		_r_px += mr.relative.x
+		if session.turn.is_empty() and absf(_r_px) >= TURN_PX * 2.0:
+			session.begin_turn()
+		if not session.turn.is_empty():
+			var deg := _r_px / TURN_PX
+			session.turn_to(deg if mr.alt_pressed else snappedf(deg, 5.0))
+		get_viewport().set_input_as_handled()
+		return
+	if event is InputEventMouseButton and (event as InputEventMouseButton).shift_pressed and (event as InputEventMouseButton).pressed \
+			and (event as InputEventMouseButton).button_index in [MOUSE_BUTTON_WHEEL_UP, MOUSE_BUTTON_WHEEL_DOWN] \
+			and (session.tool == "fixture" or not session.presence.my_selection().is_empty()):
+		# Shift+wheel turns 15° a notch (Alt: 1°).
+		var mw := event as InputEventMouseButton
+		var step := (1.0 if mw.alt_pressed else 15.0) * (1.0 if mw.button_index == MOUSE_BUTTON_WHEEL_UP else -1.0)
+		if session.tool == "fixture":
+			session.fixture_rot = fposmod(session.fixture_rot + step, 360.0)
+			session.preview_changed.emit()
+		else:
+			session.rotate_selection(step)
+		get_viewport().set_input_as_handled()
+		return
 	if event is InputEventMouseMotion:
 		var mm := event as InputEventMouseMotion
 		if session.pan_drag and _left_down:
@@ -697,6 +726,13 @@ func _unhandled_input(event: InputEvent) -> void:
 		if _middle_from != null and (mm.position - (_middle_from as Vector2)).length() >= TAP_SLOP:
 			_middle_moved = true
 	if cam.handle(event):
+		get_viewport().set_input_as_handled()
+		return
+	if event is InputEventKey and not event.pressed and (event as InputEventKey).keycode == KEY_R and _r_held:
+		_r_held = false
+		if session.turn.is_empty():
+			session.rotate()
+		session.end_turn()
 		get_viewport().set_input_as_handled()
 		return
 	if event is InputEventKey and event.pressed and not event.echo:
@@ -737,8 +773,13 @@ func _key(k: InputEventKey) -> bool:
 		KEY_R when stamping():
 			_stamp.rot = fmod(float(_stamp.rot) + 90.0, 360.0)
 			return true
-		KEY_R:
+		KEY_R when session.tool == "fixture" or session.presence.my_selection().is_empty():
 			session.rotate()
+			return true
+		KEY_R:
+			# A tap turns 90° (on release); held, moving the mouse turns it freely.
+			_r_held = true
+			_r_px = 0.0
 			return true
 		KEY_M when k.shift_pressed:
 			# Shift+M: a mirrored copy beside the selection (Ctrl too: below it).
