@@ -49,10 +49,15 @@ var _col := PackedVector3Array()
 var _geo_level := 0
 var _geo_cell := Vector2i.ZERO
 var _mats: Dictionary = {}
+## How walls meet (the designer's WallJoins), so corners and tees close; and each wall's
+## neighbours when it was drawn, redrawn with it when it moves.
+var _joins: WallJoins
+var _wall_nb: Dictionary = {}
 
 
 func bind(m: BuildingModel) -> void:
 	model = m
+	_joins = WallJoins.new(m)
 	name = "Building"
 	model.entry_added.connect(refresh)
 	model.entry_changed.connect(refresh)
@@ -129,6 +134,14 @@ func refresh(id: String) -> void:
 	var fam := str(rec.get("fam", ""))
 	if not e.is_empty() and model.parts.has(id):
 		fam = model.catalog.family_of(str(e.kind))
+	if fam == "wall":
+		for n: String in _wall_nb.get(id, PackedStringArray()):
+			_dirty[n] = true
+		if model.parts.has(id):
+			for n: String in _joins.neighbours(id):
+				_dirty[n] = true
+		else:
+			_wall_nb.erase(id)
 	if fam == "circulation" or fam == "slab":
 		var lo := mini(int(rec.get("level", 99999)), int(e.get("level", 99999)))
 		var hi := maxi(int(rec.get("top", -1)), int(e.get("top_level", e.get("level", -1))))
@@ -437,7 +450,11 @@ func _wall(id: String, a: Vector3, b: Vector3, mat: Material) -> void:
 	holes.sort_custom(func(x: Array, z: Array) -> bool: return x[0] < z[0])
 	var dir := (b - a) / length
 	var up := Vector3.UP
-	var cursor := 0.0
+	# Corners and tees close: the ends run on or stop short as the designer draws them.
+	var ext := _joins.ends(id)
+	_wall_nb[id] = _joins.neighbours(id)
+	var cursor := -ext.x
+	length += ext.y
 	for hole: Array in holes:
 		if hole[0] > cursor:
 			_linear(a + dir * cursor + up * h / 2.0, a + dir * hole[0] + up * h / 2.0, t, h, mat, true)
@@ -449,7 +466,7 @@ func _wall(id: String, a: Vector3, b: Vector3, mat: Material) -> void:
 			_linear(a + dir * hole[0] + up * (top + h) / 2.0, a + dir * hole[1] + up * (top + h) / 2.0, t, h - top, mat, true)
 		cursor = maxf(cursor, hole[1])
 	if cursor < length:
-		_linear(a + dir * cursor + up * h / 2.0, b + up * h / 2.0, t, h, mat, true)
+		_linear(a + dir * cursor + up * h / 2.0, a + dir * length + up * h / 2.0, t, h, mat, true)
 
 
 ## A flight of steps from a (foot) to b (head) up to the next floor: steps to see, a ramp

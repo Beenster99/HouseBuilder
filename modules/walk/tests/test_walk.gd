@@ -81,6 +81,9 @@ func run_tests() -> void:
 	await _physics(2)
 	var back: String = _wall_at(model, 0.0)
 	check(v.aimed_part() == back, "aiming at the back wall: %s" % v.aimed_part())
+	var ext: Vector2 = bld._joins.ends(back)
+	check(ext != Vector2.ZERO and (bld._wall_nb.get(back, PackedStringArray()) as PackedStringArray).size() >= 2,
+			"its corners join as the designer draws them (WallJoins): %s" % ext)
 	check(v._aim_text().contains("push it away"), "the hint says the wheel pushes it")
 	var room: String = _room(model, "Hall")
 	var area0 := BuildingModel.outline_area(model.rooms[room].outline)
