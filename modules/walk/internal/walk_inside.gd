@@ -85,6 +85,8 @@ const R_DEG_PER_PX := 0.25
 const R_SNAP := 5.0
 const R_DEAD_PX := 3.0
 var _r_hold := {}
+## What Ctrl+C kept: {kind, fields}. Shared by every walk-inside view, as BSX's plan clipboard is.
+static var clipboard := {}
 var _r_turns := 0
 ## The crew walking about in here too: peer id -> {figure, dot, ray}.
 var crew: Dictionary = {}
@@ -494,9 +496,50 @@ func put_down() -> bool:
 		op = WalkEdits.move_to(model, str(holding.id), spot.at, float(holding.rot), false)
 	if op.is_empty():
 		return false
+	if holding.has("copy") and op.has("entry"):
+		for f: String in holding.copy:
+			if f != "rot":
+				op.entry[f] = holding.copy[f]
 	sync.edit(op)
 	_drop_holding()
 	return true
+
+
+## Ctrl+C: the part you're editing or aim at (its kind, size, angle, material and section) is
+## kept to paste. False if nothing.
+func copy_aimed() -> bool:
+	var id := edit_id if edit_id != "" and is_palette_open() else aimed_part()
+	var e: Dictionary = model.parts.get(id, {})
+	var fam := model.catalog.family_of(str(e.get("kind", "")))
+	if e.is_empty() or not (e.has("at") or fam == "opening"):
+		_status("Aim at a fitting, column, door or window to copy it")
+		return false
+	var keep := {}
+	for f: String in ["material", "section", "w", "d", "height", "h", "sill", "rot"]:
+		if e.has(f):
+			keep[f] = e[f]
+	clipboard = {"kind": str(e.kind), "fields": keep}
+	_status("Copied the %s: Ctrl+V puts one in your hands" % str(model.catalog.kind(str(e.kind)).get("label", "part")).to_lower())
+	return true
+
+
+## Ctrl+V: a copy of what you copied in your hands, the same size, angle and material, to put
+## down with the guides like any part. Each Ctrl+V another.
+func paste() -> bool:
+	if clipboard.is_empty() or not model.catalog.has_kind(str(clipboard.kind)):
+		_status("Nothing copied: aim at a part and press Ctrl+C")
+		return false
+	take_new(str(clipboard.kind))
+	holding["copy"] = (clipboard.fields as Dictionary).duplicate()
+	holding.rot = float(clipboard.fields.get("rot", 0.0))
+	return true
+
+
+## The part in your hands as an entry: the one you picked up, a copy's fields, else {}.
+func _held_entry() -> Dictionary:
+	if holding.has("copy"):
+		return holding.copy
+	return model.parts.get(str(holding.get("id", "")), {})
 
 
 ## R: turns the part in your hands, else the one you aim at, a quarter (or `by` degrees:
@@ -716,6 +759,10 @@ func _input(event: InputEvent) -> void:
 				edit_aimed()
 			KEY_Q:
 				toggle_fly()
+			KEY_C when k.ctrl_pressed:
+				copy_aimed()
+			KEY_V when k.ctrl_pressed:
+				paste()
 			KEY_V:
 				toggle_look()
 			KEY_Z:
@@ -836,7 +883,7 @@ func _aim_text() -> String:
 		"wall":
 			return "%s%s\n[b]Wheel[/b] push it away or pull it towards you   [b]F[/b] door here   [b]E[/b] edit   [b]X[/b] remove" % [label2, held]
 		"fixture", "column":
-			return "%s%s\n[b]Click[/b] pick up   [b]R[/b] turn (hold + mouse)   [b]Shift+wheel[/b] 15°   [b]E[/b] edit   [b]X[/b] remove" % [label2, held]
+			return "%s%s\n[b]Click[/b] pick up   [b]R[/b] turn (hold + mouse)   [b]Shift+wheel[/b] 15°   [b]E[/b] edit   [b]Ctrl+C[/b] copy   [b]X[/b] remove" % [label2, held]
 		"slab", "roof":
 			if (a.normal as Vector3).y < -0.5:
 				return "Ceiling (%.2f m storey)\n[b]Wheel[/b] raise or lower it   [b]E[/b] edit" % model.level_height(maxi(model.level_of(id) - (1 if fam == "slab" else 0), 0))
@@ -899,7 +946,7 @@ func _update_spot() -> void:
 	spot = {"at": at, "ok": true, "why": "Fits"}
 	if holding.has("module"):
 		return
-	var held_size := WalkEdits.size_of(model, str(holding.type), model.parts.get(str(holding.id), {}))
+	var held_size := WalkEdits.size_of(model, str(holding.type), _held_entry())
 	var hw := held_size.x * 0.5
 	var hd := held_size.z * 0.5
 	var half := WalkEdits.turned_half(hw * 2.0, hd * 2.0, float(holding.rot))
@@ -1027,7 +1074,7 @@ func _make_ghost(state: String) -> Node3D:
 	world.add_child(g)
 	# Strong colours: pale ones vanish on the white model look.
 	var col := Color(0.1, 0.72, 0.3) if state == "true" else (Color(0.15, 0.5, 0.95) if state == "hand" else Color(0.95, 0.45, 0.08))
-	var size := WalkEdits.size_of(model, str(holding.type), model.parts.get(str(holding.id), {}))
+	var size := WalkEdits.size_of(model, str(holding.type), _held_entry())
 	var body_node: Node3D = null
 	if holding.has("module"):
 		var kits := Modules.bus("kits")

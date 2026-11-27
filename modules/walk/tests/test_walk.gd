@@ -321,6 +321,43 @@ func run_tests() -> void:
 	b.sync.undo()
 	await frames(1)
 	check(is_equal_approx(float(model.parts[sofa].rot), sr0), "and one undo turns it back")
+	# Ctrl+C / Ctrl+V: a copy in your hands, the same size, angle and material.
+	b.sync.edit(WalkInside.WalkEdits.resize(model, sofa, "w", 2.4))
+	await frames(1)
+	var ctrl := func(key: Key) -> void:
+		var ev := InputEventKey.new()
+		ev.physical_keycode = key
+		ev.ctrl_pressed = true
+		ev.pressed = true
+		v._input(ev)
+	ctrl.call(KEY_C)
+	check(str(WalkInside.clipboard.get("kind", "")) == "sofa" and is_equal_approx(float(WalkInside.clipboard.fields.w), 2.4),
+			"Ctrl+C copies the sofa you're editing: %s" % WalkInside.clipboard)
+	var look_was := ArtStyle.realistic()
+	ctrl.call(KEY_V)
+	check(str(v.holding.get("type", "")) == "sofa" and v.holding.has("copy") and not v.is_palette_open()
+			and is_equal_approx(float(v.holding.rot), float(model.parts[sofa].rot)) and ArtStyle.realistic() == look_was,
+			"Ctrl+V puts a copy in your hands, turned the same (and V's look toggle stays put)")
+	v.body.position = Vector3(2.0, 0.95, 5.0)
+	_face(v, Vector3(2.5, 0.0, 2.6))
+	await _settle()
+	var n0 := model.parts.size()
+	check(v.spot.has("at") and v._ghost != null and is_equal_approx(float(v._ghost.get_meta("size").x), 2.4),
+			"its ghost is the copy's size: %s" % [v._ghost.get_meta("size") if v._ghost else null])
+	var placed := v.put_down()
+	await frames(1)
+	var copy_id := ""
+	for pid: String in model.parts:
+		if str(model.parts[pid].kind) == "sofa" and pid != sofa:
+			copy_id = pid
+	check(placed and model.parts.size() == n0 + 1 and copy_id != "" and is_equal_approx(float(model.parts[copy_id].get("w", 0.0)), 2.4),
+			"put down, the copy is 2.4 m wide too: %s" % model.parts.get(copy_id, {}))
+	ctrl.call(KEY_V)
+	check(str(v.holding.get("type", "")) == "sofa", "Ctrl+V again: another")
+	v._drop_holding()
+	b.sync.undo()
+	b.sync.undo()
+	await frames(1)
 	v.toggle_palette()
 	await frames(1)
 
