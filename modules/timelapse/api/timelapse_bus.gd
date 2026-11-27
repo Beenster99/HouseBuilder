@@ -84,7 +84,9 @@ func start_timelapse(parts: Array, building_title: String, open := true, options
 ## The design room's "Build it": schedules the building model as it stands now.
 ##   bus.start_from_model((Modules.bus("building") as BuildingBus).model, "Family house")
 func start_from_model(model: BuildingModel, building_title: String = "", open := true) -> void:
-	start_timelapse(BuildingParts.from_model(model), building_title if building_title != "" else model.name, open)
+	var parts := BuildingParts.from_model(model)
+	parts.append_array(BuildingParts.fit_out(model))
+	start_timelapse(parts, building_title if building_title != "" else model.name, open)
 
 
 func request_play(play: bool) -> void:

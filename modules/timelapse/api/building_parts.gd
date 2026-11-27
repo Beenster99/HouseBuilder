@@ -102,6 +102,29 @@ static func from_model(model: BuildingModel) -> Array[Dictionary]:
 	return out
 
 
+## Each room's fit-out (finishes, kitchens, bathrooms) as a thin "fitout" part on its floor
+## costed from BuildingQuantities, so a timelapse spends what the design room's cost panel
+## shows (stair cores and lift shafts included: their parts carry no cost of their own).
+static func fit_out(model: BuildingModel) -> Array[Dictionary]:
+	var out: Array[Dictionary] = []
+	for rid: String in BuildingModel.sort_ids(model.rooms.keys()):
+		var r: Dictionary = model.rooms[rid]
+		var cost := float(BuildingQuantities.room(model, rid).get("fit_out", 0.0))
+		var level := int(r.get("level", 0))
+		var box := AABB()
+		var first := true
+		for pt: Variant in r.get("outline", []):
+			var v := Vector3(float(pt[0]), model.level_elevation(level), float(pt[1]))
+			box = AABB(v, Vector3.ZERO) if first else box.expand(v)
+			first = false
+		if first or cost <= 0.0:
+			continue
+		box.size.y = 0.05
+		out.append({"id": "fit:" + rid, "kind": "fitout", "family": "fixture", "material": "",
+				"aabb": box, "supported_by": [], "cost": cost, "mass": 0.0, "level": level})
+	return out
+
+
 ## -1 when `a` carries `b`, 1 when `b` carries `a`, 0 when neither is below the other.
 static func _carries(a: Dictionary, b: Dictionary) -> int:
 	var ya := (a.aabb as AABB).position.y

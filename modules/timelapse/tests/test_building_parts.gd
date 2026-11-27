@@ -39,8 +39,13 @@ func run_tests() -> void:
 		start_of[t.id] = t
 	check(start_of.p2.start >= start_of.p1.end - 0.0001, "walls go up after their footings")
 
+	var fit := BuildingParts.fit_out(m)
+	check(fit.size() == 2 and fit[0].kind == "fitout" and is_equal_approx(fit[0].cost, BuildingQuantities.room(m, fit[0].id.trim_prefix("fit:")).fit_out),
+			"the lounge and stair core fit-outs are costed: %s" % str(fit.map(func(f): return f.id)))
 	var bus := Modules.bus("timelapse") as TimelapseBus
 	bus.start_from_model(m, "", false)
+	check(float(bus.schedule.cost) >= BuildingQuantities.totals(m).cost - 0.5,
+			"the timelapse spends at least what the cost panel shows: £%d of £%d" % [bus.schedule.cost, BuildingQuantities.totals(m).cost])
 	check(bus.is_active() and bus.title == "Test house", "start_from_model schedules it under the building's name")
 	bus.apply_net_snapshot({})
 
