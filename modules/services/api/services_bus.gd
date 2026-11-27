@@ -21,6 +21,8 @@ signal sources_changed
 ## The consultant's design was sent to the building (or there was nothing to add): its
 ## notes, in words. Fired on the player who asked.
 signal design_done(notes: PackedStringArray)
+## A feasibility review finished (FeasibilityReview), on the player who asked.
+signal review_done(review: Dictionary)
 
 const EVENT_ROUTE := "services.route"
 const EVENT_SOURCE := "services.source"
@@ -51,6 +53,7 @@ func unregister_module() -> void:
 	if is_instance_valid(_design):
 		_design.unregister_action("services.route")
 		_design.unregister_action("services.design")
+		_design.unregister_action("services.review")
 		_design.unregister_overlay(OVERLAY)
 	_design = null
 	if _net:
@@ -82,6 +85,8 @@ func _hook_design() -> void:
 		run_consultant(), 55)
 	design.register_action("services.design", "Design services", func(_model: BuildingModel) -> void:
 		design_services(), 56)
+	design.register_action("services.review", "Check feasibility", func(_model: BuildingModel) -> void:
+		review_feasibility(), 57)
 	if design.has_method("register_overlay"):
 		design.register_overlay(OVERLAY, "M&E", overlay_tints, make_panel, 60)
 		report_changed.connect(func(_r: ServicesReport) -> void: design.refresh_overlay(OVERLAY))
@@ -144,6 +149,21 @@ func design_services() -> Dictionary:
 	design_done.emit(plan.notes)
 	run_consultant()
 	return plan
+
+
+## The consultant's verdict on the shared building: does it stand up, is it powered and
+## plumbed, and does it meet the active contract's brief and budget (FeasibilityReview).
+## Worked out on this player's copy of the building, which every player shares, so anyone
+## asking gets the same answer.
+func review_feasibility(brief: Dictionary = {}) -> Dictionary:
+	var b := brief
+	if b.is_empty():
+		var contracts := Modules.bus("contracts")
+		if contracts and "active" in contracts:
+			b = contracts.active
+	var r := FeasibilityReview.review(_model(), b, sources)
+	review_done.emit(r)
+	return r
 
 
 ## Asks the host to route every service through the current building. The report arrives

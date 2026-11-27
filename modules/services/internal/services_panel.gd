@@ -1,6 +1,7 @@
 extends VBoxContainer
 ## The M&E view's panel in the design room: the consultant's verdict, each system's length
-## and cost, what is wrong and why, and buttons to route again or let it design the rest.
+## and cost, what is wrong and why, and buttons to route again, let it design the rest, or
+## ask whether the design is feasible.
 
 const WIDTH := 320
 
@@ -30,6 +31,9 @@ func _init() -> void:
 	var design := BsxTheme.button("Design services", func() -> void: _bus.design_services())
 	design.custom_minimum_size = Vector2(150, 36)
 	row.add_child(design)
+	var check := BsxTheme.button("Check feasibility", func() -> void: _bus.review_feasibility())
+	check.custom_minimum_size = Vector2(304, 36)
+	add_child(check)
 	_said = _wrap_label()
 	add_child(_said)
 
@@ -38,6 +42,7 @@ func bind(bus: Node) -> void:
 	_bus = bus
 	bus.report_changed.connect(_show)
 	bus.design_done.connect(func(notes: PackedStringArray) -> void: _said.text = "\n".join(notes))
+	bus.review_done.connect(_show_review)
 	_show(bus.last_report())
 
 
@@ -66,3 +71,10 @@ func _show(report: ServicesReport) -> void:
 		if not n.begins_with(ServicesRates.label("power") + ":") and not n.contains(" m of "):
 			rest.append(n)
 	_notes.text = "\n".join(rest)
+
+
+func _show_review(r: Dictionary) -> void:
+	var lines := PackedStringArray([str(r.summary)])
+	for i: Dictionary in r.issues:
+		lines.append(("- %s %s" % [i.text, i.tip]).strip_edges())
+	_said.text = "\n".join(lines)

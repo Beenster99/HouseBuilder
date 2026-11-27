@@ -3,7 +3,8 @@
 The M&E (mechanical and electrical) consultant from the plan's design room section: it
 finds the cheapest routes for wiring and piping through the building, prices them, and
 checks every room is powered and every wet room plumbed. Headless and deterministic; it
-reads the building only through `modules/building/api`. Owned by the "Build mechanical and
+reads the building only through `modules/building/api` (and, for the feasibility verdict,
+the structure and contracts apis). Owned by the "Build mechanical and
 electrical routing" thread.
 
 ## Using it
@@ -33,8 +34,16 @@ nearest the soil stack, then places a consumer unit, water main, boiler and soil
 where the routes start. The bus sends it to the building as one batch edit (one undo step
 for everyone) and routes again. It only adds; it never moves what players drew.
 
-In the design room (flag `services.consultant`, on): "Route services" and "Design services"
-on the top bar, and an "M&E" view that tints rooms green (served) or red (missing
+**Check feasibility**: `FeasibilityReview.review(model, brief?)` (or
+`bus.review_feasibility()`, which uses the active contract's brief) gives one verdict: does
+it pass the structural stress tests (structure module), is every room powered and plumbed,
+does it meet the brief's requirements, and is the all-in cost (the building's own price plus
+the services routes, which the catalog's fit-out rates do not cover) within budget. It lists
+the issues worst first, each with what to do, and works on each player's shared copy of the
+building, so everyone gets the same answer.
+
+In the design room (flag `services.consultant`, on): "Route services", "Design services" and
+"Check feasibility" on the top bar, and an "M&E" view that tints rooms green (served) or red (missing
 something), source units blue, with a side panel of the summary, per-system length and cost,
 the notes and both buttons.
 
