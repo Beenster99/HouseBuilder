@@ -123,7 +123,8 @@ func run_tests() -> void:
 	v._search.text = "bath"
 	v._search.text_changed.emit("bath")
 	var names: Array = v.palette_groups().map(func(g: Dictionary) -> String: return str(g.id))
-	check(names == ["bathroom"] and v._palette.find_child("Item_bath", true, false) != null
+	# The asset library (flag building.library) adds its own "lib:<group>" groups.
+	check(names.has("bathroom") and names.all(func(n: String) -> bool: return n == "bathroom" or n.begins_with("lib:")) and v._palette.find_child("Item_bath", true, false) != null
 			and v._palette.find_child("Item_sofa", true, false) == null, "the filter narrows them, groups open: %s" % [names])
 	v._search.text = ""
 	v._search.text_changed.emit("")
