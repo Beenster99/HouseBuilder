@@ -23,6 +23,8 @@ var _options: VBoxContainer
 var _actions: HBoxContainer
 var _views: OptionButton
 var _overlay_slot: VBoxContainer
+var _side_slot: VBoxContainer
+var _folded: Dictionary = {}
 var _note_popup: PopupPanel
 var _layers_pop: PopupMenu
 var _note_text: LineEdit
@@ -64,11 +66,13 @@ func _ready() -> void:
 	var design := Modules.bus("design") as DesignBus
 	design.actions_changed.connect(_build_actions)
 	design.overlays_changed.connect(_build_views)
+	design.panels_changed.connect(build_side_panels)
 	design.overlay_changed.connect(func(id: String) -> void:
 		if id == str(room.get("overlay")):
 			show_overlay_panel(id))
 	_build_actions()
 	_build_views()
+	build_side_panels()
 	_refresh_tools()
 	refresh_bar()
 
@@ -430,11 +434,54 @@ func _build_cost() -> void:
 	_overlay_slot.visible = false
 	_overlay_slot.size_flags_vertical = SIZE_EXPAND_FILL
 	col.add_child(_overlay_slot)
+	_side_slot = VBoxContainer.new()
+	_side_slot.name = "SidePanels"
+	_side_slot.visible = false
+	col.add_child(_side_slot)
 	_cost = RichTextLabel.new()
 	_cost.bbcode_enabled = true
 	_cost.scroll_active = true
 	_cost.size_flags_vertical = SIZE_EXPAND_FILL
 	col.add_child(_cost)
+
+
+## Rebuilds the other modules' always-on windows (DesignBus.register_panel), each under a
+## title button that folds it.
+func build_side_panels() -> void:
+	for c in _side_slot.get_children():
+		_side_slot.remove_child(c)
+		c.queue_free()
+	var list := (Modules.bus("design") as DesignBus).panel_list()
+	_side_slot.visible = not list.is_empty()
+	for p: Dictionary in list:
+		var id := str(p.id)
+		var body: Variant = (p.make as Callable).call(_model) if (p.make as Callable).is_valid() else null
+		var head := Button.new()
+		head.flat = true
+		head.alignment = HORIZONTAL_ALIGNMENT_LEFT
+		head.add_theme_font_size_override("font_size", 16)
+		_side_slot.add_child(head)
+		var paint := func() -> void:
+			head.text = ("▸ " if _folded.get(id, false) else "▾ ") + str(p.title)
+			if body is Control:
+				(body as Control).visible = not _folded.get(id, false)
+		head.pressed.connect(func() -> void:
+			_folded[id] = not _folded.get(id, false)
+			paint.call())
+		if body is Control:
+			_side_slot.add_child(body as Control)
+		paint.call()
+		_side_slot.add_child(HSeparator.new())
+
+
+## Folds or opens a side panel (tests, keys).
+func fold_side_panel(id: String, folded: bool) -> void:
+	_folded[id] = folded
+	build_side_panels()
+
+
+func side_panel_count() -> int:
+	return (Modules.bus("design") as DesignBus).panels.size() if _side_slot.visible else 0
 
 
 func _refresh_cost() -> void:

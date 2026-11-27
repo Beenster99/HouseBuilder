@@ -9,7 +9,7 @@ the live cost panel and the design library. Start on the main menu opens it.
 
 | File | What it is |
 | --- | --- |
-| `api/design_bus.gd` (`DesignBus`) | Registers the room scene (Start, priority 20) and lets other modules add top-bar buttons: `register_action(id, label, press(model), order)` (the timelapse's "Build it"). |
+| `api/design_bus.gd` (`DesignBus`) | Registers the room scene (Start, priority 20) and lets other modules add top-bar buttons: `register_action(id, label, press(model), order)` (the timelapse's "Build it"); views each player picks, `register_overlay(id, label, tints(model), panel(), order)`; and always-on windows in the right-hand column, whatever the View, `register_panel(id, title, make(model) -> Control, order)` (live structure, feasibility and contract assessments). Players can fold each window. |
 | `internal/design_session.gd` (`DesignSession`) | The room's logic with no scene: tools, snapping, picking, drags, undo and redo, levels, save and load. Tests drive it directly, two or three on their own buses. |
 | `internal/design_presence.gd` (`DesignPresence`) | Selections (host-validated event `design.select`), soft locks (session claims, which the building's host validator honours; they lapse 8 s after a drag stops moving) and cursors (movers `player:<peer>:design_cursor` / `design_anchor`). |
 | `internal/design_snap.gd` (`DesignSnap`) | Grid, corner and 45° snapping. |

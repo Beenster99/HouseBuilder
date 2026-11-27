@@ -99,6 +99,20 @@ func run_tests() -> void:
 	room.call("set_overlay", "")
 	design.unregister_overlay("test.eng")
 	await frames(2)
+	var live := [null]
+	design.register_panel("test.live", "Structure (live)", func(m: BuildingModel) -> Control:
+		var l := Label.new()
+		l.text = "%d levels" % m.level_count()
+		live[0] = l
+		return l)
+	await frames(1)
+	check(live[0] != null and (live[0] as Control).is_inside_tree() and (live[0] as Control).is_visible_in_tree(),
+			"a side panel shows whatever the View")
+	hud.call("fold_side_panel", "test.live", true)
+	check(not (live[0] as Control).visible, "a side panel folds")
+	design.unregister_panel("test.live")
+	await frames(1)
+	check(int(hud.call("side_panel_count")) == 0, "an unregistered side panel goes")
 	room.call("toggle_plan")
 	check(bool((room.get("camera") as Camera3D).get("plan")), "Tab switches to the 2D plan")
 	room.call("toggle_plan")

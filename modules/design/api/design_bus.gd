@@ -20,6 +20,8 @@ signal actions_changed
 signal overlays_changed
 ## An overlay's colours or panel changed (refresh_overlay); rooms showing it redraw.
 signal overlay_changed(id: String)
+## A side panel was added or removed.
+signal panels_changed
 
 const ROOM_SCENE := "design.room"
 const ROOM_FLAG := "design.room"
@@ -30,6 +32,10 @@ const SETTINGS := "design"
 ## id -> {label, tints: Callable(model) -> {entry id: Color}, panel: Callable() -> Control, order}.
 ## Each player picks the view they look through on the room's top bar; Architect is none.
 var overlays: Dictionary = {}
+
+## Always-on windows in the room's right-hand column, whatever the View (the engineer's live
+## assessment): id -> {title, make: Callable(model) -> Control, order}. Each player can fold one.
+var panels: Dictionary = {}
 
 ## Buttons other modules put on the room's top bar: id -> {label, press: Callable(model), order}.
 var actions: Dictionary = {}
@@ -94,6 +100,29 @@ func overlay_list() -> Array[Dictionary]:
 	var out: Array[Dictionary] = []
 	for id: String in overlays:
 		var o: Dictionary = overlays[id].duplicate()
+		o["id"] = id
+		out.append(o)
+	out.sort_custom(func(x: Dictionary, y: Dictionary) -> bool: return int(x.order) < int(y.order))
+	return out
+
+
+## Adds a window to the room's right-hand column, shown whatever View is picked. make(model)
+## builds its Control each time a room opens; keep it live yourself (model.changed, timers).
+func register_panel(id: String, title: String, make: Callable, order: int = 50) -> void:
+	panels[id] = {"title": title, "make": make, "order": order}
+	panels_changed.emit()
+
+
+func unregister_panel(id: String) -> void:
+	if panels.erase(id):
+		panels_changed.emit()
+
+
+## Side panels, lowest order first: [{id, title, make, order}].
+func panel_list() -> Array[Dictionary]:
+	var out: Array[Dictionary] = []
+	for id: String in panels:
+		var o: Dictionary = panels[id].duplicate()
 		o["id"] = id
 		out.append(o)
 	out.sort_custom(func(x: Dictionary, y: Dictionary) -> bool: return int(x.order) < int(y.order))
