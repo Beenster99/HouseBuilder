@@ -42,6 +42,18 @@ the services routes, which the catalog's fit-out rates do not cover) within budg
 the issues worst first, each with what to do, and works on each player's shared copy of the
 building, so everyone gets the same answer.
 
+When structure fails, the verdict also runs the structural engineer's Design structure
+(StructureDesigner) and Design services as dry runs on a copy: `fixes` says what each would
+add and cost, `fixable` whether together they make it feasible, and `cost.after_fixes` the
+all-in price then ("Design structure would make it work, at £160,110 all in").
+
+**Live** (flag `services.live`, on): `watch(model)` (the shared building, by default) restarts
+a one-second timer on every change; when it runs out the host routes the services again
+for everyone and each player's verdict is redone on a worker thread (`review_done`,
+`last_review()`), so the room never stalls. The design room shows it in an always-on
+"Feasibility" window (`design.register_panel`, order 15) with a tick or cross per area:
+structure, services, brief, cost.
+
 In the design room (flag `services.consultant`, on): "Route services", "Design services" and
 "Check feasibility" on the top bar, and an "M&E" view that tints rooms green (served) or red (missing
 something), source units blue, with a side panel of the summary, per-system length and cost,

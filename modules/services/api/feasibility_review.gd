@@ -12,6 +12,9 @@ extends RefCounted
 ##   r.issues             # [{area, text, tip}] worst first; area: structure | services | requirements | budget
 ##   r.areas              # {structure: {ok, summary}, services: {...}, requirements: {...}, budget: {...}}
 ##   r.cost               # {build, services, total, budget, currency}
+##   r.fixes              # {structure?: {possible, added, upsized, cost, notes}, services?: {...}}
+##   r.fixable            # Design structure and Design services would make it feasible
+##   r.cost.after_fixes   # all-in cost once both are applied
 ##   r.structure, r.services, r.assessment   # the full reports behind it
 ##
 ## The build cost is the building's own price (BuildingQuantities); the services routes are
@@ -95,6 +98,36 @@ static func review(model: BuildingModel, brief: Dictionary = {}, sources: Dictio
 		out.areas["budget"] = {"ok": true, "summary": "%s all in (%s build, %s services); no budget set." % [
 			_money(total), _money(build), _money(sv.total_cost)]}
 
+	# What the engineers could fix: dry runs of Design structure and Design services on a copy.
+	var fixed := BuildingModel.from_data(model.to_data(), model.catalog)
+	var fixes := {}
+	if not st_ok:
+		var sp := StructureDesigner.design(model)
+		if not (sp.op as Dictionary).is_empty():
+			fixed.apply(sp.op)
+		var extra := float(BuildingQuantities.totals(fixed).cost) - build
+		fixes["structure"] = {"possible": bool(sp.passed), "added": int(sp.added), "upsized": int(sp.upsized),
+			"cost": snappedf(extra, 0.01), "notes": sp.notes}
+		var tip := "Design structure fixes this (%d parts added, %d made bigger, about %s)." % [int(sp.added), int(sp.upsized), _money(extra)] \
+				if bool(sp.passed) else "Design structure cannot fix all of it: " + (str(sp.notes[sp.notes.size() - 1]) if not (sp.notes as PackedStringArray).is_empty() else "it needs a rethink.")
+		for i: Dictionary in issues:
+			if i.area == "structure":
+				i.tip = tip
+	var plan := ServicesDesigner.propose(fixed, sources)
+	if not (plan.ops as Array).is_empty() or not sv_ok:
+		for op: Dictionary in plan.ops:
+			fixed.apply(op)
+		var after: ServicesReport = plan.after
+		fixes["services"] = {"possible": after.passed(), "added": (plan.added as Array).size(),
+			"cost": snappedf(after.total_cost - sv.total_cost, 0.01), "notes": plan.notes}
+	var fixed_build := float(BuildingQuantities.totals(fixed).cost)
+	var fixed_total := fixed_build + (plan.after as ServicesReport).total_cost
+	out.cost["after_fixes"] = snappedf(fixed_total, 0.01)
+	out["fixes"] = fixes
+	var fix_ok := bool(fixes.get("structure", {}).get("possible", true)) and bool(fixes.get("services", {}).get("possible", true))
+	var fix_budget := float(out.cost.budget) <= 0.0 or fixed_total <= float(out.cost.budget)
+	out["fixable"] = fix_ok and req_ok and fix_budget
+
 	out.issues = issues
 	var blocking := issues.filter(func(i: Dictionary) -> bool: return not bool(i.get("soft", false)))
 	out.feasible = st_ok and sv_ok and req_ok and budget_ok
@@ -108,6 +141,16 @@ static func review(model: BuildingModel, brief: Dictionary = {}, sources: Dictio
 			if out.areas.has(area) and not bool(out.areas[area].ok):
 				bad.append(area)
 		out.summary = "Not feasible yet (%s). Start with: %s" % [", ".join(bad), str(blocking[0].text) if not blocking.is_empty() else ""]
+		if fix_ok and not fixes.is_empty():
+			var press := PackedStringArray()
+			for k: String in ["structure", "services"]:
+				if fixes.has(k):
+					press.append("Design " + k)
+			if fix_budget:
+				out.summary += " %s would make it work, at %s all in." % [" and ".join(press), _money(fixed_total)]
+			else:
+				out.summary += " %s would make it stand and work, but at %s all in it is still %s over budget." % [
+					" and ".join(press), _money(fixed_total), _money(fixed_total - float(out.cost.budget))]
 	return out
 
 

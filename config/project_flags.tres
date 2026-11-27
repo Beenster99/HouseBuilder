@@ -26,6 +26,7 @@ flags = {
 "structure.stress_test": true,
 "services": true,
 "services.consultant": true,
+"services.live": true,
 "ui.debug_tab": true,
 "ui.sun_slider": false
 }

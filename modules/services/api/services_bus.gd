@@ -31,13 +31,23 @@ const SAVE_VERSION := 1
 ## "Route services" and "Design services" on the design room's top bar, and the M&E view.
 const CONSULTANT_FLAG := "services.consultant"
 const OVERLAY := "services.me"
+## Live assessment: a moment after the building stops changing, the host routes the
+## services again and every player's feasibility verdict updates.
+const LIVE_FLAG := "services.live"
 const PANEL_SCRIPT := "res://modules/services/internal/services_panel.gd"
+const FEASIBILITY_PANEL := "services.feasibility"
+const FEASIBILITY_SCRIPT := "res://modules/services/internal/feasibility_panel.gd"
 
 ## system -> {level, at: [x, z]}: sources the players placed (see ServicesConsultant).
 var sources: Dictionary = {}
 var _net: Object
 var _provider := Callable()
 var _editor := Callable()
+## Seconds of quiet after an edit before the live assessment runs.
+var live_delay := 1.0
+var _live_timer: Timer
+var _watched: BuildingModel
+var _review: Dictionary = {}
 var _design: Node
 var _report: ServicesReport
 
@@ -46,6 +56,97 @@ func register_module() -> void:
 	Saves.register_section(SAVE_SECTION, self)
 	attach(Modules.bus("multiplayer"))
 	_hook_design.call_deferred()
+	if Flags.is_on(LIVE_FLAG):
+		_hook_live.call_deferred()
+
+
+func _hook_live() -> void:
+	var b := Modules.bus("building")
+	if b and "model" in b:
+		watch(b.model)
+	var contracts := Modules.bus("contracts")
+	if contracts and contracts.has_signal("active_changed"):
+		contracts.active_changed.connect(_schedule)
+
+
+## Keeps the assessment live for `model`: every change (edit, undo, load) restarts a short
+## timer; when it runs out the host routes again (broadcast to all) and this player's
+## feasibility verdict is redone (review_done). null stops watching.
+func watch(model: BuildingModel) -> void:
+	if _watched and _watched.changed.is_connected(_on_changed):
+		_watched.changed.disconnect(_on_changed)
+	_watched = model
+	if model:
+		model.changed.connect(_on_changed)
+	if _live_timer == null:
+		_live_timer = Timer.new()
+		_live_timer.one_shot = true
+		_live_timer.timeout.connect(_run_live)
+		add_child(_live_timer)
+
+
+func _on_changed(_op: Dictionary) -> void:
+	_schedule()
+
+
+func _schedule() -> void:
+	if _live_timer:
+		_live_timer.start(live_delay)
+
+
+func _run_live() -> void:
+	var m := _model()
+	if m == null or m.rooms.is_empty():
+		return
+	if _net and (not _net.has_method("is_host") or _net.is_host()):
+		run_consultant()
+	_review_in_background(m)
+
+
+## The live review runs on a worker thread on a copy of the building, so a second of
+## structural design work never stalls the room. Edits made meanwhile queue one more run.
+var _task := -1
+var _again := false
+
+
+func _review_in_background(m: BuildingModel) -> void:
+	if _task >= 0:
+		_again = true
+		return
+	var copy := BuildingModel.from_data(m.to_data(), m.catalog)
+	var brief := _active_brief()
+	var src := sources.duplicate(true)
+	_task = WorkerThreadPool.add_task(func() -> void:
+		var r := FeasibilityReview.review(copy, brief, src)
+		_finish_review.call_deferred(r))
+
+
+func _finish_review(r: Dictionary) -> void:
+	WorkerThreadPool.wait_for_task_completion(_task)
+	_task = -1
+	_review = r
+	review_done.emit(r)
+	if _again:
+		_again = false
+		_schedule()
+
+
+func _active_brief() -> Dictionary:
+	var contracts := Modules.bus("contracts")
+	if contracts and "active" in contracts:
+		return (contracts.active as Dictionary).duplicate(true)
+	return {}
+
+
+func _exit_tree() -> void:
+	if _task >= 0:
+		WorkerThreadPool.wait_for_task_completion(_task)
+		_task = -1
+
+
+## The last feasibility verdict on this player ({} before the first).
+func last_review() -> Dictionary:
+	return _review
 
 
 func unregister_module() -> void:
@@ -55,6 +156,8 @@ func unregister_module() -> void:
 		_design.unregister_action("services.design")
 		_design.unregister_action("services.review")
 		_design.unregister_overlay(OVERLAY)
+		if _design.has_method("unregister_panel"):
+			_design.unregister_panel(FEASIBILITY_PANEL)
 	_design = null
 	if _net:
 		_net.unregister_event(EVENT_ROUTE)
@@ -90,6 +193,8 @@ func _hook_design() -> void:
 	if design.has_method("register_overlay"):
 		design.register_overlay(OVERLAY, "M&E", overlay_tints, make_panel, 60)
 		report_changed.connect(func(_r: ServicesReport) -> void: design.refresh_overlay(OVERLAY))
+	if design.has_method("register_panel") and Flags.is_on(LIVE_FLAG):
+		design.register_panel(FEASIBILITY_PANEL, "Feasibility", make_feasibility_panel, 15)
 
 
 ## The M&E view's colours: rooms green when fully served, red when something is missing;
@@ -107,6 +212,13 @@ func overlay_tints(_model: BuildingModel) -> Dictionary:
 		for u: Dictionary in sys.unserved:
 			out[str(u.id)] = Color(0.95, 0.3, 0.25)
 	return out
+
+
+## The always-on Feasibility window: the live verdict, kept up to date by review_done.
+func make_feasibility_panel(_model: BuildingModel = null) -> Control:
+	var panel: Control = load(FEASIBILITY_SCRIPT).new()
+	panel.call("bind", self)
+	return panel
 
 
 ## The M&E view's side panel: the summary, the notes and the two buttons.
@@ -156,12 +268,9 @@ func design_services() -> Dictionary:
 ## Worked out on this player's copy of the building, which every player shares, so anyone
 ## asking gets the same answer.
 func review_feasibility(brief: Dictionary = {}) -> Dictionary:
-	var b := brief
-	if b.is_empty():
-		var contracts := Modules.bus("contracts")
-		if contracts and "active" in contracts:
-			b = contracts.active
+	var b := brief if not brief.is_empty() else _active_brief()
 	var r := FeasibilityReview.review(_model(), b, sources)
+	_review = r
 	review_done.emit(r)
 	return r
 

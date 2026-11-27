@@ -44,6 +44,8 @@ func bind(bus: Node) -> void:
 	bus.design_done.connect(func(notes: PackedStringArray) -> void: _said.text = "\n".join(notes))
 	bus.review_done.connect(_show_review)
 	_show(bus.last_report())
+	if not bus.last_review().is_empty():
+		_show_review(bus.last_review())
 
 
 func _wrap_label() -> Label:
