@@ -81,12 +81,18 @@ def main(argv: list) -> None:
 	scene.collection.objects.link(cam)
 	scene.camera = cam
 	cam.data.lens = 50
-	direction = Vector((0.55, 1.0, 0.5)).normalized()
-	cam.location = centre + direction * span * 1.55
+	direction = Vector((0.45, 1.0, 0.95)).normalized()
+	cam.location = centre + direction * span * 1.25
 	cam.rotation_euler = (centre - cam.location).to_track_quat("-Z", "Y").to_euler()
 	cam.data.clip_end = span * 10
+	# Frame exactly what was built (the ground plane is left out of the fit).
+	for o in scene.objects:
+		o.select_set(o.type == "MESH" and o is not ground)
+	bpy.context.view_layer.update()
+	bpy.ops.view3d.camera_to_view_selected()
+	cam.location += direction * span * 0.08
 	scene.render.engine = "CYCLES"
-	scene.cycles.samples = 48
+	scene.cycles.samples = int(os.environ.get("SAMPLES", "48"))
 	scene.cycles.use_denoising = True
 	scene.render.resolution_x, scene.render.resolution_y = 1920, 1080
 	scene.view_settings.view_transform = "Standard"

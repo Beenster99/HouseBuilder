@@ -41,7 +41,7 @@ def tower_crane(height=30.0, jib=40.0, counter=12.0, w=1.6):
 
 @asset("plant.crane.wrecking_ball", "Wrecking ball, 2.5 t", tags=("plant", "demolition"))
 def wrecking_ball(r=0.42):
-	kit.sphere(r, (0, 0, r), "cast_iron", "ball", segs=28)
+	kit.sphere(r, (0, 0, r), "cast_iron", "ball", segs=40)
 	kit.cyl(0.07, 0.2, (0, 0, 2 * r + 0.08), "cast_iron", "lug", segs=12)
 	kit.socket("cable", (0, 0, 2 * r + 0.18))
 

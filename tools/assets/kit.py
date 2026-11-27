@@ -11,6 +11,7 @@ from contextlib import contextmanager
 import bpy  # first: it provides bmesh and mathutils
 import bmesh
 from mathutils import Euler, Matrix, Vector
+from mathutils.geometry import tessellate_polygon
 
 import materials
 
@@ -144,12 +145,13 @@ def prism(points, length, at=(0, 0, 0), slot="steel_painted", name="prism", axis
 	a = [bm.verts.new(v(u, w, -h)) for u, w in points]
 	b = [bm.verts.new(v(u, w, h)) for u, w in points]
 	n = len(points)
-	bm.faces.new(a)
-	bm.faces.new(b[::-1])
+	# Caps are tessellated by hand: outlines are often concave (I-sections, stair flights).
+	for i, j, k in tessellate_polygon([[Vector((u, w, 0.0)) for u, w in points]]):
+		bm.faces.new((a[i], a[j], a[k]))
+		bm.faces.new((b[k], b[j], b[i]))
 	for i in range(n):
 		j = (i + 1) % n
 		bm.faces.new((a[i], b[i], b[j], a[j]))
-	bmesh.ops.triangulate(bm, faces=[f for f in bm.faces if len(f.verts) > 4])
 	return _obj(name, bm, slot, _place(at, rot))
 
 

@@ -29,7 +29,7 @@ def bed(w, d, h, pillows=1, hospital=False):
 	frame = "steel_painted" if hospital else "hardwood"
 	base = h * 0.55
 	with kit.stage("frame"):
-		kit.box((w, d, 0.12), (0, 0, base - 0.06), frame, "base")
+		kit.box((w - 0.02, d - 0.09, 0.12), (0, 0, base - 0.06), frame, "base")
 		legs(w, d, base - 0.12, 0.05, frame)
 		kit.box((w, 0.04, h + 0.45), (0, -d / 2 + 0.02, (h + 0.45) / 2), frame, "headboard")
 		if hospital:
@@ -109,9 +109,9 @@ def kitchen_unit(w, d, h):
 
 def sofa(w, d, h):
 	with kit.stage("frame"):
-		kit.rounded_box((w, d, 0.22), (0, 0, 0.21), "fabric_grey", "base", radius=0.04)
+		kit.rounded_box((w - 0.3, d - 0.04, 0.22), (0, 0.01, 0.21), "fabric_grey", "base", radius=0.04)
 		legs(w, d, 0.1, 0.05, "hardwood", inset=0.05)
-		kit.rounded_box((w, 0.2, h - 0.1), (0, -d / 2 + 0.1, 0.1 + (h - 0.1) / 2), "fabric_grey", "back", radius=0.06)
+		kit.rounded_box((w - 0.3, 0.2, h - 0.1), (0, -d / 2 + 0.1, 0.1 + (h - 0.1) / 2), "fabric_grey", "back", radius=0.06)
 		for s in (-1, 1):
 			kit.rounded_box((0.18, d, 0.5), (s * (w / 2 - 0.09), 0, 0.35), "fabric_grey", "arm", radius=0.06)
 	with kit.stage("soft"):
