@@ -90,6 +90,8 @@ var _ball: RigidBody3D
 var _jib: Node3D
 var _cable_mesh: MeshInstance3D
 # HUD
+## The help line along the bottom (ui's HelpBar, the same on every screen).
+var help: HelpBar
 var _status: Label
 var _plan: Label
 var _result: Label
@@ -978,12 +980,45 @@ func _build_hud() -> void:
 	_result = BsxTheme.hud_label("", 22)
 	_result.name = "Result"
 	col.add_child(_result)
-	var help := BsxTheme.hud_label("Click part: charge  ·  [ ] delay  ·  P preview  ·  F fire  ·  R reset\n"
-			+ "Tab crane (A/D slew, W/S reach, Q/E cable)  ·  right drag orbit  ·  wheel zoom", 14)
-	col.add_child(help)
+	help = HelpBar.new()
+	add_child(help)
+
+
+## The help line: what to do in the mode the player is in (crane, charging, after firing).
+func _update_help() -> void:
+	var view := [["right drag", "orbit"], ["wheel", "zoom"], ["Esc", "menu"]]
+	if driving_crane():
+		help.set_help("CRANE", HelpBar.keys_text([["A D", "slew"], ["W S", "reach"], ["Q E", "cable"],
+				["Tab", "leave the crane"]] + view), BsxTheme.LIVE)
+	elif bus.is_active() and bus.is_fired():
+		help.set_help("COLLAPSE", HelpBar.keys_text([["R", "reset and try again"]] + view), BsxTheme.WARN)
+	elif bus.is_active():
+		help.set_help("PLACE CHARGES", HelpBar.keys_text([["click a part", "charge it"], ["[ ]", "delay"],
+				["P", "preview"], ["F", "fire"], ["R", "reset"], ["Tab", "crane"]] + view))
+	else:
+		help.set_help("DEMOLITION", "Nothing to demolish yet: build something first.")
+	if _hover != "":
+		help.hover(_hover_text(_hover))
+
+
+## "Column · ground floor · charged, 0.25 s" for the part under the pointer.
+func _hover_text(id: String) -> String:
+	var line := id
+	for p: Dictionary in bus.parts:
+		if str(p.id) == id:
+			var level := int(p.get("level", 0))
+			line = "%s  ·  %s" % [str(p.get("family", "part")).capitalize(),
+					"ground floor" if level == 0 else "floor %d" % level]
+			break
+	if bus.charges.has(id):
+		line += "  ·  charged, %.2f s" % float(bus.charges[id])
+	elif not bus.is_fired():
+		line += "  ·  click to charge"
+	return line
 
 
 func _update_hud() -> void:
+	_update_help()
 	if not bus.is_active():
 		_status.text = "Nothing to demolish yet."
 		return
@@ -991,8 +1026,6 @@ func _update_hud() -> void:
 	if bus.is_fired():
 		var c := bus.countdown()
 		line += "  ·  FIRING IN %.1f" % c if c > 0.0 else "  ·  FIRED"
-	if _hover != "":
-		line += "  ·  %s" % _hover
 	var owner := net.claim_owner(CRANE_ID)
 	if owner != 0:
 		line += "  ·  crane: %s" % net.player_name(owner)

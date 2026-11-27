@@ -54,6 +54,8 @@ var _speeds: Dictionary = {}  # speed -> Button
 var _scrub: HSlider
 var _empty: Label
 var _hand_over: Button
+## The help line along the bottom (ui's HelpBar, the same on every screen).
+var help: HelpBar
 var _ground: MeshInstance3D
 var _settlement: PanelContainer
 
@@ -386,8 +388,6 @@ func _unhandled_input(event: InputEvent) -> void:
 				_toggle_play()
 			KEY_G:
 				_ghost_root.visible = not _ghost_root.visible
-			KEY_ESCAPE:
-				Menu.open_pause()
 				get_viewport().set_input_as_handled()
 
 
@@ -400,11 +400,13 @@ func _build_hud() -> void:
 	panel.name = "TimelapseHud"
 	panel.add_theme_stylebox_override("panel", BsxTheme.panel_style(16))
 	panel.set_anchors_preset(Control.PRESET_BOTTOM_WIDE)
-	panel.offset_top = -150
+	panel.offset_top = -190
 	panel.offset_left = 24
 	panel.offset_right = -24
-	panel.offset_bottom = -20
+	panel.offset_bottom = -60  # the help bar goes below
 	layer.add_child(panel)
+	help = HelpBar.new()
+	add_child(help)
 	var col := VBoxContainer.new()
 	col.add_theme_constant_override("separation", 8)
 	panel.add_child(col)
@@ -450,9 +452,9 @@ func _build_hud() -> void:
 	var spacer := Control.new()
 	spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	row.add_child(spacer)
-	row.add_child(BsxTheme.hud_label("G ghost  ·  Space play/pause  ·  Esc back", 14))
 	var back := BsxTheme.button("Back to design (Esc)", go_back)
 	back.name = "Back"
+	back.tooltip_text = "Back to the design office to change the design"
 	# With a contract taken (the contracts module, optional): hand the finished building over.
 	_hand_over = BsxTheme.button("Hand over", func() -> void:
 		var c := _contracts()
@@ -491,6 +493,13 @@ func _sync_buttons() -> void:
 		(_speeds[s] as Button).set_pressed_no_signal(is_equal_approx(s, bus.speed()))
 
 
+func _update_help(day: float) -> void:
+	var how := [["Space", "play / pause"], ["G", "ghost"], ["right drag", "orbit"], ["middle drag", "pan"],
+			["wheel", "zoom"], ["Esc", "back to design"]]
+	var head := "TIMELAPSE: COMPLETE" if day >= bus.total_days() else "TIMELAPSE"
+	help.set_help(head, HelpBar.keys_text(how))
+
+
 func _update_hud(day: float) -> void:
 	var sched := bus.schedule
 	_play.text = "Pause" if bus.is_playing() else ("Replay" if day >= bus.total_days() else "Play")
@@ -502,6 +511,7 @@ func _update_hud(day: float) -> void:
 			_thousands(float(sched.get("cost", 0.0)))]
 	if not _scrubbing:
 		_scrub.set_value_no_signal(day)
+	_update_help(day)
 	var c := _contracts()
 	_hand_over.visible = day >= bus.total_days() and c != null \
 			and not (c.get("active") as Dictionary).is_empty()
