@@ -35,6 +35,10 @@ class FakeDesign:
 
 
 func run_tests() -> void:
+	await get_tree().process_frame
+	var design := Modules.bus("design")
+	if design and design.has_method("register_layer") and Flags.is_on(StructureBus.DIAGRAM_FLAG):
+		check(design.layers.has(StructureBus.LAYER), "the design room and holotable list the stress diagram")
 	_scale()
 	_build()
 	_sends()
