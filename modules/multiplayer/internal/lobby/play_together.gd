@@ -13,6 +13,8 @@ var _host: Button
 var _host_head: Label
 var _join_head: Label
 var _title: Label
+## The help line along the bottom, as on every screen.
+var help: HelpBar
 var _join: Button
 var _note: Label
 var _setup: VBoxContainer  # name, Host, address, Join: while not in a session
@@ -30,6 +32,8 @@ func _ready() -> void:
 	bg.color = BsxTheme.BG
 	bg.set_anchors_preset(Control.PRESET_FULL_RECT)
 	add_child(bg)
+	help = HelpBar.new()
+	add_child(help)
 	var center := CenterContainer.new()
 	center.set_anchors_preset(Control.PRESET_FULL_RECT)
 	add_child(center)
@@ -128,6 +132,14 @@ func _show() -> void:
 	if _title:
 		_title.text = {"host": "HOST A GAME", "join": "JOIN A GAME"}.get(mode, "PLAY ONLINE")
 	_live.visible = hosting
+	if hosting:
+		help.set_help("HOSTING", "Tell your friends the address below, then enter the game when they've joined")
+	elif mode == "join":
+		help.set_help("JOIN A GAME", "Type the host's address, then Join  ·  " + HelpBar.keys_text([["Esc", "back"]]))
+	elif mode == "host":
+		help.set_help("HOST A GAME", "Host, then tell your friends your address  ·  " + HelpBar.keys_text([["Esc", "back"]]))
+	else:
+		help.set_help("PLAY ONLINE", "Host a game, or type a host's address and Join  ·  " + HelpBar.keys_text([["Esc", "back"]]))
 	if hosting:
 		_reach.text = _hosting_note(net.router_info())
 
