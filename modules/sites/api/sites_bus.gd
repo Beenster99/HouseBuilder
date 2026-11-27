@@ -21,6 +21,8 @@ signal site_changed(pack: SitePack)
 
 const LOAD := "sites.load"
 const BOARD_CHANNEL := "sites.board"
+## The HUD info card naming the site the crew is building on.
+const INFO_ID := "sites.current"
 const BOARD_SCRIPT := "res://modules/sites/internal/sites_board.gd"
 const CLEAR := "sites.clear"
 const FLAG := "sites.real_sites"
@@ -109,6 +111,18 @@ func make_view() -> Node3D:
 	return view
 
 
+## The site drawn in the building model's coordinates (the plot frame: the plot's centre at
+## the origin, its mean ground at y = 0), for showing it around the building in the design
+## room. null when no site is loaded. The terrain, neighbours and orange plot outline.
+func make_plot_view() -> Node3D:
+	var view := make_view()
+	if view:
+		var o := _pack.plot_origin()
+		view.position = Vector3(-o.x, 0.0, -o.z)
+		view.name = "Site"
+	return view
+
+
 func _validate_load(_sender: int, payload: Dictionary) -> Variant:
 	var site_id := str(payload.get("id", ""))
 	var text := SitePool.text_of(site_id)
@@ -143,12 +157,15 @@ func _apply_load(payload: Dictionary) -> void:
 	_payload = payload
 	if _net and _net.has_method("is_host") and _net.is_host():
 		_tell_building(pack)
+	HudSlots.set_info(INFO_ID, "Real site: %s" % pack.title(),
+			"Plot %s, difficulty %d of 5. The plot is centred on the design's origin." % [pack.plot_size_text(), pack.rating()], 20)
 	site_changed.emit(pack)
 
 
 func _apply_clear(_payload: Dictionary) -> void:
 	_pack = null
 	_payload = {}
+	HudSlots.clear_info(INFO_ID)
 	site_changed.emit(null)
 
 

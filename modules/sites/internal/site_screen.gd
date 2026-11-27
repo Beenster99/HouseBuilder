@@ -80,7 +80,14 @@ func _hud() -> void:
 	_notes.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_notes.custom_minimum_size = Vector2(400, 0)
 	box.add_child(_notes)
-	box.add_child(BsxTheme.button("Back to sites", func() -> void: Router.goto(SitesBus.PICKER_SCENE)))
+	var buttons := HBoxContainer.new()
+	buttons.add_theme_constant_override("separation", 8)
+	box.add_child(buttons)
+	buttons.add_child(BsxTheme.button("Back to sites", func() -> void: Router.goto(SitesBus.PICKER_SCENE)))
+	var start := Menu.start()
+	if not start.is_empty():
+		buttons.add_child(BsxTheme.button("Design here", func() -> void:
+			Router.goto(str(start.scene), start.get("args", {}))))
 	_credits = BsxTheme.hud_label("", 13)
 	_credits.anchor_top = 1.0
 	_credits.anchor_bottom = 1.0

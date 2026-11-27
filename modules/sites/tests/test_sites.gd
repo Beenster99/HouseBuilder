@@ -72,12 +72,28 @@ func _board() -> void:
 	var text := _all_text(board)
 	check(text.contains(pack.title()), "the board lists the sites")
 	check(text.contains("Build here"), "with a way to start on one")
-	bus.load_site(BATH)
+	var go: Button = null
+	for b in board._buttons:
+		if str(b.get_meta("site_id")) == BATH:
+			go = b
+	check(go != null and go.action_mode == BaseButton.ACTION_MODE_BUTTON_PRESS, "Build here acts on the press, so a drifting wall pointer can't cancel it")
+	if go:
+		go.pressed.emit()
+	else:
+		bus.load_site(BATH)
 	await get_tree().process_frame
+	check(go != null and go.disabled and go.text == "Current", "the picked site's button reads Current")
+	check(_all_text(board).contains("Now building on %s." % pack.title()), "the board says which site is loading")
+	check(HudSlots.infos().any(func(c: Dictionary) -> bool: return c.id == SitesBus.INFO_ID and str(c.title).contains(pack.title())), "the HUD shows the real site")
+	var plot_view := bus.make_plot_view()
+	check(plot_view != null and plot_view.position.is_equal_approx(-pack.plot_origin()), "the plot view puts the plot centre on the design origin")
+	if plot_view:
+		plot_view.free()
 	check(_all_text(board).contains("Current site") and _all_text(board).contains(pack.plot_size_text()), "and shows the current site")
 	bus.clear_site()
 	await get_tree().process_frame
 	check(_all_text(board).contains("No real site yet"), "and says how to start when there is none")
+	check(not HudSlots.infos().any(func(c: Dictionary) -> bool: return c.id == SitesBus.INFO_ID), "and the HUD card goes")
 	board.queue_free()
 
 

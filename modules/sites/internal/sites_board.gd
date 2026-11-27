@@ -12,6 +12,8 @@ const STARS := "★★★★★"
 var _bus: Node
 var _current: VBoxContainer
 var _rows: VBoxContainer
+var _buttons: Array[Button] = []
+var _status: Label
 
 
 func _init() -> void:
@@ -27,6 +29,9 @@ func _init() -> void:
 	cols.add_child(left)
 	left.add_child(BsxTheme.title("Real-world sites", HEAD))
 	left.add_child(_label("Curated plots from OpenStreetMap. Difficulty 1 (easy) to 5 (very hard).", true))
+	_status = _label("", false, 14)
+	_status.add_theme_color_override("font_color", Color(1.0, 0.78, 0.3))
+	left.add_child(_status)
 	left.add_child(_row(["Site", "Where", "Plot", "Difficulty", "Constraints"], true))
 	var scroll := ScrollContainer.new()
 	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
@@ -50,7 +55,14 @@ func bind(bus: Node) -> void:
 	_show_current(bus.current())
 
 
+func _pick(site_id: String) -> void:
+	var name := str(SitePool.summary(site_id).get("name", site_id))
+	_status.text = "Loading %s for everyone..." % name
+	_bus.load_site(site_id)
+
+
 func _fill_pool() -> void:
+	_buttons.clear()
 	for c in _rows.get_children():
 		c.queue_free()
 	var sites := SitePool.list()
@@ -64,8 +76,15 @@ func _fill_pool() -> void:
 		go.text = "Build here"
 		go.add_theme_font_size_override("font_size", TEXT)
 		go.tooltip_text = "Load this site for the whole crew"
+		# Act on the press: on a wall screen the pointer follows the view, and a hand that
+		# drifts off the button before letting go would otherwise cancel the click.
+		go.action_mode = BaseButton.ACTION_MODE_BUTTON_PRESS
+		go.custom_minimum_size = Vector2(96, 30)
+		go.toggle_mode = false
 		var sid := str(s.id)
-		go.pressed.connect(func() -> void: _bus.load_site(sid))
+		go.set_meta("site_id", sid)
+		go.pressed.connect(func() -> void: _pick(sid))
+		_buttons.append(go)
 		row.add_child(go)
 		_rows.add_child(row)
 	if sites.size() > MAX_ROWS:
@@ -80,6 +99,12 @@ func _show_current(pack: SitePack) -> void:
 	for c in _current.get_children():
 		c.queue_free()
 	_current.add_child(BsxTheme.title("Current site", HEAD))
+	for b in _buttons:
+		var here := pack != null and str(b.get_meta("site_id")) == pack.id()
+		b.text = "Current" if here else "Build here"
+		b.disabled = here
+	if is_instance_valid(_status):
+		_status.text = "Now building on %s." % pack.title() if pack else ""
 	if pack == null:
 		_current.add_child(_label("No real site yet: you are designing on the open sandbox plot.", false))
 		_current.add_child(_label("To start on a real site, press Build here beside one on the left, or pick one from Real sites on the main menu. Everyone in the session moves to it, and the plot's soil goes to the structural engineer.", true))
