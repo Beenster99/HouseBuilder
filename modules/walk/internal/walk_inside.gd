@@ -1227,7 +1227,7 @@ func use_item(item: Dictionary) -> bool:
 func _use_extra(item: Dictionary, source: String) -> bool:
 	var id := str(item.id)
 	var kits := Modules.bus("kits")
-	if kits and kits.has_method("place_ops"):
+	if kits and kits.has_method("place_ops") and kits.has_method("has_module") and bool(kits.call("has_module", id)):
 		_drop_holding()
 		holding = {"type": "", "module": id, "label": str(item.get("label", id)), "id": "", "rot": 0.0, "opening": false}
 		if is_palette_open():
