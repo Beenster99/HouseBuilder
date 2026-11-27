@@ -280,6 +280,10 @@ func _place_next() -> void:
 	_placing = true
 	_editor.call(op, ENGINEER_GROUP)
 	_placing = false
+	# Flash what the engineer just placed or upsized, for every player.
+	var id := str(op.entry.get("id", "")) if op.has("entry") else str(op.get("id", ""))
+	if id != "" and is_instance_valid(_design) and _design.has_method("pulse"):
+		_design.pulse(PackedStringArray([id]))
 	_place_wait = PLACE_EVERY
 	engineer_placed.emit(_queue.size())
 	if _queue.is_empty():
