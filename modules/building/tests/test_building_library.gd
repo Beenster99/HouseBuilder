@@ -45,6 +45,12 @@ func run_tests() -> void:
 	check(BuildingQuantities.room(m, room).capacity == 4, "and counts four workstations in the room")
 	var t := BuildingQuantities.totals(m)
 	check(is_equal_approx(float((t.by_family as Dictionary).get("fixture", 0.0)), 2400.0 + 800.0), "and is costed (%s)" % t.by_family)
+	var sink_id := str(m.apply(C.place_part("sofa", 0, {"at": [1.0, 0.0, 1.0]})).do.entry.id)
+	m.apply(C.set_fields(sink_id, {"w": 3.0, "d": 1.0, "height": 1.5}))
+	var box := m.aabb_of(sink_id)
+	check(is_equal_approx(box.size.x, 3.0) and is_equal_approx(box.size.y, 1.5),
+			"a resized fitting's box follows its own size, not the catalog's (%s)" % box)
+	m.apply(C.delete([sink_id]))
 	var copy := BuildingModel.from_data(m.to_data(), cat)
 	check(copy != null and copy.to_data() == m.to_data(), "library parts save and load")
 	var plain := BuildingModel.from_data(m.to_data(), BuildingCatalog.from_data(BuildingCatalog.DATA_SCRIPT.DATA))

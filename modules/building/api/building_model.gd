@@ -869,9 +869,10 @@ func aabb_of(part_id: String) -> AABB:
 					box = box.expand(Vector3(float(q[0]), pts[0].y, float(q[1])))
 				box.size.y = part_height(part_id)
 			elif fam == "fixture":
-				var r := maxf(float(spec.get("w", 0.5)), float(spec.get("d", 0.5))) * 0.5
+				# A fitting resized in place keeps its own w, d and height on the part.
+				var r := maxf(float(e.get("w", spec.get("w", 0.5))), float(e.get("d", spec.get("d", 0.5)))) * 0.5
 				box = box.grow(r)
-				box.size.y = float(spec.get("h", 1.0))
+				box.size.y = float(e.get("height", spec.get("h", 1.0)))
 				box.position.y = pts[0].y
 			else:
 				box = box.grow(half)
