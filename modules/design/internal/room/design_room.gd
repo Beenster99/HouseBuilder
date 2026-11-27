@@ -34,6 +34,8 @@ var camera: Camera3D
 var hud: Control
 var _grid_mesh: MeshInstance3D
 var _ghost: MeshInstance3D
+## The live size of what is being drawn: width x length and area.
+var ghost_dims: Label3D
 var _crew_marks: Node3D
 var _marks: Dictionary = {}  # peer -> {root, line, label}
 var _ghost_mats: Dictionary = {}
@@ -93,6 +95,19 @@ func _ready() -> void:
 	_ghost.mesh = ImmediateMesh.new()
 	_ghost.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	add_child(_ghost)
+	# Live size while a room or slab is dragged out or reshaped.
+	ghost_dims = Label3D.new()
+	ghost_dims.name = "GhostDims"
+	ghost_dims.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	ghost_dims.no_depth_test = true
+	ghost_dims.fixed_size = true
+	ghost_dims.pixel_size = 0.0013
+	ghost_dims.font_size = 30
+	ghost_dims.outline_size = 10
+	ghost_dims.outline_modulate = Color(1, 1, 1, 0.9)
+	ghost_dims.modulate = Color(0.1, 0.2, 0.45)
+	ghost_dims.visible = false
+	add_child(ghost_dims)
 	hud = DesignHud.new()
 	hud.room = self
 	var layer := CanvasLayer.new()
@@ -465,6 +480,7 @@ func _draw_ghost() -> void:
 	var y := session.floor_y() + 0.06
 	var mat := _ghost_mat(MINE)
 	_draw_handles(im, y + 0.02)
+	ghost_dims.visible = false
 	match str(pv.get("kind", "")):
 		"line":
 			_ghost_lines(im, mat, [pv.a, pv.b], y)
@@ -472,6 +488,9 @@ func _draw_ghost() -> void:
 			var a: Vector3 = pv.a
 			var b: Vector3 = pv.b
 			_ghost_lines(im, mat, [a, Vector3(b.x, 0, a.z), b, Vector3(a.x, 0, b.z), a], y)
+			var w := absf(b.x - a.x)
+			var d := absf(b.z - a.z)
+			_show_dims((a + b) * 0.5, y, "%.2f × %.2f m\n%.1f m²" % [w, d, w * d])
 		"point":
 			var p: Vector3 = pv.at
 			_ghost_lines(im, mat, [p + Vector3(-0.3, 0, 0), p + Vector3(0.3, 0, 0)], y)
@@ -500,6 +519,16 @@ func _draw_ghost() -> void:
 				pts.append(Vector3(v.x, 0, v.y))
 			pts.append(pts[0])
 			_ghost_lines(im, mat, pts, y)
+			var outline: Array = []
+			var c := Vector3.ZERO
+			for v: Vector2 in pv.outline:
+				outline.append([v.x, v.y])
+				c += Vector3(v.x, 0, v.y)
+			var bb := AABB(pts[0], Vector3.ZERO)
+			for q: Vector3 in pts:
+				bb = bb.expand(q)
+			_show_dims(c / maxf(1.0, float(outline.size())), y, "%.2f × %.2f m\n%.1f m²" % [bb.size.x, bb.size.z,
+					BuildingModel.outline_area(outline)])
 		"move":
 			var by: Vector3 = pv.by
 			for id: String in pv.ids:
@@ -508,6 +537,12 @@ func _draw_ghost() -> void:
 				var lo := box.position
 				var hi := box.end
 				_ghost_lines(im, mat, [lo, Vector3(hi.x, 0, lo.z), Vector3(hi.x, 0, hi.z), Vector3(lo.x, 0, hi.z), lo], y)
+
+
+func _show_dims(at: Vector3, y: float, text: String) -> void:
+	ghost_dims.text = text
+	ghost_dims.position = Vector3(at.x, y + 0.3, at.z)
+	ghost_dims.visible = true
 
 
 ## Handles on the selected room: squares on its corners, small crosses on its edges' middles.
@@ -613,10 +648,12 @@ func _unhandled_input(event: InputEvent) -> void:
 		if mb.button_index == MOUSE_BUTTON_RIGHT:
 			var busy := session.anchor != null or not session.drag.is_empty() or not session.shape.is_empty() or stamping()
 			if mb.pressed:
-				_right_from = null if busy else mb.position
-				if busy:
+				_right_from = null if busy or session.tool != "select" else mb.position
+				if busy or session.tool != "select":
+					# A right-click drops what's half done and goes back to Select.
 					session.cancel()
 					end_stamp()
+					session.set_tool("select")
 					get_viewport().set_input_as_handled()
 					return
 			elif _right_from != null and (mb.position - (_right_from as Vector2)).length() < TAP_SLOP:

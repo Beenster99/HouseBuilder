@@ -75,6 +75,17 @@ func run_tests() -> void:
 	s.hover(Vector3(mid.x, 0, mid.y - 1.0))
 	s.release(Vector3(mid.x, 0, mid.y - 1.0))
 	check((model.rooms[rid].outline as Array).size() == n + 1, "dragging an edge's middle adds a corner")
+	var at_new := Vector2(mid.x, mid.y - 1.0)
+	var ends := 0
+	var walls := 0
+	for pid: String in model.parts:
+		var e: Dictionary = model.parts[pid]
+		if model.catalog.family_of(str(e.kind)) == "wall":
+			walls += 1
+			for k: String in ["a", "b"]:
+				if Vector2(float(e[k][0]), float(e[k][2])).distance_to(at_new) < 0.01:
+					ends += 1
+	check(ends == 2, "the wall along that edge bends at the new corner (split in two): %d ends there, %d walls" % [ends, walls])
 	check(s.remove_corner(1), "and a corner can be taken away")
 	check((model.rooms[rid].outline as Array).size() == n, "back to %d corners" % n)
 
@@ -93,6 +104,28 @@ func run_tests() -> void:
 	s.press(Vector3(30, 0, 30))
 	s.release(Vector3(30, 0, 30))
 	check(s.presence.my_selection().is_empty(), "a click on empty floor clears it")
+	# A right-click goes back to Select from any tool.
+	s.set_tool("wall")
+	var rc := InputEventMouseButton.new()
+	rc.button_index = MOUSE_BUTTON_RIGHT
+	rc.pressed = true
+	rc.position = Vector2(700, 500)
+	room.call("_unhandled_input", rc)
+	rc = rc.duplicate() as InputEventMouseButton
+	rc.pressed = false
+	room.call("_unhandled_input", rc)
+	check(s.tool == "select", "a right-click goes back to Select")
+	# Dragging out a room shows its size live.
+	s.use_room_type("bedroom")
+	s.press(Vector3(40, 0, 40))
+	s.hover(Vector3(43, 0, 42))
+	room.call("_draw_ghost")
+	var dims: Label3D = room.get("ghost_dims")
+	check(dims.visible and dims.text.contains("3.00 × 2.00") and dims.text.contains("6.0 m²"), "dragging a room shows its size live: %s" % dims.text.replace("\n", " "))
+	s.cancel()
+	s.set_tool("select")
+	room.call("_draw_ghost")
+	check(not dims.visible, "and hides it after")
 	# Shift+drag on empty floor draws a box that selects all inside it.
 	var whole := (room.get("hud") as Node).get("mini") as DesignMiniWorld
 	var bb := whole.bounds()

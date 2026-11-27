@@ -894,32 +894,81 @@ func _end_shape() -> void:
 	var base: Array[Vector2] = shape.base
 	var out: Array[Vector2] = shape.outline
 	var mode := str(shape.mode)
+	var shape_i := int(shape.i)
 	shape = {}
 	presence.unlock(PackedStringArray([rid]))
 	preview_changed.emit()
 	if out == base or absf(_area2(out)) < 0.25:
 		return
 	var ops: Array = [C.set_fields(rid, {"outline": _outline_data(out)})]
-	# Walls that end on a corner that moved follow it.
-	var moved := {}  # old corner -> new
-	if mode != "mid":
-		for j in base.size():
-			if not base[j].is_equal_approx(out[j]):
-				moved[base[j]] = out[j]
+	ops.append_array(_walls_follow(base, out, mode, int(shape_i)))
+	sync.edit(C.batch(ops) if ops.size() > 1 else ops[0])
+
+
+## The edits that make the walls along a room's outline follow its new shape: a wall lying on
+## an old edge keeps its place along that edge (ends on corners follow the corners), and when a
+## corner is added mid-edge, a wall across that point is split in two at the new corner.
+func _walls_follow(base: Array[Vector2], out: Array[Vector2], mode: String, i: int) -> Array:
+	var ops: Array = []
+	var n := base.size()
 	for pid in model.parts_on(level):
 		var e: Dictionary = model.parts[pid]
-		if catalog.family_of(str(e.kind)) != "wall":
+		if catalog.family_of(str(e.kind)) != "wall" or not e.has("a") or not e.has("b"):
 			continue
-		var fields := {}
-		for end: String in ["a", "b"]:
-			var p2 := Vector2(float(e[end][0]), float(e[end][2]))
-			for old: Vector2 in moved:
-				if p2.distance_to(old) < 0.01:
-					var q: Vector2 = moved[old]
-					fields[end] = [q.x, float(e[end][1]), q.y]
-		if not fields.is_empty() and presence.may_edit(pid):
-			ops.append(C.set_fields(pid, fields))
-	sync.edit(C.batch(ops) if ops.size() > 1 else ops[0])
+		var pa := Vector2(float(e.a[0]), float(e.a[2]))
+		var pb := Vector2(float(e.b[0]), float(e.b[2]))
+		var edge := -1
+		var ta := 0.0
+		var tb := 0.0
+		for j in n:
+			var a := base[j]
+			var b := base[(j + 1) % n]
+			var len2 := a.distance_squared_to(b)
+			if len2 < 0.0001:
+				continue
+			var t1 := (pa - a).dot(b - a) / len2
+			var t2 := (pb - a).dot(b - a) / len2
+			if t1 < -0.001 or t1 > 1.001 or t2 < -0.001 or t2 > 1.001:
+				continue
+			if pa.distance_to(a.lerp(b, t1)) > 0.02 or pb.distance_to(a.lerp(b, t2)) > 0.02:
+				continue
+			edge = j
+			ta = clampf(t1, 0.0, 1.0)
+			tb = clampf(t2, 0.0, 1.0)
+			break
+		if edge < 0 or not presence.may_edit(pid):
+			continue
+		var ya := float(e.a[1])
+		var yb := float(e.b[1])
+		if mode == "mid" and edge == i:
+			# The edge is now base[i] -> M -> base[i+1].
+			var a := out[i]
+			var m := out[i + 1]
+			var b := out[(i + 2) % out.size()]
+			var at_t := func(t: float) -> Vector2: return a.lerp(m, t * 2.0) if t <= 0.5 else m.lerp(b, t * 2.0 - 1.0)
+			if (ta < 0.5 and tb > 0.5) or (tb < 0.5 and ta > 0.5):
+				# Across the new corner: this wall runs to it, a copy runs on from it.
+				var qa: Vector2 = at_t.call(ta)
+				var qb: Vector2 = at_t.call(tb)
+				ops.append(C.set_fields(pid, {"a": [qa.x, ya, qa.y], "b": [m.x, yb, m.y]}))
+				var copy := e.duplicate(true)
+				copy.erase("id")
+				copy["a"] = [m.x, ya, m.y]
+				copy["b"] = [qb.x, yb, qb.y]
+				ops.append({"op": "add", "table": "parts", "entry": copy})
+			else:
+				var qa: Vector2 = at_t.call(ta)
+				var qb: Vector2 = at_t.call(tb)
+				ops.append(C.set_fields(pid, {"a": [qa.x, ya, qa.y], "b": [qb.x, yb, qb.y]}))
+			continue
+		var j2 := edge
+		if mode == "mid" and edge > i:
+			j2 = edge + 1  # indices after the new corner shift by one
+		var na := out[j2].lerp(out[(j2 + 1) % out.size()], ta)
+		var nb := out[j2].lerp(out[(j2 + 1) % out.size()], tb)
+		if na.distance_to(pa) > 0.001 or nb.distance_to(pb) > 0.001:
+			ops.append(C.set_fields(pid, {"a": [na.x, ya, na.y], "b": [nb.x, yb, nb.y]}))
+	return ops
 
 
 static func _outline2(outline: Array) -> Array[Vector2]:
