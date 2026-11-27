@@ -27,6 +27,7 @@ extends Node
 const T := preload("res://modules/ui/api/terminal_kit.gd")
 const WalkBuild := preload("res://modules/walk/internal/walk_build.gd")
 const WalkEdits := preload("res://modules/walk/internal/walk_edits.gd")
+const WalkPalette := preload("res://modules/walk/internal/walk_palette.gd")
 const C := preload("res://modules/building/api/building_commands.gd")
 
 const LAYER := WalkBuild.LAYER
@@ -77,6 +78,17 @@ var _look: Label
 var _aim_label: Label
 var _palette: PanelContainer
 var _palette_list: VBoxContainer
+## The Tab menu: "objects" or "rooms", the filter text, which groups are open, the item picked
+## for its preview.
+var palette_tab := "objects"
+var palette_filter := ""
+var picked: Dictionary = {}
+var _open_groups: Dictionary = {}
+var _search: LineEdit
+var _preview_box: VBoxContainer
+var _groups_box: VBoxContainer
+var _note := ""
+var _note_until := 0
 var _pitch := 0.0
 var _aim_node: Node3D
 var _me := 1
@@ -101,6 +113,9 @@ func setup(walk_bus: Node, building: BuildingModel, building_sync: BuildingSync,
 	_add_player()
 	_add_hud()
 	model.changed.connect(_on_changed)
+	var design := Modules.bus("design")
+	if design and design.has_signal("palette_changed"):
+		design.connect("palette_changed", _on_palette_changed)
 	spawn(start)
 	if DisplayServer.get_name() != "headless":
 		Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
@@ -108,6 +123,11 @@ func setup(walk_bus: Node, building: BuildingModel, building_sync: BuildingSync,
 
 
 func _exit_tree() -> void:
+	var design := Modules.bus("design")
+	if design and design.has_signal("palette_changed") and design.is_connected("palette_changed", _on_palette_changed):
+		design.disconnect("palette_changed", _on_palette_changed)
+	if _search and is_instance_valid(_search) and not _search.is_inside_tree():
+		_search.free()
 	if model and model.changed.is_connected(_on_changed):
 		model.changed.disconnect(_on_changed)
 	_drop_holding()
@@ -682,7 +702,7 @@ func _process(delta: float) -> void:
 	var lv: Dictionary = model.levels[clampi(int(w.level), 0, model.level_count() - 1)]
 	_where.text = "%s   %s%s" % [str(lv.get("name", "Level %d" % int(w.level))).to_upper(), room_name.to_upper(),
 			"   FLYING" if flying else ""]
-	_aim_label.text = _aim_text()
+	_aim_label.text = _note if Time.get_ticks_msec() < _note_until else _aim_text()
 	if walkers.size() > 1:
 		_where.text += "   %d WALKING" % walkers.size()
 
@@ -720,6 +740,11 @@ static func _axis(neg_x: String, pos_x: String, neg_y: String, pos_y: String) ->
 		if not InputMap.has_action(a):
 			return Vector2.ZERO
 	return Input.get_vector(neg_x, pos_x, neg_y, pos_y)
+
+
+func _on_palette_changed() -> void:
+	if is_palette_open() and edit_id == "":
+		_fill_list()
 
 
 func _on_changed(_op: Dictionary) -> void:
@@ -1047,14 +1072,13 @@ func _add_hud() -> void:
 func _fill_palette() -> void:
 	for c in _palette_list.get_children():
 		_palette_list.remove_child(c)
-		c.queue_free()
+		if c != _search:
+			c.queue_free()
 	if edit_id != "" and model.parts.has(edit_id):
 		_fill_edit()
 	else:
 		edit_id = ""
-		_section("FITTINGS", "fixture")
-		_section("DOORS AND WINDOWS", "opening")
-		_section("COLUMNS", "column")
+		_fill_groups()
 	var row := HBoxContainer.new()
 	for spec: Array in [["UNDO", func() -> void: sync.undo()], ["REDO", func() -> void: sync.redo()]]:
 		var b := T.button(str(spec[0]), false, 16)
@@ -1066,13 +1090,138 @@ func _fill_palette() -> void:
 			+ "Aim at the ceiling: the mouse wheel raises or lowers it.", "body", 14, T.DIM))
 
 
-func _section(title: String, family: String) -> void:
-	_palette_list.add_child(T.label(title, "display_bold", 18, T.ORANGE))
-	for kind in model.catalog.kinds_in(family):
-		var b := T.button(str(model.catalog.kind(kind).get("label", kind)), false, 16)
-		b.name = "Part_" + kind
-		b.pressed.connect(take_new.bind(kind))
-		_palette_list.add_child(b)
+## The Tab menu's lists: OBJECTS or ROOMS, a filter, and the groups (the designer's, when it
+## has them: WalkPalette), each folding open or shut; the preview of the picked item on top,
+## and the sections other modules add (WalkBus.register_tab_section).
+func _fill_groups() -> void:
+	var tabs := HBoxContainer.new()
+	tabs.name = "Tabs"
+	for t: Array in [["objects", "OBJECTS"], ["rooms", "ROOMS"]]:
+		var b := T.button(str(t[1]), palette_tab == t[0], 16, palette_tab == t[0])
+		b.name = "Tab_" + str(t[0])
+		var which: String = t[0]
+		b.pressed.connect(func() -> void:
+			palette_tab = which
+			picked = {}
+			_fill_palette())
+		tabs.add_child(b)
+	_palette_list.add_child(tabs)
+	if _search == null:
+		_search = T.search("Filter: bed, door, kitchen...", func(text: String) -> void:
+			palette_filter = text
+			_fill_list())
+		_search.name = "Filter"
+	_palette_list.add_child(_search)
+	_preview_box = VBoxContainer.new()
+	_preview_box.name = "Preview"
+	_palette_list.add_child(_preview_box)
+	_groups_box = VBoxContainer.new()
+	_groups_box.name = "Groups"
+	_groups_box.add_theme_constant_override("separation", 4)
+	_palette_list.add_child(_groups_box)
+	for sec: Dictionary in bus.call("tab_sections"):
+		var made: Variant = (sec.make as Callable).call(self)
+		if made is Control:
+			_palette_list.add_child(T.label(str(sec.title).to_upper(), "display_bold", 18, T.ORANGE))
+			_palette_list.add_child(made)
+	_fill_preview()
+	_fill_list()
+
+
+## The groups as they stand for the tab and the filter.
+func palette_groups() -> Array:
+	return WalkPalette.filtered(WalkPalette.groups(model.catalog, palette_tab), palette_filter)
+
+
+func _fill_list() -> void:
+	if _groups_box == null:
+		return
+	for c in _groups_box.get_children():
+		_groups_box.remove_child(c)
+		c.queue_free()
+	var all := palette_groups()
+	if all.is_empty():
+		_groups_box.add_child(T.label("Nothing matches \"%s\"." % palette_filter, "body", 14, T.DIM))
+	var here := str(where().room)
+	for g: Dictionary in all:
+		var key := "%s:%s" % [palette_tab, g.id]
+		# Open by default while filtering, else as the player left it (shut at first).
+		var open := palette_filter.strip_edges() != "" or bool(_open_groups.get(key, false))
+		var head := T.button("%s %s   (%d)" % ["▾" if open else "▸", str(g.title).to_upper(), (g.items as Array).size()], false, 16)
+		head.name = "Group_" + str(g.id)
+		head.alignment = HORIZONTAL_ALIGNMENT_LEFT
+		head.pressed.connect(func() -> void:
+			_open_groups[key] = not open
+			_fill_list())
+		_groups_box.add_child(head)
+		if not open:
+			continue
+		for it: Dictionary in g.items:
+			var label := str(it.label)
+			if palette_tab == "rooms" and here != "" and str(model.rooms[here].type) == str(it.id):
+				label += "   (this room)"
+			var b := T.button("    " + label, false, 15, str(picked.get("id", "")) == str(it.id))
+			b.name = "Item_" + str(it.id)
+			b.alignment = HORIZONTAL_ALIGNMENT_LEFT
+			var item := it
+			b.pressed.connect(func() -> void: pick_item(item))
+			_groups_box.add_child(b)
+
+
+## A click on an item: with a preview (WalkBus.set_preview_maker) it shows first, with TAKE;
+## without one it is taken straight away (an object in hand, a room type for this room).
+func pick_item(item: Dictionary) -> void:
+	if bus.call("has_preview") and str(picked.get("id", "")) != str(item.id):
+		picked = item
+		_fill_preview()
+		_fill_list()
+		return
+	use_item(item)
+
+
+## An object in your hands, or the room you're standing in made this type.
+func use_item(item: Dictionary) -> bool:
+	picked = {}
+	var id := str(item.id)
+	if bool(bus.call("take_item", self, item)):
+		return true
+	if palette_tab == "rooms" or model.catalog.has_room_type(id) and not model.catalog.has_kind(id):
+		var rid := str(where().room)
+		if rid == "" or not model.catalog.has_room_type(id):
+			_status("Stand in a room to make it a %s." % str(item.label).to_lower())
+			return false
+		sync.edit(C.retag(rid, id))
+		_fill_palette()
+		return true
+	if not model.catalog.has_kind(id):
+		return false
+	take_new(id)
+	return true
+
+
+func _fill_preview() -> void:
+	if _preview_box == null:
+		return
+	for c in _preview_box.get_children():
+		_preview_box.remove_child(c)
+		c.queue_free()
+	if picked.is_empty():
+		return
+	var view: Variant = bus.call("make_preview", picked)
+	if view is Control:
+		_preview_box.add_child(view)
+	var take := T.button("TAKE  %s" % str(picked.label).to_upper() if palette_tab == "objects" else "MAKE THIS ROOM A %s" % str(picked.label).to_upper(), true, 16)
+	take.name = "Take"
+	var item := picked
+	take.pressed.connect(func() -> void: use_item(item))
+	_preview_box.add_child(take)
+
+
+func _status(text: String) -> void:
+	if _aim_label:
+		_aim_label.text = text
+	_note = text
+	_note_until = Time.get_ticks_msec() + 2500
 
 
 ## E: the aimed part's rows, each a button that steps to the next choice.

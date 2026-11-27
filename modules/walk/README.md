@@ -34,6 +34,18 @@ wheel pushes it away or pulls it towards you a grid step (the walls meeting it s
 and floors on it follow; one undo per run of steps). Aim at a ceiling: the wheel raises or
 lowers it (the storey height). Ctrl+Z / Ctrl+Y.
 
+## Tab menu
+
+OBJECTS and ROOMS tabs, a filter box (every word must match a label, id, tag or group), and
+folding groups. The groups come from `DesignBus.palette_groups(kind)` when the design module
+has it (so the designer and walk-inside show the same ones; `palette_changed` refills),
+else walk's own copy (`internal/walk_palette.gd`). An object goes in your hands; a room type
+makes the room you stand in that type. Hooks for other modules on WalkBus:
+`register_tab_section(id, title, make(view) -> Control, order)`,
+`set_preview_maker(make(item) -> Control)` (a click then previews, TAKE takes),
+`register_taker(id, take(view, item) -> bool)` for items that aren't catalog kinds (a saved
+module).
+
 ## Co-op
 
 `WalkBus.walkers`: peer id -> {name, colour, pos (feet, world m), yaw, aim (Vector3 or null),

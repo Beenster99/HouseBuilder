@@ -49,6 +49,9 @@ var _net: MultiplayerBus
 var _proxies: Dictionary = {}
 var _design: Node = null
 var _lent: Camera3D = null
+var _sections: Dictionary = {}
+var _takers: Dictionary = {}
+var _preview: Callable = Callable()
 
 
 func register_module() -> void:
@@ -175,6 +178,68 @@ func _lend_camera(vp: Viewport) -> void:
 ## The camera lent to the designer's view while walking (null when none).
 func lent_camera() -> Camera3D:
 	return _lent
+
+
+# The Tab menu's hooks: other modules add to walk-inside's Tab menu without walk knowing them.
+#   walk.register_tab_section("modules.saved", "Saved modules", func(view) -> Control: ..., 30)
+#   walk.set_preview_maker(func(item: Dictionary) -> Control: ...)   # an item's turning model and figures
+#   walk.register_taker("modules", func(view, item: Dictionary) -> bool: ...)  # items that aren't catalog kinds
+# The view (WalkInside) gives a section: model, sync, holding, take_new(kind), aim(), where(),
+# use_item(item). Items are {id, label, tags} as in DesignBus.palette_groups.
+
+## Adds a section under the Tab menu's lists. make(view) -> Control each time it is drawn.
+func register_tab_section(id: String, title: String, make: Callable, order: int = 50) -> void:
+	_sections[id] = {"title": title, "make": make, "order": order}
+
+
+func unregister_tab_section(id: String) -> void:
+	_sections.erase(id)
+
+
+## Sections, lowest order first: [{id, title, make, order}].
+func tab_sections() -> Array[Dictionary]:
+	var out: Array[Dictionary] = []
+	for id: String in _sections:
+		var s: Dictionary = _sections[id].duplicate()
+		s["id"] = id
+		out.append(s)
+	out.sort_custom(func(x: Dictionary, y: Dictionary) -> bool: return int(x.order) < int(y.order))
+	return out
+
+
+## make(item) -> Control: the preview shown when an item is picked in the Tab menu (it is then
+## taken with TAKE). An invalid Callable takes items straight away again.
+func set_preview_maker(make: Callable) -> void:
+	_preview = make
+
+
+func has_preview() -> bool:
+	return _preview.is_valid()
+
+
+func make_preview(item: Dictionary) -> Control:
+	if not _preview.is_valid():
+		return null
+	var c: Variant = _preview.call(item)
+	return c if c is Control else null
+
+
+## take(view, item) -> bool: handles items the building catalog doesn't know (a saved module).
+func register_taker(id: String, take: Callable) -> void:
+	_takers[id] = take
+
+
+func unregister_taker(id: String) -> void:
+	_takers.erase(id)
+
+
+## Gives an item to the takers; true if one took it.
+func take_item(view: Node, item: Dictionary) -> bool:
+	for id: String in _takers:
+		var t: Callable = _takers[id]
+		if t.is_valid() and bool(t.call(view, item)):
+			return true
+	return false
 
 
 func is_open() -> bool:

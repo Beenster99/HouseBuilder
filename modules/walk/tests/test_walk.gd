@@ -111,8 +111,19 @@ func run_tests() -> void:
 	v.body.position = Vector3(2.0, 0.95, 4.5)
 	_face(v, Vector3(2.0, 0.0, 2.5))
 	v.toggle_palette()
-	check(v.is_palette_open() and v._palette.find_child("Part_sofa", true, false) != null, "Tab lists the fittings")
-	(v._palette.find_child("Part_sofa", true, false) as Button).pressed.emit()
+	check(v.is_palette_open() and v._palette.find_child("Group_living", true, false) != null
+			and v._palette.find_child("Group_doors", true, false) != null, "Tab lists the objects in groups")
+	check(v._palette.find_child("Item_sofa", true, false) == null, "the groups start folded")
+	(v._palette.find_child("Group_living", true, false) as Button).pressed.emit()
+	check(v._palette.find_child("Item_sofa", true, false) != null, "a group opens to its items")
+	v._search.text = "bath"
+	v._search.text_changed.emit("bath")
+	var names: Array = v.palette_groups().map(func(g: Dictionary) -> String: return str(g.id))
+	check(names == ["bathroom"] and v._palette.find_child("Item_bath", true, false) != null
+			and v._palette.find_child("Item_sofa", true, false) == null, "the filter narrows them, groups open: %s" % [names])
+	v._search.text = ""
+	v._search.text_changed.emit("")
+	(v._palette.find_child("Item_sofa", true, false) as Button).pressed.emit()
 	check(not v.is_palette_open() and str(v.holding.get("type", "")) == "sofa", "a sofa in your hands")
 	await _physics(2)
 	check(v.spot.has("at") and bool(v.spot.ok), "it fits where you aim: %s" % v.spot)
@@ -168,6 +179,58 @@ func run_tests() -> void:
 	check(v.aimed_part() == sofa and v.remove_aimed(), "X removes the part you aim at")
 	await frames(2)
 	check(not model.parts.has(sofa), "the sofa is gone")
+
+	# The ROOMS tab: the room you stand in becomes the type you pick, grouped by category.
+	v.body.position = Vector3(2.0, 0.95, 3.0)
+	await _physics(2)
+	v.toggle_palette()
+	(v._palette.find_child("Tab_rooms", true, false) as Button).pressed.emit()
+	check(v.palette_tab == "rooms" and v._palette.find_child("Group_domestic", true, false) != null, "rooms are grouped by category")
+	v._search.text = "kitchen"
+	v._search.text_changed.emit("kitchen")
+	(v._palette.find_child("Item_kitchen", true, false) as Button).pressed.emit()
+	await frames(1)
+	check(str(model.rooms[room].type) == "kitchen", "picking one makes the room you're in that type")
+	b.sync.undo()
+	await frames(1)
+
+	# Hooks for other modules: a preview before taking, takers for their own items, sections.
+	var previewed: Array = []
+	walk.set_preview_maker(func(item: Dictionary) -> Control:
+		previewed.append(item.id)
+		var l := Label.new()
+		l.name = "PreviewOf_" + str(item.id)
+		return l)
+	var taken: Array = []
+	walk.register_taker("test", func(_view: Node, item: Dictionary) -> bool:
+		if str(item.id).begins_with("module:"):
+			taken.append(item.id)
+			return true
+		return false)
+	walk.register_tab_section("test.modules", "Saved modules", func(view: Node) -> Control:
+		var bt := Button.new()
+		bt.name = "Module_office"
+		bt.pressed.connect(func() -> void: view.call("use_item", {"id": "module:office", "label": "Office", "tags": []}))
+		return bt)
+	(v._palette.find_child("Tab_objects", true, false) as Button).pressed.emit()
+	v._search.text = "sofa"
+	v._search.text_changed.emit("sofa")
+	(v._palette.find_child("Item_sofa", true, false) as Button).pressed.emit()
+	check(previewed == ["sofa"] and v._palette.find_child("PreviewOf_sofa", true, false) != null and v.holding.is_empty(),
+			"with a preview, a click shows it first")
+	(v._palette.find_child("Take", true, false) as Button).pressed.emit()
+	check(str(v.holding.get("type", "")) == "sofa", "and TAKE puts it in your hands")
+	v._drop_holding()
+	v.toggle_palette()
+	(v._palette.find_child("Module_office", true, false) as Button).pressed.emit()
+	check(taken == ["module:office"], "another module's section and taker get their items")
+	v._search.text = ""
+	v._search.text_changed.emit("")
+	if v.is_palette_open():
+		v.toggle_palette()
+	walk.set_preview_maker(Callable())
+	walk.unregister_taker("test")
+	walk.unregister_tab_section("test.modules")
 
 	# Fly: up through the ceiling.
 	v.toggle_fly()
