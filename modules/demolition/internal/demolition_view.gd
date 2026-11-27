@@ -196,7 +196,7 @@ func _rebuild() -> void:
 	_show_result()
 
 
-func _part_material(p: Dictionary) -> StandardMaterial3D:
+func _part_material(p: Dictionary) -> BaseMaterial3D:
 	return ArtStyle.material(str(p.get("material", "")), str(p.get("family", "")))
 
 
@@ -468,7 +468,7 @@ func _refresh_preview() -> void:
 	var hot := _material("__preview")
 	hot.albedo_color = PREVIEW_COLOUR
 	for id: String in _chunks:
-		var mat := hot if doomed.has(id) else _part_material(bus.by_id[id])
+		var mat: BaseMaterial3D = hot if doomed.has(id) else _part_material(bus.by_id[id])
 		for body: RigidBody3D in _chunks[id]:
 			if is_instance_valid(body):
 				(body.get_child(1) as MeshInstance3D).material_override = mat

@@ -205,8 +205,9 @@ const KIND_FAMILY := {"pad": "foundation", "footing": "foundation", "window": "o
 		"door": "opening", "fitout": "fixture", "stairs": "room", "lift": "room", "frame": "column"}
 
 
-func _material(t: Dictionary, ghost: bool) -> StandardMaterial3D:
-	if not ghost and ArtStyle.realistic() and t.stage != "site" and t.stage != "landscape":
+func _material(t: Dictionary, ghost: bool) -> BaseMaterial3D:
+	# Building parts take the game's look (white model or realistic); site work keeps its colours.
+	if not ghost and t.stage != "site" and t.stage != "landscape":
 		var family := str(t.get("family", t.kind))
 		return ArtStyle.material(str(t.get("material", "")), str(KIND_FAMILY.get(family, KIND_FAMILY.get(t.kind, family))))
 	var colour: Color = KIND_COLOURS.get(t.kind, COLOURS.get(t.stage, Color.WHITE))

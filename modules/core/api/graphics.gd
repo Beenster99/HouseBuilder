@@ -177,6 +177,7 @@ func _tune(n: Node) -> void:
 		tune_light(n as Light3D)
 	elif n is Camera3D:
 		tune_camera(n as Camera3D)
+		ArtStyle.apply_to_camera(n as Camera3D)
 
 
 static func apply_environment(we: WorldEnvironment) -> void:
