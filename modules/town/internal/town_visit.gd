@@ -4,6 +4,9 @@ extends Node3D
 ## with its plaque. Orbit round from above, or walk (F) and fly (Q) about at full size.
 ## Buildings with no real site stand alone in the firm's yard.
 ##
+## Walk inside (I) opens the walk module's view-only walk-inside on the building nearest you
+## (a stored copy: nothing can change). Esc there comes back here.
+##
 ## Everyone on the Our work screen comes along (TownBus.visit is a host event); each walker
 ## streams as a mover (TownBus.BODY_MOVER) and shows to the others as a figure in their colour.
 
@@ -244,17 +247,67 @@ func help_text() -> Array:
 	match mode:
 		"walk":
 			return ["WALKING", HelpBar.keys_text([["W A S D", "walk"], ["Shift", "run"], ["Space", "jump"],
-					["Q", "fly"], ["F", "orbit"], ["V", "look"], ["Esc", "orbit"]])]
+					["Q", "fly"], ["F", "orbit"], ["I", "walk inside"], ["V", "look"], ["Esc", "orbit"]])]
 		"fly":
 			return ["FLYING", HelpBar.keys_text([["W A S D", "fly"], ["Space / C", "up / down"], ["Shift", "fast"],
 					["Q", "walk"], ["F", "orbit"], ["V", "look"], ["Esc", "orbit"]])]
 	return ["VISITING", HelpBar.keys_text([["Right drag", "orbit"], ["Middle drag / W A S D", "pan"], ["Wheel", "zoom"],
-			["F", "walk"], ["Q", "fly"], ["V", "look"], ["Esc", "back to the map"]])]
+			["F", "walk"], ["Q", "fly"], ["I", "walk inside"], ["V", "look"], ["Esc", "back to the map"]])]
+
+
+## The building nearest the walker (or the orbit's focus): its record id, "" for none.
+func nearest_building() -> String:
+	var from := body.position if mode != "orbit" else _focus
+	var best := ""
+	var best_d := INF
+	for n: Node3D in find_children("TownBuilding_*", "", true, false):
+		var b: AABB = n.call("bounds")
+		var c := n.global_position + b.get_center() if n.is_inside_tree() else n.position + b.get_center()
+		var d := Vector2(c.x - from.x, c.z - from.z).length()
+		if d < best_d:
+			best_d = d
+			best = str(n.get("record_id"))
+	return best
+
+
+## Walks inside a building (the nearest by default) in the walk module's view mode, on a copy
+## of the stored model: nothing can change. Returns the walk view, or null.
+func walk_inside(rid: String = "") -> Node:
+	var walk := Modules.bus("walk") as WalkBus
+	if rid == "":
+		rid = nearest_building()
+	var model := bus.model_of(rid) if rid != "" else null
+	if walk == null or model == null or walk.is_open():
+		return null
+	set_mode("orbit")
+	var copy := BuildingModel.from_data(model.to_data())
+	# No spawn: walk-inside starts outside the building's front door, facing it.
+	var v := walk.open(copy, self, {}, null, {"mode": "view"})
+	if v and not walk.closed.is_connected(_on_walk_closed):
+		walk.closed.connect(_on_walk_closed, CONNECT_ONE_SHOT)
+	return v
+
+
+func is_walking_inside() -> bool:
+	var walk := Modules.bus("walk") as WalkBus
+	return walk != null and walk.is_open()
+
+
+var _walk_closed_frame := -1
+
+
+func _on_walk_closed() -> void:
+	_walk_closed_frame = Engine.get_process_frames()
 
 
 func _unhandled_input(event: InputEvent) -> void:
+	if is_walking_inside() or Engine.get_process_frames() == _walk_closed_frame:
+		return
 	if event is InputEventKey and event.pressed and not event.echo:
 		match (event as InputEventKey).physical_keycode:
+			KEY_I:
+				walk_inside()
+				get_viewport().set_input_as_handled()
 			KEY_F:
 				set_mode("orbit" if mode != "orbit" else "walk")
 				get_viewport().set_input_as_handled()
@@ -320,7 +373,7 @@ func _move_input() -> Vector2:
 
 
 func _physics_process(delta: float) -> void:
-	if body == null:
+	if body == null or is_walking_inside():
 		return
 	var v := _move_input()
 	var fast := Input.is_physical_key_pressed(KEY_SHIFT)

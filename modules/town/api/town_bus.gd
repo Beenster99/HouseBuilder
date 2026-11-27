@@ -57,6 +57,12 @@ const BODY_MOVER := "player:%d:town"
 ## pack's terrain edge (m inside the radius).
 const NEAR_MARGIN := 20.0
 
+## The record a redevelopment contract taken now will bring down ("" for none).
+func being_redeveloped() -> String:
+	var a: Variant = _contracts.get("active") if _contracts != null and is_instance_valid(_contracts) else null
+	return str((a as Dictionary).get("record_id", "")) if a is Dictionary else ""
+
+
 ## Record id being visited by the crew, "" for none.
 var visiting := ""
 ## peer id -> {name, colour}: who is on the Our work screen.
@@ -194,6 +200,9 @@ func _on_settled(s: Dictionary) -> void:
 		brief = _brief
 	if not brief.is_empty() and str(brief.get("id", "")) != str(s.get("brief_id", brief.get("id", ""))):
 		brief = {}
+	if ContractDemolition.is_demolition(brief):
+		# A demolition job knocks a building down; nothing new is left standing.
+		return
 	var model := source_model
 	if model == null:
 		var b := Modules.bus("building") as BuildingBus

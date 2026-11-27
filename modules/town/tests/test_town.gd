@@ -149,6 +149,15 @@ func _solo_handover() -> void:
 	t.source_model = _sample(0).model
 	c.settled.emit(with_brief)
 	check(t.records().size() == 2 and str(t.records()[1].site_id) == "northstowe-meadow", "the settlement's own brief is used when it has one")
+	var demo: Dictionary = _sample(2).settlement.duplicate()
+	var demo_brief: Dictionary = _sample(2).brief.duplicate()
+	demo_brief["mode"] = "demolish"
+	demo["brief"] = demo_brief
+	c.settled.emit(demo)
+	check(t.records().size() == 2 and ContractDemolition.is_demolition(demo_brief), "a demolition job's handover adds nothing to the town")
+	c.active = {"id": "redev", "mode": "demolish", "record_id": str(t.records()[0].id)}
+	c.active_changed.emit()
+	check(t.being_redeveloped() == str(t.records()[0].id), "a redevelopment job taken marks its building")
 	t.unwatch()
 	c.queue_free()
 	t.queue_free()
@@ -183,6 +192,24 @@ func _screen() -> void:
 		check(absf(body.position.y - g) < 1.5, "walking, the crew stands on the ground (%.2f vs %.2f)" % [body.position.y, g])
 		v.call("set_mode", "fly")
 		check(str(v.get("mode")) == "fly", "and can fly")
+		var walk := Modules.bus("walk") as WalkBus
+		if walk != null:
+			var inside: Node = v.call("walk_inside", rid)
+			await frames(3)
+			check(inside != null and walk.is_open() and str(inside.get("mode")) == "view",
+					"Walk inside opens the walk module's view-only mode on the building")
+			if inside:
+				var copy: BuildingModel = inside.get("model")
+				check(copy != town.model_of(rid) and copy.parts.size() == town.model_of(rid).parts.size(),
+						"on a copy of the stored building")
+				var rev := copy.revision
+				var stored_rev := town.model_of(rid).revision
+				Input.parse_input_event(_key(KEY_X))
+				await frames(2)
+				check(copy.revision == rev and town.model_of(rid).revision == stored_rev, "and nothing in it can change")
+			walk.close()
+			await frames(2)
+			check(not bool(v.call("is_walking_inside")) and screen.get("visit_view") == v, "Esc comes back to the visit")
 	town.leave()
 	await frames(2)
 	check(screen.get("visit_view") == null, "Back to the map")
@@ -248,6 +275,14 @@ func _two_players() -> void:
 	nb.leave()
 	na.leave()
 	Flags.use(saved)
+
+
+func _key(code: Key) -> InputEventKey:
+	var k := InputEventKey.new()
+	k.keycode = code
+	k.physical_keycode = code
+	k.pressed = true
+	return k
 
 
 func _net(node_name: String, player: String) -> MultiplayerBus:

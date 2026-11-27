@@ -150,6 +150,12 @@ func _build_visit_ui() -> void:
 			visit_view.call("set_mode", "walk" if str(visit_view.get("mode")) == "orbit" else "orbit"))
 	walk.tooltip_text = "Walk about at full size, or back to orbiting"
 	row.add_child(walk)
+	var inside := BsxTheme.button("Walk inside (I)", func() -> void:
+		if visit_view:
+			visit_view.call("walk_inside"))
+	inside.name = "WalkInside"
+	inside.tooltip_text = "Walk round inside the nearest building (look only: nothing can change)"
+	row.add_child(inside)
 
 
 func _on_records() -> void:
@@ -191,6 +197,8 @@ func _show_detail() -> void:
 		nearby = bus.on_site(str(r.site_id)).size() - 1
 	if nearby > 0:
 		lines.append("%d more of the firm's buildings on this site." % nearby)
+	if bus.being_redeveloped() == str(r.id):
+		lines.append("[color=#b05a00]Being redeveloped: the crew's contract brings it down.[/color]")
 	if bool(r.get("demolished", false)):
 		lines.append("Demolished %s." % TownRecord.date_text(int(r.demolished_at)))
 	_detail.text = "\n".join(lines)
@@ -229,7 +237,13 @@ func _follow_visit() -> void:
 
 
 func _process(_delta: float) -> void:
+	if visit_view != null and bool(visit_view.call("is_walking_inside")):
+		_visit_layer.visible = false
+		help.visible = false
+		return
+	help.visible = true
 	if visit_view != null:
+		_visit_layer.visible = true
 		var h: Array = visit_view.call("help_text")
 		help.set_help(str(h[0]), str(h[1]))
 	else:
