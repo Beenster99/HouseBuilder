@@ -421,7 +421,9 @@ func _validate_handover(_sender: int, p: Dictionary) -> Variant:
 	var days := int(p.get("days", active.deadline_days))
 	days = ceili(days * effect("schedule_factor", 1.0))
 	var s := ContractPayout.settle(active, a, {"days": days})
-	return {"settlement": s, "seed": board_seed + 1}
+	# The building's later test, judged now while the host has it; the news comes next time.
+	var later := ContractAftercare.judge(active, m) if bool(s.passed) else {}
+	return {"settlement": s, "seed": board_seed + 1, "aftercare": later}
 
 
 func _validate_abandon(_sender: int, _p: Dictionary) -> Variant:
@@ -506,6 +508,18 @@ func _apply_handover(p: Dictionary) -> void:
 		town.call("mark_demolished", str(active.record_id))
 	demolition_result = {}
 	var before := career.tier()
+	# News of the last building's later test arrives with this handover.
+	if not career.aftercare.is_empty():
+		var ev := career.aftercare.duplicate(true)
+		career.aftercare = {}
+		career.record_aftercare(ev)
+		s["aftercare"] = ev
+		var lines: PackedStringArray = PackedStringArray(s.get("lines", []))
+		lines.append(ContractAftercare.text(ev))
+		s["lines"] = lines
+	var later: Variant = p.get("aftercare", {})
+	if later is Dictionary and not (later as Dictionary).is_empty():
+		career.aftercare = (later as Dictionary).duplicate(true)
 	s["unlocked"] = Array(career.record(s))
 	s["tier_up"] = career.tier() if career.tier() > before else 0
 	s["next_unlock"] = career.next_unlock()

@@ -33,6 +33,8 @@ var upgrades: PackedStringArray = []
 var deal_material := ""
 ## Clients the firm has built for: {name: record} (ContractClients).
 var clients: Dictionary = {}
+## The later event waiting on the last building handed over (ContractAftercare), {} for none.
+var aftercare: Dictionary = {}
 
 
 func _init() -> void:
@@ -52,6 +54,24 @@ func record(settlement: Dictionary) -> PackedStringArray:
 	var fresh := _unlock_due()
 	changed.emit()
 	return fresh
+
+
+## Books the news of a later event: the thank-you or the repair bill, and the client's view.
+func record_aftercare(ev: Dictionary) -> void:
+	if ev.is_empty():
+		return
+	if bool(ev.get("ok", false)):
+		money += float(ev.get("bonus", 0.0))
+		xp += maxi(0, int(ev.get("xp", 0)))
+	else:
+		money -= float(ev.get("repair", 0.0))
+		var c := str(ev.get("client", ""))
+		if c != "" and clients.has(c):
+			var r: Dictionary = (clients[c] as Dictionary).duplicate(true)
+			r.standing = maxi(ContractClients.WARY, ContractClients.level(r) - 1)
+			clients[c] = r
+	_unlock_due()
+	changed.emit()
 
 
 ## Books a walk-out against the client.
@@ -147,7 +167,7 @@ static func all_unlocks() -> Array:
 
 func to_data() -> Dictionary:
 	return {"money": money, "xp": xp, "history": history.duplicate(true), "unlocked": Array(unlocked),
-			"upgrades": Array(upgrades), "deal_material": deal_material, "clients": clients.duplicate(true)}
+			"upgrades": Array(upgrades), "deal_material": deal_material, "clients": clients.duplicate(true), "aftercare": aftercare.duplicate(true)}
 
 
 func load_data(data: Dictionary) -> void:
@@ -158,6 +178,7 @@ func load_data(data: Dictionary) -> void:
 	upgrades = PackedStringArray(data.get("upgrades", []))
 	deal_material = str(data.get("deal_material", ""))
 	clients = (data.get("clients", {}) as Dictionary).duplicate(true) if data.get("clients") is Dictionary else {}
+	aftercare = (data.get("aftercare", {}) as Dictionary).duplicate(true) if data.get("aftercare") is Dictionary else {}
 	_unlock_due()
 	changed.emit()
 
