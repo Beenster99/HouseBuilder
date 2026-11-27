@@ -12,7 +12,7 @@ extends RefCounted
 const DATA := {
 	"currency": "GBP",
 	"rates_note": "Approximate UK installed rates, 2025 to 2026, to tune in playtesting.",
-	"families": ["foundation", "column", "beam", "brace", "truss", "slab", "roof", "wall", "opening", "fixture"],
+	"families": ["foundation", "column", "beam", "brace", "truss", "slab", "roof", "wall", "opening", "fixture", "circulation"],
 	"connection_kinds": ["pinned", "fixed", "bearing"],
 
 	# Characteristic values, rounded: density kg/m3, strength MPa (bending for timber,
@@ -195,6 +195,17 @@ const DATA := {
 			"materials": ["glass"], "sections": {}, "rates": {"glass": ["each", 850.0]}},
 		"window_large": {"label": "Large window", "family": "opening", "shape": "opening", "w": 1.800, "h": 1.500, "sill": 0.700,
 			"materials": ["glass"], "sections": {}, "rates": {"glass": ["each", 1400.0]}},
+		# Vertical circulation. A stair is one flight up to the next level (w = width); a lift
+		# serves its level up to top_level (w x d shaft). mass is per part, kg; a lift is
+		# priced each plus per_stop for every level it serves.
+		"stair": {"label": "Stair", "family": "circulation", "shape": "line", "structural": true, "w": 1.0,
+			"materials": ["concrete", "timber", "steel"], "sections": {},
+			"mass": {"concrete": 3500.0, "timber": 450.0, "steel": 1300.0},
+			"rates": {"concrete": ["each", 9000.0], "timber": ["each", 4500.0], "steel": ["each", 12000.0]}},
+		"lift": {"label": "Lift", "family": "circulation", "shape": "point", "structural": false, "w": 2.0, "d": 2.0,
+			"materials": ["steel"], "sections": {}, "per_stop": 8000.0,
+			"mass": {"steel": 6000.0},
+			"rates": {"steel": ["each", 45000.0]}},
 		# Fit-out fixtures (w, d, h footprint in m; capacity counts toward the room)
 		"bed_single": {"label": "Single bed", "family": "fixture", "shape": "point", "w": 0.9, "d": 2.0, "h": 0.5, "capacity": {"sleeps": 1},
 			"materials": ["timber"], "sections": {}, "rates": {"timber": ["each", 350.0]}},

@@ -19,10 +19,14 @@ extends RefCounted
 ## Entries (every entry has a unique "id"; ids never change and are not reused while the
 ## entry exists):
 ##   part:  {id, kind, material, section?, level, name?, ...shape fields}
-##     shape "point"   (columns, pads, piles, fixtures): at = [x, y, z], rot (degrees about y),
-##                     height? (columns; default the level's height), length? (piles, down)
-##     shape "line"    (beams, braces, trusses, walls, strip footings): a = [x, y, z],
-##                     b = [x, y, z], height? (walls; default the level's height)
+##     shape "point"   (columns, pads, piles, fixtures, lifts): at = [x, y, z], rot (degrees
+##                     about y), height? (columns; default the level's height), length? (piles,
+##                     down), w? d? (a lift's shaft footprint), top_level? (a lift: the highest
+##                     level it serves, above its own; default the next one up)
+##     shape "line"    (beams, braces, trusses, walls, strip footings, stairs): a = [x, y, z],
+##                     b = [x, y, z], height? (walls; default the level's height), w? (a
+##                     stair's width). A stair runs from a (foot) to b (head, in plan: its y
+##                     is set to a's) and always rises to the next level up.
 ##     shape "area"    (slabs, rafts, roofs): outline = [[x, z], ...] (3 or more, not
 ##                     self-checked for crossing), y (default 0), pitch? (pitched roofs, degrees)
 ##     shape "opening" (doors, windows): host = a wall part's id, t = distance of the
@@ -71,6 +75,8 @@ const DEFAULT_GRID := 0.25
 ## Shortest line part and smallest area, m and m2.
 const MIN_LENGTH := 0.05
 const MIN_AREA := 0.01
+## Shortest stair flight in plan, m.
+const MIN_STAIR_RUN := 1.0
 const EPS := 0.0001
 
 var id := ""
@@ -360,6 +366,8 @@ func _add_level(op: Dictionary) -> Dictionary:
 		for e: Dictionary in table.values():
 			if e.has("level") and int(e.level) >= index:
 				e["level"] = int(e.level) + 1
+			if e.has("top_level") and int(e.top_level) >= index:
+				e["top_level"] = int(e.top_level) + 1
 	return {"do": {"op": "add_level", "index": index, "height": height, "name": lv.name},
 			"undo": {"op": "remove_level", "index": index}}
 
@@ -371,6 +379,11 @@ func _remove_level(index: int) -> Dictionary:
 		for e: Dictionary in table.values():
 			if e.has("level") and int(e.level) == index:
 				return {}
+			# A lift's top floor, or the floor a top-floor stair climbs to, cannot go.
+			if e.has("top_level") and int(e.top_level) == index:
+				return {}
+			if str(e.get("kind", "")) == "stair" and int(e.level) == index - 1 and index == levels.size() - 1:
+				return {}
 	var lv: Dictionary = levels[index]
 	levels.remove_at(index)
 	_levels_touched = true
@@ -378,6 +391,8 @@ func _remove_level(index: int) -> Dictionary:
 		for e: Dictionary in table.values():
 			if e.has("level") and int(e.level) > index:
 				e["level"] = int(e.level) - 1
+			if e.has("top_level") and int(e.top_level) > index:
+				e["top_level"] = int(e.top_level) - 1
 	return {"do": {"op": "remove_level", "index": index},
 			"undo": {"op": "add_level", "index": index, "height": float(lv.height), "name": str(lv.name)}}
 
@@ -472,16 +487,29 @@ func _norm_part(e: Dictionary) -> Dictionary:
 				return {}
 			out["at"] = at
 			out["rot"] = fposmod(float(e.get("rot", 0.0)), 360.0)
-			for k: String in ["height", "length"]:
+			for k: String in ["height", "length", "w", "d"]:
 				if e.get(k) != null:
 					if float(e[k]) <= EPS:
 						return {}
 					out[k] = float(e[k])
+			if kind == "lift":
+				var top := _int(e.get("top_level", int(out.level) + 1))
+				if top <= int(out.level) or top >= levels.size():
+					return {}
+				out["top_level"] = top
 		"line":
 			var a := _vec(e.get("a"), 3)
 			var b := _vec(e.get("b"), 3)
+			if kind == "stair" and not b.is_empty() and not a.is_empty():
+				b[1] = a[1]
+				if int(out.level) + 1 >= levels.size() or Vector2(a[0], a[2]).distance_to(Vector2(b[0], b[2])) < MIN_STAIR_RUN:
+					return {}
 			if a.is_empty() or b.is_empty() or _v3(a).distance_to(_v3(b)) < MIN_LENGTH:
 				return {}
+			if e.get("w") != null:
+				if float(e.w) <= EPS:
+					return {}
+				out["w"] = float(e.w)
 			out["a"] = a
 			out["b"] = b
 			if e.get("height") != null:
@@ -673,6 +701,11 @@ func part_height(part_id: String) -> float:
 		return 0.0
 	if e.has("height"):
 		return float(e.height)
+	if str(e.kind) == "lift":
+		var top := int(e.top_level)
+		return level_elevation(top) + level_height(top) - level_elevation(int(e.level))
+	if str(e.kind) == "stair":
+		return level_height(int(e.level))
 	var fam := catalog.family_of(str(e.kind))
 	return level_height(level_of(part_id)) if fam in ["column", "wall"] else 0.0
 
@@ -689,13 +722,13 @@ func points_of(part_id: String) -> PackedVector3Array:
 		"point":
 			var base := _v3(e.at) + up
 			out.append(base)
-			if catalog.family_of(str(e.kind)) == "column":
+			if catalog.family_of(str(e.kind)) == "column" or str(e.kind) == "lift":
 				out.append(base + Vector3(0, part_height(part_id), 0))
 			elif str(e.kind) == "pile":
 				out.append(base - Vector3(0, float(e.get("length", catalog.kind("pile").get("length", 10.0))), 0))
 		"line":
 			out.append(_v3(e.a) + up)
-			out.append(_v3(e.b) + up)
+			out.append(_v3(e.b) + up + (Vector3(0, part_height(part_id), 0) if str(e.kind) == "stair" else Vector3.ZERO))
 		"area":
 			for p: Array in e.outline:
 				out.append(Vector3(float(p[0]), float(e.y), float(p[1])) + up)
@@ -726,7 +759,13 @@ func aabb_of(part_id: String) -> AABB:
 	var fam := str(spec.get("family", ""))
 	match str(spec.get("shape", "")):
 		"point":
-			if fam == "fixture":
+			if str(e.kind) == "lift":
+				var fp := footprint(part_id)
+				box = AABB(pts[0], Vector3.ZERO)
+				for q: Array in fp:
+					box = box.expand(Vector3(float(q[0]), pts[0].y, float(q[1])))
+				box.size.y = part_height(part_id)
+			elif fam == "fixture":
 				var r := maxf(float(spec.get("w", 0.5)), float(spec.get("d", 0.5))) * 0.5
 				box = box.grow(r)
 				box.size.y = float(spec.get("h", 1.0))
@@ -737,7 +776,11 @@ func aabb_of(part_id: String) -> AABB:
 					box.position.y = pts[0].y - float(sec.get("d", 0.5))
 					box.size.y = float(sec.get("d", 0.5))
 		"line":
-			if fam == "wall":
+			if str(e.kind) == "stair":
+				box = box.grow(stair_width(part_id) * 0.5)
+				box.position.y = pts[0].y
+				box.size.y = part_height(part_id)
+			elif fam == "wall":
 				box = box.grow(float(sec.get("d", 0.1)) * 0.5)
 				box.position.y = minf(pts[0].y, pts[1].y)
 				box.size.y = absf(pts[0].y - pts[1].y) + part_height(part_id)
@@ -755,6 +798,53 @@ func aabb_of(part_id: String) -> AABB:
 			box.size.y += h
 			box = box.grow(float(catalog.section(str(parts[str(e.host)].get("section", ""))).get("d", 0.1)) * 0.5)
 	return box
+
+
+## A stair's width, m (its own, else the catalog's).
+func stair_width(part_id: String) -> float:
+	var e: Dictionary = parts.get(part_id, {})
+	return float(e.get("w", catalog.kind(str(e.get("kind", ""))).get("w", 1.0)))
+
+
+## The plan outline a part stands on: a lift's shaft or a fixture's footprint (rotated
+## about its point), a stair's flight. [] for other shapes.
+func footprint(part_id: String) -> Array:
+	var e: Dictionary = parts.get(part_id, {})
+	if e.is_empty():
+		return []
+	var spec := catalog.kind(str(e.kind))
+	match str(spec.get("shape", "")):
+		"point":
+			var hw := float(e.get("w", spec.get("w", 0.5))) * 0.5
+			var hd := float(e.get("d", spec.get("d", 0.5))) * 0.5
+			var c := Vector2(float(e.at[0]), float(e.at[2]))
+			var out: Array = []
+			for corner: Vector2 in [Vector2(-hw, -hd), Vector2(hw, -hd), Vector2(hw, hd), Vector2(-hw, hd)]:
+				var p := c + corner.rotated(-deg_to_rad(float(e.get("rot", 0.0))))
+				out.append([p.x, p.y])
+			return out
+		"line":
+			if str(e.kind) != "stair":
+				return []
+			var a := Vector2(float(e.a[0]), float(e.a[2]))
+			var b := Vector2(float(e.b[0]), float(e.b[2]))
+			var side := (b - a).normalized().orthogonal() * stair_width(part_id) * 0.5
+			return [[(a + side).x, (a + side).y], [(b + side).x, (b + side).y], [(b - side).x, (b - side).y], [(a - side).x, (a - side).y]]
+	return []
+
+
+## Holes needed in the floor of a level: lift shafts passing up through it and stairs
+## arriving from the level below. [{id (the part), outline: [[x, z], ...]}], sorted by id.
+func voids_on(index: int) -> Array:
+	var out: Array = []
+	for pid in parts_of_family("circulation"):
+		var e: Dictionary = parts[pid]
+		var lv := int(e.level)
+		var hole := (str(e.kind) == "lift" and lv < index and index <= int(e.top_level)) \
+				or (str(e.kind) == "stair" and lv + 1 == index)
+		if hole:
+			out.append({"id": pid, "outline": footprint(pid)})
+	return out
 
 
 ## Plan area of an outline [[x, z], ...], m2 (always positive).

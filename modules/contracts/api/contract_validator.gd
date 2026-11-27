@@ -161,13 +161,17 @@ static func check(req: Dictionary, ctx: Dictionary) -> Dictionary:
 					for rid in model.rooms_on(lv):
 						if str(model.rooms[rid].type) == "lift_shaft":
 							has_lift = true
+					for pid in model.parts_of_family("circulation"):
+						var p: Dictionary = model.parts[pid]
+						if str(p.kind) == "lift" and int(p.level) <= lv and lv <= int(p.top_level):
+							has_lift = true
 					if not has_lift:
 						missing.append(lv)
 				out.ok = missing.is_empty()
 				out.progress = 1.0 - float(missing.size()) / float(floors.size())
 				out.detail = "A lift reaches every floor." if out.ok else "No lift on %s." % _floor_names(missing)
 				if not out.ok:
-					out.tip = "Stack a lift shaft room in the same place on every floor."
+					out.tip = "Place a lift that runs from the ground floor to the top."
 		"structure":
 			var rep: Dictionary = ctx.report
 			if rep.is_empty():
@@ -270,6 +274,17 @@ static func _exits(req: Dictionary, model: BuildingModel, cat: BuildingCatalog, 
 			if not exits.has(lv):
 				exits[lv] = []
 			(exits[lv] as Array).append(_centre(r.outline))
+	# A stair is a way out on the floor it leaves and the floor it reaches.
+	for pid in model.parts_of_family("circulation"):
+		var st: Dictionary = model.parts[pid]
+		if str(st.kind) != "stair":
+			continue
+		for end: int in 2:
+			var lv := int(st.level) + end
+			var p: Array = st.a if end == 0 else st.b
+			if not exits.has(lv):
+				exits[lv] = []
+			(exits[lv] as Array).append(Vector2(float(p[0]), float(p[2])))
 	var rooms: Array = []
 	for rid in BuildingModel.sort_ids(model.rooms.keys()):
 		if not str(model.rooms[rid].type) in CIRCULATION:

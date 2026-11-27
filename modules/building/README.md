@@ -10,7 +10,7 @@ building through `api/` only.
 | Class | What it is |
 | --- | --- |
 | `BuildingModel` | The building. Read its `parts`, `rooms`, `connections`, `levels`; change it only with `apply(op)`. Signals `changed(op)`, `entry_added/changed/removed(id)`, `levels_changed`, `loaded`; `revision` goes up on every change. Save with `to_data()` / `from_data()` / `save_file()` / `load_file()`; `checksum()` to compare copies. |
-| `BuildingCommands` | Builds ops: `place_part`, `place_opening`, `place_room`, `rect`, `connect_parts`, `move`, `delete`, `retag`, `set_fields`, `add_level`, `set_level`, `remove_level`, `set_design_meta`, `batch`. |
+| `BuildingCommands` | Builds ops: `place_part`, `place_opening`, `place_stair`, `place_lift`, `place_room`, `rect`, `connect_parts`, `move`, `delete`, `retag`, `set_fields`, `add_level`, `set_level`, `remove_level`, `set_design_meta`, `batch`. |
 | `BuildingHistory` | Host-side undo and redo, one stack per player; `commit(op, author, group)` (same group = one undo step, for drags), `undo(author)`, `redo(author)`, `log`. |
 | `BuildingSync` | Shares a model through a `MultiplayerBus`: `bind(net, prefix)`, `edit(op, group)`, `undo()`, `redo()`, `load_design(data)`. Host validates and broadcasts; joiners get a snapshot; claimed entries refuse other players' edits; `desync` signal on checksum mismatch. Unbound, it applies locally. |
 | `BuildingCatalog` | Materials, sections, part kinds, room types, rates. `default_catalog()`, `kind()`, `kinds_in(family)`, `sections_for(kind, material)`, `section()`, `room_type()`, `rate()`. |
@@ -23,8 +23,8 @@ Metres, y up, -Z forward. A part's y values are relative to its level's floor; l
 is at `model.level_elevation(n)`.
 
 ```
-part (shape "point")   {id, kind, material, section?, level, at: [x,y,z], rot, height?, length?}
-part (shape "line")    {id, kind, material, section?, level, a: [x,y,z], b: [x,y,z], height?}
+part (shape "point")   {id, kind, material, section?, level, at: [x,y,z], rot, height?, length?, w?, d?, top_level? (lift)}
+part (shape "line")    {id, kind, material, section?, level, a: [x,y,z], b: [x,y,z], height?, w? (stair)}
 part (shape "area")    {id, kind, material, section?, level, outline: [[x,z],...], y, pitch?}
 part (shape "opening") {id, kind, material, host: wall id, t: centre from the wall's a, w?, h?, sill?}
 room                   {id, type, level, outline: [[x,z],...], name}
@@ -32,7 +32,9 @@ connection             {id, a, b, kind ("pinned" | "fixed" | "bearing"), at?: [x
 ```
 
 Families (`catalog.family_of(kind)`): foundation, column, beam, brace, truss, slab, roof,
-wall, opening, fixture. World-space helpers: `points_of(id)`, `aabb_of(id)`,
+wall, opening, fixture, circulation (`stair`: one flight up to the next level; `lift`: a
+shaft from its level up to `top_level`). World-space helpers: `points_of(id)`, `aabb_of(id)`,
+`footprint(id)`, `voids_on(level)` (holes the floor needs for stairs and lifts),
 `part_height(id)`, `openings_in(wall)`, `connections_of(part)`, `parts_on(level)`,
 `rooms_on(level)`, `parts_of_family(f)`.
 

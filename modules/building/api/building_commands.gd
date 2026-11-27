@@ -24,6 +24,16 @@ static func place_part(kind: String, level: int, geometry: Dictionary, material:
 	return {"op": "add", "table": "parts", "entry": e}
 
 
+## A stair flight on a level, from its foot to its head (in plan), rising to the next level.
+static func place_stair(level: int, foot: Vector3, head: Vector3, material: String = "concrete", width: float = 1.0) -> Dictionary:
+	return place_part("stair", level, {"a": foot, "b": Vector3(head.x, foot.y, head.z), "w": width}, material)
+
+
+## A lift whose w x d shaft is centred on `at`, serving `level` up to `top_level`.
+static func place_lift(level: int, at: Vector3, top_level: int, w: float = 2.0, d: float = 2.0) -> Dictionary:
+	return place_part("lift", level, {"at": at, "top_level": top_level, "w": w, "d": d}, "steel")
+
+
 ## A door or window in a wall, its centre t metres from the wall's a end.
 static func place_opening(kind: String, wall_id: String, t: float, material: String = "") -> Dictionary:
 	var e := {"kind": kind, "host": wall_id, "t": t}

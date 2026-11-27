@@ -56,7 +56,12 @@ static func part(model: BuildingModel, part_id: String) -> Dictionary:
 			var pitch := float(e.get("pitch", spec.get("pitch", 0.0)))
 			out.area = plan / cos(deg_to_rad(pitch)) if pitch > 0.0 else plan
 			out.volume = plan * thick
-	if sec.has("kg_m"):
+	if str(spec.get("shape", "")) == "line" and kind == "stair":
+		out.length = Vector2(float(e.a[0]) - float(e.b[0]), float(e.a[2]) - float(e.b[2])).length()
+		out.area = BuildingModel.outline_area(model.footprint(part_id))
+	if spec.get("mass") is Dictionary:
+		out.mass = float((spec.mass as Dictionary).get(str(e.material), 0.0))
+	elif sec.has("kg_m"):
 		out.mass = float(sec.kg_m) * out.length
 	else:
 		out.mass = out.volume * float(mat.get("density", 0.0))
@@ -76,6 +81,9 @@ static func part(model: BuildingModel, part_id: String) -> Dictionary:
 			_:
 				out.quantity = 1.0
 		out.cost = out.quantity * out.rate
+		if kind == "lift":
+			out["stops"] = int(e.top_level) - int(e.level) + 1
+			out.cost += float(spec.get("per_stop", 0.0)) * int(out.stops)
 	return out
 
 

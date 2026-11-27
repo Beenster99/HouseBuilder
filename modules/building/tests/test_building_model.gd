@@ -16,6 +16,7 @@ func run_tests() -> void:
 	_batch_all_or_nothing()
 	_signals()
 	_meta()
+	_circulation()
 
 
 func _catalog() -> void:
@@ -208,3 +209,36 @@ func _meta() -> void:
 	m.apply(r.undo)
 	check(m.name == "New building" and not m.meta.has("brief"), "and undone")
 	check(m.apply({"op": "set_meta", "fields": {"bad": Vector3.ONE}}).is_empty(), "only plain data goes in metadata")
+
+
+func _circulation() -> void:
+	var m := BuildingModel.new()
+	check(m.apply(C.place_stair(0, Vector3(0, 0, 0), Vector3(4, 0, 0))).is_empty(), "a stair needs a level above")
+	m.apply(C.add_level(3.0))
+	m.apply(C.add_level(3.0))
+	var st := m.apply(C.place_stair(0, Vector3(1, 0, 1), Vector3(5, 2, 1), "concrete", 1.2))
+	check(not st.is_empty(), "a stair goes up from the ground floor")
+	var sid := str(st.do.entry.id)
+	check(float(m.parts[sid].b[1]) == 0.0 and is_equal_approx(m.points_of(sid)[1].y, 3.0), "its head is set level with its foot, and it rises one level")
+	check(m.apply(C.place_stair(0, Vector3(0, 0, 0), Vector3(0.5, 0, 0))).is_empty(), "a flight needs a run of a metre or more")
+	var lift := m.apply(C.place_lift(0, Vector3(8, 0, 8), 2))
+	var lid := str(lift.do.entry.id)
+	check(not lift.is_empty() and is_equal_approx(m.part_height(lid), 9.0), "a lift runs from the ground floor to the top of level 2")
+	check(m.apply(C.place_lift(1, Vector3(8, 0, 8), 1)).is_empty() and m.apply(C.place_lift(0, Vector3(8, 0, 8), 3)).is_empty(),
+			"a lift must reach a level above, and one that exists")
+	var v1 := m.voids_on(1)
+	check(v1.size() == 2 and is_equal_approx(BuildingModel.outline_area(v1[0].outline), 4.8), "level 1's floor has holes for the stair (4 x 1.2) and the lift")
+	check(m.voids_on(2).size() == 1 and m.voids_on(0).is_empty(), "level 2 only for the lift, none on the ground")
+	var q := BuildingQuantities.part(m, lid)
+	check(q.stops == 3 and q.cost == 45000.0 + 3 * 8000.0 and q.mass == 6000.0, "a lift is priced each plus per stop")
+	check(BuildingQuantities.part(m, sid).cost == 9000.0, "a concrete stair costs a flight")
+	var box := m.aabb_of(lid)
+	check(is_equal_approx(box.size.x, 2.0) and is_equal_approx(box.size.y, 9.0), "a lift's box is its shaft, full height")
+	var before := m.to_data()
+	var ins := m.apply(C.add_level(3.0, "Mezzanine", 1))
+	check(int(m.parts[lid].top_level) == 3, "a level inserted in its run makes the lift one stop longer")
+	m.apply(ins.undo)
+	check(m.to_data() == before, "and undoing that puts it back")
+	check(m.apply(C.remove_level(2)).is_empty(), "the lift's top level cannot be removed")
+	m.apply(C.set_fields(lid, {"top_level": 1}))
+	check(m.apply(C.remove_level(1)).is_empty(), "nor one the lift or stair reaches")
