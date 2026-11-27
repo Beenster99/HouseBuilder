@@ -11,6 +11,12 @@ extends Node3D
 const NEIGHBOUR_GROUP := "site_neighbours"
 const PLOT_GROUP := "site_plot_buildings"
 const LIFT := 0.06  # draped things sit this far over the ground
+## Height between flat layers (roads, paths...), m; features in one layer step up by
+## FEATURE_STEP each (a few of them), so crossing roads of different surfaces don't fight.
+const LAYER_GAP := 0.2
+const FEATURE_STEP := 0.015
+## Barriers are thin boxes this thick, so a fence along a building's wall never shares its plane.
+const BARRIER_THICK := 0.08
 
 const C_GROUND := Color(0.5, 0.53, 0.46)
 const C_GRASS := Color(0.42, 0.56, 0.36)
@@ -38,10 +44,12 @@ func build(p: SitePack) -> void:
 	name = "Site_" + p.id()
 	_terrain()
 	_buildings()
-	_lines("roads", C_ROAD, 6.0, LIFT * 2.0)
-	_lines("paths", C_PATH, 2.0, LIFT * 1.5)
-	_lines("railways", Color(0.45, 0.4, 0.38), 3.0, LIFT * 1.5)
+	# Each flat layer at its own height, far enough apart that none share a plane on a slope:
+	# water < roads < railways < paths < the plot outline.
 	_lines("waterways", C_WATER, 3.0, LIFT)
+	_lines("roads", C_ROAD, 6.0, LIFT + LAYER_GAP)
+	_lines("railways", Color(0.45, 0.4, 0.38), 3.0, LIFT + LAYER_GAP * 2.0)
+	_lines("paths", C_PATH, 2.0, LIFT + LAYER_GAP * 3.0)
 	_barriers()
 	_trees()
 	_power_lines()
@@ -196,30 +204,37 @@ func _lines(kind: String, col: Color, default_width: float, lift: float) -> void
 	var st := SurfaceTool.new()
 	st.begin(Mesh.PRIMITIVE_TRIANGLES)
 	var any := false
+	var fi := -1
 	for f: Dictionary in pack.features(kind):
 		if bool(f.get("tunnel", false)) or str(f.get("kind", "")) == "subway":
 			continue
+		fi += 1
+		var own := lift + float(fi % 5) * FEATURE_STEP
 		var w := float(f.get("width_m", default_width)) * 0.5
-		var pts := _densify(_poly(f.line), 4.0)
+		var pts := _densify(_poly(f.line), 2.0)
 		for i in pts.size() - 1:
 			var a := pts[i]
 			var b := pts[i + 1]
 			var side := (b - a).orthogonal().normalized() * w
-			var quad := [a + side, a - side, b - side, b + side]
-			var v3: Array = []
-			for q: Vector2 in quad:
-				v3.append(Vector3(q.x, pack.height_at(q.x, q.y) + lift, q.y))
-			for v in [v3[0], v3[1], v3[2], v3[0], v3[2], v3[3]]:
-				st.set_color(col)
-				st.set_normal(Vector3.UP)
-				st.add_vertex(v)
+			# Two strips either side of the centre line, so a wide road follows the ground
+			# across its width as well as along it.
+			for half: Array in [[a + side, a, b, b + side], [a, a - side, b - side, b]]:
+				var v3: Array = []
+				for q: Vector2 in half:
+					# Neighbouring pieces overlap at bends: alternate them a hair apart.
+					v3.append(Vector3(q.x, pack.height_at(q.x, q.y) + own + float(i % 2) * 0.006, q.y))
+				for v in [v3[0], v3[1], v3[2], v3[0], v3[2], v3[3]]:
+					st.set_normal(Vector3.UP)
+					st.add_vertex(v)
 			any = true
 	if not any:
 		return
 	var mi := MeshInstance3D.new()
 	mi.name = kind.capitalize()
 	mi.mesh = st.commit()
-	mi.material_override = _material(Color.WHITE, true, true)
+	# One plain colour per layer (no vertex colours): where a layer's own pieces overlap,
+	# the same material wins either way, so nothing flickers.
+	mi.material_override = _material(col, false, true)
 	add_child(mi)
 
 
@@ -235,10 +250,23 @@ func _barriers() -> void:
 			var b := pts[i + 1]
 			var ya := pack.height_at(a.x, a.y)
 			var yb := pack.height_at(b.x, b.y)
-			var q := [Vector3(a.x, ya, a.y), Vector3(b.x, yb, b.y), Vector3(b.x, yb + h, b.y), Vector3(a.x, ya + h, a.y)]
-			for v in [q[0], q[1], q[2], q[0], q[2], q[3], q[0], q[2], q[1], q[0], q[3], q[2]]:
-				st.set_color(C_BARRIER)
-				st.add_vertex(v)
+			var off2 := (b - a).orthogonal().normalized() * BARRIER_THICK * 0.5
+			var off := Vector3(off2.x, 0.0, off2.y)
+			var a0 := Vector3(a.x, ya, a.y)
+			var b0 := Vector3(b.x, yb, b.y)
+			var up := Vector3(0, h, 0)
+			# Two faces, a top and the two ends: a thin wall of its own.
+			var quads := [[a0 + off, b0 + off, b0 + off + up, a0 + off + up],
+					[b0 - off, a0 - off, a0 - off + up, b0 - off + up],
+					[a0 + off + up, b0 + off + up, b0 - off + up, a0 - off + up]]
+			if i == 0:
+				quads.append([a0 - off, a0 + off, a0 + off + up, a0 - off + up])
+			if i == pts.size() - 2:
+				quads.append([b0 + off, b0 - off, b0 - off + up, b0 + off + up])
+			for q: Array in quads:
+				for v in [q[0], q[1], q[2], q[0], q[2], q[3]]:
+					st.set_color(C_BARRIER)
+					st.add_vertex(v)
 			any = true
 	if not any:
 		return
@@ -337,15 +365,14 @@ func _plot() -> void:
 		var quad := [a + side, a - side, b - side, b + side]
 		var v3: Array = []
 		for q: Vector2 in quad:
-			v3.append(Vector3(q.x, pack.height_at(q.x, q.y) + LIFT * 3.0, q.y))
+			v3.append(Vector3(q.x, pack.height_at(q.x, q.y) + LIFT + LAYER_GAP * 4.0, q.y))
 		for v in [v3[0], v3[1], v3[2], v3[0], v3[2], v3[3]]:
-			st.set_color(C_PLOT)
 			st.set_normal(Vector3.UP)
 			st.add_vertex(v)
 	var mi := MeshInstance3D.new()
 	mi.name = "PlotOutline"
 	mi.mesh = st.commit()
-	mi.material_override = _material(Color.WHITE, true, true)
+	mi.material_override = _material(C_PLOT, false, true)
 	add_child(mi)
 
 
