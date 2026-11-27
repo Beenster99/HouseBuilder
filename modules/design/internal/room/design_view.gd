@@ -32,6 +32,8 @@ var _voids: Dictionary = {}  # level -> voids_on(level), for one flush
 # The entry being built: batch key -> [verts, normals].
 var _geo: Dictionary = {}
 var _geo_level := 0
+## A model node the entry being built adds (a library asset), or null.
+var _geo_node: Node3D = null
 var _geo_room := false
 var _geo_cell := Vector2i.ZERO
 ## Batches are split into squares this size, m, so an edit remakes only a small mesh.
@@ -109,6 +111,8 @@ func rebuild() -> void:
 	for r: Dictionary in _recs.values():
 		if r.label:
 			(r.label as Node).queue_free()
+		if r.get("node"):
+			(r.node as Node).queue_free()
 	for b: Dictionary in _batches.values():
 		if b.mesh:
 			(b.mesh as Node).queue_free()
@@ -190,6 +194,8 @@ func _drop(id: String) -> void:
 		(_batches[key].ids as Dictionary).erase(id)
 	if r.label:
 		(r.label as Node).queue_free()
+	if r.get("node"):
+		(r.node as Node).queue_free()
 	if str(r.fam) == "slab":
 		(_slabs.get(int(r.level), {}) as Dictionary).erase(id)
 	_recs.erase(id)
@@ -262,6 +268,8 @@ func _apply_visibility() -> void:
 	for r: Dictionary in _recs.values():
 		if r.label:
 			(r.label as Node3D).visible = _visible(int(r.level), bool(r.room))
+		if r.get("node"):
+			(r.node as Node3D).visible = _visible(int(r.level), false)
 	_fade_count = -1
 
 
@@ -285,6 +293,12 @@ func _build(id: String) -> void:
 				_slabs[_geo_level] = {}
 			_slabs[_geo_level][id] = true
 	rec["geo"] = _geo
+	if _geo_node:
+		rec["node"] = _geo_node
+		add_child(_geo_node)
+		_geo_node.visible = _visible(_geo_level, false)
+		_ghost_node(_geo_node)
+		_geo_node = null
 	for key: String in _geo:
 		(_batches[key].ids as Dictionary)[id] = true
 		_dirty_batches[key] = true
@@ -353,6 +367,17 @@ func set_ghost(on: bool) -> void:
 			(mi as MeshInstance3D).transparency = g
 			(mi as MeshInstance3D).cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF if on \
 					else GeometryInstance3D.SHADOW_CASTING_SETTING_ON
+	for r: Dictionary in _recs.values():
+		if r.get("node") and is_instance_valid(r.node):
+			_ghost_node(r.node as Node)
+
+
+## A model node (a library asset) see-through with the rest while the view is a ghost.
+func _ghost_node(n: Node) -> void:
+	for mi: GeometryInstance3D in n.find_children("*", "GeometryInstance3D", true, false):
+		mi.transparency = ghost
+		mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF if ghost > 0.0 \
+				else GeometryInstance3D.SHADOW_CASTING_SETTING_ON
 
 
 ## The arrays the entry being built adds faces of this colour or material to.
@@ -385,6 +410,18 @@ func _part(id: String) -> void:
 				var shaft := Vector3(float(e.get("w", spec.get("w", 2.0))), model.part_height(id), float(e.get("d", spec.get("d", 2.0))))
 				var c: Variant = _colour(id, Color(0.55, 0.6, 0.68, 0.55)) if _tints.has(id) else ArtStyle.material("glass", "opening")
 				_box(at + Vector3(0, shaft.y / 2.0, 0), shaft, rot, c)
+			elif fam == "fixture" and str(spec.get("asset", "")) != "":
+				# A library asset (an airliner, a car, a bed...): its own model at true size,
+				# so it reads on the plan and in 3D as what it is, not a box.
+				var size := Vector3(float(spec.get("w", 0.5)), float(spec.get("h", 0.8)), float(spec.get("d", 0.5)))
+				_geo_node = AssetLibrary.make_kind(kind, {"size": size, "family": "fixture"})
+				_geo_node.name = "Asset_" + id
+				_geo_node.position = at
+				_geo_node.rotation.y = deg_to_rad(float(e.get("rot", 0.0)))
+				if _tints.has(id):
+					# Selected or in someone's hands: a see-through box of their colour round it.
+					var t: Color = _tints[id]
+					_box(at + Vector3(0, size.y / 2.0, 0), size, rot, Color(t.r, t.g, t.b, 0.3))
 			elif fam == "fixture":
 				var size := Vector3(float(spec.get("w", 0.5)), float(spec.get("h", 0.8)), float(spec.get("d", 0.5)))
 				_box(at + Vector3(0, size.y / 2.0, 0), size, rot, colour)

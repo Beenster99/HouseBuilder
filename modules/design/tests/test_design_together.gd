@@ -158,6 +158,27 @@ func run_tests() -> void:
 	check(await _until(func() -> bool: return ma.parts.size() > 5 and ma.checksum() == mb.checksum() and mb.checksum() == mc.checksum()),
 			"a saved design loads for all three, identical")
 
+	# A library asset placed by one player (an airliner, as from walk-inside) reaches the
+	# others and their views draw its model at true size, not a box.
+	var jet := "airport.aircraft.jumbo"
+	var jets := func(m: BuildingModel) -> Array:
+		return m.parts.keys().filter(func(id: String) -> bool: return str(m.parts[id].kind) == jet)
+	if mb.catalog.has_kind(jet):
+		(b.sync as BuildingSync).edit(C.place_part(jet, 0, {"at": [30, 0, 30], "rot": 90}))
+		check(await _until(func() -> bool: return (jets.call(ma) as Array).size() == 1 and (jets.call(mc) as Array).size() == 1),
+				"an airliner Ben places reaches Ana and Cat")
+		var view: Node3D = (load("res://modules/design/internal/room/design_view.gd") as GDScript).new()
+		add_child(view)
+		view.call("bind", ma)
+		await frames(2)
+		var drawn: Node3D = view.find_child("Asset_" + str((jets.call(ma) as Array)[0]), true, false)
+		check(drawn != null and drawn.visible and drawn.find_children("*", "MeshInstance3D", true, false).size() > 1,
+				"and Ana's view draws the airliner's own model")
+		if drawn:
+			check(drawn.position.distance_to(Vector3(30, 0, 30)) < 0.01 and is_equal_approx(drawn.rotation_degrees.y, 90.0),
+					"where Ben put it, turned as he turned it")
+		view.queue_free()
+
 	for p: Dictionary in [c, b, a]:
 		(p.session as DesignSession).teardown()
 		(p.sync as BuildingSync).unbind()
