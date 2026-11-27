@@ -232,6 +232,26 @@ func run_tests() -> void:
 	walk.unregister_taker("test")
 	walk.unregister_tab_section("test.modules")
 
+	# The designer's palette is the source: its groups, plus columns, and groups other modules
+	# add (saved modules) handed to their own pick.
+	var dbus := Modules.bus("design")
+	var picks: Array = []
+	dbus.call("register_palette_group", "objects", "test.saved", "Saved modules", func() -> Array:
+		return [{"id": "m1", "label": "My office module", "tags": PackedStringArray(["module"])}],
+		func(id: String) -> void: picks.append(id), 90)
+	var gids: Array = v.palette_groups().map(func(g: Dictionary) -> String: return str(g.id))
+	check(gids.has("living") and gids.has("columns") and gids.has("test.saved"), "the designer's groups, columns and added groups: %s" % [gids])
+	v.toggle_palette()
+	v._search.text = "office module"
+	v._search.text_changed.emit("office module")
+	(v._palette.find_child("Item_m1", true, false) as Button).pressed.emit()
+	check(picks == ["m1"], "an added group's item goes to its own pick")
+	v._search.text = ""
+	v._search.text_changed.emit("")
+	if v.is_palette_open():
+		v.toggle_palette()
+	dbus.call("unregister_palette_group", "objects", "test.saved")
+
 	# Fly: up through the ceiling.
 	v.toggle_fly()
 	check(v.flying and v.body.collision_mask == 0, "Q flies, through walls")

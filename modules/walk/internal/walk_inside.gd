@@ -455,6 +455,16 @@ func put_down() -> bool:
 	if holding.is_empty() or not spot.has("at"):
 		return false
 	var op := {}
+	if holding.has("module"):
+		var kits := Modules.bus("kits")
+		var at: Vector3 = spot.at
+		var level := WalkEdits.level_at(model, at.y)
+		var ops: Variant = kits.call("place_ops", model, str(holding.module), level, Vector3(at.x, 0.0, at.z), float(holding.rot)) if kits else []
+		if not ops is Array or (ops as Array).is_empty():
+			return false
+		sync.edit(C.batch(ops))
+		_drop_holding()
+		return true
 	if bool(holding.opening):
 		op = WalkEdits.opening_at(model, str(spot.get("wall", "")), spot.at, str(holding.type))
 	elif str(holding.id) == "":
@@ -709,7 +719,7 @@ func _process(delta: float) -> void:
 
 func _aim_text() -> String:
 	if not holding.is_empty():
-		var label := str(model.catalog.kind(str(holding.type)).get("label", holding.type))
+		var label := str(holding.get("label", model.catalog.kind(str(holding.type)).get("label", holding.type)))
 		return "%s   %s\nClick put down   R turn   Right-click or Esc drop" % [label, str(spot.get("why", "Aim at a floor"))]
 	var a := aim()
 	if a.is_empty():
@@ -788,6 +798,8 @@ func _update_spot() -> void:
 	var g := WalkEdits.grid(model)
 	var at := Vector3(WalkEdits.snap(p.x, g), p.y, WalkEdits.snap(p.z, g))
 	spot = {"at": at, "ok": true, "why": "Fits"}
+	if holding.has("module"):
+		return
 	var spec := model.catalog.kind(str(holding.type))
 	var hw := float(spec.get("w", 0.5)) * 0.5
 	var hd := float(spec.get("d", 0.5)) * 0.5
@@ -826,7 +838,7 @@ func _wall_hits(wall_id: String, box: AABB) -> bool:
 
 ## The part in your hands, where it would go: green for a good spot, amber if not.
 func _update_ghost() -> void:
-	var key := "" if holding.is_empty() else "%s/%s" % [holding.type, spot.get("ok", false)]
+	var key := "" if holding.is_empty() else "%s/%s/%s" % [holding.type, holding.get("module", ""), spot.get("ok", false)]
 	if key != _ghost_key:
 		_ghost_key = key
 		if _ghost:
@@ -861,6 +873,12 @@ func _make_ghost() -> Node3D:
 	var g := Node3D.new()
 	g.name = "Ghost"
 	world.add_child(g)
+	if holding.has("module"):
+		var kits := Modules.bus("kits")
+		var made: Variant = kits.call("make_ghost", str(holding.module)) if kits and kits.has_method("make_ghost") else null
+		if made is Node3D:
+			g.add_child(made as Node3D)
+			return g
 	var col := Color(0.35, 1.0, 0.5) if spot.get("ok", false) else Color(1.0, 0.7, 0.2)
 	var m := StandardMaterial3D.new()
 	m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
@@ -1163,7 +1181,8 @@ func _fill_list() -> void:
 			var b := T.button("    " + label, false, 15, str(picked.get("id", "")) == str(it.id))
 			b.name = "Item_" + str(it.id)
 			b.alignment = HORIZONTAL_ALIGNMENT_LEFT
-			var item := it
+			var item: Dictionary = it.duplicate()
+			item["source"] = str(g.get("source", ""))
 			b.pressed.connect(func() -> void: pick_item(item))
 			_groups_box.add_child(b)
 
@@ -1185,6 +1204,9 @@ func use_item(item: Dictionary) -> bool:
 	var id := str(item.id)
 	if bool(bus.call("take_item", self, item)):
 		return true
+	var source := str(item.get("source", ""))
+	if source != "":
+		return _use_extra(item, source)
 	if palette_tab == "rooms" or model.catalog.has_room_type(id) and not model.catalog.has_kind(id):
 		var rid := str(where().room)
 		if rid == "" or not model.catalog.has_room_type(id):
@@ -1197,6 +1219,28 @@ func use_item(item: Dictionary) -> bool:
 		return false
 	take_new(id)
 	return true
+
+
+## An item from a group another module added to the designer's palette (a saved room
+## module): carried and put down here when that module gives place_ops (kits), else handed
+## to the group's own pick.
+func _use_extra(item: Dictionary, source: String) -> bool:
+	var id := str(item.id)
+	var kits := Modules.bus("kits")
+	if kits and kits.has_method("place_ops"):
+		_drop_holding()
+		holding = {"type": "", "module": id, "label": str(item.get("label", id)), "id": "", "rot": 0.0, "opening": false}
+		if is_palette_open():
+			toggle_palette()
+		return true
+	var design := Modules.bus("design")
+	var extra: Dictionary = design.get("palette_extra").get("%s:%s" % [palette_tab, source], {}) if design and "palette_extra" in design else {}
+	if extra.has("pick") and (extra.pick as Callable).is_valid():
+		(extra.pick as Callable).call(id)
+		if is_palette_open():
+			toggle_palette()
+		return true
+	return false
 
 
 func _fill_preview() -> void:

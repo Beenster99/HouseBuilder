@@ -30,7 +30,13 @@ static func groups(catalog: BuildingCatalog, kind: String) -> Array:
 	if design and design.has_method("palette_groups"):
 		var got: Variant = design.call("palette_groups", kind)
 		if got is Array and not (got as Array).is_empty():
-			return got
+			var out: Array = (got as Array).duplicate()
+			# Walk can also stand columns up; the designer draws those with its own tool.
+			if kind == "objects" and not out.any(func(g: Dictionary) -> bool: return str(g.id) == "columns"):
+				for g: Dictionary in own_groups(catalog, kind):
+					if str(g.id) == "columns":
+						out.append(g)
+			return out
 	return own_groups(catalog, kind)
 
 
