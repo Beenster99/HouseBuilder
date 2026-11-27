@@ -8,8 +8,9 @@ extends RefCounted
 ##   for f in fights: print(ZFightScan.describe(f))
 ##
 ## Each result: {a, b: who owns the two surfaces (an entry id from the "entry_id" meta on
-## a parent, else the node path under root), area: m² of overlap, at: a point in it,
-## normal}. Surfaces closer than PLANE_GAP count as one plane: at a camera distance of
+## a parent, else the node path under root), area: m² of overlap summed over every place
+## those two meet, spots: how many triangle pairs that is, biggest: the largest one's m²,
+## at: a point in it, normal}. Surfaces closer than PLANE_GAP count as one plane: at a camera distance of
 ## 50 m a 24-bit depth buffer can't separate much less than that. Fix one by moving or
 ## shrinking a surface (say, a floor finish 5 mm above the slab, or a wall stopping at the
 ## slab's face), not with render priority, which only works for transparent materials.
@@ -63,8 +64,12 @@ static func scan(root: Node, options: Dictionary = {}) -> Array[Dictionary]:
 
 static func describe(f: Dictionary) -> String:
 	var at: Vector3 = f.at
-	return "%s and %s overlap %.2f m² in one plane at (%.2f, %.2f, %.2f), facing %s" % [f.a, f.b, f.area,
-			at.x, at.y, at.z, _dir(f.normal)]
+	var spots := int(f.get("spots", 1))
+	if spots <= 1:
+		return "%s and %s overlap %.2f m² in one plane at (%.2f, %.2f, %.2f), facing %s" % [f.a, f.b, f.area,
+				at.x, at.y, at.z, _dir(f.normal)]
+	return "%s and %s overlap %.2f m² over %d triangle pairs, the biggest %.3f m² at (%.2f, %.2f, %.2f) facing %s" % [f.a, f.b,
+			f.area, spots, float(f.biggest), at.x, at.y, at.z, _dir(f.normal)]
 
 
 ## Triangles of every visible mesh under root, in world space: {n, d, p: PackedVector3Array, owner}.
@@ -239,8 +244,14 @@ static func _compare(tris: Array[Dictionary], list: Array, pairs: Dictionary, se
 		var ob: String = tj.owner
 		var pk := "%s|%s" % [mini_s(oa, ob), maxi_s(oa, ob)]
 		if not pairs.has(pk):
-			pairs[pk] = {"a": mini_s(oa, ob), "b": maxi_s(oa, ob), "area": 0.0, "at": at, "normal": ti.n}
-		pairs[pk].area = float(pairs[pk].area) + area
+			pairs[pk] = {"a": mini_s(oa, ob), "b": maxi_s(oa, ob), "area": 0.0, "at": at, "normal": ti.n, "spots": 0, "biggest": 0.0}
+		var f: Dictionary = pairs[pk]
+		f.area = float(f.area) + area
+		f.spots = int(f.spots) + 1
+		if area > float(f.biggest):
+			f.biggest = area
+			f.at = at
+			f.normal = ti.n
 
 
 ## Only opaque boxes hide what's inside them (a see-through room volume doesn't).
