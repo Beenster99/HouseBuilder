@@ -15,13 +15,13 @@ const BLINK_TIME := 0.14
 ## The head: a skin-coloured ball just over the avatar's own (radius 0.17), with the face
 ## wrapped round its front. SPAN is how much of the head (m) the face canvas covers.
 const HEAD_RADIUS := 0.176
-const SPAN := 0.33
+const SPAN := 0.40
 const HEAD_SHADER := """
 shader_type spatial;
 render_mode cull_back;
 uniform sampler2D face : source_color, filter_linear_mipmap;
 uniform vec4 skin : source_color = vec4(0.96, 0.81, 0.68, 1.0);
-uniform float span = 0.33;
+uniform float span = 0.40;
 uniform float lift = 0.0;
 varying vec3 local_pos;
 void vertex() {

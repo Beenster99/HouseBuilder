@@ -20,6 +20,8 @@ const TEETH := Color("ffffff")
 const CENTRE := Vector2(128, 128)
 const RADIUS := 112.0
 const LINE := 5.0
+const MOUTH_AT := Vector2(128, 160)
+const MOUTH_SCALE := 0.8
 
 ## Draw a plain skin disc behind the features (flat previews; the 3D head has its own skin).
 var plate := false:
@@ -53,24 +55,29 @@ func _init() -> void:
 
 func _draw() -> void:
 	var k := minf(size.x, size.y) / SIZE if size.x > 0.0 and size.y > 0.0 else 1.0
-	draw_set_transform(Vector2((size.x - SIZE * k) * 0.5, (size.y - SIZE * k) * 0.5), 0.0, Vector2(k, k))
+	var off := Vector2((size.x - SIZE * k) * 0.5, (size.y - SIZE * k) * 0.5)
+	draw_set_transform(off, 0.0, Vector2(k, k))
 	if plate:
 		draw_circle(CENTRE, RADIUS, look.skin_colour())
 	if look.freckles:
 		var dot := look.skin_colour().darkened(0.35)
 		for side in [-1.0, 1.0]:
-			for p: Vector2 in [Vector2(52, 150), Vector2(62, 160), Vector2(44, 162), Vector2(58, 140)]:
+			for p: Vector2 in [Vector2(80, 142), Vector2(88, 150), Vector2(74, 152), Vector2(86, 134)]:
 				draw_circle(Vector2(CENTRE.x + side * (CENTRE.x - p.x), p.y), 2.6, dot)
 	if look.beard:
 		_draw_beard()
 	_draw_eyes()
 	_draw_brows()
 	_draw_glasses()
+	# The mouth drawn at MOUTH_SCALE round its own centre (smaller features; beenster, 28 Nov).
+	var m := MOUTH_SCALE
+	draw_set_transform(off + MOUTH_AT * k * (1.0 - m), 0.0, Vector2(k * m, k * m))
 	_draw_mouth()
+	draw_set_transform(off, 0.0, Vector2(k, k))
 	if look.moustache:
 		var c := look.hair_colour_value()
-		var pts := PackedVector2Array([Vector2(100, 168), Vector2(114, 158), Vector2(128, 162),
-				Vector2(142, 158), Vector2(156, 168), Vector2(142, 170), Vector2(128, 167), Vector2(114, 170)])
+		var pts := PackedVector2Array([Vector2(100, 146), Vector2(114, 136), Vector2(128, 140),
+				Vector2(142, 136), Vector2(156, 146), Vector2(142, 148), Vector2(128, 145), Vector2(114, 148)])
 		draw_colored_polygon(pts, c)
 		draw_polyline(_closed(pts), INK, 2.5, true)
 
@@ -91,15 +98,15 @@ func _draw_beard() -> void:
 func _eye_size() -> Vector2:
 	match look.eyes:
 		1:
-			return Vector2(27, 36)
+			return Vector2(18, 24)
 		3:
-			return Vector2(38, 38)
-	return Vector2(33, 33)
+			return Vector2(26, 26)
+	return Vector2(22, 22)
 
 
 func _eye_centre(side: float) -> Vector2:
 	var e := _eye_size()
-	return Vector2(CENTRE.x + side * (e.x - 1.0), 104)
+	return Vector2(CENTRE.x + side * (e.x - 1.0), 114)
 
 
 func _draw_eyes() -> void:
@@ -125,8 +132,8 @@ func _draw_eyes() -> void:
 			continue
 		var eye := _ellipse(c, e, 28)
 		draw_colored_polygon(eye, EYE_WHITE)
-		var pupil_r := 4.5 if mood == FaceStateT.MOOD_SURPRISED else 6.5
-		var reach := Vector2(e.x - pupil_r - 8.0, e.y - pupil_r - 8.0)
+		var pupil_r := 3.5 if mood == FaceStateT.MOOD_SURPRISED else 5.0
+		var reach := Vector2(e.x - pupil_r - 5.0, e.y - pupil_r - 5.0)
 		var p := c + Vector2(gaze.x * reach.x, gaze.y * reach.y) + Vector2(-side * 3.0, 4.0)
 		if not look.sunglasses:
 			draw_circle(p, pupil_r, INK)
@@ -196,7 +203,7 @@ func _draw_glasses() -> void:
 # --- Mouth -----------------------------------------------------------------------------
 
 func _draw_mouth() -> void:
-	var c := Vector2(128, 182)
+	var c := MOUTH_AT
 	var o := float(state.openness)
 	match state.mouth:
 		FaceStateT.MOUTH_CLOSED:
