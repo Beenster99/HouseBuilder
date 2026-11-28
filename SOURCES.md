@@ -24,6 +24,9 @@ Fixes since the copy (worth porting back to BSX Ltd):
 - Graphics.apply_surfaces() no longer sets the surface_detail / surface_normal shader globals,
   which aren't declared here and printed errors.
 - New in core here, not in BSX: ArtStyle and the Graphics "Look" option.
+- Graphics.apply_environment() makes a ProceduralSkyMaterial's ground_bottom_color its
+  ground_horizon_color: Godot's near-black default showed as a dark band wherever the ground
+  mesh stops short of the horizon. BSX's open-air scenes may want the same.
 - Deliberate difference from BSX (not a fix to port): MultiplayerBus.set_avatar_look() /
   avatar_look() / avatar_look_changed and the crew event "crew.look" (suit colour, headgear,
   visor), behind flag `multiplayer.avatar_look`, for modules/faces' talking faces. The crew

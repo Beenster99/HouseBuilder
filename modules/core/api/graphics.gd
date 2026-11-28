@@ -187,6 +187,12 @@ static func apply_environment(we: WorldEnvironment) -> void:
 		env.set_meta("gfx_base", {"exposure": env.tonemap_exposure, "glow": env.glow_intensity})
 	var base: Dictionary = env.get_meta("gfx_base")
 	var gs := GraphicsOptions
+	# A procedural sky's lower half defaults to near-black brown. Wherever the ground mesh
+	# stops short of the horizon (site terrain, the far edge of a ground plane) that showed as
+	# a dark band, so the sky below the horizon is the hazy ground colour all the way down.
+	var sky_mat := env.sky.sky_material as ProceduralSkyMaterial if env.sky else null
+	if sky_mat:
+		sky_mat.ground_bottom_color = sky_mat.ground_horizon_color
 	env.tonemap_mode = [Environment.TONE_MAPPER_ACES, Environment.TONE_MAPPER_AGX,
 			Environment.TONE_MAPPER_FILMIC][int(gs.get_value("tonemap"))]
 	env.tonemap_exposure = float(base["exposure"]) * float(gs.get_value("brightness"))
