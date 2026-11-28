@@ -5,7 +5,7 @@ extends Node
 ## the crew can tell each other apart.
 ##
 ##   var faces := Modules.bus("faces") as FacesBus
-##   faces.look_of(peer_id)          # FaceLook: skin, eyes, brows, hair, extras, suit, headgear
+##   faces.look_of(peer_id)          # FaceLook: skin, eyes, brows, extras, suit
 ##   faces.state_of(peer_id)         # FaceState: mouth shape, openness, mood, muted
 ##   faces.set_local_look(look)      # saved on this machine and shared with the crew
 ##   faces.look_changed / face_changed
@@ -14,8 +14,9 @@ extends Node
 ## game can't hear) and sends only the 2-byte face state, 15 times a second at most and only
 ## while it changes. No audio is recorded, kept or sent. The look is the event "faces.look",
 ## sent on joining and on change, and in the join snapshot. Faces hang on the avatars through
-## MultiplayerBus.avatar_added / avatar_head, and this player's own suit and headgear go to
-## MultiplayerBus.set_avatar_look with the visor off, so the face shows.
+## MultiplayerBus.avatar_added / avatar_head, and this player's own suit colour goes to
+## MultiplayerBus.set_avatar_look with no headgear and no visor: a bare cartoon head with
+## just the features (beenster, 28 Nov: no hats, no face outline).
 ## Face keys (Settings > Key binds, "Face"): happy, sad, surprised, angry for a few seconds,
 ## mute (the mouth stays shut), and the talk key for push-to-talk mode.
 ##
@@ -170,7 +171,7 @@ func publish_look() -> void:
 	_net.request(LOOK_EVENT, {"look": look.to_dict()})
 	if Flags.is_on(FACE_FLAG):
 		_net.set_avatar_look(_net.local_peer_id(), {"suit": look.suit_colour(),
-				"headgear": FaceLook.HEADGEAR_IDS[look.headgear], "visor": false})
+				"headgear": "none", "visor": false})
 
 
 ## A player's look (rolled from their name until theirs arrives).

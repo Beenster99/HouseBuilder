@@ -1,8 +1,8 @@
 extends Node3D
-## A crewmate's talking face, hung on their avatar's head (MultiplayerBus.avatar_head): the
-## drawn face (FaceDrawing) rendered into a small SubViewport and shown on a flat round plate
-## where the helmet's visor is, unshaded so it reads the same in the model look and the
-## realistic one. The look comes from faces.look, the mouth and mood from the player's face
+## A crewmate's talking face, hung on their avatar's head (MultiplayerBus.avatar_head): a
+## bare skin-coloured head (no hat; the suit's headgear is set to none) with the drawn
+## features (FaceDrawing, rendered into a small SubViewport) wrapped round its front. No
+## outline, just the features (beenster, 28 Nov). The look comes from faces.look, the mouth and mood from the player's face
 ## state; blinking, the pupils' wander and the laughing bob are worked out here on each
 ## viewer's machine. The picture is only redrawn when something on it changes.
 
@@ -10,21 +10,41 @@ const FaceDrawing := preload("res://modules/faces/internal/face_drawing.gd")
 const FaceStateT := preload("res://modules/faces/api/face_state.gd")
 const FaceLookT := preload("res://modules/faces/api/face_look.gd")
 
-const PLATE := 0.27
-## In front of the helmet (radius 0.17) and its visor (to 0.18).
-const PLATE_Z := -0.186
 const TEXTURE := 256
 const BLINK_TIME := 0.14
-## Under a hard hat or cap there is no head below the brim, so the face hangs lower (just
-## under the brim) with a skin-coloured head behind it for side views.
-const UNDER_HAT_Y := -0.085
-const UNDER_HAT_PLATE := 0.25
+## The head: a skin-coloured ball just over the avatar's own (radius 0.17), with the face
+## wrapped round its front. SPAN is how much of the head (m) the face canvas covers.
+const HEAD_RADIUS := 0.176
+const SPAN := 0.33
+const HEAD_SHADER := """
+shader_type spatial;
+render_mode cull_back;
+uniform sampler2D face : source_color, filter_linear_mipmap;
+uniform vec4 skin : source_color = vec4(0.96, 0.81, 0.68, 1.0);
+uniform float span = 0.33;
+uniform float lift = 0.0;
+varying vec3 local_pos;
+void vertex() {
+	local_pos = VERTEX;
+}
+void fragment() {
+	// Looking down -Z, like a camera: the canvas's left is the head's right (+X).
+	vec2 uv = vec2(0.5 - local_pos.x / span, 0.5 - (local_pos.y - lift) / span);
+	float inside = step(local_pos.z, 0.0) * step(0.0, uv.x) * step(uv.x, 1.0) * step(0.0, uv.y) * step(uv.y, 1.0);
+	vec4 f = texture(face, clamp(uv, vec2(0.0), vec2(1.0)));
+	float a = f.a * inside;
+	ALBEDO = mix(skin.rgb, f.rgb, a);
+	ROUGHNESS = 0.9;
+	// The features stay crisp in shade, like ink.
+	EMISSION = f.rgb * a * 0.35;
+}
+"""
 
 var peer_id := 0
 var drawing: Control
-var plate: MeshInstance3D
-var skull: MeshInstance3D
-var _plate_y := -0.005
+var head: MeshInstance3D
+var _material: ShaderMaterial
+var _lift := 0.0
 var _viewport: SubViewport
 var _state: FaceState = FaceStateT.new()
 var _override: FaceState = null
@@ -50,49 +70,34 @@ func _init() -> void:
 	drawing = FaceDrawing.new()
 	drawing.size = Vector2(TEXTURE, TEXTURE)
 	_viewport.add_child(drawing)
-	plate = MeshInstance3D.new()
-	plate.name = "Plate"
-	var quad := QuadMesh.new()
-	quad.size = Vector2(PLATE, PLATE)
-	plate.mesh = quad
-	plate.position = Vector3(0, -0.005, PLATE_Z)
-	plate.rotation = Vector3(0, PI, 0)
-	plate.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-	var mat := StandardMaterial3D.new()
-	mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA_SCISSOR
-	mat.alpha_scissor_threshold = 0.5
-	mat.texture_filter = BaseMaterial3D.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
-	plate.material_override = mat
-	add_child(plate)
-	skull = MeshInstance3D.new()
-	skull.name = "Skull"
+	head = MeshInstance3D.new()
+	head.name = "Head"
 	var ball := SphereMesh.new()
-	ball.radius = 0.125
-	ball.height = 0.25
-	skull.mesh = ball
-	skull.position = Vector3(0, UNDER_HAT_Y, -0.05)
-	skull.material_override = StandardMaterial3D.new()
-	skull.visible = false
-	add_child(skull)
+	ball.radius = HEAD_RADIUS
+	ball.height = HEAD_RADIUS * 2.0
+	ball.radial_segments = 48
+	ball.rings = 24
+	head.mesh = ball
+	var shader := Shader.new()
+	shader.code = HEAD_SHADER
+	_material = ShaderMaterial.new()
+	_material.shader = shader
+	_material.set_shader_parameter("span", SPAN)
+	head.material_override = _material
+	add_child(head)
 
 
 func _ready() -> void:
 	_rng.seed = hash(peer_id) + 7
 	_blink_in = _rng.randf_range(1.5, 4.5)
-	(plate.material_override as StandardMaterial3D).albedo_texture = _viewport.get_texture()
+	_material.set_shader_parameter("face", _viewport.get_texture())
 	_redraw()
 
 
 func set_look(look: FaceLook) -> void:
 	drawing.look = look
-	var hat := look != null and (look.headgear == FaceLookT.HARD_HAT or look.headgear == FaceLookT.CAP)
-	_plate_y = UNDER_HAT_Y if hat else -0.005
-	(plate.mesh as QuadMesh).size = Vector2.ONE * (UNDER_HAT_PLATE if hat else PLATE)
-	plate.position.y = _plate_y
-	skull.visible = hat
 	if look != null:
-		(skull.material_override as StandardMaterial3D).albedo_color = look.skin_colour()
+		_material.set_shader_parameter("skin", look.skin_colour())
 	_redraw()
 
 
@@ -112,7 +117,7 @@ func hold_mood(mood: int, seconds: float) -> void:
 	_show()
 
 
-## What the plate shows now.
+## What the face shows now.
 func shown() -> FaceState:
 	return drawing.state
 
@@ -159,8 +164,10 @@ func _process(delta: float) -> void:
 		drawing.gaze = _gaze.snappedf(0.1)
 		_redraw()
 	# Laughing bobs the head.
-	var bob := sin(_time * 22.0) * 0.008 if drawing.state.mouth == FaceStateT.MOUTH_LAUGH else 0.0
-	plate.position.y = _plate_y + bob
+	var bob := sin(_time * 22.0) * 0.006 if drawing.state.mouth == FaceStateT.MOUTH_LAUGH else 0.0
+	if bob != _lift:
+		_lift = bob
+		_material.set_shader_parameter("lift", bob)
 
 
 func _redraw() -> void:

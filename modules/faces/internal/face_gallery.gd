@@ -18,7 +18,6 @@ func _ready() -> void:
 	grid.add_theme_constant_override("v_separation", 4)
 	add_child(grid)
 	var looks: Array[FaceLook] = [FaceLook.new(), FaceLook.random(3), FaceLook.random(11)]
-	looks[0].headgear = FaceLook.NO_HEADGEAR
 	for m in FaceState.MOUTH_COUNT:
 		_cell(grid, looks[0], FaceState.make(m, 10, FaceState.MOOD_LAUGH if m == FaceState.MOUTH_LAUGH else (FaceState.MOOD_SHOUT if m == FaceState.MOUTH_SHOUT else FaceState.MOOD_NEUTRAL)), FaceState.MOUTH_NAMES[m])
 	for md in FaceState.MOOD_NAMES.size():
@@ -33,6 +32,7 @@ func _cell(grid: GridContainer, look: FaceLook, state: FaceState, text: String) 
 	face.custom_minimum_size = Vector2(140, 140)
 	face.look = look
 	face.state = state
+	face.plate = true
 	box.add_child(face)
 	var l := Label.new()
 	l.text = text

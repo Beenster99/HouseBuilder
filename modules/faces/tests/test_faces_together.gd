@@ -39,8 +39,8 @@ func run_tests() -> void:
 	check(await _until(func() -> bool: return fa.look_of(ben).equals(look)), "Ana gets Ben's look")
 	check(fa.view_of(ben).look().equals(look), "and his face is drawn with it")
 	check(await _until(func() -> bool: return na.avatar_look(ben).get("visor") == false), "his visor is off so the face shows")
-	check(Color(na.avatar_look(ben).get("suit", Color.BLACK)).is_equal_approx(look.suit_colour()) and na.avatar_look(ben).get("headgear") == "cap",
-			"and his suit and headgear match: %s" % [na.avatar_look(ben)])
+	check(Color(na.avatar_look(ben).get("suit", Color.BLACK)).is_equal_approx(look.suit_colour()) and na.avatar_look(ben).get("headgear") == "none",
+			"his suit colour matches and he wears no hat: %s" % [na.avatar_look(ben)])
 
 	# Ben talks (a made-up voice, no microphone): Ana sees his mouth open.
 	var voice: Node = fb.voice
@@ -116,9 +116,10 @@ func _pages(faces: FacesBus) -> void:
 	check(page.find_child("Preview", true, false) != null and page.find_child("Random", true, false) != null, "Your avatar page builds")
 	var before: Dictionary = faces.local_look().to_dict()
 	(page.find_child("Random", true, false) as Button).pressed.emit()
-	(page.find_child("Hair", true, false) as OptionButton).item_selected.emit(4)
-	check(faces.local_look().hair == 4, "a pick is saved as your look")
-	check(faces.local_look().to_dict() != before or before.hair == 4, "Random rolls a new look")
+	(page.find_child("Eyes", true, false) as OptionButton).item_selected.emit(3)
+	check(faces.local_look().eyes == 3, "a pick is saved as your look")
+	check(faces.local_look().to_dict() != before or before.eyes == 3, "Random rolls a new look")
+	check(page.find_child("Headgear", true, false) == null and page.find_child("Hair", true, false) == null, "no hats or hair to pick")
 	page.queue_free()
 	var section: Control = faces._voice_section()
 	add_child(section)

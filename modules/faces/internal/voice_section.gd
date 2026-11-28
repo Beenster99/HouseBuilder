@@ -30,6 +30,7 @@ func _ready() -> void:
 	face.name = "Preview"
 	face.faces = faces
 	face.look = faces.local_look() if faces != null else null
+	face.plate = true
 	face.custom_minimum_size = Vector2(96, 96)
 	row.add_child(face)
 

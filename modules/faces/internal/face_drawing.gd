@@ -1,10 +1,12 @@
 extends Control
-## The drawn cartoon face: a flat round plate with bold ink outlines and flat colours, made
-## only of simple shapes drawn in code (no image files), so every part can be recoloured.
-## Layers, back to front: hair, the face disc, freckles, beard, eyes and pupils, brows,
-## glasses, moustache, mouth. Drawn on a SIZE x SIZE canvas, scaled to the control's size.
-## FaceView puts one in a SubViewport on each avatar's helmet; the settings and "Your avatar"
-## pages show one as it is, for the player's own live face.
+## The drawn cartoon face: bold ink outlines and flat colours, made only of simple shapes
+## drawn in code (no image files), so every part can be recoloured. Only the features, on a clear background (the head itself is skin-coloured; beenster,
+## 28 Nov: no outline, no hats, just facial features). Layers, back to front: freckles, beard,
+## eyes and pupils, brows, glasses, moustache, mouth. `plate` adds a plain skin disc behind
+## ## them for flat previews (settings pages, the gallery). Drawn on a SIZE x SIZE canvas, scaled
+## to the control's size. FaceView renders one into a SubViewport and wraps it round the front
+## of a skin-coloured head on each avatar; the settings and "Your avatar" pages show one as it
+## is, for the player's own live face.
 
 const FaceStateT := preload("res://modules/faces/api/face_state.gd")
 const FaceLookT := preload("res://modules/faces/api/face_look.gd")
@@ -19,6 +21,11 @@ const CENTRE := Vector2(128, 128)
 const RADIUS := 112.0
 const LINE := 5.0
 
+## Draw a plain skin disc behind the features (flat previews; the 3D head has its own skin).
+var plate := false:
+	set(v):
+		plate = v
+		queue_redraw()
 var look: FaceLook = FaceLookT.new():
 	set(v):
 		look = v if v != null else FaceLookT.new()
@@ -47,10 +54,8 @@ func _init() -> void:
 func _draw() -> void:
 	var k := minf(size.x, size.y) / SIZE if size.x > 0.0 and size.y > 0.0 else 1.0
 	draw_set_transform(Vector2((size.x - SIZE * k) * 0.5, (size.y - SIZE * k) * 0.5), 0.0, Vector2(k, k))
-	_draw_hair_back()
-	draw_circle(CENTRE, RADIUS, look.skin_colour())
-	draw_arc(CENTRE, RADIUS, 0.0, TAU, 64, INK, LINE, true)
-	_draw_hair_front()
+	if plate:
+		draw_circle(CENTRE, RADIUS, look.skin_colour())
 	if look.freckles:
 		var dot := look.skin_colour().darkened(0.35)
 		for side in [-1.0, 1.0]:
@@ -68,77 +73,6 @@ func _draw() -> void:
 				Vector2(142, 158), Vector2(156, 168), Vector2(142, 170), Vector2(128, 167), Vector2(114, 170)])
 		draw_colored_polygon(pts, c)
 		draw_polyline(_closed(pts), INK, 2.5, true)
-
-
-# --- Hair ------------------------------------------------------------------------------
-
-## How much hair shows: none under a helmet or hard hat, a fringe under a cap.
-func _hair_shown() -> String:
-	if look.hair == FaceLookT.BALD:
-		return ""
-	match look.headgear:
-		FaceLookT.HARD_HAT, FaceLookT.HELMET:
-			return ""
-		FaceLookT.CAP:
-			return "fringe"
-	return "full"
-
-
-func _draw_hair_back() -> void:
-	if _hair_shown() == "full" and look.hair == 3:  # long: falls behind the face
-		var c := look.hair_colour_value()
-		var pts := PackedVector2Array([Vector2(22, 120), Vector2(30, 60), Vector2(128, 10),
-				Vector2(226, 60), Vector2(234, 120), Vector2(240, 220), Vector2(200, 230),
-				Vector2(56, 230), Vector2(16, 220)])
-		draw_colored_polygon(pts, c)
-		draw_polyline(_closed(pts), INK, LINE, true)
-
-
-func _draw_hair_front() -> void:
-	var shown := _hair_shown()
-	if shown == "":
-		return
-	var c := look.hair_colour_value()
-	var pts := PackedVector2Array()
-	if shown == "fringe":
-		pts = _arc_points(CENTRE, RADIUS, PI * 1.12, PI * 1.88, 16)
-		pts.append(Vector2(170, 44))
-		pts.append(Vector2(128, 52))
-		pts.append(Vector2(86, 44))
-	else:
-		match look.hair:
-			1:  # spiky
-				pts = _arc_points(CENTRE, RADIUS, PI * 1.05, PI * 1.95, 2)
-				var spikes := PackedVector2Array()
-				for i in 9:
-					var a := PI * (1.05 + 0.1 * i)
-					spikes.append(CENTRE + Vector2(cos(a), sin(a)) * RADIUS)
-					if i < 8:
-						var m := a + PI * 0.05
-						spikes.append(CENTRE + Vector2(cos(m), sin(m)) * (RADIUS + 26.0))
-				spikes.append(Vector2(200, 62))
-				spikes.append(Vector2(128, 56))
-				spikes.append(Vector2(56, 62))
-				pts = spikes
-			2:  # fringe swept across
-				pts = _arc_points(CENTRE, RADIUS + 4.0, PI * 1.02, PI * 1.98, 20)
-				pts.append(Vector2(214, 96))
-				pts.append(Vector2(150, 68))
-				pts.append(Vector2(60, 84))
-			4:  # curly: a ring of puffs
-				for i in 11:
-					var a := PI * (1.0 + 0.1 * i)
-					var at := CENTRE + Vector2(cos(a), sin(a)) * (RADIUS - 2.0)
-					draw_circle(at, 22.0, c)
-					draw_arc(at, 22.0, 0.0, TAU, 20, INK, 3.0, true)
-				return
-			_:  # short / long front
-				pts = _arc_points(CENTRE, RADIUS + 3.0, PI * 1.03, PI * 1.97, 20)
-				pts.append(Vector2(196, 70))
-				pts.append(Vector2(128, 62))
-				pts.append(Vector2(60, 70))
-	draw_colored_polygon(pts, c)
-	draw_polyline(_closed(pts), INK, LINE, true)
 
 
 func _draw_beard() -> void:
@@ -230,7 +164,7 @@ func _draw_brows() -> void:
 	# Louder talk lifts the brows a little.
 	lift += float(state.openness) * 0.4
 	var e := _eye_size()
-	var c := look.hair_colour_value() if look.hair != FaceLookT.BALD else INK
+	var c := look.hair_colour_value()
 	if c.get_luminance() > 0.6:
 		c = c.darkened(0.45)
 	for side in [-1.0, 1.0]:

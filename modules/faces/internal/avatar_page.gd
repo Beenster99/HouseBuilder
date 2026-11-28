@@ -22,6 +22,7 @@ func _ready() -> void:
 	_face = LiveFace.new()
 	_face.name = "Preview"
 	_face.faces = faces
+	_face.plate = true
 	_face.custom_minimum_size = Vector2(200, 200)
 	left.add_child(_face)
 	_suit = ColorRect.new()
@@ -43,16 +44,13 @@ func _ready() -> void:
 	grid.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	add_child(grid)
 	_picker(grid, "suit", "Suit colour", FaceLook.SUIT_NAMES)
-	_picker(grid, "headgear", "Headgear", FaceLook.HEADGEAR_NAMES)
-	_picker(grid, "headgear_colour", "Headgear colour", FaceLook.HEADGEAR_COLOUR_NAMES)
 	var skins := PackedStringArray()
 	for i in FaceLook.SKINS.size():
 		skins.append("Tone %d" % (i + 1))
 	_picker(grid, "skin", "Skin tone", skins)
 	_picker(grid, "eyes", "Eyes", FaceLook.EYE_NAMES)
 	_picker(grid, "brows", "Eyebrows", FaceLook.BROW_NAMES)
-	_picker(grid, "hair", "Hair", FaceLook.HAIR_NAMES)
-	_picker(grid, "hair_colour", "Hair colour", FaceLook.HAIR_COLOUR_NAMES)
+	_picker(grid, "hair_colour", "Brow and beard colour", FaceLook.HAIR_COLOUR_NAMES)
 	for i in FaceLook.EXTRAS.size():
 		var field: String = FaceLook.EXTRAS[i]
 		grid.add_child(Control.new())
